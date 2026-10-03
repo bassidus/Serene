@@ -2,6 +2,8 @@
 
 Lightweight quality-of-life addon for World of Warcraft Forever. Each feature is small and can be toggled on its own. A feature that is off registers no events, so it costs nothing.
 
+I created this based on other quality-of-life addons, but with the options I regularly use. If you like it, please keep using it, but don't bash me for reinventing the wheel!
+
 ## Usage
 `/serene` Opens or closes the options window
 The minimap icon opens the options when you left-click it and reloads the UI when you right-click it.

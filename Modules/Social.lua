@@ -111,7 +111,7 @@ end
 local function IsKeyword(text)
     text = Clean(text)
     if type(text) ~= "string" then return false end
-    local words = KEYWORDS[ns.Get("whisperInviteKeyword")] or KEYWORDS.inv
+    local words = KEYWORDS[ns.Get("whisperInviteKeyword")] or KEYWORDS.both
     return words[strtrim(text):lower()] or false
 end
 
@@ -267,7 +267,7 @@ ns.RegisterFeature({
         .. "group full, other faction) they get a whisper back saying why.",
 })
 ns.RegisterFeature({
-    key = "whisperInviteKeyword", label = "Invite Keyword", section = SECTION, type = "dropdown", default = "inv",
+    key = "whisperInviteKeyword", label = "Invite Keyword", section = SECTION, type = "dropdown", default = "both",
     requires = "whisperInvite",
     tooltip = "The whisper that gets an invite. Only the word on its own counts, in any letter case.",
     options = function()

@@ -75,18 +75,21 @@ end
 --  Plate pieces
 -------------------------------------------------------------------------------
 local function Create(plate)
+    -- Icon just left of the health bar; the progress on the name's row, as far
+    -- right as the bar goes (the name ends where it starts).
     local q = CreateFrame("Frame", nil, plate.overlay)
-    q:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, 1)
+    q:SetPoint("RIGHT", plate.health, "LEFT", -2, 0)
     q:Hide()
     q.icon = q:CreateTexture(nil, "OVERLAY")
-    q.icon:SetPoint("RIGHT")
+    q.icon:SetAllPoints()
     if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("Crosshair_Quest_64") then
         q.icon:SetAtlas("Crosshair_Quest_64")
     else
         q.icon:SetTexture("Interface\\GossipFrame\\AvailableQuestIcon")
     end
     q.text = q:CreateFontString(nil, "OVERLAY")
-    q.text:SetPoint("RIGHT", q.icon, "LEFT", -1, 0)
+    q.text:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, 3)
+    q.text:SetJustifyH("RIGHT")
     q.text:SetTextColor(QUEST_COLOR[1], QUEST_COLOR[2], QUEST_COLOR[3])
     plate.quest = q
 end
@@ -94,20 +97,8 @@ end
 local function Layout(plate)
     local q = plate.quest
     local size = ns.Get("nameplateFontSize") + 6
-    q.icon:SetSize(size, size)
-    q:SetHeight(size)
+    q:SetSize(size, size)
     NP.SetFont(q.text, -1)
-end
-
--- The name ends where the quest marker starts.
-local function SetNameEnd(plate, shown)
-    plate.name:ClearAllPoints()
-    plate.name:SetPoint("BOTTOMLEFT", plate.health, "TOPLEFT", 0, 3)
-    if shown then
-        plate.name:SetPoint("BOTTOMRIGHT", plate.quest.text, "BOTTOMLEFT", -2, 0)
-    else
-        plate.name:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, 3)
-    end
 end
 
 local function Update(plate)
@@ -115,12 +106,12 @@ local function Update(plate)
     local progress = plate.unit and ns.Enabled("nameplateQuest") and QuestProgress(plate.unit)
     if progress then
         q.text:SetText(progress)
-        q:SetWidth(q.icon:GetWidth() + q.text:GetStringWidth() + 1)
         q:Show()
+        plate.name:SetPoint("BOTTOMRIGHT", q.text, "BOTTOMLEFT", -3, 0)
     else
         q:Hide()
+        plate.name:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, 3)
     end
-    SetNameEnd(plate, progress and true or false)
 end
 
 NP.RegisterModule({
@@ -130,6 +121,7 @@ NP.RegisterModule({
     detach = function(plate)
         if plate.unit then cache[plate.unit] = nil end
         plate.quest:Hide()
+        plate.name:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, 3)
     end,
 })
 

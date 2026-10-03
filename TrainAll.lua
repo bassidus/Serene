@@ -1,0 +1,110 @@
+-------------------------------------------------------------------------------
+--  Train All -- a button next to the trainer's Train button that learns
+--  everything you can afford in one click; hovering it shows how many and
+--  the total cost. Ported from EllesmereUIQoL. Blizzard_TrainerUI loads on
+--  demand, so the button is made when it loads.
+-------------------------------------------------------------------------------
+local _, ns = ...
+
+local button
+
+local function FreeProfessionSlots()
+    if not GetProfessions then return 2 end
+    local a, b = GetProfessions()
+    return 2 - (a and 1 or 0) - (b and 1 or 0)
+end
+
+-- Can service i be bought with this much money and these free slots?
+-- Returns ok, cost, takesProfessionSlot.
+local function Affordable(i, money, slots)
+    local _, kind = GetTrainerServiceInfo(i)
+    if kind ~= "available" then return false end
+    local cost, takesSlot = GetTrainerServiceCost(i)
+    cost = cost or 0
+    -- Only a real boolean: older clients return other numbers in that spot.
+    takesSlot = takesSlot == true
+    if cost > money or (takesSlot and slots <= 0) then return false end
+    return true, cost, takesSlot
+end
+
+local function Summary()
+    local n, total = 0, 0
+    local money, slots = GetMoney(), FreeProfessionSlots()
+    for i = 1, GetNumTrainerServices() do
+        local ok, cost = Affordable(i, money, slots)
+        if ok then n, total = n + 1, total + cost end
+    end
+    return n, total
+end
+
+local function Refresh()
+    if not button then return end
+    if not ns.Enabled("trainAllButton") then
+        button:Hide()
+        return
+    end
+    button:SetEnabled(Summary() > 0)
+    button:Show()
+end
+
+local function TrainAll()
+    local money, slots = GetMoney(), FreeProfessionSlots()
+    -- From the bottom: a purchase reindexes the list, but only the entries
+    -- already passed move, so none is skipped.
+    for i = GetNumTrainerServices(), 1, -1 do
+        local ok, cost, takesSlot = Affordable(i, money, slots)
+        if ok then
+            BuyTrainerService(i)
+            money = money - cost
+            if takesSlot then slots = slots - 1 end
+        end
+    end
+end
+
+local function Create()
+    if button or not (ClassTrainerFrame and ClassTrainerTrainButton) then return end
+    button = CreateFrame("Button", nil, ClassTrainerFrame, "MagicButtonTemplate")
+    button:SetText("Train All")
+    button:SetSize(80, ClassTrainerTrainButton:GetHeight() or 22)
+    button:SetPoint("RIGHT", ClassTrainerTrainButton, "LEFT", -2, 0)
+    button:SetScript("OnClick", TrainAll)
+    button:SetScript("OnEnter", function(self)
+        local n, total = Summary()
+        if n <= 0 then return end
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText(format("Learn %d skill%s for %s", n, n == 1 and "" or "s", ns.CoinString(total)), 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave", GameTooltip_Hide)
+
+    if ClassTrainerFrame_Update then
+        hooksecurefunc("ClassTrainerFrame_Update", Refresh)
+    else
+        local watcher = CreateFrame("Frame")
+        watcher:RegisterEvent("TRAINER_UPDATE")
+        watcher:SetScript("OnEvent", Refresh)
+    end
+    Refresh()
+end
+
+local function Apply()
+    if ns.Enabled("trainAllButton") then
+        local IsLoaded = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded
+        if IsLoaded("Blizzard_TrainerUI") then Create() end
+    end
+    Refresh()
+end
+
+local loader = CreateFrame("Frame")
+loader:RegisterEvent("ADDON_LOADED")
+loader:SetScript("OnEvent", function(self, _, addon)
+    if addon ~= "Blizzard_TrainerUI" then return end
+    self:UnregisterEvent("ADDON_LOADED")
+    if SereneDB and ns.Enabled("trainAllButton") then Create() end
+end)
+
+ns.RegisterFeature({
+    key = "trainAllButton", label = "Train All Button", section = "General", apply = Apply,
+    tooltip = "Adds a Train All button to trainers that learns everything you can afford in one click. "
+        .. "Hover it to see how many skills and the total cost.",
+})

@@ -1,0 +1,55 @@
+## Interface: 16001
+## Title: Serene
+## Notes: Lightweight QoL: quick loot, auto repair, sell junk, delete auto-fill, hide tutorials, short keybind text, action bar range coloring, auto accept summons/res, social filters, thank for buffs, train all, camera zoom, auto accept/turn-in quests, tooltip position/font/content, class colored unit frames, nameplates, /rl.
+## Version: 1.0.0
+## SavedVariables: SereneDB
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+# Libraries (minimap icon)
+Libs\LibStub.lua
+Libs\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0.lua
+
+Core.lua
+Fonts.lua
+
+# Features (listed in this order in /serene and the options window)
+Minimap.lua
+StatsDisplay.lua
+QuickLoot.lua
+LootWarnings.lua
+DeleteConfirm.lua
+AutoRepair.lua
+SellJunk.lua
+TrainAll.lua
+Quests.lua
+AcceptSummon.lua
+AcceptResurrect.lua
+Social.lua
+ThankBuffs.lua
+ActionBarRange.lua
+Keybinds.lua
+HideTutorials.lua
+MovieSkip.lua
+CameraZoom.lua
+TooltipAnchor.lua
+TooltipFont.lua
+TooltipBorder.lua
+TooltipIssueHint.lua
+TooltipContent.lua
+UnitFrameColors.lua
+HideErrors.lua
+Nameplates.lua
+NameplateCast.lua
+NameplateDebuffs.lua
+NameplateQuest.lua
+NameplateLook.lua
+ReloadAlias.lua
+
+# Options pages that are not settings
+Performance.lua
+
+# Options window
+OptionsWidgets.lua
+Options.lua

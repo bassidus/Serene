@@ -4,7 +4,7 @@
 --  The combat log is closed to addons and aura data is secret in combat, so
 --  new auras come from UNIT_AURA and the caster is the aura's sourceUnit: a
 --  buff in combat, or from a player you have no unit for, goes unthanked.
---  Friendly Player Names (NameplateFriendly.lua) gives nearby players one. A
+--  Friendly Player Names (below) gives nearby players one. A
 --  buff whose aura still names no caster is matched to a recent cast of it
 --  seen on a unit. Buffs put back on after a loading screen are not new and
 --  are skipped.
@@ -187,6 +187,60 @@ f:SetScript("OnEvent", function(_, event, ...)
     end
 end)
 
+-------------------------------------------------------------------------------
+--  Friendly Player Names -- Blizzard's friendly player nameplates outside
+--  instances, as name-only, class colored and click-through: they look like
+--  the usual names over players' heads. A plate gives the player a unit,
+--  which is what lets Thank for Buffs see who buffed you. Its own setting:
+--  it works without Thank for Buffs.
+--
+--  Inside instances the plates go off and the game's own overhead names
+--  show. Friendly plates the player turned on are left alone.
+--  SereneDB.friendPlatesSet holds the LOOK values from before Serene turned
+--  the plates on. Nameplate settings cannot change in combat; it waits.
+-------------------------------------------------------------------------------
+local SHOW = "nameplateShowFriendlyPlayers"
+local LOOK = {
+    nameOnly   = "nameplateShowOnlyNameForFriendlyPlayerUnits",
+    classColor = "nameplateUseClassColorForFriendlyPlayerUnitNames",
+}
+
+local plates = CreateFrame("Frame")
+
+local function ClickThrough(on)
+    if C_NamePlate.SetNamePlateFriendlyClickThrough then C_NamePlate.SetNamePlateFriendlyClickThrough(on) end
+end
+
+local function Sync()
+    if InCombatLockdown() then return plates:RegisterEvent("PLAYER_REGEN_ENABLED") end
+    local want = ns.Enabled("friendlyNames") and not IsInInstance()
+    if want and GetCVar(SHOW) ~= "1" then
+        local before = {}
+        for k, cvar in pairs(LOOK) do before[k] = GetCVar(cvar) == "1" and "1" or "0" end
+        SereneDB.friendPlatesSet = before
+        SetCVar(SHOW, "1")
+    elseif not want and SereneDB.friendPlatesSet then
+        SetCVar(SHOW, "0")
+        local before = type(SereneDB.friendPlatesSet) == "table" and SereneDB.friendPlatesSet or {}
+        for k, cvar in pairs(LOOK) do SetCVar(cvar, before[k] == "1" and "1" or "0") end
+        SereneDB.friendPlatesSet = nil
+        ClickThrough(false)
+    end
+    -- Every time: the client may not keep click-through between sessions.
+    if SereneDB.friendPlatesSet then
+        for _, cvar in pairs(LOOK) do SetCVar(cvar, "1") end
+        ClickThrough(true)
+    end
+end
+
+plates:SetScript("OnEvent", function(self, event)
+    if event == "PLAYER_REGEN_ENABLED" then self:UnregisterEvent(event) end
+    Sync()
+end)
+
+-------------------------------------------------------------------------------
+--  Settings (Friendly Player Names sits right under Thank for Buffs)
+-------------------------------------------------------------------------------
 ns.RegisterFeature({
     key = "thankBuffs", label = "Thank for Buffs", section = SECTION,
     apply = function()
@@ -203,7 +257,21 @@ ns.RegisterFeature({
         .. "the Wild, Arcane Intellect, Blessings and the like). Each player is thanked at most once "
         .. "every 90 seconds. Buffs given in combat are not thanked.",
     note = "Only recognizes players with a nameplate or that you target. Turn on Friendly Player Names "
-        .. "under Nameplates to recognize everyone around you.",
+        .. "below to recognize everyone around you.",
+})
+ns.RegisterFeature({
+    key = "friendlyNames", label = "Friendly Player Names", section = SECTION, default = false,
+    apply = function()
+        if ns.Enabled("friendlyNames") then
+            plates:RegisterEvent("PLAYER_ENTERING_WORLD")
+        else
+            plates:UnregisterEvent("PLAYER_ENTERING_WORLD")
+        end
+        Sync()
+    end,
+    tooltip = "Other players' names over their heads as Blizzard's friendly nameplates: name only, class "
+        .. "colored and click-through. Off inside instances.",
+    note = "Lets Thank for Buffs see who buffed you. Works on its own too.",
 })
 ns.RegisterFeature({
     key = "thankBuffEmote", label = "Thank Emote", section = SECTION, type = "dropdown", default = "random",

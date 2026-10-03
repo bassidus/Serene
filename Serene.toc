@@ -44,7 +44,6 @@ Nameplates.lua
 NameplateCast.lua
 NameplateDebuffs.lua
 NameplateQuest.lua
-NameplateFriendly.lua
 NameplateLook.lua
 ReloadAlias.lua
 

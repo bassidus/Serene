@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
---  Tooltip Content -- choose what tooltips show: class, level and faction
---  colors, player titles, guild rank, the unit's target, the health bar,
---  item level and spell/item IDs. Unit logic follows EllesmereUIBlizzardSkin's tooltip
---  post-processor; every value read from a unit is checked for secrecy
---  (12.1 engine) before it is used. Lines are only added or recolored, and
---  re-runs (tooltip refreshes) update in place instead of adding twice.
+--  Tooltip Content -- class, level and faction colors, titles, guild rank,
+--  target, health bar, item level and IDs. Every value read from a unit is
+--  checked for secrecy before use. Lines are only added or recolored, and
+--  tooltip refreshes update them in place instead of adding twice.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

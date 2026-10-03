@@ -1,6 +1,5 @@
 -------------------------------------------------------------------------------
---  Quick Loot -- LOOT_READY registers/unregisters with the toggle so it
---  costs nothing when off. Hold Shift to open the loot window normally.
+--  Quick Loot -- loots every slot when the loot window opens; Shift skips.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -13,10 +12,7 @@ local function Apply()
             lootFrame:SetScript("OnEvent", function()
                 if IsShiftKeyDown() then return end
                 for i = 1, GetNumLootItems() do
-                    local index = i
-                    C_Timer.After(0.05 * index, function()
-                        LootSlot(index)
-                    end)
+                    C_Timer.After(0.05 * i, function() LootSlot(i) end)
                 end
             end)
         end

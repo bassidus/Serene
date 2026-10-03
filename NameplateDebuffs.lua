@@ -1,16 +1,13 @@
 -------------------------------------------------------------------------------
---  Nameplate Debuffs -- debuffs on the enemy (everyone's, or only yours),
---  in a row above the name: icon, cooldown swipe, time left and stacks.
---  Plugs into Nameplates.lua.
+--  Nameplate Debuffs -- a row above the name: icon, swipe, time left, stacks.
 --
---  Built on the 12.1 engine's aura container (as EllesmereUI's AuraKit
---  does): aura data is secret in combat, so the engine reads the auras and
---  fills our icon, cooldown and text regions itself. Every region is styled
---  before it is handed over, since the engine writes to them right away.
---  Each pooled plate owns one container; it is bound to the plate's unit on
+--  Aura data is secret in combat, so the engine's aura container reads the
+--  auras and fills our icon, cooldown and text regions itself. Every region
+--  is styled before it is handed over, since the engine writes to them right
+--  away. Each pooled plate owns one container, bound to the plate's unit on
 --  attach and parked on unit "none" on detach. A container's groups and
---  their filters are fixed once declared, so it holds one group per filter
---  (all casters / only yours) and the unused one is parked at 0 icons.
+--  filters are fixed once declared, so it holds one group per filter (all
+--  casters / only yours) and the unused one is parked at 0 icons.
 -------------------------------------------------------------------------------
 local _, ns = ...
 local NP = ns.NP

@@ -1,9 +1,7 @@
 -------------------------------------------------------------------------------
---  Tooltip Font -- typeface, size and outline for tooltip text. Changes the
---  shared tooltip font objects (header/body/small) instead of restyling
---  every line on every show, so it costs nothing per tooltip. The originals
---  are captured at load and restored exactly when all three settings are
---  back on default.
+--  Tooltip Font -- changes the shared tooltip font objects (header/body/small)
+--  instead of restyling every line on every show. The originals are
+--  captured at load and restored exactly when all settings are on default.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

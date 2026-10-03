@@ -2,11 +2,8 @@
 --  Tooltip Border -- hides the frame around tooltips and sets how see-through
 --  their background is. Border and background share one NineSlice, so to
 --  hide the border the whole NineSlice is faded out (alpha only, never Hide)
---  and a flat background takes its place, colored from the NineSlice's own
---  center so the tooltip keeps its usual tint. Same approach as
---  EllesmereUIBlizzardSkin's tooltip reskin. Opacity scales the background
---  (the NineSlice's center, or the flat one) and leaves the border as is;
---  100% is Blizzard's normal.
+--  and a flat background, tinted like the NineSlice's center, takes its
+--  place. Opacity scales only the background; 100% is Blizzard's normal.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

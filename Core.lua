@@ -1,12 +1,8 @@
 -------------------------------------------------------------------------------
---  Serene
---  Lightweight quality-of-life tools for WoW Forever. Logic ported from
---  EllesmereUI, stripped of its framework dependencies.
---  /serene opens the options window; settings live in SereneDB.
---
+--  Serene -- lightweight quality-of-life tools for WoW Forever.
 --  Core: shared helpers, the feature registry, SavedVariables and /serene.
---  Each feature file calls ns.RegisterFeature with its settings; the options
---  window lists them in TOC order.
+--  Each feature file calls ns.RegisterFeature; the options window lists
+--  them in TOC order.
 -------------------------------------------------------------------------------
 local ADDON, ns = ...
 
@@ -41,7 +37,6 @@ function ns.RegisterPage(name, build)
     ns.pages[#ns.pages + 1] = { name = name, build = build }
 end
 
--- Reads a setting, falling back to its registered default.
 function ns.Get(key)
     local v = SereneDB and SereneDB[key]
     if v ~= nil then return v end
@@ -54,7 +49,7 @@ function ns.Enabled(key)
 end
 
 -- The one write path: stores the value, applies the feature and refreshes
--- the options window, so chat toggles and the window never disagree.
+-- the options window.
 function ns.SetValue(key, value)
     SereneDB[key] = value
     local f = ns.featureByKey[key]
@@ -118,6 +113,14 @@ end
 function ns.RGBToHex(r, g, b)
     return string.format("%02x%02x%02x", math.floor(r * 255 + 0.5), math.floor(g * 255 + 0.5),
         math.floor(b * 255 + 0.5))
+end
+
+-- A value from the game, or nil when it is secret or otherwise unreadable.
+local issecret, canaccess = issecretvalue, canaccessvalue
+function ns.Clean(v)
+    if issecret and issecret(v) then return nil end
+    if canaccess and not canaccess(v) then return nil end
+    return v
 end
 
 function ns.Print(msg)

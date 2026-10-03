@@ -37,10 +37,6 @@ end
 ns.RegisterFeature({
     key = "tooltipAnchor", type = "dropdown", default = "default",
     label = "Tooltip Position", section = "Tooltip",
-    -- "At cursor" is gone (the game ignores offsets there); its users move right.
-    apply = function()
-        if SereneDB.tooltipAnchor == "cursor" then SereneDB.tooltipAnchor = "cursorRight" end
-    end,
     tooltip = "Where the tooltip appears for units, objects and other default-placed tooltips.",
     options = function()
         return {

@@ -1,13 +1,11 @@
 -------------------------------------------------------------------------------
---  Nameplate Cast Bar -- under the health bar: spell icon, name and time
---  left. Purple when it can be interrupted, grey when it cannot, a red
---  "Interrupted" flash when it was. Plugs into Nameplates.lua.
+--  Nameplate Cast Bar -- purple when interruptible, grey when not, a red
+--  "Interrupted" flash when it was.
 --
---  12.1 engine, as in EllesmereUI: the bar runs on the unit's duration
---  object (SetTimerDuration) because start/end times can be secret; the
---  "not interruptible" flag can be secret too, so the color is picked by
---  C_CurveUtil.EvaluateColorValueFromBoolean instead of an if. Clients
---  without those APIs fall back to plain start/end times.
+--  Start/end times can be secret, so the bar runs on the unit's duration
+--  object (SetTimerDuration); the "not interruptible" flag can be secret too,
+--  so the color comes from C_CurveUtil.EvaluateColorValueFromBoolean instead
+--  of an if. Clients without those APIs fall back to plain start/end times.
 -------------------------------------------------------------------------------
 local _, ns = ...
 local NP = ns.NP
@@ -137,7 +135,7 @@ local function UpdateCast(plate)
     else
         -- Older API: plain times in ms, stepped by the shared ticker below.
         cast.duration = nil
-        startMS, endMS = NP.Clean(startMS), NP.Clean(endMS)
+        startMS, endMS = ns.Clean(startMS), ns.Clean(endMS)
         if not (startMS and endMS) then StopCast(plate) return end
         cast.fallback = true
         cast.startTime, cast.endTime = startMS / 1000, endMS / 1000

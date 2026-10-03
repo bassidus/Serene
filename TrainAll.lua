@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
 --  Train All -- a button next to the trainer's Train button that learns
---  everything you can afford in one click; hovering it shows how many and
---  the total cost. Ported from EllesmereUIQoL. Blizzard_TrainerUI loads on
---  demand, so the button is made when it loads.
+--  everything you can afford. Blizzard_TrainerUI loads on demand, so the
+--  button is made when it loads.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

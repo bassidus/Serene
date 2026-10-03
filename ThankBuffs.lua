@@ -1,18 +1,11 @@
 -------------------------------------------------------------------------------
---  Thank for Buffs -- when another player gives you a buff (Fortitude, Mark
---  of the Wild, a Blessing...) you /thank, /cheer, /bow... them back, with a
---  random emote or the one you pick. Each player is thanked at most once
---  every 90 seconds, and your own party or raid is left out (they buff you
---  all the time). Idea from Thanks For The Buff (TFTB) by Runew0lf, written
---  for Serene.
+--  Thank for Buffs -- emotes at a player outside your group who buffs you.
 --
---  On the 12.1 engine aura data is secret in combat and the combat log is
---  closed to addons, so new auras come from UNIT_AURA and the caster is the
---  aura's sourceUnit: a buff in combat, or from a player you have no unit
---  for (target, mouseover, nameplate...), goes unthanked. Clients without
---  secret restrictions read the combat log instead, as TFTB does. Buffs
---  already on you after a loading screen are never thanked. Events are only
---  registered while the setting is on.
+--  The combat log is closed to addons and aura data is secret in combat, so
+--  new auras come from UNIT_AURA and the caster is the aura's sourceUnit: a
+--  buff in combat, or from a player you have no unit for (target, mouseover,
+--  nameplate...), goes unthanked. Buffs put back on after a loading screen
+--  are not new and are skipped.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -20,15 +13,8 @@ local SECTION = "Social"
 local COOLDOWN = 90      -- seconds before the same player is thanked again
 local SETTLE = 2         -- seconds after a loading screen with no thanks
 
-local issecret, canaccess = issecretvalue, canaccessvalue
-local function Clean(v)
-    if issecret and issecret(v) then return nil end
-    if canaccess and not canaccess(v) then return nil end
-    return v
-end
-
-local useCombatLog = CombatLogGetCurrentEventInfo
-    and not (C_Secrets and C_Secrets.HasSecretRestrictions and C_Secrets.HasSecretRestrictions())
+local issecret = issecretvalue
+local Clean = ns.Clean
 
 -------------------------------------------------------------------------------
 --  Buffs worth a thank-you, by name so every rank counts. Spells this client
@@ -62,14 +48,12 @@ local BUFF_IDS = {
     20707,  -- Soulstone Resurrection
 }
 
-local SpellName = (C_Spell and C_Spell.GetSpellName) or function(id) return (GetSpellInfo(id)) end
-
 local buffs
 local function Buffs()
     if buffs then return buffs end
     buffs = {}
     for _, id in ipairs(BUFF_IDS) do
-        local name = SpellName(id)
+        local name = C_Spell.GetSpellName(id)
         if name then buffs[name] = true end
     end
     return buffs
@@ -109,8 +93,7 @@ local function InMyGroup(who)
     return party or raid
 end
 
--- target is the name DoEmote aims at; key identifies the player for the
--- cooldown.
+-- key identifies the player for the cooldown.
 local function Thank(target, key)
     local now = GetTime()
     if now < settleUntil then return end
@@ -125,7 +108,6 @@ local function Thank(target, key)
     end)
 end
 
--- 12.1 engine: one aura added to the player.
 local function OnAuraAdded(aura)
     if not Clean(aura.isHelpful) then return end
     local name, unit = Clean(aura.name), Clean(aura.sourceUnit)
@@ -138,31 +120,13 @@ local function OnAuraAdded(aura)
     if who then Thank(who, Clean(UnitGUID(unit)) or who) end
 end
 
-local playerGUID
--- Older clients: the combat log names the caster even with no unit for them.
-local function OnCombatLog()
-    local _, subevent, _, sourceGUID, sourceName, _, _, destGUID, _, _, _, _, spellName =
-        CombatLogGetCurrentEventInfo()
-    if subevent ~= "SPELL_AURA_APPLIED" or destGUID ~= playerGUID then return end
-    if not (sourceGUID and sourceName) or sourceGUID == playerGUID then return end
-    if not Buffs()[spellName] or not sourceGUID:find("^Player%-") then return end
-    if InMyGroup(sourceName) then return end
-    Thank(sourceName, sourceGUID)
-end
-
 -------------------------------------------------------------------------------
 --  Events
 -------------------------------------------------------------------------------
 local f = CreateFrame("Frame")
-local AURA_EVENT = useCombatLog and "COMBAT_LOG_EVENT_UNFILTERED" or "UNIT_AURA"
 
 local function Listen(on)
-    if not on then return f:UnregisterEvent(AURA_EVENT) end
-    if useCombatLog then
-        f:RegisterEvent(AURA_EVENT)
-    else
-        f:RegisterUnitEvent(AURA_EVENT, "player")
-    end
+    if on then f:RegisterUnitEvent("UNIT_AURA", "player") else f:UnregisterEvent("UNIT_AURA") end
 end
 
 f:SetScript("OnEvent", function(_, event, ...)
@@ -178,13 +142,10 @@ f:SetScript("OnEvent", function(_, event, ...)
             aura = Clean(aura)
             if aura then OnAuraAdded(aura) end
         end
-    elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
-        OnCombatLog()
     elseif event == "PLAYER_LEAVING_WORLD" then
         -- Buffs come back on during the loading screen; none of them are new.
         Listen(false)
     elseif event == "PLAYER_ENTERING_WORLD" then
-        playerGUID = UnitGUID("player")
         settleUntil = GetTime() + SETTLE
         Listen(true)
     end
@@ -197,7 +158,6 @@ ns.RegisterFeature({
         if on then
             f:RegisterEvent("PLAYER_ENTERING_WORLD")
             f:RegisterEvent("PLAYER_LEAVING_WORLD")
-            playerGUID = UnitGUID("player")
         else
             f:UnregisterAllEvents()
         end

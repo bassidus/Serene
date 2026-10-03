@@ -1,21 +1,13 @@
 -------------------------------------------------------------------------------
---  Range Coloring -- action bar icons turn red (or the chosen color) while
---  the target is out of range, so it shows on the icon, not just the small
---  hotkey text. Idea from tullaRange (MIT, Jason Greer): event based, it
---  follows Blizzard's own range and usability refreshes instead of polling.
---  While it is on, the keybind text no longer turns red as well (Keybinds.lua).
---
---  Only usable abilities get the range color; out of mana and unusable keep
---  Blizzard's blue and gray. Icons are only recolored, never the buttons
---  (they are secure), and the bookkeeping lives in local tables.
+--  Range Coloring -- event based: follows Blizzard's own range and usability
+--  refreshes instead of polling. Only usable abilities get the range color;
+--  out of mana and unusable keep Blizzard's blue and gray. Icons are only
+--  recolored, never the buttons (they are secure). While it is on, the
+--  keybind text no longer turns red as well (Keybinds.lua).
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local issecret = issecretvalue
-local function Clean(v)
-    if issecret and issecret(v) then return nil end
-    return v
-end
+local Clean = ns.Clean
 
 local enabled, color, desaturate  -- current settings, read by Apply
 local buttons = {}                -- [action button] = true

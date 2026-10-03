@@ -1,18 +1,14 @@
 -------------------------------------------------------------------------------
 --  Performance -- an options page with what the Game Menu button's tooltip
---  shows (latency, protocol, framerate, bandwidth, download, addon CPU and
---  memory), but listing every loaded addon instead of the top three. The
---  table sorts by clicking a column header (SereneDB.perfSort) and scrolls
---  with the mouse wheel; hovering a row shows its raw times. Updates once a
---  second while the page is open; memory is rescanned every few seconds
---  since that walks every addon. Ideas from Numy's AddonProfiler: titles
---  with icons, and turning the client's addon profiler back on when
+--  shows, but listing every loaded addon instead of the top three. Updates
+--  once a second while open; memory is rescanned only every few ticks since
+--  that walks every addon. Turns the client's addon profiler back on when
 --  something has switched it off (CVar addonProfilerEnabled).
 -------------------------------------------------------------------------------
 local _, ns = ...
 
 local UPDATE_INTERVAL = 1
-local MEMORY_EVERY = 5      -- ticks between memory rescans
+local MEMORY_EVERY = 5  -- ticks between memory rescans
 local ROW_H, HEADER_H = 18, 22
 local CPU_W, MEM_W = 70, 80
 local STAT_ROW_H = 18

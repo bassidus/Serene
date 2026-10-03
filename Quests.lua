@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
---  Auto Accept / Auto Turn-In Quests -- hold Shift when talking to an NPC to
---  handle it by hand. Trivial (gray) and repeatable quests are never picked
---  up automatically, and a turn-in with a reward choice is left to the player.
---  Event machine from EllesmereUIQuestTracker_QoL.lua, plus QUEST_PROGRESS
+--  Auto Accept / Auto Turn-In Quests. Besides gossip, handles QUEST_PROGRESS
 --  (item hand-in step) and QUEST_GREETING (the old-style quest list many
 --  vanilla NPCs use instead of a gossip menu).
 --

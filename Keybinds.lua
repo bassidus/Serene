@@ -1,9 +1,7 @@
 -------------------------------------------------------------------------------
---  Short Keybind Text -- condenses the hotkey label on Blizzard's action
---  bars (CTRL-2 -> C2, Mouse Button 4 -> M4, NUMPAD5 -> N5). Formatter from
---  EllesmereUIActionBars. Font, size, outline, color and position of the
---  text are settings too, and macro names can be hidden. Only the button
---  texts are touched, never the buttons.
+--  Short Keybind Text -- condenses the hotkey label on Blizzard's action bars
+--  (CTRL-2 -> C2, Mouse Button 4 -> M4, NUMPAD5 -> N5) and styles it. Only
+--  the button texts are touched, never the (secure) buttons.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

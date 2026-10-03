@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
---  Fonts -- the typeface list every font setting offers (tooltip, keybinds,
---  nameplates, FPS & latency), the outline flags they share and a safe way
---  to put both on a font string.
+--  Fonts -- the typeface list and outline flags every font setting shares,
+--  and a safe way to put them on a font string.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

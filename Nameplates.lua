@@ -1,20 +1,16 @@
 -------------------------------------------------------------------------------
---  Nameplates -- a light take on EllesmereUI's enemy nameplates: a flat
---  health bar colored by threat / class / reaction, name with a level
---  colored by difficulty, health percent, raid marker, and a target and
---  mouseover highlight. Cast bar and debuffs are their own files and plug in
---  through NP.RegisterModule. Only attackable units get a Serene plate;
---  friendly plates stay Blizzard's.
+--  Nameplates -- flat enemy plates for attackable units; friendly plates stay
+--  Blizzard's. Cast bar, debuffs and quest marks plug in through
+--  NP.RegisterModule.
 --
---  Blizzard's plate is hidden the way Ellesmere does it: its UnitFrame stays
---  on the nameplate at alpha 0 (moving it breaks click targeting between
---  stacked plates) and its aura list is parked off screen, since those
---  icons take the mouse even when invisible. Pooled UnitFrames get both
---  back when Blizzard reuses them for a friendly unit.
+--  Blizzard's UnitFrame stays on the nameplate at alpha 0 (moving it breaks
+--  click targeting between stacked plates) and its aura list is parked off
+--  screen, since those icons take the mouse even when invisible. Pooled
+--  UnitFrames get both back when Blizzard reuses them for a friendly unit.
 --
---  12.1 engine: health, levels and threat can be secret values. They are
---  handed to setters (SetValue, SetFormattedText) as they are and never
---  compared unless issecretvalue says they are plain.
+--  Health, levels and threat can be secret values. They are handed to
+--  setters (SetValue, SetFormattedText) as they are and never compared
+--  unless issecretvalue says they are plain.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -23,7 +19,6 @@ ns.NP = NP
 
 local BAR = "Interface\\Buttons\\WHITE8X8"
 
--- Colors from EllesmereUI's defaults.
 local COLORS = {
     hostile   = { 0.80, 0.137, 0.137 },
     neutral   = { 0.81, 0.72, 0.19 },
@@ -35,14 +30,8 @@ local COLORS = {
     tankLosingAggro = { 0.81, 0.72, 0.19 },
     tankNoAggro     = { 1.00, 0.22, 0.17 },
 }
-NP.COLORS = COLORS
 
-local issecret = issecretvalue
-local function Clean(v)
-    if issecret and issecret(v) then return nil end
-    return v
-end
-NP.Clean = Clean
+local Clean = ns.Clean
 
 function NP.Active()
     return ns.Enabled("nameplates") and not NP.blocked

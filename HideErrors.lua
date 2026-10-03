@@ -1,12 +1,8 @@
 -------------------------------------------------------------------------------
---  Hide Error Messages -- the red "Not enough rage" / "Out of range" /
---  "Spell is not ready yet" lines (and their voice lines) stay away, always
---  or only in combat. Errors you need to act on (bags full, quest log full,
---  not enough money...) still show.
---
---  Done by taking UI_ERROR_MESSAGE away from Blizzard's UIErrorsFrame while
---  hiding and handing it back after; the kept errors are passed on by hand.
---  Info messages (yellow) are never touched.
+--  Hide Error Messages -- takes UI_ERROR_MESSAGE away from UIErrorsFrame while
+--  hiding and hands it back after; the errors worth acting on (bags full,
+--  not enough money...) are passed on by hand. Yellow info messages are
+--  never touched.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

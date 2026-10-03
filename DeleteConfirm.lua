@@ -1,6 +1,5 @@
 -------------------------------------------------------------------------------
---  Auto-Fill Delete Confirmation -- types DELETE into the "delete this good
---  item?" popup. Hooks install once; the hook body gates on the toggle.
+--  Auto-Fill Delete -- types DELETE into the "delete this good item?" popup.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

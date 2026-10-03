@@ -1,10 +1,7 @@
 -------------------------------------------------------------------------------
---  Options window -- Serene's own settings window, opened with /serene or
---  the minimap icon. A sidebar lists one page per feature section (in TOC
---  order); each page stacks a control per registered feature. Pages from
---  ns.RegisterPage (Performance) follow. Built on first open, movable and
---  scalable for the session (each login starts centered at 75%), closes on
---  Escape.
+--  Options window -- a sidebar tab per feature section (in TOC order), each
+--  page stacking a control per registered feature, then the ns.RegisterPage
+--  pages. Built on first open; position and scale last for the session.
 -------------------------------------------------------------------------------
 local ADDON, ns = ...
 local W = ns.Widgets
@@ -327,7 +324,6 @@ local function Build()
     W.Solid(frame, "BACKGROUND", W.BG):SetAllPoints()
     W.Border(frame, W.EDGE)
 
-    -- Title bar (drag handle)
     local titleBar = CreateFrame("Frame", nil, frame)
     titleBar:SetPoint("TOPLEFT")
     titleBar:SetPoint("TOPRIGHT")
@@ -363,7 +359,6 @@ local function Build()
     end
     CreateCloseButton(titleBar)
 
-    -- Sidebar
     local sidebar = CreateFrame("Frame", nil, frame)
     sidebar:SetPoint("TOPLEFT", 1, -(TITLE_H + 1))
     sidebar:SetPoint("BOTTOMLEFT", 1, 1)
@@ -399,10 +394,8 @@ local function Build()
     CreateScaleGrip()
     frame:SetScale(DEFAULT_SCALE)
 
-    -- Every session starts centered: no client layout cache, and the
-    -- settings older versions saved are dropped.
+    -- Every session starts centered: no client layout cache.
     if frame.SetDontSavePosition then frame:SetDontSavePosition(true) end
-    SereneDB.window, SereneDB.windowPos, SereneDB.windowScale = nil, nil, nil
     Center()
 
     frame:SetScript("OnShow", function()
@@ -423,8 +416,7 @@ function ns.RefreshOptions()
     for _, w in ipairs(widgets) do w.Refresh() end
 end
 
--- Combat: no opening, and an open window closes as combat starts (as in
--- EllesmereUI). Covers /serene, the minimap icon and every other caller.
+-- Combat: no opening, and an open window closes as combat starts.
 function ns.ToggleOptions()
     if not SereneDB then return end
     if frame and frame:IsShown() then

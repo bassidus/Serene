@@ -1,11 +1,7 @@
 -------------------------------------------------------------------------------
---  Options widgets -- the flat controls the options window is built from:
---  checkbox, dropdown (with a shared popup list), color palette, outline
---  flags and slider.
---  Every widget
---  is bound to one registered feature, writes through ns.SetValue and has a
---  Refresh() that re-reads SereneDB. Built from plain textures, no Blizzard
---  templates, so nothing here depends on a particular client's UI kit.
+--  Options widgets -- every widget is bound to one registered feature, writes
+--  through ns.SetValue and has a Refresh() that re-reads SereneDB. Plain
+--  textures, no Blizzard templates, so nothing depends on the client's UI kit.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

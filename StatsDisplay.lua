@@ -1,10 +1,6 @@
 -------------------------------------------------------------------------------
---  FPS & Latency -- a small on-screen readout ("60 fps  45 ms"). Framerate
---  and latency are separate settings; the box shows whichever are on and is
---  hidden when neither is. Bottom-right corner by default; drag it anywhere
---  with the left mouse button, right-click puts it back. The spot is kept
---  in SereneDB.statsPos. Hovering shows home and world latency apart.
---  Font, outline, layout, labels, value colors and background are settings.
+--  FPS & Latency -- a small movable readout. The spot is kept in
+--  SereneDB.statsPos.
 --
 --  Blizzard's "Toggle Framerate" key (Ctrl+R by default) shows and hides
 --  this box instead: an override binding on whatever key(s) TOGGLEFPS uses
@@ -184,8 +180,6 @@ local function Build()
 end
 
 local function Apply()
-    SereneDB.statsDisplay = nil    -- the old on/off switch, replaced by the two settings
-    SereneDB.statsToggleKey = nil  -- the toggle key is always ours now
     if ns.Enabled("statsFps") or ns.Enabled("statsLatency") then
         if not frame then Build() end
         Style()

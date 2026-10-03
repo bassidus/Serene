@@ -1,12 +1,11 @@
 -------------------------------------------------------------------------------
---  Nameplate Quest Mobs -- marks enemies your quests still need: a quest
---  icon with the objective's progress (e.g. 3/8) at the right end of the
---  name row, and optionally a green health bar. Plugs into Nameplates.lua.
+--  Nameplate Quest Mobs -- a quest icon with the objective's progress (e.g.
+--  3/8) on enemies your quests still need, and optionally a colored bar.
 --
---  Same detection as EllesmereUI: the unit's tooltip data carries quest
---  title and objective lines with a completed flag, so no text parsing is
---  needed. Only quests in your own log count (a group member's objectives
---  show on your tooltips too). Cached per unit until the quest log changes.
+--  The unit's tooltip data carries quest title and objective lines with a
+--  completed flag, so no text parsing is needed. Only quests in your own log
+--  count (a group member's objectives show on your tooltips too). Cached per
+--  unit until the quest log changes.
 -------------------------------------------------------------------------------
 local _, ns = ...
 local NP = ns.NP
@@ -14,7 +13,7 @@ local NP = ns.NP
 local QUEST_COLOR = { 0.157, 0.855, 0.475 }
 local cache = {}  -- unit -> false, or the progress text ("" when it has none)
 
-local function Clean(v) return NP.Clean(v) end
+local Clean = ns.Clean
 
 -- Progress text of the first unfinished objective of yours on this unit, or false.
 local function QuestProgress(unit)

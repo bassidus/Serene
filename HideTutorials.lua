@@ -72,7 +72,6 @@ local function RestoreButtons()
     wipe(scanned)
 end
 
--- Hooks install once; each body gates on On().
 local coreHooked = false
 local function InstallCoreHooks()
     if coreHooked then return end

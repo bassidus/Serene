@@ -1,16 +1,10 @@
 -------------------------------------------------------------------------------
---  Accept Resurrection -- says yes to a resurrection from another player and
---  closes Blizzard's popup. While the player casting it is still in combat
---  the popup is left alone, so you are not pulled back up mid-fight. The
---  event is only registered while the setting is on.
+--  Accept Resurrection -- left alone while the caster is still in combat, so
+--  you are not pulled back up mid-fight.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local issecret = issecretvalue
-local function Clean(v)
-    if issecret and issecret(v) then return nil end
-    return v
-end
+local Clean = ns.Clean
 
 local POPUPS = { "RESURRECT", "RESURRECT_NO_SICKNESS", "RESURRECT_NO_TIMER" }
 

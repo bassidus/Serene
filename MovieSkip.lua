@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 --  Faster Movie Skip -- Escape, Space or Enter ends a cinematic or movie
---  right away instead of first asking "Are you sure?". Ported from
---  EllesmereUIQoL. The key hooks are installed once; their body gates on
---  the setting.
+--  without the "Are you sure?" question.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -15,13 +13,13 @@ local function Hook()
     if hooked or not (CinematicFrame and CinematicFrame.HookScript) then return end
     hooked = true
 
-    -- Escape opens the confirmation on key down; it is closed straight away...
+    -- Escape opens the confirmation on key down: close it at once and
+    -- confirm the skip on key up.
     CinematicFrame:HookScript("OnKeyDown", function(self, key)
         if key == "ESCAPE" and On() and self:IsShown() and self.closeDialog then
             self.closeDialog:Hide()
         end
     end)
-    -- ...and the skip is confirmed on key up.
     CinematicFrame:HookScript("OnKeyUp", function(self, key)
         if not (SKIP_KEYS[key] and On() and self:IsShown() and self.closeDialog) then return end
         local confirm = self.closeDialog.confirmButton or _G.CinematicFrameCloseDialogConfirmButton

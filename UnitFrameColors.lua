@@ -11,11 +11,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local issecret = issecretvalue
-local function Clean(v)
-    if issecret and issecret(v) then return nil end
-    return v
-end
+local Clean = ns.Clean
 
 local state = setmetatable({}, { __mode = "k" })  -- [bar] = Blizzard's look + ours
 local painting  -- set while we color, so our own calls are not taken for Blizzard's

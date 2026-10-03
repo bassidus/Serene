@@ -1,16 +1,10 @@
 -------------------------------------------------------------------------------
---  Accept Summon -- says yes to a summon (warlock ritual, meeting stone) on
---  its own. Never in combat: a summon offered mid-fight waits until combat
---  ends, and is taken then if it has not run out. The event is only
---  registered while the setting is on.
+--  Accept Summon -- never in combat: a summon offered mid-fight is taken when
+--  combat ends, if it has not run out.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local issecret = issecretvalue
-local function Clean(v)
-    if issecret and issecret(v) then return nil end
-    return v
-end
+local Clean = ns.Clean
 
 local S = C_SummonInfo or {}
 local TimeLeft = S.GetSummonConfirmTimeLeft or GetSummonConfirmTimeLeft

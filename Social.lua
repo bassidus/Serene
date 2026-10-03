@@ -1,21 +1,13 @@
 -------------------------------------------------------------------------------
---  Social -- group invites from friends are accepted, a whispered keyword
---  ("inv") gets an invite, and duels, group invites and shared quests from
---  anyone who is not a friend can be declined. Friends are your friends
---  list, Battle.net friends and, if set, your guild. Ideas from Leatrix
---  Plus, written for Serene. Events are only registered while a setting
---  that needs them is on.
+--  Social -- invites from friends, invite on whisper, and declining duels,
+--  invites and shared quests from strangers. Friends are your friends list,
+--  Battle.net friends and, if set, your guild.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
 local SECTION = "Social"
 
-local issecret, canaccess = issecretvalue, canaccessvalue
-local function Clean(v)
-    if issecret and issecret(v) then return nil end
-    if canaccess and not canaccess(v) then return nil end
-    return v
-end
+local Clean = ns.Clean
 
 -------------------------------------------------------------------------------
 --  Friends

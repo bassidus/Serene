@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
---  Skip Loot Warnings -- answers "yes" to the "this item will bind to you"
---  questions when looting a bind-on-pickup item or rolling Need/Greed on
---  one, and closes Blizzard's popup. Equipping a bind-on-equip item still
---  asks. Events are only registered while the setting is on.
+--  Skip Loot Warnings -- confirms the "will bind to you" questions when
+--  looting or rolling on a bind-on-pickup item.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

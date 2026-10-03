@@ -212,6 +212,16 @@ local function CreatePage(section)
             w:SetPoint("TOPRIGHT", 0, y)
             y = y - w:GetHeight() - (f.type == "boolean" and 2 or SPACING)
             widgets[#widgets + 1] = w
+            if f.note then
+                -- Under a checkbox it lines up with the label.
+                local indent = f.type == "boolean" and 26 or 0
+                local note = page:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+                note:SetPoint("TOPLEFT", indent, y + 2)
+                note:SetWidth(WIDTH - SIDEBAR_W - 2 * PAD - indent)
+                note:SetJustifyH("LEFT")
+                note:SetText(f.note)
+                y = y - note:GetStringHeight() - SPACING + 2
+            end
         end
     end
     page.contentHeight = -y

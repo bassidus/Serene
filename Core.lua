@@ -20,6 +20,7 @@ ns.featureByKey = {}
 --         palette, e.g. "Class color" (color; the value is a word, not a hex),
 --         blizzard = fn returning Blizzard's own outline as a flag set, shown
 --         while the value is "default" (outline),
+--         note = short text always shown under the control,
 --         requires = key of a boolean setting, or a list of them; the control
 --         is dimmed and locked while any is off }
 function ns.RegisterFeature(def)

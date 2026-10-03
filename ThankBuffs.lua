@@ -4,11 +4,10 @@
 --  The combat log is closed to addons and aura data is secret in combat, so
 --  new auras come from UNIT_AURA and the caster is the aura's sourceUnit: a
 --  buff in combat, or from a player you have no unit for, goes unthanked.
---  To give nearby players a unit, friendly player nameplates are turned on
---  (outside instances) as name-only, class colored and click-through, which
---  looks like the usual name over their heads. A buff whose aura still names
---  no caster is matched to a recent cast of it seen on such a unit. Buffs put
---  back on after a loading screen are not new and are skipped.
+--  Friendly Player Names (NameplateFriendly.lua) gives nearby players one. A
+--  buff whose aura still names no caster is matched to a recent cast of it
+--  seen on a unit. Buffs put back on after a loading screen are not new and
+--  are skipped.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -163,44 +162,6 @@ local function Listen(on)
     end
 end
 
-local FRIEND_PLATES = "nameplateShowFriendlyPlayers"
--- Plate settings that go with them, put back when Serene turns them off.
-local PLATE_LOOK = {
-    nameOnly   = "nameplateShowOnlyNameForFriendlyPlayerUnits",
-    classColor = "nameplateUseClassColorForFriendlyPlayerUnitNames",
-}
-
-local function ClickThrough(on)
-    if C_NamePlate.SetNamePlateFriendlyClickThrough then C_NamePlate.SetNamePlateFriendlyClickThrough(on) end
-end
-
--- Off in instances (friendly plates there may be out of addons' reach, and
--- buffs come from the group anyway). Friendly plates the player turned on
--- are left alone. SereneDB.friendPlatesSet holds the PLATE_LOOK values from
--- before Serene turned the plates on. Nameplate settings cannot change in
--- combat; it waits.
-local function SyncFriendPlates()
-    if InCombatLockdown() then return f:RegisterEvent("PLAYER_REGEN_ENABLED") end
-    local want = ns.Enabled("thankBuffs") and not IsInInstance()
-    if want and GetCVar(FRIEND_PLATES) ~= "1" then
-        local before = {}
-        for k, cvar in pairs(PLATE_LOOK) do before[k] = GetCVar(cvar) == "1" and "1" or "0" end
-        SereneDB.friendPlatesSet = before
-        SetCVar(FRIEND_PLATES, "1")
-    elseif not want and SereneDB.friendPlatesSet then
-        SetCVar(FRIEND_PLATES, "0")
-        local before = SereneDB.friendPlatesSet
-        for k, cvar in pairs(PLATE_LOOK) do SetCVar(cvar, before[k] == "1" and "1" or "0") end
-        SereneDB.friendPlatesSet = nil
-        ClickThrough(false)
-    end
-    -- Every time: the client may not keep click-through between sessions.
-    if SereneDB.friendPlatesSet then
-        for _, cvar in pairs(PLATE_LOOK) do SetCVar(cvar, "1") end
-        ClickThrough(true)
-    end
-end
-
 f:SetScript("OnEvent", function(_, event, ...)
     if event == "UNIT_AURA" then
         local _, info = ...
@@ -223,10 +184,6 @@ f:SetScript("OnEvent", function(_, event, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
         settleUntil = GetTime() + SETTLE
         Listen(true)
-        SyncFriendPlates()
-    elseif event == "PLAYER_REGEN_ENABLED" then
-        f:UnregisterEvent(event)
-        SyncFriendPlates()
     end
 end)
 
@@ -241,12 +198,12 @@ ns.RegisterFeature({
             f:UnregisterAllEvents()
         end
         Listen(on)
-        SyncFriendPlates()
     end,
     tooltip = "Thanks players outside your group with an emote when they buff you (Fortitude, Mark of "
         .. "the Wild, Arcane Intellect, Blessings and the like). Each player is thanked at most once "
-        .. "every 90 seconds. Buffs given in combat are not thanked.\nTurns on name-only, class colored "
-        .. "friendly player nameplates outside instances, so the game can tell who buffed you.",
+        .. "every 90 seconds. Buffs given in combat are not thanked.",
+    note = "Only recognizes players with a nameplate or that you target. Turn on Friendly Player Names "
+        .. "under Nameplates to recognize everyone around you.",
 })
 ns.RegisterFeature({
     key = "thankBuffEmote", label = "Thank Emote", section = SECTION, type = "dropdown", default = "random",

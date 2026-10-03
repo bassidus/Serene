@@ -57,9 +57,8 @@ latency, layout, labels, number colors, font, size, outline and background opaci
 - **Thank for Buffs**: when a player outside your group buffs you (Fortitude, Mark of the Wild,
   Arcane Intellect, Blessings...), you thank them with an emote (random, or one you pick) after a
   short pause. Each player is thanked at most once every 90 seconds. Buffs received in combat can't be
-  seen by addons on this client and are not thanked. So the game can tell who buffed you, it turns on
-  friendly player nameplates outside instances. They show only the name, class colored, and you can
-  click through them.
+  seen by addons on this client and are not thanked. Only players with a nameplate (or your target)
+  can be recognized, so turn on **Friendly Player Names** under Nameplates as well.
 
 ### Action Bars
 - **Range Coloring**: icons turn the chosen color while the target is out of range, optionally
@@ -78,6 +77,10 @@ latency, layout, labels, number colors, font, size, outline and background opaci
 Flat enemy nameplates: threat / class / reaction colors, level, health percent, target highlight,
 cast bar, debuffs (everyone's, or only yours) and quest mob markers with progress and an optional
 bar color. You can set font, size, outline, width and height.
+
+**Friendly Player Names** (off by default) shows other players' names as Blizzard's friendly
+nameplates outside instances: name only, class colored and click-through. It also lets Thank for
+Buffs see who buffed you.
 
 ### Performance
 A page listing every loaded addon's CPU and memory use (sortable), plus latency, framerate and

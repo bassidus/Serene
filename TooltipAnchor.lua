@@ -35,7 +35,7 @@ if GameTooltip.FadeOut then
 end
 
 ns.RegisterFeature({
-    key = "tooltipAnchor", type = "dropdown", default = "default",
+    key = "tooltipAnchor", type = "dropdown", default = "cursorRight",
     label = "Tooltip Position", section = "Tooltip",
     tooltip = "Where the tooltip appears for units, objects and other default-placed tooltips.",
     options = function()

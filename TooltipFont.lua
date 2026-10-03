@@ -5,7 +5,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local DEFAULT_SIZE = 12  -- Blizzard's GameTooltipText size
+local BLIZZARD_SIZE = 12  -- GameTooltipText's own size
 
 -- Font object -> size relative to the body size (Blizzard: 14 / 12 / 10).
 local FONT_OBJECTS = {
@@ -37,7 +37,7 @@ local function Apply()
     for name, delta in pairs(FONT_OBJECTS) do
         local obj, orig = _G[name], original[name]
         if obj and orig then
-            if font == "default" and size == DEFAULT_SIZE and outline == "default" then
+            if font == "default" and size == BLIZZARD_SIZE and outline == "default" then
                 obj:SetFont(orig[1], orig[2], orig[3])
                 RestoreShadow(obj, orig)
             else
@@ -58,9 +58,9 @@ ns.RegisterFeature({
     options = ns.FontOptions, preview = true,
 })
 ns.RegisterFeature({
-    key = "tooltipFontSize", type = "slider", default = DEFAULT_SIZE, min = 8, max = 20, step = 1,
+    key = "tooltipFontSize", type = "slider", default = 10, min = 8, max = 20, step = 1,
     label = "Tooltip Font Size", section = "Tooltip", apply = Apply,
-    tooltip = "Size of tooltip body text. The title line is 2 larger, small print 2 smaller.",
+    tooltip = "Size of tooltip body text (Blizzard's is 12). The title line is 2 larger, small print 2 smaller.",
 })
 ns.RegisterFeature({
     key = "tooltipOutline", type = "outline", default = "default",

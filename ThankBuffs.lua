@@ -260,7 +260,7 @@ ns.RegisterFeature({
         .. "below to recognize everyone around you.",
 })
 ns.RegisterFeature({
-    key = "friendlyNames", label = "Friendly Player Names", section = SECTION, default = false,
+    key = "friendlyNames", label = "Friendly Player Names", section = SECTION,
     apply = function()
         if ns.Enabled("friendlyNames") then
             plates:RegisterEvent("PLAYER_ENTERING_WORLD")

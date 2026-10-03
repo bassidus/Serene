@@ -59,7 +59,7 @@ latency, layout, labels, number colors, font, size, outline and background opaci
   short pause. Each player is thanked at most once every 90 seconds. Buffs received in combat can't be
   seen by addons on this client and are not thanked. Only players with a nameplate (or your target)
   can be recognized, so turn on Friendly Player Names as well.
-- **Friendly Player Names** (off by default): other players' names as Blizzard's friendly nameplates
+- **Friendly Player Names**: other players' names as Blizzard's friendly nameplates
   outside instances: name only, class colored and click-through. It lets Thank for Buffs see who
   buffed you.
 

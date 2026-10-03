@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Thank for Buffs -- emotes at a player outside your group who buffs you.
+--  Thank you for the buff -- emotes at a player outside your group who buffs you.
 --
 --  The combat log is closed to addons and aura data is secret in combat, so
 --  new auras come from UNIT_AURA and the caster is the aura's sourceUnit: a
@@ -191,8 +191,8 @@ end)
 --  Friendly Player Names -- Blizzard's friendly player nameplates outside
 --  instances, as name-only, class colored and click-through: they look like
 --  the usual names over players' heads. A plate gives the player a unit,
---  which is what lets Thank for Buffs see who buffed you. Its own setting:
---  it works without Thank for Buffs.
+--  which is what lets Thank you for the buff see who buffed you. Its own setting:
+--  it works without Thank you for the buff.
 --
 --  Inside instances the plates go off and the game's own overhead names
 --  show. Friendly plates the player turned on are left alone.
@@ -239,10 +239,10 @@ plates:SetScript("OnEvent", function(self, event)
 end)
 
 -------------------------------------------------------------------------------
---  Settings (Friendly Player Names sits right under Thank for Buffs)
+--  Settings (Friendly Player Names sits right under Thank you for the buff)
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
-    key = "thankBuffs", label = "Thank for Buffs", section = SECTION,
+    key = "thankBuffs", label = "Thank you for the buff", section = SECTION,
     apply = function()
         local on = ns.Enabled("thankBuffs")
         if on then
@@ -271,7 +271,7 @@ ns.RegisterFeature({
     end,
     tooltip = "Other players' names over their heads as Blizzard's friendly nameplates: name only, class "
         .. "colored and click-through. Off inside instances.",
-    note = "Lets Thank for Buffs see who buffed you. Works on its own too.",
+    note = "Lets Thank you for the buff see who buffed you. Works on its own too.",
 })
 ns.RegisterFeature({
     key = "thankBuffEmote", label = "Thank Emote", section = SECTION, type = "dropdown", default = "random",

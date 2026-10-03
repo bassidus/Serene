@@ -25,7 +25,7 @@ A small on-screen readout you can drag anywhere. Right-click puts it back. Choos
 
 ### Social
 - **Accept Summons** Waits until combat ends and **Accept Resurrections** (not while the player casting it is in combat).
-- **Accept invites from friends**. **Block group invites, duels and shared quests** From anyone else. Friends are your friends list, Battle.net friends and, if you turn it on, your guild.
+- **Accept invites from friends**. **Block group invites, duels and shared quests** from anyone else. Friends are your friends list, Battle.net friends and, if you turn it on, your guild.
 - **Invite on Whisper**: whispering `inv` / `invite` gets an invite. If you can't invite, the player gets a whisper back saying why.
 - **Thank you for the buff**: when a player outside your group buffs you (Fortitude, Mark of the Wild, Arcane Intellect, Blessings...), you thank them with an emote (random, or one you pick) after a short pause. Each player is thanked at most once every 90 seconds. Buffs received in combat can't be seen by addons on this client and are not thanked. Only players with a nameplate (or your target) can be recognized, so turn on Friendly Player Names as well.
 - **Friendly Player Names**: Other players' names as Blizzard's friendly nameplates outside instances: name only, class colored and click-through. Required for Thank you for the buff to see who buffed you.

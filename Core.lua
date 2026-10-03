@@ -5,8 +5,8 @@
 --  /serene opens the options window; settings live in SereneDB.
 --
 --  Core: shared helpers, the feature registry, SavedVariables and /serene.
---  Each feature file calls ns.RegisterFeature with its settings; /serene and
---  the options window list them in TOC order.
+--  Each feature file calls ns.RegisterFeature with its settings; the options
+--  window lists them in TOC order.
 -------------------------------------------------------------------------------
 local ADDON, ns = ...
 
@@ -17,7 +17,6 @@ ns.featureByKey = {}
 --         tooltip = help text, apply = optional fn run on login and change,
 --         type = "boolean" (default) | "dropdown" | "slider" | "color" | "outline",
 --         default = initial value,
---         cmd = /serene word (booleans only),
 --         options = fn returning { { value =, label = }, ... } (dropdown),
 --         preview = true to draw dropdown entries in their own font (dropdown),
 --         min, max, step (slider),
@@ -133,34 +132,11 @@ function ns.CoinString(amount)
 end
 
 -------------------------------------------------------------------------------
---  /serene            open/close the options window
---  /serene list       print every toggle and its state
---  /serene <name>     flip one toggle
+--  /serene opens or closes the options window.
 -------------------------------------------------------------------------------
-local function StateText(on)
-    return on and "|cff40ff40on|r" or "|cffff4040off|r"
-end
-
-local function PrintStatus()
-    ns.Print("/serene opens the options. Toggles (/serene <name>):")
-    for _, f in ipairs(ns.features) do
-        if f.cmd then
-            DEFAULT_CHAT_FRAME:AddMessage(format("  |cffffd100%s|r - %s: %s", f.cmd, f.label, StateText(SereneDB[f.key])))
-        end
-    end
-end
-
 SLASH_SERENE1 = "/serene"
-SlashCmdList["SERENE"] = function(msg)
-    msg = strtrim(msg or ""):lower()
-    if msg == "" and ns.ToggleOptions then return ns.ToggleOptions() end
-    for _, f in ipairs(ns.features) do
-        if f.cmd and msg == f.cmd then
-            ns.SetValue(f.key, not SereneDB[f.key])
-            return ns.Print(f.label .. ": " .. StateText(SereneDB[f.key]))
-        end
-    end
-    PrintStatus()
+SlashCmdList["SERENE"] = function()
+    if ns.ToggleOptions then ns.ToggleOptions() end
 end
 
 -------------------------------------------------------------------------------

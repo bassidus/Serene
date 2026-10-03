@@ -257,7 +257,7 @@ ns.RegisterFeature({
     tooltip = "Declines group invites from anyone who is not a friend.",
 })
 ns.RegisterFeature({
-    key = "blockDuels", cmd = "duels", label = "Block Duels", section = SECTION, apply = Apply,
+    key = "blockDuels", label = "Block Duels", section = SECTION, apply = Apply,
     tooltip = "Declines duels from anyone who is not a friend.",
 })
 ns.RegisterFeature({

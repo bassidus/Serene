@@ -34,7 +34,7 @@ f:SetScript("OnEvent", function(_, _, inviter)
 end)
 
 ns.RegisterFeature({
-    key = "autoAcceptRes", cmd = "res", label = "Accept Resurrections", section = "Social",
+    key = "autoAcceptRes", label = "Accept Resurrections", section = "Social",
     apply = function()
         if ns.Enabled("autoAcceptRes") then
             f:RegisterEvent("RESURRECT_REQUEST")

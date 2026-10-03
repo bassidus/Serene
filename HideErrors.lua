@@ -79,7 +79,7 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "hideErrors", cmd = "errors", label = "Hide Error Messages", section = "General", apply = Apply,
+    key = "hideErrors", label = "Hide Error Messages", section = "General", apply = Apply,
     tooltip = "Hides the red error text and its voice line (\"Not enough rage\", \"Out of range\"...). "
         .. "Full bags, full quest log and not enough money still show.",
 })

@@ -191,7 +191,7 @@ f:SetScript("OnEvent", function(_, event, ...)
 end)
 
 ns.RegisterFeature({
-    key = "thankBuffs", cmd = "thanks", label = "Thank for Buffs", section = SECTION,
+    key = "thankBuffs", label = "Thank for Buffs", section = SECTION,
     apply = function()
         local on = ns.Enabled("thankBuffs")
         if on then

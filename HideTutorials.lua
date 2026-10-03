@@ -141,6 +141,6 @@ f:SetScript("OnEvent", function(_, _, addonName)
 end)
 
 ns.RegisterFeature({
-    key = "hideTutorials", cmd = "tutorials", label = "Hide Tutorials", section = "General", apply = Apply,
+    key = "hideTutorials", label = "Hide Tutorials", section = "General", apply = Apply,
     tooltip = "Hides tutorial pop-ups, yellow help bubbles and the (i) help buttons.",
 })

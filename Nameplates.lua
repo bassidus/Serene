@@ -554,7 +554,7 @@ NP.ApplyRelayout = Relayout
 -- and debuff toggles, so the options page lists every toggle first.
 
 ns.RegisterFeature({
-    key = "nameplates", cmd = "nameplates", label = "Enable Nameplates", section = "Nameplates", apply = Refresh,
+    key = "nameplates", label = "Enable Nameplates", section = "Nameplates", apply = Refresh,
     tooltip = "Serene's own plates for enemies: flat health bar, name and level, cast bar and your debuffs.\nFriendly plates stay Blizzard's. Off while EllesmereUI Nameplates is loaded.",
 })
 ns.RegisterFeature({

@@ -27,6 +27,6 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "quickLoot", cmd = "loot", label = "Quick Loot", section = "General", apply = Apply,
+    key = "quickLoot", label = "Quick Loot", section = "General", apply = Apply,
     tooltip = "Loots everything instantly when a loot window opens.\nHold Shift to open the loot window normally.",
 })

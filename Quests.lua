@@ -127,10 +127,10 @@ f:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "autoAcceptQuests", cmd = "accept", label = "Auto Accept Quests", section = "General",
+    key = "autoAcceptQuests", label = "Auto Accept Quests", section = "General",
     tooltip = "Accepts quests from NPCs automatically. Gray (trivial) and repeatable quests are skipped.\nHold Shift when talking to an NPC to skip.",
 })
 ns.RegisterFeature({
-    key = "autoTurnInQuests", cmd = "turnin", label = "Auto Turn-In Quests", section = "General",
+    key = "autoTurnInQuests", label = "Auto Turn-In Quests", section = "General",
     tooltip = "Turns in completed quests automatically. Quests with a choice of rewards are left to you.\nHold Shift when talking to an NPC to skip.",
 })

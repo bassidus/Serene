@@ -41,7 +41,7 @@ f:SetScript("OnEvent", function(self, event)
 end)
 
 ns.RegisterFeature({
-    key = "autoAcceptSummon", cmd = "summon", label = "Accept Summons", section = "Social",
+    key = "autoAcceptSummon", label = "Accept Summons", section = "Social",
     apply = function()
         if ns.Enabled("autoAcceptSummon") then
             f:RegisterEvent("CONFIRM_SUMMON")

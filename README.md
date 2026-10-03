@@ -19,13 +19,7 @@ Numy's AddonProfiler (see [Credits](#credits)).
 | Command | What it does |
 |---|---|
 | `/serene` | Opens or closes the options window |
-| `/serene <name>` | Toggles one feature, e.g. `/serene loot` |
-| `/serene list` | Shows every toggle and whether it is on |
 | `/rl` | Reloads the UI (shortcut for `/reload`) |
-
-Toggle names: `minimap`, `fps`, `latency`, `loot`, `delete`, `repair`, `junk`, `accept`,
-`turnin`, `tutorials`, `errors`, `summon`, `res`, `duels`, `thanks`, `range`, `keybinds`,
-`macros`, `nameplates`.
 
 The minimap icon opens the options when you left-click it and reloads the UI when you right-click it.
 Settings are saved account-wide in `SereneDB`. **Reset Defaults** in the options window puts every

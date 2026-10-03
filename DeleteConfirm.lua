@@ -26,6 +26,6 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "autoFillDelete", cmd = "delete", label = "Auto-Fill Delete", section = "General", apply = Apply,
+    key = "autoFillDelete", label = "Auto-Fill Delete", section = "General", apply = Apply,
     tooltip = "Types DELETE for you in the confirmation popup when destroying a valuable item.",
 })

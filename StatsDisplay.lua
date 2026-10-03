@@ -260,11 +260,11 @@ end)
 -------------------------------------------------------------------------------
 local MOVE_HINT = "\nThe box sits bottom right by default; drag it anywhere, right-click it to put it back."
 ns.RegisterFeature({
-    key = "statsFps", cmd = "fps", label = "Show Framerate", section = SECTION, apply = Apply,
+    key = "statsFps", label = "Show Framerate", section = SECTION, apply = Apply,
     tooltip = "Shows the framerate on screen, next to the latency when both are on." .. MOVE_HINT,
 })
 ns.RegisterFeature({
-    key = "statsLatency", cmd = "latency", label = "Show Latency", section = SECTION, apply = Apply,
+    key = "statsLatency", label = "Show Latency", section = SECTION, apply = Apply,
     tooltip = "Shows the latency on screen (hover the box for home and world apart)." .. MOVE_HINT,
 })
 ns.RegisterFeature({

@@ -132,6 +132,6 @@ f:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "autoSellJunk", cmd = "junk", label = "Auto Sell Junk", section = "General",
+    key = "autoSellJunk", label = "Auto Sell Junk", section = "General",
     tooltip = "Sells all gray items when you open a merchant.",
 })

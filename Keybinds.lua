@@ -336,11 +336,11 @@ end)
 local SECTION = "Action Bars"
 
 ns.RegisterFeature({
-    key = "shortKeybinds", cmd = "keybinds", label = "Short Keybind Text", section = SECTION, apply = ApplySetting,
+    key = "shortKeybinds", label = "Short Keybind Text", section = SECTION, apply = ApplySetting,
     tooltip = "Shortens keybind text on the action bars (CTRL-2 -> C2, Mouse Button 4 -> M4, NUMPAD5 -> N5).",
 })
 ns.RegisterFeature({
-    key = "hideMacroText", cmd = "macros", label = "Hide Macro Text", section = SECTION, apply = ApplySetting,
+    key = "hideMacroText", label = "Hide Macro Text", section = SECTION, apply = ApplySetting,
     tooltip = "Hides macro names on the action bars.",
 })
 ns.RegisterFeature({

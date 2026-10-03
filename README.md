@@ -1,20 +1,12 @@
 # Serene
 
-Lightweight quality-of-life addon for World of Warcraft Forever (Interface 16001, the 12.1 engine). Each feature is small and can be toggled on its own. A feature that is off registers no events, so it costs nothing.
-
-## Installation
-
-1. Copy the `Serene` folder into `World of Warcraft/<client>/Interface/AddOns/`.
-2. Restart the game, or type `/reload`.
-3. Type `/serene`, or click the minimap icon, to open the options.
+Lightweight quality-of-life addon for World of Warcraft Forever. Each feature is small and can be toggled on its own. A feature that is off registers no events, so it costs nothing.
 
 ## Usage
 `/serene` Opens or closes the options window
 The minimap icon opens the options when you left-click it and reloads the UI when you right-click it.
 
-## Features
-
-### General
+### Features
 - **Quick Loot**: Automatically loots everything at once. Hold Shift to open the loot window as usual.
 - **Skip Loot Warnings**: Automatically confirms the "will bind to you" question when you loot or roll on a bind-on-pickup item.
 - **Auto-Fill Delete**: Automatically types DELETE into the "delete this good item?" popup.
@@ -33,10 +25,10 @@ A small on-screen readout you can drag anywhere. Right-click puts it back. Choos
 
 ### Social
 - **Accept Summons** Waits until combat ends and **Accept Resurrections** (not while the player casting it is in combat).
-- **Accept invites from friends**. **Block group invites, duels and shared quests** from anyone else. Friends are your friends list, Battle.net friends and, if you turn it on, your guild.
+- **Accept invites from friends**. **Block group invites, duels and shared quests** From anyone else. Friends are your friends list, Battle.net friends and, if you turn it on, your guild.
 - **Invite on Whisper**: whispering `inv` / `invite` gets an invite. If you can't invite, the player gets a whisper back saying why.
-- **Thank for Buffs**: when a player outside your group buffs you (Fortitude, Mark of the Wild, Arcane Intellect, Blessings...), you thank them with an emote (random, or one you pick) after a short pause. Each player is thanked at most once every 90 seconds. Buffs received in combat can't be seen by addons on this client and are not thanked. Only players with a nameplate (or your target) can be recognized, so turn on Friendly Player Names as well.
-- **Friendly Player Names**: Other players' names as Blizzard's friendly nameplates outside instances: name only, class colored and click-through. It lets Thank for Buffs see who buffed you.
+- **Thank you for the buff**: when a player outside your group buffs you (Fortitude, Mark of the Wild, Arcane Intellect, Blessings...), you thank them with an emote (random, or one you pick) after a short pause. Each player is thanked at most once every 90 seconds. Buffs received in combat can't be seen by addons on this client and are not thanked. Only players with a nameplate (or your target) can be recognized, so turn on Friendly Player Names as well.
+- **Friendly Player Names**: Other players' names as Blizzard's friendly nameplates outside instances: name only, class colored and click-through. Required for Thank you for the buff to see who buffed you.
 
 ### Action Bars
 - **Range Coloring**: Icons turn the chosen color while the target is out of range, optionally grayed out first.
@@ -58,10 +50,4 @@ A page listing every loaded addon's CPU and memory use (sortable), plus latency,
 
 - **Colors** are picked from a palette, and the **+** swatch opens Blizzard's color picker for any other color.
 - **Outline** is a set of checkboxes (Outline, Thick, Monochrome, Shadow) that can be combined.
-- **Settings that depend on another one** are dimmed until that one is on.
 - **Fonts** include Blizzard's own, the bundled fonts in `Media/Fonts` and any font other addons register with LibSharedMedia.
-
-## Credits
-
-- Bundled fonts: each font's license is in `Media/Fonts/Licenses`.
-- LibStub, CallbackHandler, LibDataBroker and LibDBIcon for the minimap icon.

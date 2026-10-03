@@ -78,8 +78,7 @@ end
 
 -------------------------------------------------------------------------------
 --  Colors -- a color setting holds a 6-digit hex ("ff4d1a") or one of its
---  feature's special words ("class", "default"...). Names from before the
---  palette ("red", "gold"...) still read as their color.
+--  feature's special words ("class", "default"...).
 -------------------------------------------------------------------------------
 ns.PALETTE = {
     { hex = "ffffff", label = "White" },
@@ -95,13 +94,9 @@ ns.PALETTE = {
     { hex = "40d940", label = "Green" },
 }
 
-local OLD_NAMES = { white = "ffffff", gold = "ffd100", orange = "ff991a", red = "ff4d1a", dark = "595959" }
-
 -- The hex a color value stands for, or nil for a special word.
 function ns.ColorHex(value)
-    if type(value) ~= "string" then return nil end
-    value = OLD_NAMES[value] or value:lower()
-    return value:match("^%x%x%x%x%x%x$") and value or nil
+    return type(value) == "string" and value:match("^%x%x%x%x%x%x$") or nil
 end
 
 function ns.ColorRGB(value)

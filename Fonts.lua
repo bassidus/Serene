@@ -115,8 +115,7 @@ end
 -------------------------------------------------------------------------------
 --  Outline -- a setting holds the chosen flags as "OUTLINE,SHADOW" ("" for
 --  none), or "default" for Blizzard's own look where a feature offers that.
---  Thick wins over plain outline when both are ticked. Values from before
---  the checkboxes ("shadow", "none") read the same as then.
+--  Thick wins over plain outline when both are ticked.
 -------------------------------------------------------------------------------
 ns.OUTLINE_FLAGS = {
     { value = "OUTLINE",      label = "Outline" },
@@ -129,7 +128,7 @@ ns.OUTLINE_FLAGS = {
 function ns.OutlineSet(value)
     if value == "default" then return nil end
     local set = {}
-    for word in tostring(value or ""):upper():gmatch("[%a]+") do set[word] = true end
+    for word in (value or ""):gmatch("[%a]+") do set[word] = true end
     return set
 end
 

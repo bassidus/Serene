@@ -48,8 +48,3 @@ Flat enemy nameplates: threat / class / reaction colors, level, health percent, 
 ### Performance
 A page listing every loaded addon's CPU and memory use (sortable), plus latency, framerate and bandwidth.
 
-## Options window
-
-- **Colors** are picked from a palette, and the **+** swatch opens Blizzard's color picker for any other color.
-- **Outline** is a set of checkboxes (Outline, Thick, Monochrome, Shadow) that can be combined.
-- **Fonts** include Blizzard's own, the bundled fonts in `Media/Fonts` and any font other addons register with LibSharedMedia.

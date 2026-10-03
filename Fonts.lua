@@ -7,7 +7,7 @@ local _, ns = ...
 local MEDIA = "Interface\\AddOns\\Serene\\Media\\Fonts\\"
 
 -- Blizzard's own, then the fonts shipped in Media\Fonts: Serene's set plus
--- the SharedMedia Additional Fonts collection (licenses in Media\Fonts\Licenses),
+-- a collection of free fonts (licenses in Media\Fonts\Licenses),
 -- bundled so no extra addon is needed.
 local BUILTIN = {
     { value = "Fonts\\FRIZQT__.TTF", label = "Friz Quadrata" },

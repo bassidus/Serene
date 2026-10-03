@@ -34,7 +34,7 @@ local COLORS = {
 local Clean = ns.Clean
 
 function NP.Active()
-    return ns.Enabled("nameplates") and not NP.blocked
+    return ns.Enabled("nameplates")
 end
 
 -- Font for every plate text: the chosen typeface and outline at the plate's
@@ -494,13 +494,6 @@ manager:RegisterEvent("PLAYER_LOGIN")
 manager:SetScript("OnEvent", function(self, event, unit)
     if event == "PLAYER_LOGIN" then
         self:UnregisterEvent("PLAYER_LOGIN")
-        -- Two addons drawing the same plates fight over them.
-        if C_AddOns.IsAddOnLoaded("EllesmereUINameplates") then
-            NP.blocked = true
-            ns.Print("Nameplates are off while EllesmereUI Nameplates is loaded.")
-            RunRefreshHooks()
-            return
-        end
         NP.layoutGen = 1
         -- A pooled UnitFrame reused for a unit Serene does not take gets its
         -- hidden pieces back before Blizzard lays it out.
@@ -544,7 +537,7 @@ NP.ApplyRelayout = Relayout
 
 ns.RegisterFeature({
     key = "nameplates", label = "Enable Nameplates", section = "Nameplates", apply = Refresh,
-    tooltip = "Serene's own plates for enemies: flat health bar, name and level, cast bar and your debuffs.\nFriendly plates stay Blizzard's. Off while EllesmereUI Nameplates is loaded.",
+    tooltip = "Serene's own plates for enemies: flat health bar, name and level, cast bar and your debuffs.\nFriendly plates stay Blizzard's.",
 })
 ns.RegisterFeature({
     key = "nameplateClassColors", label = "Class Colors", section = "Nameplates", apply = Relayout,

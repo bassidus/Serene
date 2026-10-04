@@ -33,7 +33,7 @@ All off by default.
 - **Invite on Whisper**: whispering `inv` / `invite` gets an invite. If you can't invite, the player gets a whisper back saying why.
 
 ### Action Bars
-- **Range Coloring**: Icons turn the chosen color while the target is out of range, optionally grayed out first.
+- **Range Coloring**: Icons are grayed out and turn the chosen color while the target is out of range.
 - **Short Keybind Text** (CTRL-2 → C2, Mouse Button 4 → M4), **Hide Macro Text**, plus keybind font, size, outline, color and position.
 
 ### Tooltip

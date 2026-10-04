@@ -9,13 +9,14 @@ local _, ns = ...
 
 local Clean = ns.Clean
 
-local enabled, color, desaturate  -- current settings, read by Apply
+local enabled, color             -- current settings, read by Apply
 local buttons = {}                -- [action button] = true
 local tinted = setmetatable({}, { __mode = "k" })  -- [button] = we colored its icon
 
 local function Tint(icon)
     icon:SetVertexColor(color[1], color[2], color[3])
-    icon:SetDesaturated(desaturate)
+    -- Grayed first, so the tint is not muddied by the icon's own colors.
+    icon:SetDesaturated(true)
 end
 
 -- Blizzard's own look for the button's usable state (ActionButton UpdateUsable).
@@ -135,7 +136,6 @@ local function Apply()
     enabled = ns.Enabled("rangeColors")
     local r, g, b = ns.ColorRGB(ns.Get("rangeColor"))
     color = r and { r, g, b } or { 1, 0.3, 0.1 }
-    desaturate = ns.Get("rangeDesaturate") and true or false
     CollectButtons()
     for btn in pairs(buttons) do
         if enabled or tinted[btn] then Color(btn, enabled and OutOfRange(btn)) end
@@ -158,9 +158,4 @@ ns.RegisterFeature({
     key = "rangeColor", label = "Out of Range Color", section = SECTION, type = "color", default = "ff4d1a",
     requires = "rangeColors", apply = Apply,
     tooltip = "Color of out of range icons.",
-})
-ns.RegisterFeature({
-    key = "rangeDesaturate", label = "Gray Out of Range Icons", section = SECTION, requires = "rangeColors",
-    apply = Apply,
-    tooltip = "Removes the icon's own colors before tinting, so out of range stands out more.",
 })

@@ -26,8 +26,9 @@ The minimap icon opens the options when you left-click it and reloads the UI whe
 A small on-screen readout you can drag anywhere. Right-click puts it back. Choose framerate and/or latency, layout, labels, number colors, font, size, outline and background opacity.
 
 ### Social
+All off by default.
 - **Accept Invites from Friends**: group invites from friends are accepted automatically while you are not in a group.
-- **Block Group Invites** (off by default), **Block Duels** and **Block Shared Quests**: declines them from anyone who is not a friend, and the chat says who was declined.
+- **Block Group Invites**, **Block Duels** and **Block Shared Quests**: declines them from anyone who is not a friend, and the chat says who was declined.
 - **Guild Counts as Friends**: friends are your friends list and Battle.net friends. With this on, your guild counts too, for all the settings above and for Invite on Whisper.
 - **Invite on Whisper**: whispering `inv` / `invite` gets an invite. If you can't invite, the player gets a whisper back saying why.
 

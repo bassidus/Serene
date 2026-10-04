@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Bring back Thank you for the buff as an untargeted /emote
+
 ## 1.1.0 (2026-10-04)
 
 - Add CHANGELOG and a release script for CurseForge zips

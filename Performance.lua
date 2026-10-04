@@ -222,7 +222,7 @@ local function Build(page)
         h:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(a[1], 1, 1, 1)
-            GameTooltip:AddLine(string.format("Over the last %d minutes. Loading screens are left out.",
+            GameTooltip:AddLine(string.format("Over the last %d minutes.",
                 WINDOW / 60), nil, nil, nil, true)
             GameTooltip:Show()
         end)

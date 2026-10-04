@@ -31,8 +31,6 @@ A small on-screen readout you can drag anywhere. Right-click puts it back. Choos
 - **Block Group Invites** (off by default), **Block Duels** and **Block Shared Quests**: declines them from anyone who is not a friend, and the chat says who was declined.
 - **Guild Counts as Friends**: friends are your friends list and Battle.net friends. With this on, your guild counts too, for all the settings above and for Invite on Whisper.
 - **Invite on Whisper**: whispering `inv` / `invite` gets an invite. If you can't invite, the player gets a whisper back saying why.
-- **Thank you for the buff**: when a player outside your group buffs you (Fortitude, Mark of the Wild, Arcane Intellect, Blessings...), you thank them with an emote (random, or one you pick) after a short pause. Each player is thanked at most once every 90 seconds. Buffs received in combat can't be seen by addons on this client and are not thanked. Only players with a nameplate (or your target) can be recognized, so turn on Friendly Player Names as well.
-- **Friendly Player Names**: Other players' names as Blizzard's friendly nameplates outside instances: name only, class colored and click-through. Required for Thank you for the buff to see who buffed you.
 
 ### Action Bars
 - **Range Coloring**: Icons turn the chosen color while the target is out of range, optionally grayed out first.

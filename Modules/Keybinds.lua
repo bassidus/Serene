@@ -97,7 +97,7 @@ local orig = setmetatable({}, { __mode = "k" })  -- [hotkey] = Blizzard's look
 local painting  -- set while we color, so our own calls are not taken for Blizzard's
 
 -- Current settings, read once per Apply.
-local font, size, outline, color, anchor, offX, offY
+local font, size, outline, color, offX, offY
 local noRed   -- Range Coloring is on: the icon shows range, the text stays put
 local styled  -- any of them off default
 
@@ -196,15 +196,15 @@ local function StyleColor(hk, o)
     end
 end
 
-local JUSTIFY = { TOPLEFT = "LEFT", TOP = "CENTER", TOPRIGHT = "RIGHT", CENTER = "CENTER",
-                  BOTTOMLEFT = "LEFT", BOTTOM = "CENTER", BOTTOMRIGHT = "RIGHT" }
-local EDGE = { TOPLEFT = "TOP", TOP = "TOP", TOPRIGHT = "TOP", CENTER = "",
-               BOTTOMLEFT = "BOTTOM", BOTTOM = "BOTTOM", BOTTOMRIGHT = "BOTTOM" }
-local INSET_Y = { TOP = -3, BOTTOM = 3, [""] = 0 }
+-- Offsets put the text's right edge relative to the middle of the button;
+-- it stays right-aligned like Blizzard's, so wide text grows to the left.
+-- At the defaults Blizzard's exact anchors are put back; the fractions are
+-- where its spot really lands (button 1), so the first step does not jump.
+local BLIZZARD_X, BLIZZARD_Y = 18, 13
+local FRACTION_X, FRACTION_Y = 0.5, -0.5  -- Blizzard: 18.5, 12.5
 
 local function Place(btn, hk, o)
-    local edge = EDGE[anchor]
-    if not edge and offX == 0 and offY == 0 then
+    if offX == BLIZZARD_X and offY == BLIZZARD_Y then
         if o.placed then
             hk:ClearAllPoints()
             for _, p in ipairs(o.points) do hk:SetPoint(p[1], p[2], p[3], p[4], p[5]) end
@@ -214,23 +214,14 @@ local function Place(btn, hk, o)
         return
     end
     hk:ClearAllPoints()
-    if edge then
-        -- Spans the button's width; the justification picks the side.
-        local y = INSET_Y[edge] + offY
-        hk:SetPoint(edge .. "LEFT", btn, edge .. "LEFT", 2 + offX, y)
-        hk:SetPoint(edge .. "RIGHT", btn, edge .. "RIGHT", -2 + offX, y)
-        hk:SetJustifyH(JUSTIFY[anchor])
-    else
-        -- Blizzard's spot, nudged.
-        for _, p in ipairs(o.points) do hk:SetPoint(p[1], p[2], p[3], (p[4] or 0) + offX, (p[5] or 0) + offY) end
-        hk:SetJustifyH(o.justify or "RIGHT")
-    end
+    hk:SetPoint("RIGHT", btn, "CENTER", offX + FRACTION_X, offY + FRACTION_Y)
+    hk:SetJustifyH("RIGHT")
     o.placed = true
 end
 
 local function ReadSettings()
     font, size, outline = ns.Get("keybindFont"), ns.Get("keybindFontSize"), ns.Get("keybindOutline")
-    anchor, offX, offY = ns.Get("keybindPosition"), ns.Get("keybindOffsetX"), ns.Get("keybindOffsetY")
+    offX, offY = ns.Get("keybindOffsetX"), ns.Get("keybindOffsetY")
     local mode = ns.Get("keybindColor")
     if mode == "class" then
         local _, class = UnitClass("player")
@@ -242,7 +233,7 @@ local function ReadSettings()
     end
     noRed = ns.Enabled("rangeColors") and true or false
     styled = font ~= "default" or size ~= DEFAULT_SIZE or outline ~= "default" or color ~= nil or noRed
-        or anchor ~= "default" or offX ~= 0 or offY ~= 0
+        or offX ~= BLIZZARD_X or offY ~= BLIZZARD_Y
 end
 
 local function Style(btn)
@@ -368,26 +359,12 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFeature({
-    key = "keybindPosition", label = "Keybind Position", section = SECTION, type = "dropdown", default = "default",
-    apply = ApplySetting,
-    options = function()
-        return {
-            { value = "default",     label = "Blizzard default" },
-            { value = "TOPLEFT",     label = "Top left" },
-            { value = "TOP",         label = "Top" },
-            { value = "TOPRIGHT",    label = "Top right" },
-            { value = "CENTER",      label = "Center" },
-            { value = "BOTTOMLEFT",  label = "Bottom left" },
-            { value = "BOTTOM",      label = "Bottom" },
-            { value = "BOTTOMRIGHT", label = "Bottom right" },
-        }
-    end,
-})
-ns.RegisterFeature({
     key = "keybindOffsetX", label = "Keybind Offset X", section = SECTION, type = "slider",
-    min = -20, max = 20, step = 1, default = 0, apply = ApplySetting,
+    min = -25, max = 45, step = 1, default = BLIZZARD_X, apply = ApplySetting,
+    tooltip = "Where the text ends, from the middle of the button; the default is Blizzard's spot.",
 })
 ns.RegisterFeature({
     key = "keybindOffsetY", label = "Keybind Offset Y", section = SECTION, type = "slider",
-    min = -20, max = 20, step = 1, default = 0, apply = ApplySetting,
+    min = -30, max = 30, step = 1, default = BLIZZARD_Y, apply = ApplySetting,
+    tooltip = "0 is the middle of the button; the default is Blizzard's spot.",
 })

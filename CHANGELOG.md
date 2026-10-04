@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Keybinds: remove Keybind Position; offsets count from the middle of the button, text stays right-aligned
+
 ## 1.2.0 (2026-10-04)
 
 - Thank you for the buff: thank buffs from other players again

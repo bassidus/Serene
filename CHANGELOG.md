@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 (2026-10-04)
 
 - Add CHANGELOG and a release script for CurseForge zips
 - Nameplates: threat colors solo, with a pet and in a group
@@ -38,3 +38,4 @@
 - Remove /serene subcommands; /serene only opens the options
 - Add README
 - Initial commit: Serene QoL addon
+

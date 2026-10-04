@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene
 ## Notes: Lightweight QoL: quick loot, auto repair, sell junk, delete auto-fill, hide tutorials, short keybind text, action bar range coloring, social filters, train all, camera zoom, auto accept/turn-in quests, tooltip position/font/content, class colored unit frames, nameplates, /rl.
-## Version: 1.0.0
+## Version: 1.1.0
 ## SavedVariables: SereneDB
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 

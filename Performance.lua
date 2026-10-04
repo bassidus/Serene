@@ -14,39 +14,56 @@ local CPU_W, MEM_W = 70, 80
 local STAT_ROW_H = 18
 
 -------------------------------------------------------------------------------
---  Communication protocol. No addon API is known for it on this client, so
---  it is read off Blizzard's own Game Menu tooltip whenever that is shown.
+--  Framerate and latency history -- sampled once a second in the background
+--  (whether the page is open or not), kept for the last WINDOW seconds.
+--  Paused over loading screens and for SETTLE seconds after, so their dips
+--  do not count.
 -------------------------------------------------------------------------------
-local protocolHome, protocolWorld
+local WINDOW = 300
+local SETTLE = 5
 
-local issecret = issecretvalue
+local history = { time = {}, fps = {}, latency = {} }
+local slot = 0
+local paused = true  -- until the first loading screen is over
+local settle = 0     -- bumped per loading screen, so an older timer cannot unpause
 
--- Only the Game Menu button's tooltip carries it; every other tooltip is
--- skipped before any text is read. Clients without that global button fall
--- back to any micro button.
-local function FromGameMenu(tt)
-    local owner = tt:GetOwner()
-    if not owner then return false end
-    if MainMenuMicroButton then return owner == MainMenuMicroButton end
-    local ok, name = pcall(owner.GetName, owner)
-    return ok and type(name) == "string" and name:find("MicroButton", 1, true) ~= nil
-end
+C_Timer.NewTicker(1, function()
+    if paused then return end
+    local _, _, _, world = GetNetStats()
+    slot = slot % WINDOW + 1
+    history.time[slot] = GetTime()
+    history.fps[slot] = GetFramerate() or 0
+    history.latency[slot] = world or 0
+end)
 
-local parts = {}
-local function ScanForProtocol(tt)
-    if tt:IsForbidden() or not FromGameMenu(tt) then return end
-    wipe(parts)
-    for i = 1, tt:NumLines() do
-        local fs = _G["GameTooltipTextLeft" .. i]
-        local txt = fs and fs:GetText()
-        if txt and not (issecret and issecret(txt)) then parts[#parts + 1] = txt end
+local loading = CreateFrame("Frame")
+loading:RegisterEvent("PLAYER_LEAVING_WORLD")
+loading:RegisterEvent("PLAYER_ENTERING_WORLD")
+loading:SetScript("OnEvent", function(_, event)
+    paused = true
+    settle = settle + 1
+    if event == "PLAYER_ENTERING_WORLD" then
+        local mine = settle
+        C_Timer.After(SETTLE, function()
+            if settle == mine then paused = false end
+        end)
     end
-    -- Label and values may be one line with \n or separate lines; joined, both match.
-    local all = table.concat(parts, "\n"):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-    local home, world = all:match("Communication Protocol:%s*Home:%s*([^\n]+)%s*World:%s*([^\n]+)")
-    if home then protocolHome, protocolWorld = strtrim(home), strtrim(world) end
+end)
+
+-- Low, average and high of one series over the window; nil without samples.
+local function Range(key)
+    local now, values = GetTime(), history[key]
+    local n, sum, low, high = 0, 0, nil, nil
+    for i, t in pairs(history.time) do
+        if now - t <= WINDOW then
+            local v = values[i]
+            n, sum = n + 1, sum + v
+            low, high = math.min(low or v, v), math.max(high or v, v)
+        end
+    end
+    if n == 0 then return nil end
+    return low, sum / n, high
 end
-hooksecurefunc(GameTooltip, "Show", ScanForProtocol)
 
 -------------------------------------------------------------------------------
 --  Data
@@ -179,12 +196,11 @@ local function Build(page)
 
     -- Summary: two columns of label / value.
     local STATS = {
-        { "latency",   "Latency" },     { "bandwidth", "Bandwidth" },
-        { "protocol",  "Protocol" },    { "download",  "Download" },
-        { "fps",       "Framerate" },   { "cpuAvg",    "Average CPU" },
-        { "memory",    "AddOn Memory" }, { "cpuPeak",  "Peak CPU" },
+        { "fps",     "Framerate" },    { "cpuAvg",  "Average CPU" },
+        { "latency", "Latency" },      { "cpuPeak", "Peak CPU" },
+        { "memory",  "AddOn Memory" },
     }
-    local values = {}
+    local values, holders = {}, {}
     for i, s in ipairs(STATS) do
         local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
         local holder = CreateFrame("Frame", nil, page)
@@ -205,6 +221,34 @@ local function Build(page)
         value:SetPoint("RIGHT")
         value:SetJustifyH("RIGHT")
         values[s[1]] = value
+        holders[s[1]] = holder
+    end
+
+    -- Framerate and latency: low / average / high over the window in a
+    -- tooltip, redrawn every update while it is open.
+    local RANGES = { fps = { "Framerate", "%.0f fps" }, latency = { "Latency", "%.0f ms" } }
+    local function RangeTooltip(holder)
+        local r = RANGES[holder.rangeKey]
+        GameTooltip:SetOwner(holder, "ANCHOR_RIGHT")
+        GameTooltip:SetText(string.format("%s, last %d minutes", r[1], WINDOW / 60), 1, 1, 1)
+        local low, avg, high = Range(holder.rangeKey)
+        if low then
+            GameTooltip:AddDoubleLine("Low:", r[2]:format(low), 1, 0.82, 0, 1, 1, 1)
+            GameTooltip:AddDoubleLine("Average:", r[2]:format(avg), 1, 0.82, 0, 1, 1, 1)
+            GameTooltip:AddDoubleLine("High:", r[2]:format(high), 1, 0.82, 0, 1, 1, 1)
+        else
+            GameTooltip:AddLine("No samples yet.", W.DIM[1], W.DIM[2], W.DIM[3])
+        end
+        GameTooltip:AddLine("Loading screens and the few seconds after are left out.",
+            W.DIM[1], W.DIM[2], W.DIM[3], true)
+        GameTooltip:Show()
+    end
+    for key in pairs(RANGES) do
+        local h = holders[key]
+        h.rangeKey = key
+        h:EnableMouse(true)
+        h:SetScript("OnEnter", RangeTooltip)
+        h:SetScript("OnLeave", GameTooltip_Hide)
     end
 
     -- Shown over the Average CPU value while the client's profiler is off.
@@ -233,7 +277,7 @@ local function Build(page)
         end
         GameTooltip_Hide()
     end)
-    local statsBottom = -36 - (#STATS / 2) * STAT_ROW_H - 14
+    local statsBottom = -36 - math.ceil(#STATS / 2) * STAT_ROW_H - 14
 
     -- Table header, clickable to sort.
     local head = CreateFrame("Frame", nil, page)
@@ -374,17 +418,14 @@ local function Build(page)
     end)
 
     local function UpdateStats()
-        local _, _, home, world = GetNetStats()
-        values.latency:SetFormattedText("%d ms home  /  %d ms world", home or 0, world or 0)
-        if protocolHome then
-            values.protocol:SetFormattedText("Home: %s  /  World: %s", protocolHome, protocolWorld)
-        else
-            values.protocol:SetText("|cff808080hover Game Menu once|r")
-        end
+        -- World latency only: home (realm, chat) shares its connection on
+        -- this client and reads the same.
+        local _, _, _, world = GetNetStats()
         values.fps:SetFormattedText("%.0f fps", GetFramerate() or 0)
-        values.bandwidth:SetFormattedText("%s Mbps", GetAvailableBandwidth and GetAvailableBandwidth() or 0)
-        values.download:SetFormattedText("%d %% complete",
-            GetDownloadedPercentage and math.floor(GetDownloadedPercentage() * 100 + 0.5) or 100)
+        values.latency:SetFormattedText("%d ms", world or 0)
+        for key in pairs(RANGES) do
+            if GameTooltip:IsOwned(holders[key]) then RangeTooltip(holders[key]) end
+        end
 
         local total = 0
         for _, e in ipairs(entries) do total = total + e.mem end

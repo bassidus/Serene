@@ -46,5 +46,5 @@ All off by default.
 Flat enemy nameplates: threat / class / reaction colors, level, health percent, target highlight, cast bar, debuffs (everyone's, or only yours) and quest mob markers with progress and an optional bar color. You can set font, size, outline, width and height.
 
 ### Performance
-A page listing every loaded addon's CPU and memory use (sortable), plus latency, framerate and bandwidth.
+A page listing every loaded addon's CPU and memory use (sortable), plus framerate and latency. Hover either for its low / average / high over the last 5 minutes (loading screens and the few seconds after are left out).
 

@@ -54,19 +54,15 @@ end
 ns.RegisterFeature({
     key = "tooltipFont", type = "dropdown", default = "default",
     label = "Tooltip Font", section = "Tooltip", apply = Apply,
-    tooltip = "Typeface for all tooltip text.",
     options = ns.FontOptions, preview = true,
 })
 ns.RegisterFeature({
     key = "tooltipFontSize", type = "slider", default = 10, min = 8, max = 20, step = 1,
     label = "Tooltip Font Size", section = "Tooltip", apply = Apply,
-    tooltip = "Size of tooltip body text (Blizzard's is 12). The title line is 2 larger, small print 2 smaller.",
 })
 ns.RegisterFeature({
     key = "tooltipOutline", type = "outline", default = "default",
     label = "Tooltip Outline", section = "Tooltip", apply = Apply,
-    tooltip = "Edge around tooltip text; tick any number. Thick wins over Outline. Default keeps "
-        .. "Blizzard's look.",
     blizzard = function()
         local orig = original.GameTooltipText
         return orig and ns.OutlineOf(orig[3], orig.sx, orig.sy) or {}

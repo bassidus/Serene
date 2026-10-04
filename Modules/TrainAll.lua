@@ -104,6 +104,4 @@ end)
 
 ns.RegisterFeature({
     key = "trainAllButton", label = "Train All Button", section = "General", apply = Apply,
-    tooltip = "Adds a Train All button to trainers that learns everything you can afford in one click. "
-        .. "Hover it to see how many skills and the total cost.",
 })

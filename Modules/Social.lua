@@ -242,7 +242,6 @@ end
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
     key = "partyFromFriends", label = "Accept Invites from Friends", section = SECTION, default = false, apply = Apply,
-    tooltip = "Accepts group invites from friends automatically.",
 })
 ns.RegisterFeature({
     key = "blockPartyInvites", label = "Block Group Invites", section = SECTION, default = false, apply = Apply,
@@ -258,18 +257,13 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "socialGuildFriends", label = "Guild Counts as Friends", section = SECTION, default = false, apply = Apply,
-    tooltip = "Treats your guild members as friends for the settings above.",
 })
 ns.RegisterFeature({
     key = "whisperInvite", label = "Invite on Whisper", section = SECTION, default = false, apply = Apply,
-    tooltip = "Invites players who whisper you the keyword (also over Battle.net), while you are not in "
-        .. "a group or lead it (or are a raid assistant). When no invite can be sent (not the leader, "
-        .. "group full, other faction) they get a whisper back saying why.",
 })
 ns.RegisterFeature({
     key = "whisperInviteKeyword", label = "Invite Keyword", section = SECTION, type = "dropdown", default = "both",
     requires = "whisperInvite",
-    tooltip = "The whisper that gets an invite. Only the word on its own counts, in any letter case.",
     options = function()
         return {
             { value = "inv",    label = "inv" },
@@ -281,7 +275,6 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "whisperInviteFrom", label = "Invite Whispers From", section = SECTION, type = "dropdown",
     default = "anyone", requires = "whisperInvite",
-    tooltip = "Who gets an invite for whispering the keyword.",
     options = function()
         return {
             { value = "anyone",  label = "Anyone" },

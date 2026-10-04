@@ -24,5 +24,4 @@ end
 
 ns.RegisterFeature({
     key = "quickLoot", label = "Quick Loot", section = "General", apply = Apply,
-    tooltip = "Loots everything instantly when a loot window opens.\nHold Shift to open the loot window normally.",
 })

@@ -76,13 +76,11 @@ end
 
 ns.RegisterFeature({
     key = "hideErrors", label = "Hide Error Messages", section = "General", apply = Apply,
-    tooltip = "Hides the red error text and its voice line (\"Not enough rage\", \"Out of range\"...). "
-        .. "Full bags, full quest log and not enough money still show.",
+    tooltip = "Hides the red error text and its voice line (\"Not enough rage\", \"Out of range\"...).",
 })
 ns.RegisterFeature({
     key = "hideErrorsWhen", label = "Hide Errors", section = "General", type = "dropdown", default = "always",
     requires = "hideErrors", apply = Apply,
-    tooltip = "Hide error messages all the time, or only while you are in combat.",
     options = function()
         return {
             { value = "always", label = "Always" },

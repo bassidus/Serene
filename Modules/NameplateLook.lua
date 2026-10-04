@@ -23,26 +23,21 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "nameplateFont", label = "Font", section = "Nameplates", type = "dropdown", default = "default",
     preview = true, apply = Relayout,
-    tooltip = "Typeface for nameplate text.",
     options = ns.FontOptions,
 })
 ns.RegisterFeature({
     key = "nameplateFontSize", label = "Font Size", section = "Nameplates", type = "slider",
     min = 7, max = 16, step = 1, default = 10, apply = Relayout,
-    tooltip = "Size of the name; the other texts follow it.",
 })
 ns.RegisterFeature({
     key = "nameplateOutline", label = "Outline", section = "Nameplates", type = "outline", default = "OUTLINE",
     apply = Relayout,
-    tooltip = "Edge around nameplate text; tick any number. Thick wins over Outline.",
 })
 ns.RegisterFeature({
     key = "nameplateWidth", label = "Width", section = "Nameplates", type = "slider",
     min = 60, max = 220, step = 2, default = 130, apply = Relayout,
-    tooltip = "Width of the health and cast bars.",
 })
 ns.RegisterFeature({
     key = "nameplateHeight", label = "Health Bar Height", section = "Nameplates", type = "slider",
     min = 4, max = 24, step = 1, default = 12, apply = Relayout,
-    tooltip = "Height of the health bar.",
 })

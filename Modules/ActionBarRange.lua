@@ -151,11 +151,8 @@ local SECTION = "Action Bars"
 
 ns.RegisterFeature({
     key = "rangeColors", label = "Range Coloring", section = SECTION, apply = Apply,
-    tooltip = "Colors action bar icons while your target is out of range. Out of mana and unusable "
-        .. "abilities keep Blizzard's blue and gray.",
 })
 ns.RegisterFeature({
     key = "rangeColor", label = "Out of Range Color", section = SECTION, type = "color", default = "ff4d1a",
     requires = "rangeColors", apply = Apply,
-    tooltip = "Color of out of range icons.",
 })

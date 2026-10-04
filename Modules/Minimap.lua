@@ -118,5 +118,4 @@ end
 
 ns.RegisterFeature({
     key = "minimapIcon", label = "Minimap Icon", section = "General", apply = Apply,
-    tooltip = "Shows the Serene icon on the minimap. Left-click opens these options, right-click reloads the UI.\nYou can always use /serene instead.",
 })

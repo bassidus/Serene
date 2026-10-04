@@ -146,6 +146,5 @@ ns.RegisterFeature({
         end
         RefreshAll()
     end,
-    tooltip = "Health bars on the player, target, target of target and party frames take the class color "
-        .. "for players. Others keep Blizzard's color.",
+    tooltip = "Class colors on the player, target, target of target and party frames.",
 })

@@ -178,7 +178,6 @@ NP.RegisterModule({
 ns.RegisterFeature({
     key = "nameplateDebuffs", label = "Debuffs", section = "Nameplates",
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
-    tooltip = "Debuffs on the enemy above the name, with time left and stacks.",
 })
 ns.RegisterFeature({
     key = "nameplateDebuffsMine", label = "Only My Debuffs", section = "Nameplates", default = false,
@@ -192,5 +191,4 @@ ns.RegisterFeature({
             end
         end
     end,
-    tooltip = "Shows only the debuffs you cast. Off shows everyone's.",
 })

@@ -37,7 +37,6 @@ end
 ns.RegisterFeature({
     key = "tooltipAnchor", type = "dropdown", default = "cursorRight",
     label = "Tooltip Position", section = "Tooltip",
-    tooltip = "Where the tooltip appears for units, objects and other default-placed tooltips.",
     options = function()
         return {
             { value = "default",     label = "Blizzard default" },
@@ -49,10 +48,8 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "tooltipOffsetX", type = "slider", default = 0, min = -100, max = 100, step = 1,
     label = "Cursor Offset X", section = "Tooltip",
-    tooltip = "Moves a cursor-placed tooltip sideways: positive is right, negative left.",
 })
 ns.RegisterFeature({
     key = "tooltipOffsetY", type = "slider", default = 0, min = -100, max = 100, step = 1,
     label = "Cursor Offset Y", section = "Tooltip",
-    tooltip = "Moves a cursor-placed tooltip up and down: positive is up, negative down.",
 })

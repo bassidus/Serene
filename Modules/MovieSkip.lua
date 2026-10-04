@@ -38,5 +38,5 @@ end
 ns.RegisterFeature({
     key = "fasterMovieSkip", label = "Faster Movie Skip", section = "General",
     apply = function() if On() then Hook() end end,
-    tooltip = "Escape, Space or Enter skips a cinematic or movie right away, without the \"Are you sure?\" question.",
+    tooltip = "Escape, Space or Enter skips a cinematic without confirmation.",
 })

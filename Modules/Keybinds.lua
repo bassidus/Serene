@@ -339,24 +339,19 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "hideMacroText", label = "Hide Macro Text", section = SECTION, apply = ApplySetting,
-    tooltip = "Hides macro names on the action bars.",
 })
 ns.RegisterFeature({
     key = "keybindFont", label = "Keybind Font", section = SECTION, type = "dropdown", default = "default",
     preview = true, apply = ApplySetting,
-    tooltip = "Typeface for the keybind text. Blizzard default keeps the normal font.",
     options = ns.FontOptions,
 })
 ns.RegisterFeature({
     key = "keybindFontSize", label = "Keybind Font Size", section = SECTION, type = "slider",
     min = 6, max = 24, step = 1, default = DEFAULT_SIZE, apply = ApplySetting,
-    tooltip = "Size of the keybind text. 12 is Blizzard's size; the smaller pet and stance text follows along.",
 })
 ns.RegisterFeature({
     key = "keybindOutline", label = "Keybind Outline", section = SECTION, type = "outline", default = "default",
     apply = ApplySetting,
-    tooltip = "Edge around the keybind text; tick any number. Thick wins over Outline. "
-        .. "Default keeps Blizzard's look.",
     blizzard = function()
         local hk = _G.ActionButton1HotKey
         if not hk then return {} end
@@ -367,17 +362,14 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "keybindColor", label = "Keybind Color", section = SECTION, type = "color", default = "default",
     apply = ApplySetting,
-    tooltip = "Color of the keybind text. It turns red while the target is out of range, "
-        .. "unless Range Coloring already colors the whole button.",
     specials = {
-        { value = "default", label = "Default", tooltip = "Blizzard's own keybind color." },
-        { value = "class",   label = "Class",   tooltip = "Your class color." },
+        { value = "default", label = "Default" },
+        { value = "class",   label = "Class" },
     },
 })
 ns.RegisterFeature({
     key = "keybindPosition", label = "Keybind Position", section = SECTION, type = "dropdown", default = "default",
     apply = ApplySetting,
-    tooltip = "Where on the button the keybind text sits.",
     options = function()
         return {
             { value = "default",     label = "Blizzard default" },
@@ -394,10 +386,8 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "keybindOffsetX", label = "Keybind Offset X", section = SECTION, type = "slider",
     min = -20, max = 20, step = 1, default = 0, apply = ApplySetting,
-    tooltip = "Moves the keybind text sideways: positive is right, negative left.",
 })
 ns.RegisterFeature({
     key = "keybindOffsetY", label = "Keybind Offset Y", section = SECTION, type = "slider",
     min = -20, max = 20, step = 1, default = 0, apply = ApplySetting,
-    tooltip = "Moves the keybind text up and down: positive is up, negative down.",
 })

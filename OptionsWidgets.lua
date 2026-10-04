@@ -328,17 +328,19 @@ function W.Color(parent, f)
     label:SetText(f.label)
 
     local choices = {}  -- { button, edges, value (special word or hex), [fill] }
-    -- tip: the choice's own help text (a special's tooltip), else the setting's.
+    -- tip: the choice's own help text (a special's tooltip), else the setting's;
+    -- with neither, hovering shows no tooltip.
     local function Choice(button, value, name, tip)
         local c = { button = button, value = value }
         W.Solid(button, "BACKGROUND", FIELD):SetAllPoints()
         c.edges = W.Border(button, EDGE)
+        tip = tip or f.tooltip
         button:SetScript("OnEnter", function(self)
             W.SetBorderColor(c.edges, ACCENT)
+            if not tip then return end
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(f.label .. ": " .. name, 1, 1, 1)
-            tip = tip or f.tooltip
-            if tip then GameTooltip:AddLine(tip, nil, nil, nil, true) end
+            GameTooltip:AddLine(tip, nil, nil, nil, true)
             GameTooltip:Show()
         end)
         button:SetScript("OnLeave", function()

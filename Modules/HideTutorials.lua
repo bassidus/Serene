@@ -141,5 +141,4 @@ end)
 
 ns.RegisterFeature({
     key = "hideTutorials", label = "Hide Tutorials", section = "General", apply = Apply,
-    tooltip = "Hides tutorial pop-ups, yellow help bubbles and the (i) help buttons.",
 })

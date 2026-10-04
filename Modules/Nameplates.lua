@@ -539,22 +539,18 @@ NP.ApplyRelayout = Relayout
 -- and debuff toggles, so the options page lists every toggle first.
 
 ns.RegisterFeature({
-    key = "nameplates", label = "Enable Nameplates", section = "Nameplates", apply = Refresh,
-    tooltip = "Serene's own plates for enemies: flat health bar, name and level, cast bar and your debuffs.\nFriendly plates stay Blizzard's.",
+    key = "nameplates", label = "Serene Enemy Nameplates", section = "Nameplates", apply = Refresh,
+    tooltip = "Serene's own plates for enemies: flat health bar, name and level, cast bar and your debuffs.",
 })
 ns.RegisterFeature({
     key = "nameplateClassColors", label = "Class Colors", section = "Nameplates", apply = Relayout,
-    tooltip = "Colors enemy players' health bars by class.",
 })
 ns.RegisterFeature({
     key = "nameplateLevel", label = "Show Level", section = "Nameplates", apply = Relayout,
-    tooltip = "Shows the level before the name, colored by difficulty (+ for elites, ?? for bosses).",
 })
 ns.RegisterFeature({
     key = "nameplateHealthText", label = "Health Percent", section = "Nameplates", apply = Relayout,
-    tooltip = "Shows the health percent inside the bar.",
 })
 ns.RegisterFeature({
     key = "nameplateTargetHighlight", label = "Highlight Target", section = "Nameplates", apply = Relayout,
-    tooltip = "White border around your target's plate.",
 })

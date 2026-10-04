@@ -125,9 +125,9 @@ end)
 
 ns.RegisterFeature({
     key = "autoAcceptQuests", label = "Auto Accept Quests", section = "General",
-    tooltip = "Accepts quests from NPCs automatically. Gray (trivial) and repeatable quests are skipped.\nHold Shift when talking to an NPC to skip.",
+    tooltip = "Accepts quests automatically. Hold Shift to skip.",
 })
 ns.RegisterFeature({
     key = "autoTurnInQuests", label = "Auto Turn-In Quests", section = "General",
-    tooltip = "Turns in completed quests automatically. Quests with a choice of rewards are left to you.\nHold Shift when talking to an NPC to skip.",
+    tooltip = "Turns in quests automatically. Hold Shift to skip.",
 })

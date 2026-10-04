@@ -24,5 +24,4 @@ end)
 
 ns.RegisterFeature({
     key = "autoRepair", label = "Auto Repair", section = "General",
-    tooltip = "Repairs all gear with your own gold when you talk to a merchant that can repair.",
 })

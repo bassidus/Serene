@@ -170,14 +170,11 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "nameplateQuestColor", label = "Color Quest Mobs", section = "Nameplates", requires = "nameplateQuest",
     apply = Refresh,
-    tooltip = "Also colors quest mobs' health bars (green unless you pick another color below). "
-        .. "Once the mob is fighting you it takes its normal or threat color.",
 })
 ns.RegisterFeature({
     key = "nameplateQuestBarColor", label = "Quest Mob Color", section = "Nameplates", type = "color",
     default = "default", requires = { "nameplateQuest", "nameplateQuestColor" }, apply = Refresh,
-    tooltip = "Health bar color of quest mobs. Default is the quest green.",
     specials = {
-        { value = "default", label = "Default", tooltip = "The quest green." },
+        { value = "default", label = "Default" },
     },
 })

@@ -22,5 +22,4 @@ end
 
 ns.RegisterFeature({
     key = "maxCameraZoom", label = "Max Camera Zoom", section = "General", apply = Apply,
-    tooltip = "Lets the camera zoom out further than Blizzard's default.",
 })

@@ -290,19 +290,19 @@ if GameTooltipStatusBar then
 end
 
 -------------------------------------------------------------------------------
-local function Content(key, label, tooltip, default, apply)
+local function Content(key, label, default, apply, tooltip)
     ns.RegisterFeature({
         key = key, label = label, tooltip = tooltip, default = default,
         section = "Tooltip", apply = apply,
     })
 end
 
-Content("tooltipClassColors", "Class Colors", "Colors player names and their class by class.", true)
-Content("tooltipLevelColor", "Level Color", "Colors \"Level N\" by difficulty compared to your level: gray (trivial), green, yellow (even), orange, red.", true)
-Content("tooltipFactionColor", "Faction Color", "Colors the Alliance line blue and the Horde line red.", true)
-Content("tooltipTitles", "Player Titles", "Shows player titles in the name line. Off shows the plain name.", true)
-Content("tooltipGuildRank", "Guild Rank", "Adds the player's guild rank after the guild name.", true)
-Content("tooltipTarget", "Target", "Adds a line with who the unit is targeting.", true)
-Content("tooltipHealthBar", "Health Bar", "Shows the health bar under unit tooltips.", true, ApplyHealthBar)
-Content("tooltipItemLevel", "Item Level", "Shows item level on equippable items.", true)
-Content("tooltipIDs", "Spell and Item IDs", "Adds the spell ID or item ID to tooltips.", false)
+Content("tooltipClassColors", "Class Colors", true)
+Content("tooltipLevelColor", "Level Color", true)
+Content("tooltipFactionColor", "Faction Color", true)
+Content("tooltipTitles", "Player Titles", true)
+Content("tooltipGuildRank", "Guild Rank", true)
+Content("tooltipTarget", "Target", true, nil, "Adds a line with who the unit is targeting.")
+Content("tooltipHealthBar", "Health Bar", true, ApplyHealthBar)
+Content("tooltipItemLevel", "Item Level", true)
+Content("tooltipIDs", "Spell and Item IDs", false)

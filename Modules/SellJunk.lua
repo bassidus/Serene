@@ -133,5 +133,4 @@ end)
 
 ns.RegisterFeature({
     key = "autoSellJunk", label = "Auto Sell Junk", section = "General",
-    tooltip = "Sells all gray items when you open a merchant.",
 })

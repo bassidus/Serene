@@ -85,11 +85,8 @@ end
 
 ns.RegisterFeature({
     key = "tooltipHideBorder", label = "Hide Border", section = "Tooltip", apply = Apply,
-    tooltip = "Hides the frame around tooltips and keeps a flat background.",
 })
 ns.RegisterFeature({
     key = "tooltipBgOpacity", label = "Background Opacity", section = "Tooltip", type = "slider",
     min = 0, max = 100, step = 5, default = 90, apply = Apply,
-    tooltip = "How solid the tooltip background is, in percent. 100 is Blizzard's normal, 0 leaves only "
-        .. "the text (and the border, unless it is hidden).",
 })

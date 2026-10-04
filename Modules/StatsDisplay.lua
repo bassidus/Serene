@@ -154,12 +154,6 @@ local function Build()
         local point, _, relPoint, x, y = self:GetPoint()
         SereneDB.statsPos = { point, relPoint, x, y }
     end)
-    frame:SetScript("OnMouseUp", function(_, button)
-        if button == "RightButton" and not ns.Enabled("statsLocked") then
-            SereneDB.statsPos = nil
-            Place()
-        end
-    end)
     frame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
         GameTooltip:SetText("FPS & Latency", 1, 1, 1)
@@ -167,7 +161,7 @@ local function Build()
         GameTooltip:AddDoubleLine("Latency", Latency() .. " ms", 1, 0.82, 0, 1, 1, 1)
         if not ns.Enabled("statsLocked") then
             GameTooltip:AddLine(" ")
-            GameTooltip:AddLine("Drag to move. Right-click to reset the position.", 0.6, 0.6, 0.6)
+            GameTooltip:AddLine("Drag to move.", 0.6, 0.6, 0.6)
         end
         GameTooltip:Show()
     end)
@@ -249,23 +243,18 @@ end)
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
-local MOVE_HINT = "\nThe box sits bottom right by default; drag it anywhere, right-click it to put it back."
 ns.RegisterFeature({
     key = "statsFps", label = "Show Framerate", section = SECTION, apply = Apply,
-    tooltip = "Shows the framerate on screen, next to the latency when both are on." .. MOVE_HINT,
 })
 ns.RegisterFeature({
     key = "statsLatency", label = "Show Latency", section = SECTION, apply = Apply,
-    tooltip = "Shows the latency on screen." .. MOVE_HINT,
 })
 ns.RegisterFeature({
     key = "statsLocked", label = "Lock Position", section = SECTION, default = false, apply = Apply,
-    tooltip = "Stops the box from being dragged or reset by right-click.",
 })
 ns.RegisterFeature({
     key = "statsLayout", label = "Layout", section = SECTION, type = "dropdown", default = "row",
     apply = Apply,
-    tooltip = "Framerate and latency side by side, or one above the other.",
     options = function()
         return {
             { value = "row",     label = "Side by side" },
@@ -274,9 +263,8 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "statsLabels", label = "Labels", section = SECTION, type = "dropdown", default = "suffix",
+    key = "statsLabels", label = "Format", section = SECTION, type = "dropdown", default = "suffix",
     apply = Apply,
-    tooltip = "How the numbers are labeled.",
     options = function()
         return {
             { value = "suffix", label = "60 fps  45 ms" },
@@ -286,34 +274,27 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "statsColors", label = "Number Colors", section = SECTION, type = "color", default = "status",
+    key = "statsColors", label = "Colors", section = SECTION, type = "color", default = "status",
     apply = Apply,
-    tooltip = "Color of the numbers.",
     specials = {
-        { value = "status", label = "By value",
-          tooltip = "Green is good, yellow is so-so, red is bad (framerate 50 / 25, latency 100 / 250 ms)." },
-        { value = "class",  label = "Class", tooltip = "Your class color." },
+        { value = "status", label = "By value" },
+        { value = "class",  label = "By class" },
     },
 })
 ns.RegisterFeature({
     key = "statsFont", label = "Font", section = SECTION, type = "dropdown", default = "default",
     preview = true, apply = Apply,
-    tooltip = "Typeface for the box.",
     options = ns.FontOptions,
 })
 ns.RegisterFeature({
     key = "statsFontSize", label = "Font Size", section = SECTION, type = "slider",
     min = 8, max = 28, step = 1, default = 12, apply = Apply,
-    tooltip = "Size of the text.",
 })
 ns.RegisterFeature({
     key = "statsOutline", label = "Outline", section = SECTION, type = "outline", default = "OUTLINE",
     apply = Apply,
-    tooltip = "Edge around the text, to keep it readable on bright backgrounds; tick any number. "
-        .. "Thick wins over Outline.",
 })
 ns.RegisterFeature({
     key = "statsBackground", label = "Background Opacity", section = SECTION, type = "slider",
     min = 0, max = 100, step = 5, default = 0, apply = Apply,
-    tooltip = "Dark backdrop behind the text, in percent. 0 = none.",
 })

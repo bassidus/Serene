@@ -32,6 +32,5 @@ ns.RegisterFeature({
             end
         end
     end,
-    tooltip = "No \"will bind to you\" question when you loot a bind-on-pickup item or roll Need/Greed on one. "
-        .. "Equipping a bind-on-equip item still asks.",
+    tooltip = "No confirmation when looting a BoP item.",
 })

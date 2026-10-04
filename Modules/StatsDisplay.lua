@@ -53,12 +53,11 @@ local function Part(kind, v)
     return num .. LABELS[kind][2]
 end
 
+-- World latency: home (realm, chat) shares its connection on this client
+-- and reads the same.
 local function Latency()
-    local _, _, home, world = GetNetStats()
-    home, world = home or 0, world or 0
-    local source = ns.Get("statsLatencySource")
-    if source == "home" then return home elseif source == "world" then return world end
-    return math.max(home, world)
+    local _, _, _, world = GetNetStats()
+    return world or 0
 end
 
 local frame, bg, ticker
@@ -162,12 +161,10 @@ local function Build()
         end
     end)
     frame:SetScript("OnEnter", function(self)
-        local _, _, home, world = GetNetStats()
         GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
         GameTooltip:SetText("FPS & Latency", 1, 1, 1)
         GameTooltip:AddDoubleLine("Framerate", string.format("%.0f fps", GetFramerate() or 0), 1, 0.82, 0, 1, 1, 1)
-        GameTooltip:AddDoubleLine("Latency (home)", (home or 0) .. " ms", 1, 0.82, 0, 1, 1, 1)
-        GameTooltip:AddDoubleLine("Latency (world)", (world or 0) .. " ms", 1, 0.82, 0, 1, 1, 1)
+        GameTooltip:AddDoubleLine("Latency", Latency() .. " ms", 1, 0.82, 0, 1, 1, 1)
         if not ns.Enabled("statsLocked") then
             GameTooltip:AddLine(" ")
             GameTooltip:AddLine("Drag to move. Right-click to reset the position.", 0.6, 0.6, 0.6)
@@ -259,23 +256,11 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "statsLatency", label = "Show Latency", section = SECTION, apply = Apply,
-    tooltip = "Shows the latency on screen (hover the box for home and world apart)." .. MOVE_HINT,
+    tooltip = "Shows the latency on screen." .. MOVE_HINT,
 })
 ns.RegisterFeature({
     key = "statsLocked", label = "Lock Position", section = SECTION, default = false, apply = Apply,
     tooltip = "Stops the box from being dragged or reset by right-click.",
-})
-ns.RegisterFeature({
-    key = "statsLatencySource", label = "Latency Shown", section = SECTION, type = "dropdown", default = "max",
-    apply = Apply,
-    tooltip = "Which latency the box shows. Home is your connection to the realm (chat, auction house); world is combat and movement.",
-    options = function()
-        return {
-            { value = "max",   label = "Highest of home and world" },
-            { value = "home",  label = "Home" },
-            { value = "world", label = "World" },
-        }
-    end,
 })
 ns.RegisterFeature({
     key = "statsLayout", label = "Layout", section = SECTION, type = "dropdown", default = "row",

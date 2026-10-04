@@ -1,29 +1,21 @@
 # Serene
 
-Lightweight quality-of-life addon for World of Warcraft Forever. Each feature is small and can be toggled on its own. A feature that is off registers no events, so it costs nothing.
-
-I created this based on other quality-of-life addons, but with the options I regularly use. If you like it, please keep using it, but don't bash me for reinventing the wheel!
-
-## Usage
-`/serene` Opens or closes the options window
-The minimap icon opens the options when you left-click it and reloads the UI when you right-click it.
+Lightweight QoL addon for World of Warcraft Forever. Each feature is small and can be toggled on its own.
 
 ### Features
-- **Quick Loot**: Automatically loots everything at once. Hold Shift to open the loot window as usual.
-- **Skip Loot Warnings**: Automatically confirms the "will bind to you" question when you loot or roll on a bind-on-pickup item.
+- **Quick Loot**: Loots quicker than default Auto Loot.
+- **Skip Loot Warnings**: Automatically confirms the "will bind to you" question.
 - **Auto-Fill Delete**: Automatically types DELETE into the "delete this good item?" popup.
-- **Auto Repair**: Automatically repairs at merchants with your own gold.
-- **Auto Sell Junk**: Automatically sells gray items at merchants and retries until every gray item is gone.
-- **Train All Button**: Learns everything you can afford at a trainer in one click.
-- **Auto Accept / Turn-In Quests**: Hold Shift to handle a quest yourself. Gray and repeatable quests, and turn-ins with a choice of reward, are left to you.
-- **Hide Tutorials**: Hides tutorial pop-ups, the yellow help bubbles and the (i) help buttons on Blizzard's panels, along with their tooltips. Turning it off brings them back.
-- **Faster Movie Skip**: Escape, Space or Enter skips a cinematic or movie right away, without the "Are you sure?" question.
-- **Max Camera Zoom**: Lets the camera zoom out as far as the client allows (2.6 instead of Blizzard's 1.9). Turning it off sets the distance back to Blizzard's default, but only if Serene changed it.
-- **Class Colored Healthbars**: Class colors on Blizzard's unit frames (player, target, target of target, focus, party).
-- **Hide Error Messages**: Hides the red "Not enough rage" / "Out of range" text, always or only in combat. Messages you need to act on (bags full, quest log full, not enough money) still show.
-
-### FPS & Latency
-A small on-screen readout you can drag anywhere. Right-click puts it back. Choose framerate and/or latency, layout, labels, number colors, font, size, outline and background opacity.
+- **Auto Repair**: Automatically repairs at merchants.
+- **Auto Sell Junk**: Automatically sells gray items at merchants.
+- **Train All Button**: Learns everything you can train at a trainer.
+- **Auto Accept / Turn-In Quests**: Hold Shift to handle a quest yourself.
+- **Hide Tutorials**: Hides tutorial pop-ups.
+- **Faster Movie Skip**: Escape, Space or Enter skips a movie right away, without confirmation.
+- **Max Camera Zoom**: Lets the camera zoom out further.
+- **Class Colored Healthbars**: Class colors on Blizzard's unit frames.
+- **Hide Error Messages**: Hides the "Not enough rage" / "Out of range" warnings.
+- **FPS & Latency**: A small on-screen readout you can drag anywhere.
 
 ### Social
 All off by default.
@@ -36,7 +28,7 @@ All off by default.
 - **Range Coloring**: Icons are grayed out and turn the chosen color while the target is out of range.
 - **Short Keybind Text** (CTRL-2 → C2, Mouse Button 4 → M4), **Hide Macro Text**, plus keybind font, size, outline, color and position.
 
-### Tooltip
+### Tooltip Customization
 - Position (follows the cursor, with offsets), font, size and outline.
 - Hide the border and set background opacity.
 - Hide the beta "Press F6 to submit an issue" line.
@@ -48,3 +40,6 @@ Flat enemy nameplates: threat / class / reaction colors, level, health percent, 
 ### Performance
 A page listing every loaded addon's CPU and memory use (sortable), plus framerate and latency. Hover either for its low / average / high over the last 5 minutes (loading screens and the few seconds after are left out).
 
+## Usage
+`/serene` Opens or closes the options window.
+The minimap icon opens the options when you left-click it and reloads the UI when you right-click it.

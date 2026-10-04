@@ -38,7 +38,7 @@ All off by default.
 Flat enemy nameplates: threat / class / reaction colors, level, health percent, target highlight, cast bar, debuffs (everyone's, or only yours) and quest mob markers with progress and an optional bar color. You can set font, size, outline, width and height.
 
 ### Performance
-A page listing every loaded addon's CPU and memory use (sortable), plus average framerate and latency over the last 5 minutes (loading screens and the few seconds after are left out).
+A page listing every loaded addon's CPU and memory use (sortable), plus average framerate and latency over the last 5 minutes (loading screens are left out).
 
 ## Usage
 `/serene` Opens or closes the options window.

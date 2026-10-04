@@ -16,16 +16,13 @@ local STAT_ROW_H = 18
 -------------------------------------------------------------------------------
 --  Framerate and latency history -- sampled once a second in the background
 --  (whether the page is open or not), kept for the last WINDOW seconds.
---  Paused over loading screens and for SETTLE seconds after, so their dips
---  do not count.
+--  Paused over loading screens, so their dips do not count.
 -------------------------------------------------------------------------------
 local WINDOW = 300
-local SETTLE = 5
 
 local history = { time = {}, fps = {}, latency = {} }
 local slot = 0
 local paused = true  -- until the first loading screen is over
-local settle = 0     -- bumped per loading screen, so an older timer cannot unpause
 
 C_Timer.NewTicker(1, function()
     if paused then return end
@@ -42,14 +39,7 @@ local loading = CreateFrame("Frame")
 loading:RegisterEvent("PLAYER_LEAVING_WORLD")
 loading:RegisterEvent("PLAYER_ENTERING_WORLD")
 loading:SetScript("OnEvent", function(_, event)
-    paused = true
-    settle = settle + 1
-    if event == "PLAYER_ENTERING_WORLD" then
-        local mine = settle
-        C_Timer.After(SETTLE, function()
-            if settle == mine then paused = false end
-        end)
-    end
+    paused = event == "PLAYER_LEAVING_WORLD"
 end)
 
 -- Average of one series over the window; nil without samples.
@@ -232,7 +222,7 @@ local function Build(page)
         h:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(a[1], 1, 1, 1)
-            GameTooltip:AddLine(string.format("Over the last %d minutes. Loading screens and the few seconds after are left out.",
+            GameTooltip:AddLine(string.format("Over the last %d minutes. Loading screens are left out.",
                 WINDOW / 60), nil, nil, nil, true)
             GameTooltip:Show()
         end)

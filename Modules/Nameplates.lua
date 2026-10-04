@@ -245,11 +245,14 @@ end
 local function UpdateHealthColor(plate)
     local unit = plate.unit
     local c
-    -- Tapped first, then quest mobs (NameplateQuest.lua), then threat.
+    -- On its threat list = the mob is fighting you (Blizzard's test).
+    local fighting = Clean(UnitThreatSituation("player", unit)) ~= nil
+    -- Tapped first, then quest mobs (NameplateQuest.lua) until they fight
+    -- you, then threat.
     if Clean(UnitIsTapDenied(unit)) then
         c = COLORS.tapped
     else
-        c = (NP.QuestColor and NP.QuestColor(unit)) or ThreatColor(unit)
+        c = (not fighting and NP.QuestColor and NP.QuestColor(unit)) or ThreatColor(unit)
     end
     if not c and ns.Enabled("nameplateClassColors") and Clean(UnitIsPlayer(unit)) then
         local _, class = UnitClass(unit)
@@ -264,8 +267,8 @@ local function UpdateHealthColor(plate)
         local reaction = Clean(UnitReaction(unit, "player"))
         if reaction and reaction >= 5 then
             c = COLORS.friendly
-        elseif reaction == 4 then
-            c = COLORS.neutral
+        elseif reaction == 4 and not fighting then
+            c = COLORS.neutral  -- a neutral mob fighting you turns hostile red
         else
             c = COLORS.hostile
         end

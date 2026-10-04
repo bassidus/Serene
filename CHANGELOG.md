@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 (2026-10-04)
 
 - Thank you for the buff: thank buffs from other players again
 - Bring back Thank you for the buff as an untargeted /emote

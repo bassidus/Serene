@@ -10,10 +10,10 @@ local Relayout = ns.NP.ApplyRelayout
 ns.RegisterFeature({
     key = "nameplateThreat", label = "Threat Colors", section = "Nameplates", type = "dropdown", default = "auto",
     apply = Relayout,
-    tooltip = "Colors health bars by threat while you are in a group.\nTank: green = you hold it, yellow = losing it, red = someone else has it.\nDamage/Healer: orange = you have aggro, yellow = about to pull it.\nAuto picks Tank when your group role is tank.",
+    tooltip = "Colors health bars of mobs fighting you by threat.\nTank: green = you hold it, yellow = losing it, red = someone else has it, blue = another tank or your pet has it.\nDamage/Healer: red = you have aggro, yellow = about to pull it, green = someone else has it.\nAuto picks Tank in Defensive Stance, Bear Form or with Righteous Fury.",
     options = function()
         return {
-            { value = "auto", label = "Auto (group role)" },
+            { value = "auto", label = "Auto" },
             { value = "tank", label = "Tank" },
             { value = "dps",  label = "Damage / Healer" },
             { value = "off",  label = "Off" },

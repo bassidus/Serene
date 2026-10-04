@@ -24,12 +24,16 @@ local COLORS = {
     neutral   = { 0.81, 0.72, 0.19 },
     friendly  = { 0.29, 0.69, 0.30 },
     tapped    = { 0.50, 0.50, 0.50 },
-    dpsHasAggro     = { 1.00, 0.50, 0.00 },
-    dpsNearAggro    = { 0.81, 0.72, 0.19 },
-    tankHasAggro    = { 0.05, 0.82, 0.62 },
-    tankLosingAggro = { 0.81, 0.72, 0.19 },
-    tankNoAggro     = { 1.00, 0.22, 0.17 },
 }
+
+-- Threat colors by level: LOW = someone else has it,
+-- MEDIUM = above the one who has it or tanking insecurely, HIGH = yours.
+local THREAT_COLORS = {
+    dps  = { LOW = { 0, 1, 0 }, MEDIUM = { 1, 1, 0 }, HIGH = { 1, 0, 0 } },
+    tank = { LOW = { 1, 0, 0 }, MEDIUM = { 1, 1, 0 }, HIGH = { 0, 1, 0 },
+             OFFTANK = { 15 / 255, 170 / 255, 200 / 255 } },
+}
+local THREAT_LEVEL = { [0] = "LOW", [1] = "MEDIUM", [2] = "MEDIUM", [3] = "HIGH" }
 
 local Clean = ns.Clean
 
@@ -218,28 +222,80 @@ local function UpdateHealth(plate, valueOnly)
     end
 end
 
-local function IsTank()
-    local mode = ns.Get("nameplateThreat")
-    if mode == "tank" then return true end
-    if mode == "auto" and UnitGroupRolesAssigned then
-        return UnitGroupRolesAssigned("player") == "TANK"
+-- Auto role: the spec's role where specs have one,
+-- else Defensive Stance, Bear Form or a tank aura (Righteous Fury, Blood
+-- Presence, Season of Discovery's tank runes).
+local TANK_AURAS = { 20468, 20469, 20470, 25780, 48263, 407627, 408680, 403789 }
+local SPEC_ROLES = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+    or (GetClassicExpansionLevel and LE_EXPANSION_MISTS_OF_PANDARIA
+        and GetClassicExpansionLevel() >= LE_EXPANSION_MISTS_OF_PANDARIA)
+
+local function DetectTank()
+    if SPEC_ROLES then
+        local spec = GetSpecialization()
+        return spec ~= nil and select(5, GetSpecializationInfo(spec)) == "TANK"
+    end
+    local _, class = UnitClass("player")
+    local form = GetShapeshiftFormID and GetShapeshiftFormID()
+    if class == "WARRIOR" then return form == 18 end
+    if class == "DRUID" then return form ~= nil and (form == BEAR_FORM or form == 8) end
+    if C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
+        for _, id in ipairs(TANK_AURAS) do
+            if C_UnitAuras.GetPlayerAuraBySpellID(id) then return true end
+        end
     end
     return false
 end
 
--- Threat color, in a group only (solo you always hold aggro). Status:
--- 3 = securely tanking, 2 = tanking but losing it, 0/1 = not tanking.
-local function ThreatColor(unit)
-    if ns.Get("nameplateThreat") == "off" or not IsInGroup() then return end
+local autoTank = false
+
+-- Re-reads the auto role; true when it changed.
+local function UpdateRole()
+    local tank = DetectTank()
+    if tank == autoTank then return false end
+    autoTank = tank
+    return true
+end
+
+local function IsTank()
+    local mode = ns.Get("nameplateThreat")
+    if mode == "auto" then return autoTank end
+    return mode == "tank"
+end
+
+-- Before Mists the main tank assignment stands in for the group role.
+local function GroupRole(unit)
+    if GetPartyAssignment and Clean(GetPartyAssignment("MAINTANK", unit)) then return "TANK" end
+    return Clean(UnitGroupRolesAssigned and UnitGroupRolesAssigned(unit)) or "NONE"
+end
+
+-- A tank without aggro: is the mob's target another tank or your pet holding
+-- it? Kept on the plate, so a mob stays off-tanked while its target flickers.
+local function CheckOfftank(plate, unit, level)
+    local target = unit .. "target"
+    if UnitExists(target) and (Clean(UnitIsPlayer(target)) or Clean(UnitPlayerControlled(target))) then
+        if (Clean(UnitThreatSituation(target, unit)) or 0) > 1 then
+            plate.offtanked = (GroupRole(target) == "TANK" and not Clean(UnitIsUnit("player", target)))
+                or Clean(UnitIsUnit(target, "pet")) or false
+        end
+    end
+    return plate.offtanked and "OFFTANK" or level
+end
+
+-- Threat color for a mob that has you on its threat list: alone, with a pet
+-- or in a group alike.
+local function ThreatColor(plate, unit)
+    if ns.Get("nameplateThreat") == "off" or Clean(UnitIsPlayer(unit)) then return end
     local status = Clean(UnitThreatSituation("player", unit))
     if not status then return end
-    if IsTank() then
-        if status >= 3 then return COLORS.tankHasAggro end
-        if status == 2 then return COLORS.tankLosingAggro end
-        return COLORS.tankNoAggro
+    local level = THREAT_LEVEL[status]
+    local role = IsTank() and "tank" or "dps"
+    if status >= 2 then
+        plate.offtanked = false
+    elseif role == "tank" then
+        level = CheckOfftank(plate, unit, level)
     end
-    if status >= 3 then return COLORS.dpsHasAggro end
-    if status == 2 then return COLORS.dpsNearAggro end
+    return THREAT_COLORS[role][level]
 end
 
 local function UpdateHealthColor(plate)
@@ -247,13 +303,11 @@ local function UpdateHealthColor(plate)
     local c
     -- On its threat list = the mob is fighting you (Blizzard's test).
     local fighting = Clean(UnitThreatSituation("player", unit)) ~= nil
-    -- Tapped first, then quest mobs (NameplateQuest.lua) until they fight
-    -- you, then threat.
-    if Clean(UnitIsTapDenied(unit)) then
-        c = COLORS.tapped
-    else
-        c = (not fighting and NP.QuestColor and NP.QuestColor(unit)) or ThreatColor(unit)
-    end
+    -- Threat first, then tapped, then quest mobs (NameplateQuest.lua) until
+    -- they fight you.
+    c = ThreatColor(plate, unit)
+        or (Clean(UnitIsTapDenied(unit)) and COLORS.tapped)
+        or (not fighting and NP.QuestColor and NP.QuestColor(unit))
     if not c and ns.Enabled("nameplateClassColors") and Clean(UnitIsPlayer(unit)) then
         local _, class = UnitClass(unit)
         class = Clean(class)
@@ -405,6 +459,7 @@ local function Attach(unit, nameplate)
         plate.layoutGen = NP.layoutGen
     end
     plate.unit = unit
+    plate.offtanked = nil
     NP.plates[unit] = plate
     plate:SetParent(nameplate)
     plate:ClearAllPoints()
@@ -439,12 +494,25 @@ end
 local MANAGER_EVENTS = { "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "PLAYER_TARGET_CHANGED",
     "UPDATE_MOUSEOVER_UNIT", "RAID_TARGET_UPDATE", "GROUP_ROSTER_UPDATE", "PLAYER_ROLES_ASSIGNED",
     "PLAYER_REGEN_ENABLED", "UNIT_FACTION" }
+-- Stance, form and spec changes move the auto role; not every client has
+-- every one of them.
+local ROLE_EVENTS = { UPDATE_SHAPESHIFT_FORM = true, PLAYER_SPECIALIZATION_CHANGED = true,
+    ACTIVE_TALENT_GROUP_CHANGED = true, UNIT_AURA = true }
 local manager = CreateFrame("Frame")
 
 local function SyncManagerEvents()
     local on = NP.Active()
     for _, ev in ipairs(MANAGER_EVENTS) do
         if on then manager:RegisterEvent(ev) else manager:UnregisterEvent(ev) end
+    end
+    for ev in pairs(ROLE_EVENTS) do
+        if not on then
+            pcall(manager.UnregisterEvent, manager, ev)
+        elseif ev == "UNIT_AURA" then
+            manager:RegisterUnitEvent(ev, "player")  -- Righteous Fury and the like
+        else
+            pcall(manager.RegisterEvent, manager, ev)
+        end
     end
 end
 
@@ -509,7 +577,12 @@ manager:SetScript("OnEvent", function(self, event, unit)
                 end
             end)
         end
+        UpdateRole()
         NP.RefreshAll()
+    elseif ROLE_EVENTS[event] then
+        if UpdateRole() then
+            for _, plate in pairs(NP.plates) do UpdateHealthColor(plate) end
+        end
     elseif event == "NAME_PLATE_UNIT_ADDED" then
         Evaluate(unit)
     elseif event == "NAME_PLATE_UNIT_REMOVED" then

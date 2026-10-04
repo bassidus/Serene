@@ -112,7 +112,7 @@ local function Thank()
 end
 
 local function OnAuraAdded(aura)
-    if not Clean(aura.isHelpful) or Clean(aura.isFromPlayerOrPlayerPet) then return end
+    if not Clean(aura.isHelpful) then return end
     local name, unit = Clean(aura.name), Clean(aura.sourceUnit)
     if not (name and Buffs()[name]) then return end
     if unit then

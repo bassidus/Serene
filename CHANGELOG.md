@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Thank you for the buff: thank buffs from other players again
 - Bring back Thank you for the buff as an untargeted /emote
 
 ## 1.1.0 (2026-10-04)

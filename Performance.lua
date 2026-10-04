@@ -29,6 +29,8 @@ local settle = 0     -- bumped per loading screen, so an older timer cannot unpa
 
 C_Timer.NewTicker(1, function()
     if paused then return end
+    -- World latency only: home (realm, chat) shares its connection on
+    -- this client and reads the same.
     local _, _, _, world = GetNetStats()
     slot = slot % WINDOW + 1
     history.time[slot] = GetTime()
@@ -50,19 +52,17 @@ loading:SetScript("OnEvent", function(_, event)
     end
 end)
 
--- Low, average and high of one series over the window; nil without samples.
-local function Range(key)
+-- Average of one series over the window; nil without samples.
+local function Average(key)
     local now, values = GetTime(), history[key]
-    local n, sum, low, high = 0, 0, nil, nil
+    local n, sum = 0, 0
     for i, t in pairs(history.time) do
         if now - t <= WINDOW then
-            local v = values[i]
-            n, sum = n + 1, sum + v
-            low, high = math.min(low or v, v), math.max(high or v, v)
+            n, sum = n + 1, sum + values[i]
         end
     end
     if n == 0 then return nil end
-    return low, sum / n, high
+    return sum / n
 end
 
 -------------------------------------------------------------------------------
@@ -196,8 +196,8 @@ local function Build(page)
 
     -- Summary: two columns of label / value.
     local STATS = {
-        { "fps",     "Framerate" },    { "cpuAvg",  "Average CPU" },
-        { "latency", "Latency" },      { "cpuPeak", "Peak CPU" },
+        { "fps",     "Average Framerate" }, { "cpuAvg",  "Average CPU" },
+        { "latency", "Average Latency" },   { "cpuPeak", "Peak CPU" },
         { "memory",  "AddOn Memory" },
     }
     local values, holders = {}, {}
@@ -224,30 +224,18 @@ local function Build(page)
         holders[s[1]] = holder
     end
 
-    -- Framerate and latency: low / average / high over the window in a
-    -- tooltip, redrawn every update while it is open.
-    local RANGES = { fps = { "Framerate", "%.0f fps" }, latency = { "Latency", "%.0f ms" } }
-    local function RangeTooltip(holder)
-        local r = RANGES[holder.rangeKey]
-        GameTooltip:SetOwner(holder, "ANCHOR_RIGHT")
-        GameTooltip:SetText(string.format("%s, last %d minutes", r[1], WINDOW / 60), 1, 1, 1)
-        local low, avg, high = Range(holder.rangeKey)
-        if low then
-            GameTooltip:AddDoubleLine("Low:", r[2]:format(low), 1, 0.82, 0, 1, 1, 1)
-            GameTooltip:AddDoubleLine("Average:", r[2]:format(avg), 1, 0.82, 0, 1, 1, 1)
-            GameTooltip:AddDoubleLine("High:", r[2]:format(high), 1, 0.82, 0, 1, 1, 1)
-        else
-            GameTooltip:AddLine("No samples yet.", W.DIM[1], W.DIM[2], W.DIM[3])
-        end
-        GameTooltip:AddLine("Loading screens and the few seconds after are left out.",
-            W.DIM[1], W.DIM[2], W.DIM[3], true)
-        GameTooltip:Show()
-    end
-    for key in pairs(RANGES) do
+    -- Framerate and latency: averages over the window, explained in a tooltip.
+    local AVERAGES = { fps = { "Average Framerate", "%.0f fps" }, latency = { "Average Latency", "%.0f ms" } }
+    for key, a in pairs(AVERAGES) do
         local h = holders[key]
-        h.rangeKey = key
         h:EnableMouse(true)
-        h:SetScript("OnEnter", RangeTooltip)
+        h:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(a[1], 1, 1, 1)
+            GameTooltip:AddLine(string.format("Over the last %d minutes. Loading screens and the few seconds after are left out.",
+                WINDOW / 60), nil, nil, nil, true)
+            GameTooltip:Show()
+        end)
         h:SetScript("OnLeave", GameTooltip_Hide)
     end
 
@@ -418,13 +406,9 @@ local function Build(page)
     end)
 
     local function UpdateStats()
-        -- World latency only: home (realm, chat) shares its connection on
-        -- this client and reads the same.
-        local _, _, _, world = GetNetStats()
-        values.fps:SetFormattedText("%.0f fps", GetFramerate() or 0)
-        values.latency:SetFormattedText("%d ms", world or 0)
-        for key in pairs(RANGES) do
-            if GameTooltip:IsOwned(holders[key]) then RangeTooltip(holders[key]) end
+        for key, a in pairs(AVERAGES) do
+            local avg = Average(key)
+            if avg then values[key]:SetFormattedText(a[2], avg) else values[key]:SetText("-") end
         end
 
         local total = 0

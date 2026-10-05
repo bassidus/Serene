@@ -1,0 +1,16 @@
+## Interface: 16001
+## Title: Serene Core
+## Notes: Shared settings, fonts and minimap icon for the Serene addons.
+## Version: 1.2.0
+## SavedVariables: SereneDB
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+# Libraries (minimap icon)
+Libs\LibStub.lua
+Libs\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0.lua
+
+Core.lua
+Fonts.lua
+Minimap.lua

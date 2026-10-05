@@ -1,10 +1,12 @@
 -------------------------------------------------------------------------------
 --  Serene -- lightweight quality-of-life tools for WoW Forever.
---  Core: shared helpers, the feature registry, SavedVariables and /serene.
---  Each feature file calls ns.RegisterFeature; the options window lists
---  them in TOC order.
+--  SereneCore: shared helpers, the feature registry, SavedVariables and
+--  /serene. The other Serene addons reach it through the global SereneCore;
+--  each feature file calls ns.RegisterFeature, and the options window lists
+--  them in registration order.
 -------------------------------------------------------------------------------
 local ADDON, ns = ...
+SereneCore = ns
 
 ns.features = {}
 ns.featureByKey = {}
@@ -28,6 +30,8 @@ function ns.RegisterFeature(def)
     if def.default == nil and def.type == "boolean" then def.default = true end
     ns.features[#ns.features + 1] = def
     ns.featureByKey[def.key] = def
+    -- Addons loading after SereneCore register once SereneDB exists.
+    if SereneDB and SereneDB[def.key] == nil then SereneDB[def.key] = def.default end
 end
 
 -- Options pages that are not a list of settings (e.g. Performance). build(page)
@@ -131,17 +135,42 @@ function ns.CoinString(amount)
 end
 
 -------------------------------------------------------------------------------
---  /serene opens or closes the options window.
+--  /serene opens or closes the options window. The window lives in the
+--  load-on-demand SereneOptions, which sets ns.ToggleOptionsWindow.
 -------------------------------------------------------------------------------
+local LoadAddOn = (C_AddOns and C_AddOns.LoadAddOn) or LoadAddOn
+
+function ns.ToggleOptions()
+    if not SereneDB then return end
+    if not ns.ToggleOptionsWindow then
+        if InCombatLockdown() then
+            ns.Print("Cannot open options during combat.")
+            return
+        end
+        LoadAddOn("SereneOptions")
+        if not ns.ToggleOptionsWindow then
+            ns.Print("SereneOptions is not installed or is disabled.")
+            return
+        end
+    end
+    ns.ToggleOptionsWindow()
+end
+
 SLASH_SERENE1 = "/serene"
 SlashCmdList["SERENE"] = function()
-    if ns.ToggleOptions then ns.ToggleOptions() end
+    ns.ToggleOptions()
 end
 
 -------------------------------------------------------------------------------
---  Init -- ADDON_LOADED fires after every file of this addon has run, so the
---  registry is complete by then.
+--  Init -- features also register from the addons that load after this one,
+--  so defaults are filled in again at login, before anything applies.
 -------------------------------------------------------------------------------
+local function FillDefaults()
+    for _, f in ipairs(ns.features) do
+        if SereneDB[f.key] == nil then SereneDB[f.key] = f.default end
+    end
+end
+
 local init = CreateFrame("Frame")
 init:RegisterEvent("ADDON_LOADED")
 init:RegisterEvent("PLAYER_LOGIN")
@@ -150,12 +179,11 @@ init:SetScript("OnEvent", function(self, event, addonName)
         if addonName ~= ADDON then return end
         self:UnregisterEvent("ADDON_LOADED")
         SereneDB = SereneDB or {}
-        for _, f in ipairs(ns.features) do
-            if SereneDB[f.key] == nil then SereneDB[f.key] = f.default end
-        end
+        FillDefaults()
         return
     end
     self:UnregisterEvent("PLAYER_LOGIN")
+    FillDefaults()
     for _, f in ipairs(ns.features) do
         if f.apply then f.apply() end
     end

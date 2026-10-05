@@ -1,9 +1,10 @@
 -------------------------------------------------------------------------------
---  Options window -- a sidebar tab per feature section (in TOC order), each
---  page stacking a control per registered feature, then the ns.RegisterPage
---  pages. Built on first open; position and scale last for the session.
+--  Options window -- a sidebar tab per feature section (in registration
+--  order), each page stacking a control per registered feature, then the
+--  ns.RegisterPage pages. Built on first open; position and scale last for
+--  the session.
 -------------------------------------------------------------------------------
-local ADDON, ns = ...
+local ns = SereneCore
 local W = ns.Widgets
 
 local WIDTH, SIDEBAR_W, TITLE_H, PAD, FOOTER_H = 640, 160, 40, 20, 26
@@ -361,7 +362,7 @@ local function Build()
     title:SetText("Serene")
     title:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
 
-    local version = C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(ADDON, "Version")
+    local version = C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("SereneCore", "Version")
     if version then
         local v = titleBar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
         v:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 6, 1)
@@ -426,9 +427,9 @@ function ns.RefreshOptions()
     for _, w in ipairs(widgets) do w.Refresh() end
 end
 
+-- Called through ns.ToggleOptions in SereneCore, which loads this addon.
 -- Combat: no opening, and an open window closes as combat starts.
-function ns.ToggleOptions()
-    if not SereneDB then return end
+function ns.ToggleOptionsWindow()
     if frame and frame:IsShown() then
         frame:Hide()
         return

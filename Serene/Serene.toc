@@ -2,20 +2,12 @@
 ## Title: Serene
 ## Notes: Lightweight QoL: quick loot, auto repair, sell junk, delete auto-fill, hide tutorials, short keybind text, action bar range coloring, social filters, thank for buffs, train all, camera zoom, auto accept/turn-in quests, tooltip position/font/content, class colored unit frames, nameplates, /rl.
 ## Version: 1.2.0
-## SavedVariables: SereneDB
+## Dependencies: SereneCore
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
-# Libraries (minimap icon)
-Libs\LibStub.lua
-Libs\CallbackHandler-1.0.lua
-Libs\LibDataBroker-1.1.lua
-Libs\LibDBIcon-1.0.lua
-
-Core.lua
-Fonts.lua
+Init.lua
 
 # Features (listed in this order in /serene and the options window)
-Modules\Minimap.lua
 Modules\StatsDisplay.lua
 Modules\QuickLoot.lua
 Modules\LootWarnings.lua
@@ -47,7 +39,3 @@ Modules\ReloadAlias.lua
 
 # Options pages that are not settings
 Performance.lua
-
-# Options window
-OptionsWidgets.lua
-Options.lua

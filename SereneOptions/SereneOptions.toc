@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: Serene Options
+## Notes: The Serene options window (/serene). Loads when first opened.
+## Version: 1.2.0
+## LoadOnDemand: 1
+## Dependencies: SereneCore
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+OptionsWidgets.lua
+Options.lua

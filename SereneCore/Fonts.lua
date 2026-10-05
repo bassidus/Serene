@@ -4,7 +4,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local MEDIA = "Interface\\AddOns\\Serene\\Media\\Fonts\\"
+local MEDIA = "Interface\\AddOns\\SereneCore\\Media\\Fonts\\"
 
 -- Blizzard's own, then the fonts shipped in Media\Fonts: Serene's set plus
 -- a collection of free fonts (licenses in Media\Fonts\Licenses),

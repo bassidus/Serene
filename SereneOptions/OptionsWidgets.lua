@@ -3,7 +3,7 @@
 --  through ns.SetValue and has a Refresh() that re-reads SereneDB. Plain
 --  textures, no Blizzard templates, so nothing depends on the client's UI kit.
 -------------------------------------------------------------------------------
-local _, ns = ...
+local ns = SereneCore
 
 local W = {}
 ns.Widgets = W

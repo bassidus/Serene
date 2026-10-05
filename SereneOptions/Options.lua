@@ -152,7 +152,8 @@ end
 -------------------------------------------------------------------------------
 local CONFIRM_TIME = 4
 
--- Closes every group, or with a section only that page's, as a reset does.
+-- Puts every group back as it starts (closed unless its first setting has
+-- open = true), or with a section only that page's, as a reset does.
 local function CloseGroups(section)
     for key in pairs(SereneDB.optionsOpen or {}) do
         if not section or key:sub(1, #section + 1) == section .. "/" then SereneDB.optionsOpen[key] = nil end
@@ -513,8 +514,9 @@ local function Columns(list)
     return column, partner
 end
 
--- Each category opens and closes by its heading; open ones are kept in
--- SereneDB.optionsOpen ("<section>/<category>"), so they start closed. A
+-- Each category opens and closes by its heading; the choice is kept in
+-- SereneDB.optionsOpen ("<section>/<category>" = true or false). Until
+-- then a category is closed, unless its first setting has open = true. A
 -- change lays the page out again.
 local function CreatePage(section)
     local page = CreatePageFrame(section)
@@ -525,9 +527,17 @@ local function CreatePage(section)
     local column, partner = Columns(list)
     local half = (PAGE_W - SPACING) / 2
 
+    local startsOpen = {}
+    for _, f in ipairs(list) do
+        if f.category and startsOpen[f.category] == nil then startsOpen[f.category] = f.open or false end
+    end
+
     local allOpen  -- while measuring the page with every category open
     local function Open(category)
-        return allOpen or (SereneDB.optionsOpen or {})[section .. "/" .. category]
+        if allOpen then return true end
+        local saved = (SereneDB.optionsOpen or {})[section .. "/" .. category]
+        if saved == nil then return startsOpen[category] end
+        return saved
     end
 
     local Layout
@@ -537,7 +547,7 @@ local function CreatePage(section)
         if not groups[category] then
             groups[category] = CreateGroup(content, category, function()
                 SereneDB.optionsOpen = SereneDB.optionsOpen or {}
-                local open = not Open(category) or nil
+                local open = not Open(category)
                 SereneDB.optionsOpen[section .. "/" .. category] = open
                 if partner[category] then SereneDB.optionsOpen[section .. "/" .. partner[category]] = open end
                 W.ClosePopups()

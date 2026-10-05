@@ -1,28 +1,26 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 (2026-10-05)
 
-- Options: the window keeps its position and size between sessions
-- Options: opening the window runs a full garbage collection, so memory figures are current
-- /serene reset puts everything back to its defaults, the options window and the minimap icon's spot included
-- Options: a "?" on each category explains its settings, in place of a tooltip on every setting
-- Tooltip: Size scales tooltips from 50% to 150%
-- Action bars: Hide Macro Names is now Show Macro Names (off by default), with its own font, size, outline, color and X/Y offset
-- Action bars: keybind and macro name positions open a popup with a dot to drag (right-click for Blizzard's spot) instead of X/Y sliders
-- Nameplates: enemy players always have class colors and your target is always highlighted; the Colors group is Threat colors with Select role
-- Options: font, color and position settings are plain buttons (Font, Color, Position) that open their popup; the tooltip's cursor offset is a pad too
-- Unit Frames: Name, Level and Health/Mana fonts
-- Unit Frames: Hide Name Background removes the colored bar behind the target and focus names
-- Unit Frames: Hide Resting Glow and Hide Resting Zzz
-- Unit Frames: Dark Mode, Portrait (class icon or hidden), Hide Name, Name Color, Hide Level (before the name while the portrait is hidden), Level Color and Health/Mana Text
-- Tooltip: unit frame health and mana bars keep the unit tooltip on hover
-- Tooltip: Hide Right Click Hint removes "<Right click for Frame Settings>" from unit frame tooltips
-- Tooltip: Hide Border also flattens the "Equipped" tab on comparison tooltips
-- Tooltip: Player Item Level shows a player's average item level (others are inspected on hover)
-- Keybinds: remove Keybind Position; offsets count from the middle of the button, text stays right-aligned
-- Options: font, size and outline are one row per feature that opens a font editor
-- Options: color settings are one row that opens the palette
-- Options: Default, Class and By value colors show the color they stand for
+Serene is now split into separate addons: Serene itself, which is required, plus one addon per module. If you install by hand, delete the old Serene folder and copy in all the new ones. Modules can be turned off on the Modules page in the options or in the addon list. A few settings may be back at their defaults.
+
+### New
+- Move & scale: drag Blizzard's windows with the mouse, Ctrl + scroll to resize them, middle-click to put them back. A size slider for each window, and an option to remember where you put them.
+- Unit frames: class colored health bars, dark frames, class icon portraits, name and level colors, health/mana text format and alignment, fonts, and hiding the resting glow and Zzz.
+- Tooltip: a size slider, players' item level, "Rank of Guild", who the unit is targeting, and level, race and class on one line. The "Right click for Frame Settings" line is gone, and the tooltip stays when you hover a unit frame's bars.
+- Action bars: macro names with their own font, color and position. Keybind and macro positions are set by dragging a dot.
+- Fonts: Blizzard's fonts plus any from LibSharedMedia. The bundled fonts are gone.
+
+### Changed
+- Options window: a grouped sidebar, categories that open and close, a "?" with help for each category, Reset page, and it remembers its position and size. It only loads when you open it.
+- `/serene reset` resets everything, the options window and minimap icon included.
+- Hide error messages: Never, In combat, Out of combat or Always.
+- New defaults: FPS & latency is off and locked. Dark frames, hidden resting glow and macro names are on. Your guild counts as friends, and invites from friends and buff thanks are on.
+
+### Fixed
+- Bear Form counts as tank for the nameplate threat colors.
+- /rl works in whisper windows.
+- The "Press F6 to submit an issue" line flashing in tooltips.
 
 ## 1.2.0 (2026-10-04)
 

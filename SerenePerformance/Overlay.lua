@@ -29,13 +29,26 @@ local ANCHORS = { downright = "TOPLEFT", downleft = "TOPRIGHT", upright = "BOTTO
 local GOOD, OK, BAD, PLAIN = "40ff40", "ffd100", "ff4040", "ffffff"
 local HEADER_COLOR = { 1, 0.82, 0 }
 
+local function Blend(a, b, t)
+    local ar, ag, ab = ns.ColorRGB(a)
+    local br, bg, bb = ns.ColorRGB(b)
+    return ns.RGBToHex(ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t)
+end
+
 local STATUS = {
     fps = function(v) if v >= 50 then return GOOD elseif v >= 25 then return OK end return BAD end,
     ms  = function(v) if v < 100 then return GOOD elseif v < 250 then return OK end return BAD end,
     cpu = function(v) if v < 5 then return GOOD elseif v < 15 then return OK end return BAD end,
+    -- v: where an addon's memory falls between the least and the most listed, 0 to 1.
+    -- Total addon memory, in KB (1000 to the MB, as shown).
+    mem = function(v) if v < 100000 then return GOOD elseif v < 250000 then return OK end return BAD end,
+    memShare = function(v)
+        if v <= 0.5 then return Blend(GOOD, OK, v * 2) end
+        return Blend(OK, BAD, (v - 0.5) * 2)
+    end,
 }
 
--- "By value" colors framerate, latency and CPU; memory stays white.
+-- "By value" colors framerate, latency, CPU and memory.
 local function Colored(kind, v, text)
     local mode, hex = ns.Get("overlayColors"), nil
     if mode == "class" then
@@ -66,6 +79,7 @@ local dividers = {}  -- cpuW, memW: drag handles at those columns' left edge
 local rows = {}      -- { name, cpu, mem } font strings per line
 local totals = {}    -- name, cpu, mem: the totals row (name holds framerate and latency)
 local parts = {}     -- the totals row's left side, reused
+local picked = {}    -- the addons listed, reused
 local ticks = 0
 local fontPath, fontSize, fontFlags, fontShadow
 
@@ -147,27 +161,26 @@ local function Render()
     if ns.Enabled("overlayFps") then
         local fps = math.floor(GetFramerate() + 0.5)
         n = n + 1
-        parts[n] = Colored("fps", fps, fps) .. " fps"
+        parts[n] = Colored("fps", fps, fps .. " fps")
     end
     if ns.Enabled("overlayLatency") then
         local ms = ns.Latency()
         n = n + 1
-        parts[n] = Colored("ms", ms, ms) .. " ms"
+        parts[n] = Colored("ms", ms, ms .. " ms")
     end
     if ns.Enabled("overlayCpu") then
         local p = ns.TotalCpu()
-        local text = Colored("cpu", p, ns.FormatPercent(p))
         if cpuW > 0 then
-            cpuText = text
+            cpuText = Colored("cpu", p, ns.FormatPercent(p))
         else
             n = n + 1
-            parts[n] = text .. " cpu"
+            parts[n] = Colored("cpu", p, ns.FormatPercent(p) .. " cpu")
         end
     end
     if ns.Enabled("overlayMemory") then
         local total = 0
         for _, e in ipairs(ns.entries) do total = total + e.mem end
-        local text = Colored("mem", nil, ns.FormatMemory(total))
+        local text = Colored("mem", total, ns.FormatMemory(total))
         if memW > 0 then
             memText = text
         else
@@ -226,13 +239,25 @@ local function Render()
         if pin or extras > 0 then
             if not pin then extras = extras - 1 end
             shown = shown + 1
-            local r = Row(shown)
-            PlaceRow(r, y, cpuW, memW)
-            r.name:SetText(e.info.plainTitle)
-            r.cpu:SetText(Colored("cpu", e.cpu, ns.FormatPercent(e.cpu)))
-            r.mem:SetText(Colored("mem", nil, ns.FormatMemory(e.mem)))
-            y = y + rowH
+            picked[shown] = e
         end
+    end
+    for i = shown + 1, #picked do picked[i] = nil end
+
+    local least, most = math.huge, 0
+    for _, e in ipairs(picked) do
+        least, most = math.min(least, e.mem), math.max(most, e.mem)
+    end
+    local nameMode = ns.Get("overlayNameColor")
+    local nameHex = nameMode == "class" and ns.PlayerClassHex() or ns.ColorHex(nameMode) or PLAIN
+    for i, e in ipairs(picked) do
+        local r = Row(i)
+        PlaceRow(r, y, cpuW, memW)
+        r.name:SetText("|cff" .. nameHex .. e.info.plainTitle .. "|r")
+        r.cpu:SetText(Colored("cpu", e.cpu, ns.FormatPercent(e.cpu)))
+        local share = most > least and (e.mem - least) / (most - least) or 0
+        r.mem:SetText(Colored("memShare", share, ns.FormatMemory(e.mem)))
+        y = y + rowH
     end
     for i = shown + 1, #rows do HideRow(rows[i]) end
     if auto then height = y + bottomH + PAD_Y end
@@ -297,25 +322,10 @@ local function CursorX(region)
     return GetCursorPosition() / region:GetEffectiveScale()
 end
 
+-- Only while unlocked; locked, the overlay takes no mouse at all.
 local function Tooltip(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
-    GameTooltip:SetText("Performance overlay", 1, 1, 1)
-    GameTooltip:AddDoubleLine("Framerate", string.format("%.0f fps", GetFramerate()), 1, 0.82, 0, 1, 1, 1)
-    GameTooltip:AddDoubleLine("Latency", ns.Latency() .. " ms", 1, 0.82, 0, 1, 1, 1)
-    GameTooltip:AddDoubleLine("Addon CPU", ns.FormatPercent(ns.TotalCpu()), 1, 0.82, 0, 1, 1, 1)
-    if not C_AddOnProfiler.IsEnabled() then
-        GameTooltip:AddLine("Addon profiling is off. Turn it on from the Performance page (/serene).",
-            1, 0.45, 0.45, true)
-    end
-    if not ns.Enabled("overlayLocked") then
-        GameTooltip:AddLine(" ")
-        if ns.Enabled("overlayAddons") then
-            GameTooltip:AddLine("Drag to move. Drag the lines between the columns to change their width.",
-                0.6, 0.6, 0.6, true)
-        else
-            GameTooltip:AddLine("Drag to move.", 0.6, 0.6, 0.6, true)
-        end
-    end
+    GameTooltip:SetText("Drag to move", 1, 1, 1)
     GameTooltip:Show()
 end
 
@@ -358,7 +368,6 @@ local function Build()
     frame:SetFrameStrata("HIGH")
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
-    frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
     frame:SetDontSavePosition(true)
 
@@ -396,6 +405,8 @@ local function Apply()
         if not frame then Build() end
         Style()
         Place()
+        -- Locked, clicks go through to the world.
+        frame:EnableMouse(not ns.Enabled("overlayLocked"))
         frame:Show()
         -- overlayGrow changed: keep the spot, anchored by the new corner.
         if (Saved("point") or "BOTTOMRIGHT") ~= ANCHORS[ns.Get("overlayGrow")] then SavePlace() end
@@ -510,13 +521,20 @@ ns.RegisterFeature({
     default = "status", requires = ON, apply = Apply,
     specials = {
         { value = "status", label = "By value", swatch = function() return GOOD, OK, BAD end,
-          tooltip = "Green when good, yellow when so-so, red when poor." },
+          tooltip = "Green when good, yellow when so-so, red when poor. Total memory is green under 100 MB and red from 250 MB; each addon's runs from green for the least to red for the most listed." },
         { value = "class",  label = "By class", swatch = ns.PlayerClassHex },
     },
 })
 ns.RegisterFontSettings({
     prefix = "overlay", label = "Overlay text", section = SECTION, category = "Look", requires = ON, apply = Apply,
     font = "Fonts\\ARIALN.TTF", size = { 8, 28, 12 }, outline = "OUTLINE", color = "overlayColors", button = "Font",
+})
+ns.RegisterFeature({
+    key = "overlayNameColor", label = "Addon names", section = SECTION, category = "Look", type = "color",
+    default = PLAIN, requires = LIST, apply = Apply,
+    specials = {
+        { value = "class", label = "By class", swatch = ns.PlayerClassHex },
+    },
 })
 ns.RegisterFeature({
     key = "overlayBackground", label = "Background opacity", section = SECTION, category = "Look", type = "slider",

@@ -26,10 +26,11 @@ local AddOns = C_AddOns
 
 -- Idle text colors of the sidebar buttons that are not settings tabs.
 local RED = { 1, 0.35, 0.35 }
+local GOLD = { 1, 0.82, 0 }  -- Reset defaults and Reset page
 local BUTTON_COLORS = {
     [MODULES] = W.ACCENT,
     Performance = { 0.45, 0.7, 1 },
-    ["Reset defaults"] = { 1, 0.82, 0 },
+    ["Reset defaults"] = GOLD,
     ["Reload UI"] = RED,
 }
 
@@ -269,7 +270,7 @@ local function CreatePageReset(page, section)
     local function Disarm()
         armed = false
         if timer then timer:Cancel(); timer = nil end
-        Show("Reset page", W.DIM[1], W.DIM[2], W.DIM[3])
+        Show("Reset page", GOLD[1], GOLD[2], GOLD[3])
     end
     btn:SetScript("OnClick", function()
         if armed then
@@ -279,7 +280,7 @@ local function CreatePageReset(page, section)
             return
         end
         armed = true
-        Show("Click again to reset", 1, 0.35, 0.35)
+        Show("Click again to reset", RED[1], RED[2], RED[3])
         timer = C_Timer.NewTimer(CONFIRM_TIME, Disarm)
     end)
     btn:SetScript("OnEnter", function(self)
@@ -292,7 +293,7 @@ local function CreatePageReset(page, section)
     end)
     btn:SetScript("OnLeave", function()
         GameTooltip_Hide()
-        if not armed then text:SetTextColor(W.DIM[1], W.DIM[2], W.DIM[3]) end
+        if not armed then text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) end
     end)
     btn:SetScript("OnHide", Disarm)
     Disarm()

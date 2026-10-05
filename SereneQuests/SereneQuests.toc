@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: Serene Quests
+## Group: Serene
+## Notes: Auto accept and turn in quests; hold Shift to skip.
+## Version: 1.2.0
+## Dependencies: Serene
+## X-Serene-Section: Quests
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+Quests.lua

@@ -64,9 +64,13 @@ function ns.SetValue(key, value)
 end
 
 -- Short lines for the options window's footer, e.g. "/rl reloads the UI.".
-ns.hints = {}
+-- AddShiftSkip("auto loot") joins the one "Hold Shift to skip ..." line.
+ns.hints, ns.shiftSkips = {}, {}
 function ns.AddHint(text)
     ns.hints[#ns.hints + 1] = text
+end
+function ns.AddShiftSkip(what)
+    ns.shiftSkips[#ns.shiftSkips + 1] = what
 end
 
 -- Extra state a feature wants cleared by Reset Defaults (e.g. a moved

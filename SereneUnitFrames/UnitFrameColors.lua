@@ -16,12 +16,22 @@ local Clean = ns.Clean
 local state = setmetatable({}, { __mode = "k" })  -- [bar] = Blizzard's look + ours
 local painting  -- set while we color, so our own calls are not taken for Blizzard's
 
+-- C_ClassColor.GetClassColor builds a new table on every call, and this
+-- runs on every health change, so each class's color is fetched once.
+local classColors = {}
+
 local function ClassColor(unit)
     if not (unit and ns.Enabled("unitFrameClassColors")) then return nil end
     if not Clean(UnitIsPlayer(unit)) or not Clean(UnitIsConnected(unit)) then return nil end
     local _, class = UnitClass(unit)
     class = Clean(class)
-    return class and (C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class])
+    if not class then return nil end
+    local c = classColors[class]
+    if not c then
+        c = C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class]
+        classColors[class] = c
+    end
+    return c
 end
 
 local function IsDesaturated(bar)
@@ -39,11 +49,12 @@ local function SetDesaturated(bar, on)
     end
 end
 
-local function Paint(bar, unit)
+-- c is the class color when the caller has just looked it up.
+local function Paint(bar, unit, c)
     local s = state[bar]
     if not s then return end
     if unit then s.unit = unit end
-    local c = ClassColor(s.unit)
+    c = c or ClassColor(s.unit)
     painting = true
     if c then
         SetDesaturated(bar, true)
@@ -66,8 +77,9 @@ local function Track(bar, unit)
         hooksecurefunc(bar, "SetStatusBarColor", function(self, r2, g2, b2)
             if painting then return end
             local s = state[self]
-            if ClassColor(s.unit) then
-                Paint(self)
+            local c = ClassColor(s.unit)
+            if c then
+                Paint(self, nil, c)
             else
                 -- Blizzard's color for a non-player is what we hand back later.
                 s.r, s.g, s.b = r2, g2, b2
@@ -134,7 +146,7 @@ watcher:SetScript("OnEvent", function(_, event, unit)
 end)
 
 ns.RegisterFeature({
-    key = "unitFrameClassColors", label = "Class Colored Healthbars", section = "Quality of Life",
+    key = "unitFrameClassColors", label = "Class Colored Healthbars", section = "Unit Frames",
     apply = function()
         if ns.Enabled("unitFrameClassColors") then
             for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",

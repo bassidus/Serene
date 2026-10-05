@@ -3,5 +3,5 @@
 local _, ns = ...
 setmetatable(ns, { __index = Serene })
 
-ns.AddHint("Hold Shift to skip auto loot and auto quests.")
+ns.AddShiftSkip("auto loot")
 ns.AddHint("/rl reloads the UI.")

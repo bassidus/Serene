@@ -321,6 +321,18 @@ local function CreatePage(section)
     return page
 end
 
+-- "Hold Shift to skip auto loot and auto quests." first, then the hints.
+local function FooterText()
+    local lines, skips = {}, ns.shiftSkips
+    if #skips > 0 then
+        local list = skips[#skips]
+        if #skips > 1 then list = table.concat(skips, ", ", 1, #skips - 1) .. " and " .. list end
+        lines[1] = "Hold Shift to skip " .. list .. "."
+    end
+    for _, hint in ipairs(ns.hints) do lines[#lines + 1] = hint end
+    return table.concat(lines, "   ")
+end
+
 -- Child of the title bar and raised above it: as a sibling at the same level,
 -- the mouse-enabled drag bar swallowed the clicks.
 local function CreateCloseButton(titleBar)
@@ -492,7 +504,7 @@ local function Build()
 
     local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     footer:SetPoint("BOTTOMLEFT", SIDEBAR_W + PAD, 10)
-    footer:SetText(table.concat(ns.hints, "   "))
+    footer:SetText(FooterText())
 
     CreateScaleGrip()
     frame:SetScale(DEFAULT_SCALE)

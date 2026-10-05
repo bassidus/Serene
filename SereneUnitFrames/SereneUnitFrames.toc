@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: Serene Unit Frames
+## Group: Serene
+## Notes: Class colored health bars on the player, target, focus and party frames.
+## Version: 1.2.0
+## Dependencies: Serene
+## X-Serene-Section: Unit Frames
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+UnitFrameColors.lua

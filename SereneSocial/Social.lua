@@ -46,7 +46,7 @@ local function IsFriend(name, guid)
     return guild and InGuild(name)
 end
 
--- Quests.lua (SereneQoL) asks before accepting a quest: one shared by a
+-- Quests.lua (SereneQuests) asks before accepting a quest: one shared by a
 -- stranger is not. Set on Serene so other addons can reach it.
 function Serene.BlockedQuestShare()
     if not ns.Enabled("blockSharedQuests") then return false end

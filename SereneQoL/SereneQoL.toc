@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene QoL
 ## Group: Serene
-## Notes: Quick loot, auto repair, sell junk, delete auto-fill, train all, auto accept/turn-in quests, hide tutorials, skip movies, camera zoom, class colored unit frames, hide errors, /rl.
+## Notes: Quick loot, auto repair, sell junk, delete auto-fill, train all, hide tutorials, skip movies, camera zoom, hide errors, /rl.
 ## Version: 1.2.0
 ## Dependencies: Serene
 ## X-Serene-Section: Quality of Life
@@ -14,10 +14,8 @@ DeleteConfirm.lua
 AutoRepair.lua
 SellJunk.lua
 TrainAll.lua
-Quests.lua
 HideTutorials.lua
 MovieSkip.lua
 CameraZoom.lua
-UnitFrameColors.lua
 HideErrors.lua
 ReloadAlias.lua

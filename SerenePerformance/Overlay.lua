@@ -536,7 +536,7 @@ ns.RegisterFontSettings({
 })
 ns.RegisterFeature({
     key = "overlayNameColor", label = "Addon names", section = SECTION, category = "Look", type = "color",
-    default = PLAIN, requires = LIST, apply = Apply,
+    default = "d6d6d6", requires = LIST, apply = Apply,
     specials = {
         { value = "class", label = "By class", swatch = ns.PlayerClassHex },
     },

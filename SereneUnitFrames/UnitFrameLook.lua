@@ -33,6 +33,7 @@ local function PartsOf(frame)
         local main = frame.PlayerFrameContent and frame.PlayerFrameContent.PlayerFrameContentMain
         local extra = frame.PlayerFrameContent and frame.PlayerFrameContent.PlayerFrameContentContextual
         p.level = { PlayerLevelText, main and main.LevelBackgroundCircle }
+        p.levelText = PlayerLevelText
         if box then
             p.art = { box.FrameTexture, box.AlternatePowerFrameTexture, box.VehicleFrameTexture,
                       extra and extra.PlayerPortraitCornerIcon, main and main.LevelBackgroundCircle }
@@ -45,6 +46,7 @@ local function PartsOf(frame)
         local extra = frame.TargetFrameContent and frame.TargetFrameContent.TargetFrameContentContextual
         if main then
             p.level = { main.LevelText, main.LevelBackgroundCircle, extra and extra.HighLevelTexture }
+            p.levelText = main.LevelText
         end
         p.art = { box.FrameTexture, main and main.LevelBackgroundCircle }
         p.frame = { box.FrameTexture, box.Flash, box.BossPortraitFrameTexture }
@@ -171,18 +173,70 @@ local function ColorName(fs, unit)
 end
 
 -------------------------------------------------------------------------------
---  Level in the name: "14 Hogger", in gold ("??" when too high). Used while
---  the portrait is hidden, since the level circle sits on the frame art.
+--  Level color, and the level in the name: "14 Hogger" ("??" when too
+--  high), used while the portrait is hidden, since the level circle sits on
+--  the frame art.
 -------------------------------------------------------------------------------
 local baseNames, ourNames = {}, {}  -- [font string] = Blizzard's text / the text we set
 
-local LEVEL_COLOR = "|cffffd100"  -- the gold of Blizzard's own level text
+-- The Level Color setting, or nil for Blizzard's own colors.
+local function LevelRGB()
+    return ns.ColorRGB(ns.Get("unitFrameLevelColor"))
+end
 
 local function LevelPrefix(unit)
     if not unit or not Clean(UnitExists(unit)) or Clean(UnitIsCorpse(unit)) then return nil end
     local level = Clean(UnitEffectiveLevel(unit))
     if not level then return nil end
-    return LEVEL_COLOR .. (level > 0 and level or "??") .. "|r "
+    level = level > 0 and level or "??"
+    local r, g, b = LevelRGB()
+    if not r then
+        -- Blizzard's colors: by difficulty for enemies, red when too high.
+        if level == "??" then
+            r, g, b = 1, 0.1, 0.1
+        elseif Clean(UnitCanAttack("player", unit)) and C_PlayerInfo
+            and C_PlayerInfo.GetContentDifficultyCreatureForPlayer and GetDifficultyColor then
+            local difficulty = Clean(C_PlayerInfo.GetContentDifficultyCreatureForPlayer(unit))
+            local c = difficulty and GetDifficultyColor(difficulty)
+            if c then r, g, b = c.r, c.g, c.b end
+        end
+    end
+    if not r then return level .. " " end
+    return "|cff" .. ns.RGBToHex(r, g, b) .. level .. "|r "
+end
+
+-- The level number in its circle: Blizzard colors it (by difficulty, or
+-- white on the player) whenever the level updates, so the color goes
+-- straight back on; Blizzard's latest color is kept to hand back.
+local levelColors = {}  -- [font string] = Blizzard's color
+local coloring
+
+local function ColorLevel(fs)
+    if not fs then return end
+    local r, g, b = LevelRGB()
+    if r then
+        if not levelColors[fs] then
+            levelColors[fs] = { fs:GetVertexColor() }
+            hooksecurefunc(fs, "SetVertexColor", function(self, r2, g2, b2, a2)
+                if coloring then return end
+                levelColors[self] = { r2, g2, b2, a2 }
+                local cr, cg, cb = LevelRGB()
+                if cr then
+                    coloring = true
+                    self:SetVertexColor(cr, cg, cb)
+                    coloring = nil
+                end
+            end)
+        end
+        coloring = true
+        fs:SetVertexColor(r, g, b)
+        coloring = nil
+    elseif levelColors[fs] then
+        local o = levelColors[fs]
+        coloring = true
+        fs:SetVertexColor(o[1], o[2], o[3], o[4] or 1)
+        coloring = nil
+    end
 end
 
 local function NameLevel(fs, unit, on)
@@ -215,6 +269,7 @@ local function Style(frame)
     local hideLevel = ns.Enabled("unitFrameHideLevel")
     for _, region in pairs(p.level) do SetHidden(region, hideLevel or noPortrait) end
     NameLevel(p.name, frame.unit, noPortrait and not hideLevel)
+    ColorLevel(p.levelText)
 end
 
 local function StyleAll()
@@ -318,6 +373,14 @@ end)
 ns.RegisterFeature({
     key = "unitFrameHideLevel", label = "Hide Level", section = SECTION, default = false, apply = StyleAll,
     tooltip = "While the portrait is hidden, the level is shown before the name instead, e.g. \"14 Hogger\".",
+})
+ns.RegisterFeature({
+    key = "unitFrameLevelColor", label = "Level Color", section = SECTION, type = "color",
+    default = "ffd100", apply = StyleAll,
+    specials = {
+        { value = "default", label = "Default", swatch = function() return "ffffff", "40d940", "ffd100", "ff4d1a" end,
+          tooltip = "Blizzard's colors: by difficulty for enemies, white on your own frame." },
+    },
 })
 ns.RegisterFeature({
     key = "unitFrameText", label = "Health/Mana Text", section = SECTION, type = "dropdown",

@@ -108,8 +108,10 @@ end
 
 -- Sidebar look shared by the section tabs and the Reload UI button: dim text,
 -- white on hover, accent bar + tint when selected. Decorates an existing
--- button; indent is the text's, 16 by default.
-local function StyleSidebarButton(btn, label, indent)
+-- button; indent is the text's, 16 by default; color, the text's when idle,
+-- W.DIM by default.
+local function StyleSidebarButton(btn, label, indent, color)
+    color = color or W.DIM
     btn:SetHeight(TAB_H)
 
     local hl = W.Solid(btn, "BACKGROUND", W.ACCENT, 0.12)
@@ -129,7 +131,7 @@ local function StyleSidebarButton(btn, label, indent)
         selected = on
         hl:SetShown(on)
         bar:SetShown(on)
-        if on then text:SetTextColor(1, 1, 1) else text:SetTextColor(W.DIM[1], W.DIM[2], W.DIM[3]) end
+        if on then text:SetTextColor(1, 1, 1) else text:SetTextColor(color[1], color[2], color[3]) end
     end
     btn:SetScript("OnEnter", function() if not selected then text:SetTextColor(1, 1, 1) end end)
     btn:SetScript("OnLeave", function() btn:SetSelected(selected) end)
@@ -238,7 +240,8 @@ local function CreateReloadButton(sidebar)
     local below = reset
     for i = #names, 1, -1 do
         local name = names[i]
-        local tab = StyleSidebarButton(CreateFrame("Button", nil, sidebar), name)
+        local tab = StyleSidebarButton(CreateFrame("Button", nil, sidebar), name, nil,
+            name == MODULES and W.ACCENT or nil)
         tab:SetPoint("BOTTOMLEFT", below, "TOPLEFT")
         tab:SetPoint("BOTTOMRIGHT", below, "TOPRIGHT")
         tab:SetScript("OnClick", function() ShowPage(name) end)

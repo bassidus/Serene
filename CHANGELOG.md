@@ -5,6 +5,7 @@
 - Keybinds: remove Keybind Position; offsets count from the middle of the button, text stays right-aligned
 - Options: font, size and outline are one row per feature that opens a font editor
 - Options: color settings are one row that opens the palette
+- Options: Default, Class and By value colors show the color they stand for
 
 ## 1.2.0 (2026-10-04)
 

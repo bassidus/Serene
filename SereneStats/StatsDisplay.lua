@@ -26,20 +26,9 @@ local function MsColor(ms)
     return BAD
 end
 
-local classHex
-local function ClassColor()
-    if not classHex then
-        local _, class = UnitClass("player")
-        local c = class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
-        if not c then return "ffffff" end
-        classHex = string.format("%02x%02x%02x", c.r * 255, c.g * 255, c.b * 255)
-    end
-    return classHex
-end
-
 local function ValueColor(kind, v)
     local mode = ns.Get("statsColors")
-    if mode == "class" then return ClassColor() end
+    if mode == "class" then return ns.PlayerClassHex() end
     return ns.ColorHex(mode) or (kind == "fps" and FpsColor(v) or MsColor(v))
 end
 
@@ -277,8 +266,8 @@ ns.RegisterFeature({
     key = "statsColors", label = "Colors", section = SECTION, type = "color", default = "status",
     apply = Apply,
     specials = {
-        { value = "status", label = "By value" },
-        { value = "class",  label = "By class" },
+        { value = "status", label = "By value", swatch = function() return GOOD, OK, BAD end },
+        { value = "class",  label = "By class", swatch = ns.PlayerClassHex },
     },
 })
 ns.RegisterFontSettings({

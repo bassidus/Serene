@@ -322,6 +322,40 @@ end
 -------------------------------------------------------------------------------
 local SWATCH, SWATCH_GAP = 20, 4
 
+-- A small bordered square showing hex colors, several side by side (e.g.
+-- "By value": green, yellow, red). SetColors(hex, ...) hides it when given
+-- none and returns whether it shows.
+local function Swatch(parent, size)
+    local s = CreateFrame("Frame", nil, parent)
+    s:SetSize(size, size)
+    W.Border(s, EDGE)
+    local stripes = {}
+    function s.SetColors(...)
+        local hexes = { ... }
+        local n, inner = #hexes, size - 2
+        for i = 1, math.max(n, #stripes) do
+            local t = stripes[i]
+            if i <= n then
+                if not t then
+                    t = s:CreateTexture(nil, "ARTWORK")
+                    stripes[i] = t
+                end
+                local r, g, b = ns.ColorRGB(hexes[i])
+                t:SetColorTexture(r or 1, g or 1, b or 1, 1)
+                t:ClearAllPoints()
+                t:SetPoint("TOPLEFT", 1 + (i - 1) * inner / n, -1)
+                t:SetSize(inner / n, inner)
+                t:Show()
+            elseif t then
+                t:Hide()
+            end
+        end
+        s:SetShown(n > 0)
+        return n > 0
+    end
+    return s
+end
+
 -- Blizzard's picker, raised above the options window while it is open.
 local function OpenColorPicker(value, onChange)
     local picker = ColorPickerFrame
@@ -387,9 +421,18 @@ function W.Color(parent, f)
     for _, s in ipairs(f.specials or {}) do
         local chip = CreateFrame("Button", nil, holder)
         local text = chip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        text:SetPoint("CENTER")
         text:SetText(s.label)
-        Place(chip, math.ceil(text:GetStringWidth()) + 14)
+        local width = math.ceil(text:GetStringWidth()) + 14
+        -- The color(s) the choice stands for, before its name.
+        local swatch = s.swatch and Swatch(chip, 10)
+        if swatch and swatch.SetColors(s.swatch()) then
+            swatch:SetPoint("LEFT", 6, 0)
+            text:SetPoint("LEFT", swatch, "RIGHT", 4, 0)
+            width = width + 14
+        else
+            text:SetPoint("CENTER")
+        end
+        Place(chip, width)
         local c = Choice(chip, s.value, s.label, s.tooltip)
         c.text = text
         chip:SetScript("OnClick", function() PlayClick(); ns.SetValue(f.key, s.value) end)
@@ -733,30 +776,27 @@ function W.ColorField(parent, f)
     end)
     AttachTooltip(btn, f)
 
-    local swatch = CreateFrame("Frame", nil, btn)
-    swatch:SetSize(14, 14)
+    local swatch = Swatch(btn, 14)
     swatch:SetPoint("LEFT", 8, 0)
-    W.Border(swatch, EDGE)
-    local fill = swatch:CreateTexture(nil, "ARTWORK")
-    fill:SetPoint("TOPLEFT", 1, -1)
-    fill:SetPoint("BOTTOMRIGHT", -1, 1)
 
     function holder.Refresh()
         local value = ns.Get(f.key)
         local hex = ns.ColorHex(value)
-        local name
+        local name, shown
         if hex then
             for _, p in ipairs(ns.PALETTE) do
                 if p.hex == hex then name = p.label; break end
             end
-            fill:SetColorTexture(ns.ColorRGB(hex))
+            shown = swatch.SetColors(hex)
         else
+            local special
             for _, s in ipairs(f.specials or {}) do
-                if s.value == value then name = s.label; break end
+                if s.value == value then special = s; break end
             end
+            name = special and special.label
+            shown = swatch.SetColors(special and special.swatch and special.swatch())
         end
-        swatch:SetShown(hex ~= nil)
-        text:SetPoint("LEFT", hex and 30 or 8, 0)
+        text:SetPoint("LEFT", shown and 30 or 8, 0)
         text:SetText(name or (hex and "#" .. hex) or tostring(value))
         btn:SetEnabled(Available(holder, f))
         RefreshEditor(f)

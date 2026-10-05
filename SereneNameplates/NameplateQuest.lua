@@ -175,6 +175,6 @@ ns.RegisterFeature({
     key = "nameplateQuestBarColor", label = "Quest Enemy Color", section = "Quests", type = "color",
     hideLabel = true, default = "default", requires = { "nameplateQuest", "nameplateQuestColor" }, apply = Refresh,
     specials = {
-        { value = "default", label = "Default" },
+        { value = "default", label = "Default", swatch = function() return ns.RGBToHex(unpack(QUEST_COLOR)) end },
     },
 })

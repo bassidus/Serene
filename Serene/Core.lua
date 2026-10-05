@@ -19,8 +19,9 @@ ns.featureByKey = {}
 --         options = fn returning { { value =, label = }, ... } (dropdown),
 --         preview = true to draw dropdown entries in their own font (dropdown),
 --         min, max, step (slider),
---         specials = { { value =, label =, tooltip = }, ... } choices shown before the
---         palette, e.g. "Class color" (color; the value is a word, not a hex),
+--         specials = { { value =, label =, tooltip =, swatch = }, ... } choices shown
+--         before the palette, e.g. "Class color" (color; the value is a word, not
+--         a hex); swatch = fn returning the hex(es) it stands for, to show them,
 --         blizzard = fn returning Blizzard's own outline as a flag set, shown
 --         while the value is "default" (outline),
 --         note = short text always shown under the control,
@@ -128,6 +129,18 @@ end
 function ns.RGBToHex(r, g, b)
     return string.format("%02x%02x%02x", math.floor(r * 255 + 0.5), math.floor(g * 255 + 0.5),
         math.floor(b * 255 + 0.5))
+end
+
+-- The player's class color as hex; white before the class is known.
+local classHex
+function ns.PlayerClassHex()
+    if not classHex then
+        local _, class = UnitClass("player")
+        local c = class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
+        if not c then return "ffffff" end
+        classHex = ns.RGBToHex(c.r, c.g, c.b)
+    end
+    return classHex
 end
 
 -- A value from the game, or nil when it is secret or otherwise unreadable.

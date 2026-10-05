@@ -223,14 +223,8 @@ local function ReadSettings()
     font, size, outline = ns.Get("keybindFont"), ns.Get("keybindFontSize"), ns.Get("keybindOutline")
     offX, offY = ns.Get("keybindOffsetX"), ns.Get("keybindOffsetY")
     local mode = ns.Get("keybindColor")
-    if mode == "class" then
-        local _, class = UnitClass("player")
-        local c = class and (C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class])
-        color = c and { c.r, c.g, c.b } or { 1, 1, 1 }
-    else
-        local r, g, b = ns.ColorRGB(mode)
-        color = r and { r, g, b } or nil
-    end
+    local r, g, b = ns.ColorRGB(mode == "class" and ns.PlayerClassHex() or mode)
+    color = r and { r, g, b } or nil
     noRed = ns.Enabled("rangeColors") and true or false
     styled = font ~= "default" or size ~= DEFAULT_SIZE or outline ~= "default" or color ~= nil or noRed
         or offX ~= BLIZZARD_X or offY ~= BLIZZARD_Y
@@ -345,8 +339,13 @@ ns.RegisterFeature({
     key = "keybindColor", label = "Keybind Color", section = SECTION, type = "color", default = "default",
     apply = ApplySetting,
     specials = {
-        { value = "default", label = "Default" },
-        { value = "class",   label = "Class" },
+        { value = "default", label = "Default", swatch = function()
+            local hk = _G.ActionButton1HotKey
+            if not hk then return nil end
+            local o = Original(hk)
+            return ns.RGBToHex(o.r, o.g, o.b)
+        end },
+        { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
     },
 })
 ns.RegisterFeature({

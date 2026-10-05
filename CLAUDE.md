@@ -44,4 +44,4 @@ When unsure whether something exists, don't guess and don't write a fallback. Ad
 
 - Commit straight to `main`.
 - There are no tests. Check syntax with `luac -p` on the files you change (delete `luac.out` afterwards), then the user tests in game.
-- `tools/release.sh` still assumes a single `Serene/` addon at the repo root and is broken since the split.
+- `tools/release.sh <version>` bumps `## Version` in every TOC, writes the CHANGELOG section and zips every `Serene*` folder into `dist/`. It refuses to run if `## Interface` differs between TOCs. `tools/release.sh --check` only checks that Interface and Version match everywhere.

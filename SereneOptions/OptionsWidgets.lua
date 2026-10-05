@@ -256,17 +256,22 @@ end
 --  arrow; clicking it opens a popup. Returns the holder, the button and the
 --  value text (single line, left of the arrow).
 -------------------------------------------------------------------------------
+-- Without labelText the button sits at the top, e.g. right under the
+-- checkbox it belongs to.
 local function Field(parent, labelText, onClick)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(50)
-
-    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    label:SetPoint("TOPLEFT", 0, 0)
-    label:SetText(labelText)
+    holder:SetHeight(labelText and 50 or 30)
 
     local btn = CreateFrame("Button", nil, holder)
     btn:SetSize(CONTROL_W, 24)
-    btn:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
+    if labelText then
+        local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        label:SetPoint("TOPLEFT", 0, 0)
+        label:SetText(labelText)
+        btn:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
+    else
+        btn:SetPoint("TOPLEFT", 0, 0)
+    end
     W.Solid(btn, "BACKGROUND", FIELD):SetAllPoints()
     local edges = W.Border(btn, EDGE)
 
@@ -723,7 +728,7 @@ end
 --  "By class" shows as its name only); its editor holds the palette.
 -------------------------------------------------------------------------------
 function W.ColorField(parent, f)
-    local holder, btn, text = Field(parent, f.label, function(self)
+    local holder, btn, text = Field(parent, not f.hideLabel and f.label, function(self)
         OpenEditor(self, f, f.label, function(panel) return { W.Color(panel, f) } end)
     end)
     AttachTooltip(btn, f)

@@ -24,6 +24,8 @@ ns.featureByKey = {}
 --         blizzard = fn returning Blizzard's own outline as a flag set, shown
 --         while the value is "default" (outline),
 --         note = short text always shown under the control,
+--         hideLabel = true to show a color field without its label; the label
+--         still titles the palette and the tooltip,
 --         requires = key of a boolean setting, or a list of them; the control
 --         is dimmed and locked while any is off,
 --         group = set by ns.RegisterFontSettings: shown as one row with its

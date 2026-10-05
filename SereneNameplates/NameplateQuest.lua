@@ -173,7 +173,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "nameplateQuestBarColor", label = "Quest Enemy Color", section = "Quests", type = "color",
-    default = "default", requires = { "nameplateQuest", "nameplateQuestColor" }, apply = Refresh,
+    hideLabel = true, default = "default", requires = { "nameplateQuest", "nameplateQuestColor" }, apply = Refresh,
     specials = {
         { value = "default", label = "Default" },
     },

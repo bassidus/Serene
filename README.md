@@ -26,8 +26,7 @@
 
 ## Tools
 
-- **FPS & Latency:** a small readout you can place anywhere
-- **Performance:** CPU and memory use for each addon
+- **Performance:** CPU and memory use for each addon, and an overlay with framerate, latency and your heaviest addons while you play
 
 ---
 

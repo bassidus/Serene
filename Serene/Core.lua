@@ -69,9 +69,11 @@ function ns.RegisterPositionSettings(def)
     end
 end
 
--- Options pages that are not a list of settings (e.g. Performance). build(page)
--- fills the page frame on first open and may set page.contentHeight; these
--- tabs follow the feature sections in the sidebar.
+-- Options pages that are not a list of settings (e.g. Performance).
+-- build(content, page) fills a scrolling content frame on first open and
+-- returns the height it wants and a list of widgets (anything with a
+-- Refresh()) for the window to refresh with its own; these tabs follow the
+-- feature sections in the sidebar.
 ns.pages = {}
 function ns.RegisterPage(name, build)
     ns.pages[#ns.pages + 1] = { name = name, build = build }

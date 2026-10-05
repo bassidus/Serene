@@ -4,6 +4,9 @@
 --  once a second while open; memory is rescanned only every few ticks since
 --  that walks every addon. Turns the client's addon profiler back on when
 --  something has switched it off (CVar addonProfilerEnabled).
+--
+--  Under the list, "Show overlay" turns on the overlay (Overlay.lua); while
+--  it is on, its settings open below and the list gets a pin column.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -12,145 +15,16 @@ local MEMORY_EVERY = 5  -- ticks between memory rescans
 local ROW_H, HEADER_H = 18, 22
 local CPU_W, MEM_W = 70, 80
 local STAT_ROW_H = 18
+local TOP = -10     -- level with the first row of a settings page
+local PIN_W = 18    -- the pin column, while the overlay is on
+local CHECK_H = 26  -- the Show overlay checkbox
+local GAP = 10
 
--------------------------------------------------------------------------------
---  Framerate and latency history -- sampled once a second in the background
---  (whether the page is open or not), kept for the last WINDOW seconds.
---  Paused over loading screens, so their dips do not count.
--------------------------------------------------------------------------------
-local WINDOW = 300
-
-local history = { time = {}, fps = {}, latency = {} }
-local slot = 0
-local paused = true  -- until the first loading screen is over
-
-C_Timer.NewTicker(1, function()
-    if paused then return end
-    -- World latency only: home (realm, chat) shares its connection on
-    -- this client and reads the same.
-    local _, _, _, world = GetNetStats()
-    slot = slot % WINDOW + 1
-    history.time[slot] = GetTime()
-    history.fps[slot] = GetFramerate()
-    history.latency[slot] = world
-end)
-
-local loading = CreateFrame("Frame")
-loading:RegisterEvent("PLAYER_LEAVING_WORLD")
-loading:RegisterEvent("PLAYER_ENTERING_WORLD")
-loading:SetScript("OnEvent", function(_, event)
-    paused = event == "PLAYER_LEAVING_WORLD"
-end)
-
--- Average of one series over the window; nil without samples.
-local function Average(key)
-    local now, values = GetTime(), history[key]
-    local n, sum = 0, 0
-    for i, t in pairs(history.time) do
-        if now - t <= WINDOW then
-            n, sum = n + 1, sum + values[i]
-        end
-    end
-    if n == 0 then return nil end
-    return sum / n
-end
-
--------------------------------------------------------------------------------
---  Data
--------------------------------------------------------------------------------
 local Profiler = C_AddOnProfiler
 local Metric = Enum.AddOnProfilerMetric
 
--- Share of the client's frame time, in percent; nil before the client has
--- measured any.
-local function Percent(value, metric)
-    local app = Profiler.GetApplicationMetric(metric)
-    if value and app > 0 then return value / app * 100 end
-end
-
-local function FormatMs(ms)
-    return ms and string.format("%.3f ms", ms) or "-"
-end
-
-local function FormatPercent(p)
-    if not p then return "-" end
-    if p <= 0 then return "0%" end
-    if p >= 10 then return string.format("%.0f%%", p) end
-    if p >= 1 then return string.format("%.1f%%", p) end
-    return string.format("%.2f%%", p)
-end
-
--- Same units as Blizzard's tooltip (1000 KB to the MB).
-local function FormatMemory(kb)
-    if kb >= 1000 then return string.format("%.2f MB", kb / 1000) end
-    return string.format("%.0f KB", kb)
-end
-
-local Metadata = C_AddOns.GetAddOnMetadata
-
--- Title (with version), notes and icon per addon; these never change.
-local infoCache = {}
-local function Info(i)
-    local name, title, notes = C_AddOns.GetAddOnInfo(i)
-    local info = infoCache[name]
-    if info then return name, info end
-    if not title or title == "" then title = name end
-    local version = Metadata(name, "Version")
-    local icon = Metadata(name, "IconTexture")
-    info = {
-        title = title,
-        -- The name column shows titles, so it sorts by them (without color codes).
-        sortName = title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):lower(),
-        version = version ~= "" and version or nil,
-        notes = notes ~= "" and notes or nil,
-        icon = icon and icon ~= "" and ("|T" .. icon .. ":14:14:0:0|t ") or "",
-    }
-    infoCache[name] = info
-    return name, info
-end
-
-local entries = {}
-local entryByName = {}  -- one row record per addon, reused every tick
-
-local function Collect(rescanMemory)
-    if rescanMemory then UpdateAddOnMemoryUsage() end
-    local cpuOn = Profiler.IsEnabled()
-    wipe(entries)
-    for i = 1, C_AddOns.GetNumAddOns() do
-        if C_AddOns.IsAddOnLoaded(i) then
-            local name, info = Info(i)
-            local e = entryByName[name]
-            if not e then
-                e = { name = name, info = info, sortName = info.sortName }
-                entryByName[name] = e
-            end
-            e.mem = GetAddOnMemoryUsage(i)
-            if cpuOn then
-                e.recentMs = Profiler.GetAddOnMetric(name, Metric.RecentAverageTime)
-                e.peakMs = Profiler.GetAddOnMetric(name, Metric.PeakTime)
-                e.cpu = Percent(e.recentMs, Metric.RecentAverageTime)
-            else
-                e.recentMs, e.peakMs, e.cpu = nil, nil, nil
-            end
-            entries[#entries + 1] = e
-        end
-    end
-end
-
-local SORTS = {
-    name = function(a, b) return a.sortName < b.sortName end,
-    cpu = function(a, b)
-        if (a.cpu or -1) ~= (b.cpu or -1) then return (a.cpu or -1) > (b.cpu or -1) end
-        return a.sortName < b.sortName
-    end,
-    mem = function(a, b)
-        if a.mem ~= b.mem then return a.mem > b.mem end
-        return a.sortName < b.sortName
-    end,
-}
-
 local function SortKey()
-    return SORTS[SereneDB.perfSort] and SereneDB.perfSort or "mem"
+    return ns.SORTS[SereneDB.perfSort] and SereneDB.perfSort or "mem"
 end
 
 -- /serene reset: back to sorting by memory; an open page shows it on its next update.
@@ -159,8 +33,10 @@ ns.OnResetAll(function() SereneDB.perfSort = nil end)
 -------------------------------------------------------------------------------
 --  Page
 -------------------------------------------------------------------------------
-local function Build(page)
+local function Build(content, page)
     local W = ns.Widgets
+    local scroll = content:GetParent()
+    local entries = ns.entries
 
     -- Summary: two columns of label / value.
     local STATS = {
@@ -171,15 +47,15 @@ local function Build(page)
     local values, holders = {}, {}
     for i, s in ipairs(STATS) do
         local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
-        local holder = CreateFrame("Frame", nil, page)
+        local holder = CreateFrame("Frame", nil, content)
         holder:SetHeight(STAT_ROW_H)
-        local y = -36 - row * STAT_ROW_H
+        local y = TOP - row * STAT_ROW_H
         if col == 0 then
-            holder:SetPoint("TOPLEFT", page, "TOPLEFT", 0, y)
-            holder:SetPoint("TOPRIGHT", page, "TOP", -12, y)
+            holder:SetPoint("TOPLEFT", content, "TOPLEFT", 0, y)
+            holder:SetPoint("TOPRIGHT", content, "TOP", -12, y)
         else
-            holder:SetPoint("TOPLEFT", page, "TOP", 12, y)
-            holder:SetPoint("TOPRIGHT", page, "TOPRIGHT", 0, y)
+            holder:SetPoint("TOPLEFT", content, "TOP", 12, y)
+            holder:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, y)
         end
         local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         label:SetPoint("LEFT")
@@ -201,7 +77,7 @@ local function Build(page)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(a[1], 1, 1, 1)
             GameTooltip:AddLine(string.format("Over the last %d minutes.",
-                WINDOW / 60), nil, nil, nil, true)
+                ns.WINDOW / 60), nil, nil, nil, true)
             GameTooltip:Show()
         end)
         h:SetScript("OnLeave", GameTooltip_Hide)
@@ -233,10 +109,10 @@ local function Build(page)
         end
         GameTooltip_Hide()
     end)
-    local statsBottom = -36 - math.ceil(#STATS / 2) * STAT_ROW_H - 14
+    local statsBottom = TOP - math.ceil(#STATS / 2) * STAT_ROW_H - 14
 
     -- Table header, clickable to sort.
-    local head = CreateFrame("Frame", nil, page)
+    local head = CreateFrame("Frame", nil, content)
     head:SetPoint("TOPLEFT", 0, statsBottom)
     head:SetPoint("TOPRIGHT", 0, statsBottom)
     head:SetHeight(HEADER_H)
@@ -278,13 +154,36 @@ local function Build(page)
         b:SetWidth(MEM_W)
     end)
 
+    local pinHead = CreateFrame("Frame", nil, head)
+    pinHead:SetPoint("LEFT", 2, 0)
+    pinHead:SetSize(PIN_W, HEADER_H)
+    pinHead:EnableMouse(true)
+    local pinText = pinHead:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    pinText:SetPoint("CENTER")
+    pinText:SetText("Pin")
+    pinText:SetTextColor(W.DIM[1], W.DIM[2], W.DIM[3])
+    pinHead:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Pinned addons", 1, 1, 1)
+        GameTooltip:AddLine("Always shown in the overlay, besides the heaviest ones.", nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    pinHead:SetScript("OnLeave", GameTooltip_Hide)
+
     -- Rows: a fixed set of row frames reused for whatever is scrolled into view.
-    local list = CreateFrame("Frame", nil, page)
+    local list = CreateFrame("Frame", nil, content)
     list:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -2)
-    list:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 6)
+    list:SetPoint("TOPRIGHT", head, "BOTTOMRIGHT", 0, -2)
     list:EnableMouseWheel(true)
     local thumb = W.Solid(list, "ARTWORK", W.ACCENT, 0.6)
     thumb:SetWidth(3)
+
+    local function TogglePin(name)
+        SereneDB.overlayPinned = SereneDB.overlayPinned or {}
+        SereneDB.overlayPinned[name] = not SereneDB.overlayPinned[name] or nil
+        Render()
+        ns.UpdateOverlay()
+    end
 
     local rows, offset = {}, 0
     local function Row(i)
@@ -305,12 +204,29 @@ local function Build(page)
             GameTooltip:AddLine(e.name .. (e.info.version and ("  |cff808080" .. e.info.version .. "|r") or ""), 1, 1, 1)
             if e.info.notes then GameTooltip:AddLine(e.info.notes, W.DIM[1], W.DIM[2], W.DIM[3], true) end
             GameTooltip:AddLine(" ")
-            GameTooltip:AddDoubleLine("Average CPU per frame:", FormatMs(e.recentMs), 1, 0.82, 0, 1, 1, 1)
-            GameTooltip:AddDoubleLine("Peak CPU:", FormatMs(e.peakMs), 1, 0.82, 0, 1, 1, 1)
-            GameTooltip:AddDoubleLine("Memory:", FormatMemory(e.mem), 1, 0.82, 0, 1, 1, 1)
+            GameTooltip:AddDoubleLine("Average CPU per frame:", ns.FormatMs(e.recentMs), 1, 0.82, 0, 1, 1, 1)
+            GameTooltip:AddDoubleLine("Peak CPU:", ns.FormatMs(e.peakMs), 1, 0.82, 0, 1, 1, 1)
+            GameTooltip:AddDoubleLine("Memory:", ns.FormatMemory(e.mem), 1, 0.82, 0, 1, 1, 1)
             GameTooltip:Show()
         end)
         r:SetScript("OnLeave", GameTooltip_Hide)
+
+        local pin = CreateFrame("Button", nil, r)
+        pin:SetSize(12, 12)
+        pin:SetPoint("LEFT", 5, 0)
+        W.Solid(pin, "BACKGROUND", W.FIELD):SetAllPoints()
+        local edges = W.Border(pin, W.EDGE)
+        pin.check = W.Solid(pin, "ARTWORK", W.ACCENT)
+        pin.check:SetPoint("TOPLEFT", 2, -2)
+        pin.check:SetPoint("BOTTOMRIGHT", -2, 2)
+        pin:SetScript("OnClick", function()
+            W.PlayClick()
+            TogglePin(r.entry.name)
+        end)
+        pin:SetScript("OnEnter", function() W.SetBorderColor(edges, W.ACCENT) end)
+        pin:SetScript("OnLeave", function() W.SetBorderColor(edges, W.EDGE) end)
+        r.pin = pin
+
         r.name = r:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         r.name:SetPoint("LEFT", 6, 0)
         r.name:SetPoint("RIGHT", -(CPU_W + MEM_W + 16), 0)
@@ -341,7 +257,13 @@ local function Build(page)
                 b.text:SetTextColor(W.DIM[1], W.DIM[2], W.DIM[3])
             end
         end
-        table.sort(entries, SORTS[key])
+        table.sort(entries, ns.SORTS[key])
+
+        local pins = ns.Enabled("overlayShown")
+        local pinned = SereneDB.overlayPinned or {}
+        local nameX = pins and 6 + PIN_W or 6
+        pinHead:SetShown(pins)
+        headers.name:SetPoint("LEFT", nameX, 0)
 
         local n = VisibleRows()
         offset = math.min(offset, math.max(0, #entries - n))
@@ -349,9 +271,12 @@ local function Build(page)
         for i = 1, shown do
             local e, r = entries[i + offset], Row(i)
             r.entry = e
+            r.pin:SetShown(pins)
+            r.pin.check:SetShown(pinned[e.name] and true or false)
+            r.name:SetPoint("LEFT", nameX, 0)
             r.name:SetText(e.info.icon .. e.info.title)
-            r.cpu:SetText(FormatPercent(e.cpu))
-            r.mem:SetText(FormatMemory(e.mem))
+            r.cpu:SetText(ns.FormatPercent(e.cpu))
+            r.mem:SetText(ns.FormatMemory(e.mem))
             r:Show()
         end
         for i = shown + 1, #rows do rows[i]:Hide() end
@@ -368,31 +293,116 @@ local function Build(page)
         end
     end
 
+    -- At either end of the list the wheel scrolls the page instead.
     list:SetScript("OnMouseWheel", function(_, delta)
-        offset = math.max(0, math.min(#entries - VisibleRows(), offset - delta * 3))
+        local new = math.max(0, math.min(#entries - VisibleRows(), offset - delta * 3))
+        if new == offset then
+            scroll:GetScript("OnMouseWheel")(scroll, delta)
+            return
+        end
+        offset = new
         Render()
     end)
 
+    ---------------------------------------------------------------------------
+    --  Overlay: the checkbox, and under it the overlay's settings in two
+    --  columns, shown while it is on.
+    ---------------------------------------------------------------------------
+    local F = ns.featureByKey
+    local showBox = W.Checkbox(content, F.overlayShown)
+    local widgets = { showBox }
+
+    local block = CreateFrame("Frame", nil, content)
+    local function Add(w, col, y)
+        if col == 1 then
+            w:SetPoint("TOPLEFT", block, "TOPLEFT", 0, y)
+            w:SetPoint("TOPRIGHT", block, "TOP", -GAP / 2, y)
+        else
+            w:SetPoint("TOPLEFT", block, "TOP", GAP / 2, y)
+            w:SetPoint("TOPRIGHT", block, "TOPRIGHT", 0, y)
+        end
+        widgets[#widgets + 1] = w
+    end
+    -- Left: the top line; right: the addon rows.
+    local CHECKS = {
+        { "overlayFps",     "overlayLocked" },
+        { "overlayLatency", "overlayAddonCpu" },
+        { "overlayCpu",     "overlayAddonMemory" },
+        { "overlayMemory" },
+    }
+    local by = 0
+    for _, pair in ipairs(CHECKS) do
+        for col, key in ipairs(pair) do Add(W.Checkbox(block, F[key]), col, by) end
+        by = by - 28
+    end
+    by = by - GAP
+    Add(W.Slider(block, F.overlayTop), 1, by)
+    Add(W.Dropdown(block, F.overlaySort), 2, by)
+    by = by - 50 - GAP
+    Add(W.Slider(block, F.overlayBackground), 1, by)
+    -- Level with the slider's bar rather than its label.
+    Add(W.FontGroup(block, F.overlayFont.group), 2, by - 16)
+    by = by - 46 - GAP
+    local note = block:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    note:SetPoint("TOPLEFT", 0, by)
+    note:SetPoint("TOPRIGHT", 0, by)
+    note:SetJustifyH("LEFT")
+    note:SetText("Tick the box at the left of an addon to always show it in the overlay.")
+
+    -- The list takes what the window leaves above the checkbox; the
+    -- settings under it make the page scroll.
+    local listTop = statsBottom - HEADER_H - 2
+    local wasOn
+    local function Layout()
+        local listH = math.max(3 * ROW_H, scroll:GetHeight() + listTop - 6 - CHECK_H - 4)
+        list:SetHeight(listH)
+        local y = listTop - listH - 6
+        showBox:ClearAllPoints()
+        showBox:SetPoint("TOPLEFT", 0, y)
+        showBox:SetPoint("TOPRIGHT", 0, y)
+        y = y - CHECK_H - 4
+
+        local on = ns.Enabled("overlayShown") and true or false
+        block:SetShown(on)
+        if on then
+            -- Indented to line up with the checkbox's label.
+            block:ClearAllPoints()
+            block:SetPoint("TOPLEFT", 26, y - 4)
+            block:SetPoint("TOPRIGHT", 0, y - 4)
+            local blockH = -by + note:GetStringHeight()
+            block:SetHeight(blockH)
+            y = y - 4 - blockH - GAP
+        end
+        content:SetHeight(-y)
+        Render()
+
+        -- Just turned on: bring the settings into view.
+        if on and wasOn == false then
+            C_Timer.After(0, function() scroll:GetScript("OnMouseWheel")(scroll, -1000) end)
+        end
+        wasOn = on
+    end
+    widgets[#widgets + 1] = { Refresh = Layout }
+
     local function UpdateStats()
         for key, a in pairs(AVERAGES) do
-            local avg = Average(key)
+            local avg = ns.Average(key)
             if avg then values[key]:SetFormattedText(a[2], avg) else values[key]:SetText("-") end
         end
 
         local total = 0
         for _, e in ipairs(entries) do total = total + e.mem end
-        values.memory:SetText(FormatMemory(total))
+        values.memory:SetText(ns.FormatMemory(total))
 
         local on = Profiler.IsEnabled()
         enable:SetShown(not on)
         values.cpuAvg:SetShown(on)
         if on then
-            local avg = Metric.RecentAverageTime
-            values.cpuAvg:SetText(FormatPercent(Percent(Profiler.GetOverallMetric(avg), avg)))
+            values.cpuAvg:SetText(ns.FormatPercent(ns.TotalCpu()))
             local peak = Metric.PeakTime
             local peakMs = Profiler.GetOverallMetric(peak)
-            local peakPct = Percent(peakMs, peak)
-            values.cpuPeak:SetText(peakPct and FormatPercent(peakPct) or FormatMs(peakMs))
+            local peakPct = ns.Percent(peakMs, peak)
+            values.cpuPeak:SetText(peakPct and ns.FormatPercent(peakPct) or ns.FormatMs(peakMs))
         else
             values.cpuAvg:SetText("-")
             values.cpuPeak:SetText("-")
@@ -401,14 +411,16 @@ local function Build(page)
 
     local ticks, ticker = 0, nil
     local function Update()
-        Collect(ticks % MEMORY_EVERY == 0)
+        ns.Collect(ticks % MEMORY_EVERY == 0)
         ticks = ticks + 1
         UpdateStats()
         Render()
     end
 
+    scroll:HookScript("OnSizeChanged", Layout)
     page:HookScript("OnShow", function()
         ticks = 0
+        Layout()
         Update()
         if not ticker then ticker = C_Timer.NewTicker(UPDATE_INTERVAL, Update) end
     end)
@@ -416,8 +428,8 @@ local function Build(page)
         if ticker then ticker:Cancel(); ticker = nil end
     end)
 
-    -- Room for the summary, the header and about a dozen rows.
-    page.contentHeight = -statsBottom + HEADER_H + 12 * ROW_H
+    -- Room for the summary, the header, about a dozen rows and the checkbox.
+    return -listTop + 12 * ROW_H + 6 + CHECK_H + 4, widgets
 end
 
 ns.RegisterPage("Performance", Build)

@@ -37,7 +37,7 @@ local BUTTON_COLORS = {
 -- The sidebar's groups: a heading over its settings tabs, in this order.
 -- Sections not listed here go under Other.
 local MENU = {
-    { "Interface", { "Action bars", "Enemy nameplates", "Unit frames", "Tooltip", "Move & scale", "FPS & latency" } },
+    { "Interface", { "Action bars", "Enemy nameplates", "Unit frames", "Tooltip", "Move & scale" } },
     { "Quality of life", { "General", "Quests", "Social" } },
 }
 local OTHER = "Other"
@@ -482,11 +482,15 @@ local function CreateModulesPage()
     return page
 end
 
--- A page registered with ns.RegisterPage builds its own content.
+-- A page registered with ns.RegisterPage builds its own content, in a
+-- scroll frame like a settings page; its widgets refresh with the rest.
 local function CreateCustomPage(def)
     local page = CreatePageFrame(def.name)
-    def.build(page)
-    page.contentHeight = page.contentHeight or 0
+    local content = AddScrolling(page)
+    local height, list = def.build(content, page)
+    for _, w in ipairs(list) do widgets[#widgets + 1] = w end
+    content:SetHeight(height)
+    page.contentHeight = HEADER_H + height
     page:Hide()
     return page
 end

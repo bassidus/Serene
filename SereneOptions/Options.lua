@@ -157,53 +157,12 @@ local function CreateTab(parent, section, y)
 end
 
 -------------------------------------------------------------------------------
---  Reload UI button. The Forever client blocks ReloadUI() from addon code, so
---  the button is a secure macro button running /reload (the click itself is
---  the player's). A protected child would make the whole window protected --
---  no Hide (Escape) in combat -- so on entering combat it is detached and a
---  plain look-alike that only explains takes its place; it returns after
---  combat. PLAYER_REGEN_DISABLED still runs before the lockdown starts.
--------------------------------------------------------------------------------
-local sidebarRef, secureReload, combatReload
-local CreateResetButton
-
-local function PlaceAtBottom(btn)
-    btn:ClearAllPoints()
-    btn:SetPoint("BOTTOMLEFT", sidebarRef, "BOTTOMLEFT", 0, 10)
-    btn:SetPoint("BOTTOMRIGHT", sidebarRef, "BOTTOMRIGHT", 0, 10)
-end
-
-local function AttachSecureReload()
-    if InCombatLockdown() then return end
-    if not secureReload then
-        secureReload = CreateFrame("Button", nil, sidebarRef, "InsecureActionButtonTemplate")
-        StyleSidebarButton(secureReload, "Reload UI")
-        secureReload:RegisterForClicks("AnyUp")
-        secureReload:SetAttribute("useOnKeyDown", false)
-        secureReload:SetAttribute("type", "macro")
-        secureReload:SetAttribute("macrotext", "/reload")
-    end
-    secureReload:SetParent(sidebarRef)
-    PlaceAtBottom(secureReload)
-    secureReload:Show()
-    combatReload:Hide()
-end
-
-local function DetachSecureReload()
-    combatReload:Show()
-    if not secureReload then return end
-    secureReload:Hide()
-    secureReload:ClearAllPoints()
-    secureReload:SetParent(UIParent)
-end
-
--------------------------------------------------------------------------------
 --  Reset Defaults. Two clicks: the first turns the label into a red
 --  "Click again to reset", which reverts after a few seconds.
 -------------------------------------------------------------------------------
 local CONFIRM_TIME = 4
 
-CreateResetButton = function(sidebar)
+local function CreateResetButton(sidebar)
     local btn = StyleSidebarButton(CreateFrame("Button", nil, sidebar), "Reset defaults")
     local armed, timer
     local function Disarm()
@@ -228,20 +187,27 @@ CreateResetButton = function(sidebar)
     return btn
 end
 
+-------------------------------------------------------------------------------
+--  Reload UI button. The Forever client blocks ReloadUI() from addon code, so
+--  the button is a secure macro button running /reload (the click itself is
+--  the player's). The protected child makes the whole window protected, which
+--  is fine: it is never open in combat (see ns.ToggleOptionsWindow).
+-------------------------------------------------------------------------------
 local function CreateReloadButton(sidebar)
-    sidebarRef = sidebar
-
-    combatReload = StyleSidebarButton(CreateFrame("Button", nil, sidebar), "Reload UI")
-    PlaceAtBottom(combatReload)
-    combatReload:SetScript("OnClick", function()
-        ns.Print("Cannot reload from this button during combat. Type /reload instead.")
-    end)
+    local reload = CreateFrame("Button", nil, sidebar, "InsecureActionButtonTemplate")
+    StyleSidebarButton(reload, "Reload UI")
+    reload:RegisterForClicks("AnyUp")
+    reload:SetAttribute("useOnKeyDown", false)
+    reload:SetAttribute("type", "macro")
+    reload:SetAttribute("macrotext", "/reload")
+    reload:SetPoint("BOTTOMLEFT", 0, 10)
+    reload:SetPoint("BOTTOMRIGHT", 0, 10)
 
     -- Above it, bottom up: Reset Defaults, the ns.RegisterPage tabs and the
     -- Modules tab; the separator goes above them all.
     local reset = CreateResetButton(sidebar)
-    reset:SetPoint("BOTTOMLEFT", combatReload, "TOPLEFT")
-    reset:SetPoint("BOTTOMRIGHT", combatReload, "TOPRIGHT")
+    reset:SetPoint("BOTTOMLEFT", reload, "TOPLEFT")
+    reset:SetPoint("BOTTOMRIGHT", reload, "TOPRIGHT")
 
     local names = { MODULES }
     for _, def in ipairs(ns.pages) do names[#names + 1] = def.name end
@@ -260,15 +226,6 @@ local function CreateReloadButton(sidebar)
     line:SetPoint("BOTTOMLEFT", below, "TOPLEFT", 12, 6)
     line:SetPoint("BOTTOMRIGHT", below, "TOPRIGHT", -12, 6)
     line:SetHeight(1)
-
-    local watcher = CreateFrame("Frame")
-    watcher:RegisterEvent("PLAYER_REGEN_DISABLED")
-    watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
-    watcher:SetScript("OnEvent", function(_, event)
-        if event == "PLAYER_REGEN_DISABLED" then DetachSecureReload() else AttachSecureReload() end
-    end)
-
-    if InCombatLockdown() then DetachSecureReload() else AttachSecureReload() end
 end
 
 local function CreatePageFrame(name)
@@ -902,7 +859,8 @@ function ns.ToggleOptionsWindow()
     frame:Show()
 end
 
--- PLAYER_REGEN_DISABLED runs before the lockdown starts, so Hide still works.
+-- PLAYER_REGEN_DISABLED runs before the lockdown starts, so Hide still works
+-- though the Reload UI button makes the window protected.
 local combatCloser = CreateFrame("Frame")
 combatCloser:RegisterEvent("PLAYER_REGEN_DISABLED")
 combatCloser:SetScript("OnEvent", function()

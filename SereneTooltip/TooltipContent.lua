@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Tooltip Content -- class, level and faction colors, titles, guild rank,
+--  Tooltip Content -- class, level, faction and guild colors, titles, guild rank,
 --  target, item level and IDs. Every value read from a unit is
 --  checked for secrecy before use. Lines are added, recolored or hidden, and
 --  tooltip refreshes update them in place instead of adding twice.
@@ -44,17 +44,23 @@ local function FindLine(tt, text, pattern)
     end
 end
 
+local function ColorCode(r, g, b)
+    return format("|cff%02x%02x%02x", r * 255, g * 255, b * 255)
+end
+
 -------------------------------------------------------------------------------
 --  Units
 -------------------------------------------------------------------------------
-local TARGET_LABEL = "Target:"
+-- "Targeting <name>", the name in its class or reaction color.
+local TARGET_PREFIX = "Targeting "
+local TARGET_PATTERN = "^" .. TARGET_PREFIX
 
 local function TargetLine(tt, unit)
     local tu = unit .. "target"
     local tName, r, g, b
     if UnitExists(tu) then
         if UnitIsUnit(tu, "player") then
-            tName, r, g, b = "You", 1, 0.3, 0.3
+            tName, r, g, b = ">>> YOU <<<", 1, 0.3, 0.3
         else
             local n = UnitName(tu)
             if Clean(n) then
@@ -71,26 +77,19 @@ local function TargetLine(tt, unit)
             end
         end
     end
-    local i = FindLine(tt, TARGET_LABEL)
+    if not tName then tName, r, g, b = "-", 0.6, 0.6, 0.6 end
+    local text = TARGET_PREFIX .. ColorCode(r, g, b) .. tName .. "|r"
+    local i = FindLine(tt, TARGET_PATTERN, true)
     if i then
-        -- Refresh pass: update the existing row.
-        local right = LineText(tt, "Right", i)
-        if right then
-            if tName then
-                right:SetText(tName)
-                right:SetTextColor(r, g, b)
-            else
-                right:SetText("-")
-                right:SetTextColor(0.6, 0.6, 0.6)
-            end
-        end
-        return false
-    end
-    if tName then
-        tt:AddDoubleLine(TARGET_LABEL, tName, 1, 0.82, 0, r, g, b)
+        -- Refresh pass: update the existing row; a new name can be wider.
+        local fs, cur = LineText(tt, "Left", i)
+        if not fs or cur == text then return false end
+        fs:SetText(text)
         return true
     end
-    return false
+    if tName == "-" then return false end
+    tt:AddLine(text, 1, 0.82, 0)
+    return true
 end
 
 local function PlayerLines(tt, unit)
@@ -112,16 +111,23 @@ local function PlayerLines(tt, unit)
     local c = Clean(class) and RAID_CLASS_COLORS[class]
     if c then nameLine:SetTextColor(c.r, c.g, c.b) end
 
-    if ns.Enabled("tooltipGuildRank") then
-        local guild, rank = GetGuildInfo(unit)
-        if Clean(guild) and Clean(rank) and guild and rank then
-            local suffix = " [" .. rank .. "]"
-            for i = 2, tt:NumLines() do
-                local fs, txt = LineText(tt, "Left", i)
-                if Clean(txt) and txt:find(guild, 1, true) then
-                    if txt:sub(-#suffix) ~= suffix then fs:SetText(txt .. suffix) end
-                    break
+    -- The guild line becomes "Initiate of Die Laughing" (rank in white, guild
+    -- in green), or just the green guild name without tooltipGuildRank.
+    -- Returns true when the line got wider. With the rank added the text no
+    -- longer matches, so refresh passes leave it alone.
+    local guild, rank = GetGuildInfo(unit)
+    if Clean(guild) and guild then
+        for i = 2, tt:NumLines() do
+            local fs, txt = LineText(tt, "Left", i)
+            if Clean(txt) and (txt == guild or txt == "<" .. guild .. ">") then
+                if ns.Enabled("tooltipGuildRank") and Clean(rank) and rank then
+                    fs:SetText(rank .. " of |cff40ff40" .. guild .. "|r")
+                    fs:SetTextColor(1, 1, 1)
+                    return true
                 end
+                fs:SetText(guild)
+                fs:SetTextColor(0.25, 1, 0.25)
+                return false
             end
         end
     end
@@ -133,10 +139,6 @@ local FACTION_COLORS = {
     Alliance = { 0.29, 0.56, 1 },
     Horde    = { 1, 0.27, 0.27 },
 }
-
-local function ColorCode(r, g, b)
-    return format("|cff%02x%02x%02x", r * 255, g * 255, b * 255)
-end
 
 -- Difficulty color of the unit's level relative to yours (gray/green/yellow/
 -- orange/red); level ?? (skull, too high to see) is red.
@@ -232,16 +234,22 @@ local ilvlCache = {}         -- guid -> { ilvl =, time = }
 local pending                -- { guid =, unit =, time = } of our open request
 local lastInspect, retryQueued = 0, false
 
--- ilvl nil shows "-" while the inspect is pending.
-local function ItemLevelLine(tt, ilvl)
+-- ilvl nil shows "-" while the inspect is pending. The value takes the
+-- unit's level difficulty color, like the level on the line above.
+local function ItemLevelLine(tt, unit, ilvl)
     local text = ilvl and tostring(floor(ilvl)) or "-"
+    local r, g, b = LevelColor(unit)
+    if not r then r, g, b = 1, 1, 1 end
     local i = FindLine(tt, ILVL_LABEL)
     if i then
         local right = LineText(tt, "Right", i)
-        if right then right:SetText(text) end
+        if right then
+            right:SetText(text)
+            right:SetTextColor(r, g, b)
+        end
         return false
     end
-    tt:AddDoubleLine(ILVL_LABEL, text, 1, 0.82, 0, 1, 1, 1)
+    tt:AddDoubleLine(ILVL_LABEL, text, 1, 0.82, 0, r, g, b)
     return true
 end
 
@@ -296,13 +304,13 @@ local function PlayerItemLevel(tt, unit)
     if UnitIsUnit(unit, "player") then
         local _, equipped
         if GetAverageItemLevel then _, equipped = GetAverageItemLevel() end
-        return equipped and equipped > 0 and ItemLevelLine(tt, equipped) or false
+        return equipped and equipped > 0 and ItemLevelLine(tt, unit, equipped) or false
     end
     local guid = UnitGUID(unit)
     if not Clean(guid) or not guid then return false end
     local ilvl = CachedItemLevel(guid)
     if not ilvl and not InFlight(guid) then RequestInspect(unit, guid) end
-    return ItemLevelLine(tt, ilvl)
+    return ItemLevelLine(tt, unit, ilvl)
 end
 
 local inspectEvents = CreateFrame("Frame")
@@ -319,7 +327,7 @@ inspectEvents:SetScript("OnEvent", function(_, _, guid)
     if not ilvl or ilvl <= 0 then return end
     ilvlCache[guid] = { ilvl = ilvl, time = GetTime() }
     if ns.Enabled("tooltipPlayerItemLevel") and TooltipUnitGUID() == guid then
-        ItemLevelLine(GameTooltip, ilvl)
+        ItemLevelLine(GameTooltip, unit, ilvl)
         GameTooltip:Show()  -- the value can be wider than the - it replaces
     end
 end)
@@ -334,8 +342,8 @@ local function OnUnit(tt)
 
     local added = false
     if UnitIsPlayer(unit) then
-        PlayerLines(tt, unit)
-        if ns.Enabled("tooltipPlayerItemLevel") then added = PlayerItemLevel(tt, unit) end
+        added = PlayerLines(tt, unit)
+        if ns.Enabled("tooltipPlayerItemLevel") and PlayerItemLevel(tt, unit) then added = true end
     end
     if ColorBodyLines(tt, unit) then added = true end  -- a hidden line resizes too
     if ns.Enabled("tooltipTarget") and TargetLine(tt, unit) then added = true end
@@ -407,7 +415,7 @@ end
 Content("Information", "tooltipTitles", "Show player titles", true, nil,
     "Off shows players by name only, without titles like \"Private\".")
 Content("Information", "tooltipGuildRank", "Show guild rank", true, nil,
-    "Adds the player's rank after their guild's name.", true)
+    "Shows the player's rank before their guild's name, as in \"Initiate of Die Laughing\".", true)
 Content("Information", "tooltipTarget", "Show what the unit targets", true, nil,
     "Adds a line with who the unit is targeting.")
 Content("Information", "tooltipPlayerItemLevel", "Show players' item level", true, nil,

@@ -316,13 +316,96 @@ end
 -------------------------------------------------------------------------------
 --  Health/mana text: Blizzard's Status Text CVars
 -------------------------------------------------------------------------------
-local TEXT_MODES = { value = "NUMERIC", percent = "PERCENT", both = "BOTH" }
+-- Like Blizzard's own setting, None also turns "statusText" off, so the
+-- numbers only show while the mouse is over a bar. Current is Blizzard's
+-- "current / max" with the max taken off afterwards (Blizzard's own switch
+-- for that is a field on each bar, which we leave alone).
+local TEXT_MODES = { none = "NONE", current = "NUMERIC", value = "NUMERIC", percent = "PERCENT", both = "BOTH" }
+
+local function CurrentOnly(bar, textString, value)
+    if ns.Get("unitFrameText") ~= "current" or GetCVar("statusTextDisplay") ~= "NUMERIC" then return end
+    if not textString:IsShown() or bar.isZero or bar.numericDisplayTransformFunc or bar.disableMaxValue then
+        return
+    end
+    -- Formatting fails on a secret value; Blizzard's text then stays.
+    pcall(function()
+        local text = bar.capNumericDisplay and AbbreviateLargeNumbers(value) or BreakUpLargeNumbers(value)
+        if bar.prefix and bar.alwaysPrefix then text = bar.prefix .. " " .. text end
+        textString:SetText(text)
+    end)
+end
+
+local barHooked = setmetatable({}, { __mode = "k" })
+
+local function HookBars(frame)
+    for _, bar in ipairs({ frame.healthbar, frame.manabar }) do
+        if not barHooked[bar] and bar.UpdateTextStringWithValues then
+            barHooked[bar] = true
+            hooksecurefunc(bar, "UpdateTextStringWithValues", CurrentOnly)
+        end
+    end
+end
+
+-- Left and right: the text keeps Blizzard's anchor (in the middle of the bar)
+-- but is made as wide as the bar and justified to one side. Blizzard's
+-- anchors read back as secret values, so they can't be copied or moved.
+local ALIGN = { left = "LEFT", right = "RIGHT" }
+local PAD = 2  -- from the bar's edge, like Blizzard's own left/right text
+local aligned = setmetatable({}, { __mode = "k" })
+
+local function AlignBars(frame)
+    local align = ALIGN[ns.Get("unitFrameTextAlign")]
+    for _, bar in ipairs({ frame.healthbar, frame.manabar }) do
+        local fs = bar and bar.TextString
+        local width = fs and Clean(bar:GetWidth())
+        if align and width and width > 2 * PAD then
+            fs:SetWidth(width - 2 * PAD)
+            fs:SetJustifyH(align)
+            aligned[fs] = true
+        elseif aligned[fs] then
+            fs:SetWidth(0)  -- back to fitting the text, as Blizzard has it
+            fs:SetJustifyH("CENTER")
+            aligned[fs] = nil
+        end
+    end
+end
+
+local function AlignAll()
+    for _, frame in ipairs(Frames()) do AlignBars(frame) end
+end
+
+if UnitFrame_Update then
+    hooksecurefunc("UnitFrame_Update", function(frame)
+        if IsOurs(frame) then
+            HookBars(frame)
+            AlignBars(frame)
+        end
+    end)
+end
+
+local lastText
 
 local function ApplyText()
-    local mode = TEXT_MODES[ns.Get("unitFrameText")]
-    if not mode then return end  -- "blizzard": the game's own setting
-    if GetCVar("statusText") ~= "1" then pcall(SetCVar, "statusText", "1") end
+    local value = ns.Get("unitFrameText")
+    local mode = TEXT_MODES[value]
+    if not mode then return end
+    for _, frame in ipairs(Frames()) do HookBars(frame) end
+    -- Current and Current / max share a CVar value, so the option itself
+    -- counts too (and the first time, so Current takes the max off at login).
+    local changed = GetCVar("statusTextDisplay") ~= mode or lastText ~= value
+    lastText = value
     if GetCVar("statusTextDisplay") ~= mode then pcall(SetCVar, "statusTextDisplay", mode) end
+    -- The bars only redraw their text when "statusText" changes or the value
+    -- does, so at full health a new mode would not show until a hit.
+    -- Changing "statusText" lets Blizzard's own CVAR_UPDATE handler redraw
+    -- them; calling the bars from here can't read their (secret) values.
+    local on = mode == "NONE" and "0" or "1"
+    if GetCVar("statusText") ~= on then
+        pcall(SetCVar, "statusText", on)
+    elseif changed and on == "1" and not InCombatLockdown() then
+        pcall(SetCVar, "statusText", "0")
+        pcall(SetCVar, "statusText", "1")
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -392,15 +475,28 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "unitFrameText", label = "Health/mana numbers", section = SECTION, category = "Health & mana",
     type = "dropdown",
-    default = "blizzard", apply = ApplyText,
-    tooltip = "How the numbers on the health and mana bars read. Current / max, Percent and Both are always shown.\n"
-        .. "Blizzard follows the game's own Status Text setting.",
+    default = "both", apply = ApplyText,
+    tooltip = "How the numbers on the health and mana bars read. None shows them only while the mouse is over a bar.\n"
+        .. "Both shows the percent on the left and the value on the right, so Alignment doesn't change it.",
     options = function()
         return {
-            { value = "blizzard", label = "Blizzard setting" },
+            { value = "none",     label = "None" },
+            { value = "current",  label = "Current" },
             { value = "value",    label = "Current / max" },
             { value = "percent",  label = "Percent" },
             { value = "both",     label = "Both" },
+        }
+    end,
+})
+ns.RegisterFeature({
+    key = "unitFrameTextAlign", label = "Alignment", section = SECTION, category = "Health & mana",
+    type = "dropdown",
+    default = "center", apply = AlignAll,
+    options = function()
+        return {
+            { value = "left",   label = "Left" },
+            { value = "center", label = "Center" },
+            { value = "right",  label = "Right" },
         }
     end,
 })

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --  Tooltip Content -- class, level and faction colors, titles, guild rank,
 --  target, item level and IDs. Every value read from a unit is
---  checked for secrecy before use. Lines are only added or recolored, and
+--  checked for secrecy before use. Lines are added, recolored or hidden, and
 --  tooltip refreshes update them in place instead of adding twice.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -163,11 +163,11 @@ local function CompactLevelText(unit, className, classColor, lr, lg, lb)
     return text .. className
 end
 
--- Colors the body lines: "Level N" by difficulty, the class by class color
--- (its own line on Forever, inside the level line on retail layouts) and the
--- Alliance/Horde line by faction. With tooltipCompactLevel a player's level
--- line becomes "14 Undead Paladin" and the separate class line is hidden.
--- Already-colored text no longer matches, so refresh passes leave it alone.
+-- A player's level line becomes "14 Undead Paladin" and the class line below
+-- it (Forever's layout) is hidden; NPCs keep "Level N" colored by difficulty.
+-- The Alliance/Horde line is colored by faction, or hidden without
+-- tooltipFaction. Rewritten text no longer matches, so refresh passes leave
+-- it alone.
 local function ColorBodyLines(tt, unit)
     local lr, lg, lb = LevelColor(unit)
 
@@ -178,8 +178,8 @@ local function ColorBodyLines(tt, unit)
             className, classColor = name, RAID_CLASS_COLORS[file]
         end
     end
-    local compact = className and ns.Enabled("tooltipCompactLevel")
-    local hid = false
+    local showFaction = ns.Enabled("tooltipFaction")
+    local hid, merged = false, false
 
     local factionName, factionColor
     local group, localized = UnitFactionGroup(unit)
@@ -190,30 +190,26 @@ local function ColorBodyLines(tt, unit)
     for i = 2, tt:NumLines() do
         local fs, txt = LineText(tt, "Left", i)
         if fs and Clean(txt) and txt then
-            if factionColor and txt == factionName then
+            local isLevel = txt:find(LEVEL_PATTERN)
+            local compactText = isLevel and className
+                and CompactLevelText(unit, className, classColor, lr, lg, lb)
+            if factionName and not showFaction and txt == factionName then
+                fs:SetText("")
+                fs:Hide()
+                hid = true
+            elseif factionColor and txt == factionName then
                 fs:SetTextColor(factionColor[1], factionColor[2], factionColor[3])
-            elseif compact and txt == className then
+            elseif compactText then
+                fs:SetText(compactText)
+                merged = true
+            elseif merged and txt == className then
                 fs:SetText("")
                 fs:Hide()
                 hid = true
             elseif classColor and txt == className then
                 fs:SetTextColor(classColor.r, classColor.g, classColor.b)
-            elseif compact and txt:find(LEVEL_PATTERN) then
-                local new = CompactLevelText(unit, className, classColor, lr, lg, lb)
-                if new then fs:SetText(new) end
-            elseif txt:find(LEVEL_PATTERN) then
-                local new = txt
-                if lr then
-                    new = new:gsub(LEVEL_PATTERN, ColorCode(lr, lg, lb) .. "%1|r", 1)
-                end
-                if classColor then
-                    local s, e = new:find(className, 1, true)
-                    if s then
-                        new = new:sub(1, s - 1) .. ColorCode(classColor.r, classColor.g, classColor.b)
-                            .. className .. "|r" .. new:sub(e + 1)
-                    end
-                end
-                if new ~= txt then fs:SetText(new) end
+            elseif isLevel and lr then
+                fs:SetText((txt:gsub(LEVEL_PATTERN, ColorCode(lr, lg, lb) .. "%1|r", 1)))
             end
         end
     end
@@ -223,8 +219,9 @@ end
 -------------------------------------------------------------------------------
 --  Player item level -- yours from GetAverageItemLevel; anyone else is
 --  inspected once when hovered (out of combat, never while the Inspect
---  window is open) and the result is kept per GUID for a while. The row is
---  added when INSPECT_READY arrives if the tooltip still shows that player.
+--  window is open) and the result is kept per GUID for a while. Until then the
+--  row shows -, so the tooltip doesn't change size when INSPECT_READY fills
+--  it in.
 -------------------------------------------------------------------------------
 local ILVL_LABEL = "Item Level:"
 local ILVL_CACHE_TIME = 600  -- seconds a player's item level is reused
@@ -235,8 +232,9 @@ local ilvlCache = {}         -- guid -> { ilvl =, time = }
 local pending                -- { guid =, unit =, time = } of our open request
 local lastInspect, retryQueued = 0, false
 
+-- ilvl nil shows "-" while the inspect is pending.
 local function ItemLevelLine(tt, ilvl)
-    local text = tostring(floor(ilvl))
+    local text = ilvl and tostring(floor(ilvl)) or "-"
     local i = FindLine(tt, ILVL_LABEL)
     if i then
         local right = LineText(tt, "Right", i)
@@ -303,9 +301,8 @@ local function PlayerItemLevel(tt, unit)
     local guid = UnitGUID(unit)
     if not Clean(guid) or not guid then return false end
     local ilvl = CachedItemLevel(guid)
-    if ilvl then return ItemLevelLine(tt, ilvl) end
-    if not InFlight(guid) then RequestInspect(unit, guid) end
-    return false
+    if not ilvl and not InFlight(guid) then RequestInspect(unit, guid) end
+    return ItemLevelLine(tt, ilvl)
 end
 
 local inspectEvents = CreateFrame("Frame")
@@ -321,9 +318,9 @@ inspectEvents:SetScript("OnEvent", function(_, _, guid)
     if not (InspectFrame and InspectFrame:IsShown()) then ClearInspectPlayer() end
     if not ilvl or ilvl <= 0 then return end
     ilvlCache[guid] = { ilvl = ilvl, time = GetTime() }
-    if ns.Enabled("tooltipPlayerItemLevel") and TooltipUnitGUID() == guid
-        and ItemLevelLine(GameTooltip, ilvl) then
-        GameTooltip:Show()
+    if ns.Enabled("tooltipPlayerItemLevel") and TooltipUnitGUID() == guid then
+        ItemLevelLine(GameTooltip, ilvl)
+        GameTooltip:Show()  -- the value can be wider than the - it replaces
     end
 end)
 
@@ -417,5 +414,5 @@ Content("Information", "tooltipPlayerItemLevel", "Show players' item level", tru
     "Adds a player's average item level. Other players are inspected when you hover them, out of combat.", true)
 Content("Information", "tooltipItemLevel", "Show item level on items", true)
 Content("Information", "tooltipIDs", "Show spell and item IDs", false, nil, nil, true)
-Content("Information", "tooltipCompactLevel", "Merge level, race and class", true, nil,
-    "Shows players as \"14 Undead Paladin\" on one line instead of \"Level 14 Undead (Player)\" with the class below it.")
+Content("Information", "tooltipFaction", "Show faction", true, nil,
+    "Off hides the Alliance or Horde line.")

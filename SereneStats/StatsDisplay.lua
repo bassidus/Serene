@@ -233,11 +233,11 @@ end)
 --  Settings
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
-    key = "statsFps", label = "Show framerate (FPS)", section = SECTION, category = "Display", apply = Apply,
+    key = "statsFps", label = "Show framerate (FPS)", section = SECTION, category = "Display", default = false, apply = Apply,
     tooltip = "Frames per second. The game's Toggle Framerate key hides and shows the whole box.",
 })
 ns.RegisterFeature({
-    key = "statsLatency", label = "Show latency (ms)", section = SECTION, category = "Display", apply = Apply,
+    key = "statsLatency", label = "Show latency (ms)", section = SECTION, category = "Display", default = false, apply = Apply,
     tooltip = "How long the server takes to answer you, in milliseconds.",
 })
 ns.RegisterFeature({

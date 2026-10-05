@@ -19,11 +19,18 @@
 --  spot and their slider size. A middle click puts a window back at
 --  Blizzard's spot and size.
 --
+--  A window is dragged from any spot that does not take the press itself
+--  (a button, text field, slider or model), panels covering it included:
+--  the left button is watched with GLOBAL_MOUSE_DOWN and the window set at
+--  the cursor every frame, which also works on a window that was open when
+--  moving was turned on (RegisterForDrag only takes effect once it opens
+--  again).
+--
 --  Each entry lists the frame names the window may have on this client
 --  (classic and modern names; every one that exists on UIParent is used,
---  so a panel inside another window is left alone), the load-on-demand
---  addons that create them, and handles: children covering the window that
---  drag it too. At 100 % a window Serene never scaled is left to Blizzard.
+--  so a panel inside another window is left alone) and the load-on-demand
+--  addons that create them. At 100 % a window Serene never scaled is left
+--  to Blizzard.
 --  Changes to a protected window wait for the end of combat.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -64,7 +71,7 @@ local WINDOWS = {
     { key = "Bank", label = "Bank", category = "NPCs",
       frames = { "BankFrame" } },
     { key = "Mail", label = "Mailbox", category = "NPCs",
-      frames = { "MailFrame", "OpenMailFrame" }, handles = { "InboxFrame", "SendMailFrame" } },
+      frames = { "MailFrame", "OpenMailFrame" } },
     { key = "Auction", label = "Auction house", category = "NPCs",
       frames = { "AuctionFrame", "AuctionHouseFrame" },
       addons = { "Blizzard_AuctionUI", "Blizzard_AuctionHouseUI" } },
@@ -98,11 +105,10 @@ local scaled = {}   -- frame -> true while Serene's scale is on it
 local placed = {}   -- frame -> true while it sits at its moved spot
 local hooked = {}   -- frame -> its window, once its hooks are in
 local anchors = {}  -- frame -> { [point] = { relativeTo, relativePoint, x, y } } at scale 1
-local mouse = {}    -- frame -> true once it can be dragged
+local mouse = {}    -- frame -> true once it can be moved and resized with the mouse
 local ownWheel = {} -- frame -> true when Blizzard already takes its mouse wheel
 local moved = {}    -- frame name -> { left, top }; SereneDB.windowPositions while remembered
 local sessionScale = {}  -- window -> percent set by Ctrl + scroll, while not remembered
-local dragging = {}
 local pending       -- windows waiting for combat to end
 local busy          -- while Serene sets points or scale, which the hooks skip
 
@@ -193,24 +199,33 @@ end
 
 local ApplyWindow
 
-local function StopDrag(frame)
-    if not dragging[frame] then return end
-    dragging[frame] = nil
-    frame:StopMovingOrSizing()
-    -- Serene keeps the spot; the game's own layout cache would bring it
-    -- back even with Remember off.
-    if frame.SetUserPlaced then frame:SetUserPlaced(false) end
+-- The cursor in UIParent units.
+local function Cursor()
+    local x, y = GetCursorPosition()
+    local s = UIParent:GetEffectiveScale()
+    return x / s, y / s
+end
+
+local drag  -- { frame =, name =, left =, top =, x =, y = } while a window follows the cursor
+
+-- From the press, so the window does not jump by the distance moved
+-- before the drag began.
+local function StartDrag(frame, x, y)
+    if not ns.Enabled("windowMove") or Locked(frame) or not frame:GetLeft() then return end
+    local r = Ratio(frame)
+    drag = { frame = frame, name = frame:GetName(), left = frame:GetLeft() * r, top = frame:GetTop() * r, x = x, y = y }
+end
+
+-- Keeps the spot where the window ended up, kept on screen.
+local function StopDrag()
+    if not drag then return end
+    local frame = drag.frame
+    drag = nil
     local left, top = frame:GetLeft(), frame:GetTop()
     if not left then return end
     local r = Ratio(frame)
     moved[frame:GetName()] = { left * r, top * r }
     Anchor(frame)
-end
-
-local function StartDrag(frame)
-    if not ns.Enabled("windowMove") or Locked(frame) then return end
-    dragging[frame] = true
-    frame:StartMoving()
 end
 
 -- The new size by the cursor for a moment.
@@ -241,38 +256,80 @@ local function Wheel(frame, delta)
 end
 
 -- Middle click: Blizzard's spot and size.
-local function MouseUp(frame, button)
-    if button ~= "MiddleButton" or not ns.Enabled("windowMove") or Locked(frame) then return end
-    local window = hooked[frame]
+local function ResetWindow(frame)
+    if Locked(frame) then return end
     moved[frame:GetName()] = nil
-    ns.SetValue(Key(window), 100)  -- its apply drops the session size and places the window
+    ns.SetValue(Key(hooked[frame]), 100)  -- its apply drops the session size and places the window
 end
 
--- Dragged by any spot that is not a button, or by a handle; the mouse wheel
--- is only taken while Ctrl is down, so scrolling over a window still zooms
--- the camera.
-local function EnableMouse(frame, window)
+-- The mouse wheel is only taken while Ctrl is down, so scrolling over a
+-- window still zooms the camera.
+local function EnableMouse(frame)
     if mouse[frame] or Locked(frame) then return end
     mouse[frame] = true
     ownWheel[frame] = frame:IsMouseWheelEnabled()
-    frame:SetMovable(true)
     frame:SetClampedToScreen(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:HookScript("OnDragStart", StartDrag)
-    frame:HookScript("OnDragStop", StopDrag)
-    frame:HookScript("OnHide", StopDrag)
+    frame:HookScript("OnHide", function(self)
+        if drag and drag.frame == self then StopDrag() end
+    end)
     frame:HookScript("OnMouseWheel", Wheel)
-    frame:HookScript("OnMouseUp", MouseUp)
+end
 
-    local handles = { frame.TitleContainer, frame.Header }
-    for _, name in ipairs(window.handles or {}) do handles[#handles + 1] = _G[name] end
-    for _, handle in pairs(handles) do
-        if type(handle) == "table" and handle.RegisterForDrag and handle:IsMouseEnabled() then
-            handle:RegisterForDrag("LeftButton")
-            handle:HookScript("OnDragStart", function() StartDrag(frame) end)
-            handle:HookScript("OnDragStop", function() StopDrag(frame) end)
-            handle:HookScript("OnMouseUp", function(_, button) MouseUp(frame, button) end)
-        end
+local CLICKABLE = { "Button", "EditBox", "Slider", "Model", "ModelScene" }
+
+local function TakesPress(region)
+    for _, kind in ipairs(CLICKABLE) do
+        if region:IsObjectType(kind) then return true end
+    end
+    return region.HasScript and region:HasScript("OnMouseDown") and region:GetScript("OnMouseDown") ~= nil
+end
+
+-- The window under the cursor, unless what is on top there takes the press.
+local function WindowAtCursor()
+    local focus
+    if GetMouseFoci then focus = GetMouseFoci()[1] else focus = GetMouseFocus() end
+    if not focus or not focus.IsObjectType or (focus.IsForbidden and focus:IsForbidden()) then return end
+    if not mouse[focus] and TakesPress(focus) then return end
+    while focus and not mouse[focus] do focus = focus:GetParent() end
+    return focus
+end
+
+-- A left press on a window becomes a drag once the cursor moves a little;
+-- then the window follows the cursor.
+local DRAG_START = 4  -- UIParent units
+local press           -- { frame =, x =, y = } until it is dragged or let go
+
+local watcher = CreateFrame("Frame")
+watcher:Hide()
+watcher:SetScript("OnUpdate", function(self)
+    local x, y = Cursor()
+    if press and math.abs(x - press.x) + math.abs(y - press.y) >= DRAG_START then
+        StartDrag(press.frame, press.x, press.y)
+        press = nil
+    end
+    if drag and not Locked(drag.frame) then
+        moved[drag.name] = { drag.left + x - drag.x, drag.top + y - drag.y }
+        Anchor(drag.frame)
+    end
+    if not (press or drag) then self:Hide() end
+end)
+
+local function MouseDown(button)
+    if button ~= "LeftButton" or not ns.Enabled("windowMove") then return end
+    local frame = WindowAtCursor()
+    if not frame then return end
+    local x, y = Cursor()
+    press = { frame = frame, x = x, y = y }
+    watcher:Show()
+end
+
+local function MouseUp(button)
+    if button == "LeftButton" then
+        press = nil
+        StopDrag()
+    elseif button == "MiddleButton" and ns.Enabled("windowMove") then
+        local frame = WindowAtCursor()
+        if frame then ResetWindow(frame) end
     end
 end
 
@@ -288,7 +345,7 @@ function ApplyWindow(window)
         local frame = _G[name]
         if type(frame) == "table" and frame.SetScale and frame:GetParent() == UIParent then
             if not hooked[frame] then Hook(frame, window) end
-            if ns.Enabled("windowMove") then EnableMouse(frame, window) end
+            if ns.Enabled("windowMove") then EnableMouse(frame) end
             Scale(window, frame)
         end
     end
@@ -307,6 +364,8 @@ local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:RegisterEvent("MODIFIER_STATE_CHANGED")
+events:RegisterEvent("GLOBAL_MOUSE_DOWN")
+events:RegisterEvent("GLOBAL_MOUSE_UP")
 events:SetScript("OnEvent", function(_, event, arg)
     if event == "ADDON_LOADED" then
         if SereneDB and byAddon[arg] then ApplyWindow(byAddon[arg]) end
@@ -316,6 +375,8 @@ events:SetScript("OnEvent", function(_, event, arg)
         if arg == "LCTRL" or arg == "RCTRL" then WheelOn() end
         return
     end
+    if event == "GLOBAL_MOUSE_DOWN" then return MouseDown(arg) end
+    if event == "GLOBAL_MOUSE_UP" then return MouseUp(arg) end
     if not pending then return end
     local waiting = pending
     pending = nil
@@ -342,7 +403,7 @@ end, SECTION)
 ns.RegisterFeature({
     key = "windowMove", label = "Move windows with the mouse", section = SECTION, category = "Mouse",
     default = false, apply = ApplyAll,
-    tooltip = "Drag a window by an empty spot or its title to move it. Hold Ctrl and scroll over a "
+    tooltip = "Drag a window by any spot that is not a button or a model to move it. Hold Ctrl and scroll over a "
         .. "window to make it smaller or bigger. Middle-click a window to put it back at Blizzard's "
         .. "spot and size.",
 })

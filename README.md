@@ -4,6 +4,8 @@ Small quality-of-life tweaks for WoW Forever.
 
 Serene is a core addon plus a set of modules, and every module is its own addon. If you don't want one, disable it in the addon list or on the Modules page in the options.
 
+It's meant to have a small footprint. Settings you turn off do next to nothing, updates come from game events instead of running every frame, and the options window only loads when you open it. You can check for yourself on the Performance page.
+
 ## Interface
 
 - Action bars: out-of-range coloring, shorter keybind text, macro names and fonts

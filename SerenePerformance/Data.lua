@@ -78,6 +78,8 @@ end
 function ns.FormatPercent(p)
     if not p then return "-" end
     if p <= 0 then return "0%" end
+    -- Would round to 0.00%, which reads like the 0% of an addon that did nothing.
+    if p < 0.005 then return "<0.01%" end
     if p >= 10 then return string.format("%.0f%%", p) end
     if p >= 1 then return string.format("%.1f%%", p) end
     return string.format("%.2f%%", p)

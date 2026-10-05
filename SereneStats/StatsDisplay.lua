@@ -247,6 +247,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "statsLayout", label = "Layout", section = SECTION, category = "Appearance",
+    beside = true,  -- to the right of Display
     type = "dropdown", default = "row",
     apply = Apply,
     options = function()

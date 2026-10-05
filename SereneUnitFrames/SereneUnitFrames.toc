@@ -10,3 +10,4 @@
 Init.lua
 UnitFrameColors.lua
 UnitFrameLook.lua
+UnitFrameRest.lua

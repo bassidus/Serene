@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Unit Frames: Hide Resting Glow and Hide Resting Zzz
 - Unit Frames: Dark Mode, Portrait (class icon or hidden), Hide Name, Name Color, Level (circle, in the name or hidden) and Health/Mana Text
 - Tooltip: unit frame health and mana bars keep the unit tooltip on hover
 - Tooltip: Hide Right Click Hint removes "<Right click for Frame Settings>" from unit frame tooltips

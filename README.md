@@ -34,6 +34,7 @@ All off by default.
 - Portrait (portrait, class icon, or hidden together with the frame), hide name, name color (class or any color).
 - Level in its circle, before the name ("14 Hogger") or hidden.
 - Health/mana text as value, percent or both.
+- Hide the resting glow and Zzz animation on the player frame.
 
 ### Tooltip Customization
 - Position (follows the cursor, with offsets), font, size and outline.

@@ -25,7 +25,7 @@ local function PartsOf(frame)
     local p = parts[frame]
     if p then return p end
     -- UnitFrame_Initialize keeps the name on the frame.
-    p = { name = frame.name, level = {}, art = {} }
+    p = { name = frame.name, level = {}, art = {}, bars = { frame.healthbar, frame.manabar } }
     if frame == PlayerFrame then
         local box = frame.PlayerFrameContainer
         local main = frame.PlayerFrameContent.PlayerFrameContentMain
@@ -50,6 +50,8 @@ local function PartsOf(frame)
     return p
 end
 
+-- Target of target runs UnitFrame_Update every frame while shown, so the
+-- hooks below must not build tables per call.
 local FRAMES = { PlayerFrame, PetFrame, TargetFrame, TargetFrameToT, FocusFrame, FocusFrameToT,
     PartyFrame.MemberFrame1, PartyFrame.MemberFrame2, PartyFrame.MemberFrame3, PartyFrame.MemberFrame4 }
 
@@ -161,7 +163,8 @@ local function ColorLevel(fs)
             levelColors[fs] = { fs:GetVertexColor() }
             hooksecurefunc(fs, "SetVertexColor", function(self, r2, g2, b2, a2)
                 if coloring then return end
-                levelColors[self] = { r2, g2, b2, a2 }
+                local o = levelColors[self]
+                o[1], o[2], o[3], o[4] = r2, g2, b2, a2
                 local cr, cg, cb = LevelRGB()
                 if cr then
                     coloring = true
@@ -236,23 +239,25 @@ end
 -- for that is a field on each bar, which we leave alone).
 local TEXT_MODES = { none = "NONE", current = "NUMERIC", value = "NUMERIC", percent = "PERCENT", both = "BOTH" }
 
+local function SetCurrent(bar, textString, value)
+    local text = bar.capNumericDisplay and AbbreviateLargeNumbers(value) or BreakUpLargeNumbers(value)
+    if bar.prefix and bar.alwaysPrefix then text = bar.prefix .. " " .. text end
+    textString:SetText(text)
+end
+
 local function CurrentOnly(bar, textString, value)
     if ns.Get("unitFrameText") ~= "current" or GetCVar("statusTextDisplay") ~= "NUMERIC" then return end
     if not textString:IsShown() or bar.isZero or bar.numericDisplayTransformFunc or bar.disableMaxValue then
         return
     end
     -- Formatting fails on a secret value; Blizzard's text then stays.
-    pcall(function()
-        local text = bar.capNumericDisplay and AbbreviateLargeNumbers(value) or BreakUpLargeNumbers(value)
-        if bar.prefix and bar.alwaysPrefix then text = bar.prefix .. " " .. text end
-        textString:SetText(text)
-    end)
+    pcall(SetCurrent, bar, textString, value)
 end
 
 local barHooked = setmetatable({}, { __mode = "k" })
 
 local function HookBars(frame)
-    for _, bar in ipairs({ frame.healthbar, frame.manabar }) do
+    for _, bar in ipairs(PartsOf(frame).bars) do
         if not barHooked[bar] and bar.UpdateTextStringWithValues then
             barHooked[bar] = true
             hooksecurefunc(bar, "UpdateTextStringWithValues", CurrentOnly)
@@ -269,8 +274,8 @@ local aligned = setmetatable({}, { __mode = "k" })
 
 local function AlignBars(frame)
     local align = ALIGN[ns.Get("unitFrameTextAlign")]
-    for _, bar in ipairs({ frame.healthbar, frame.manabar }) do
-        local fs = bar and bar.TextString
+    for _, bar in ipairs(PartsOf(frame).bars) do
+        local fs = bar.TextString
         local width = fs and Clean(bar:GetWidth())
         if align and width and width > 2 * PAD then
             fs:SetWidth(width - 2 * PAD)

@@ -23,18 +23,21 @@ local GROUPS = {
 }
 local NAME, LEVEL, BAR = GROUPS[1], GROUPS[2], GROUPS[3]
 
--- The font strings of a frame, per group.
+-- The font strings of a frame, per group; built once, since target of
+-- target styles itself every frame.
+local strings = {}
+
 local function Strings(frame)
+    if strings[frame] then return strings[frame] end
     local p = ns.UnitFrameParts(frame)
     local bars = {}
-    for _, bar in ipairs({ frame.healthbar, frame.manabar }) do
-        if bar then
-            bars[#bars + 1] = bar.TextString
-            bars[#bars + 1] = bar.LeftText
-            bars[#bars + 1] = bar.RightText
-        end
+    for _, bar in ipairs(p.bars) do
+        bars[#bars + 1] = bar.TextString
+        bars[#bars + 1] = bar.LeftText
+        bars[#bars + 1] = bar.RightText
     end
-    return { [NAME] = { p.name }, [LEVEL] = { p.levelText }, [BAR] = bars }
+    strings[frame] = { [NAME] = { p.name }, [LEVEL] = { p.levelText }, [BAR] = bars }
+    return strings[frame]
 end
 
 local orig = setmetatable({}, { __mode = "k" })  -- [font string] = Blizzard's look (ns.FontState)

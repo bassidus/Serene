@@ -532,12 +532,24 @@ local function CreatePage(section)
 
     local Layout
     local groups = {}  -- category -> its frame, made once
+    -- Two categories side by side open and close together.
+    local partner, prev = {}, nil
+    for _, f in ipairs(list) do
+        if f.category and f.category ~= prev then
+            if column[f.category] == "right" and prev then
+                partner[f.category], partner[prev] = prev, f.category
+            end
+            prev = f.category
+        end
+    end
+
     local function Group(category)
         if not groups[category] then
             groups[category] = CreateGroup(content, category, function()
                 SereneDB.optionsOpen = SereneDB.optionsOpen or {}
-                local key = section .. "/" .. category
-                SereneDB.optionsOpen[key] = not SereneDB.optionsOpen[key] or nil
+                local open = not Open(category) or nil
+                SereneDB.optionsOpen[section .. "/" .. category] = open
+                if partner[category] then SereneDB.optionsOpen[section .. "/" .. partner[category]] = open end
                 W.ClosePopups()
                 Layout()
             end)

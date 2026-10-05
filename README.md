@@ -1,36 +1,46 @@
-# Serene
+![Serene banner](art/serene-banner-curseforge.png)
 
-Small quality-of-life tweaks for WoW Forever.
+**Serene** is a lightweight quality-of-life suite for WoW Forever. It cleans up the default interface and handles the small chores, without replacing Blizzard's UI.
 
-Serene is a core addon plus a set of modules, and every module is its own addon. If you don't want one, disable it in the addon list or on the Modules page in the options.
+## Why Serene
 
-It's meant to have a small footprint. Settings you turn off do next to nothing, updates come from game events instead of running every frame, and the options window only loads when you open it. You can check for yourself on the Performance page.
+- **Modular:** every module is its own addon. Turn off the ones you don't want in the addon list or on the Modules page in the options.
+- **Lightweight:** it updates on game events and never runs every frame. Settings you turn off cost next to nothing, and the options window only loads when you open it.
+- **Transparent:** the built-in Performance page shows CPU and memory use for every addon, Serene included, so you can check for yourself.
+
+---
 
 ## Interface
 
-- Action bars: out-of-range coloring, shorter keybind text, macro names and fonts
-- Enemy nameplates: flat plates with threat colors, cast bar, debuffs and quest progress
-- Move & scale: drag Blizzard's windows around, Ctrl + scroll to resize them
-- Tooltip: follows the cursor, cleaner look, extra info like target, item level and guild rank
-- Unit frames: class colors, darker frames, options for the name, level and health text
+- **Action Bars:** out-of-range coloring, shorter keybind text, macro names and fonts
+- **Nameplates:** flat enemy plates with threat colors, cast bars, debuffs and quest progress
+- **Move & Scale:** drag Blizzard's windows anywhere, Ctrl + scroll to resize them
+- **Tooltip:** follows the cursor, has a cleaner look and adds the target, item level and guild rank
+- **Unit Frames:** class colors, dark frames, options for the name, level and health text
 
-## Quality of life
+## Quality of Life
 
-- General: faster looting, auto repair, sells your grays, a Train All button, skips cinematics, hides tutorials and error spam, more camera zoom
-- Quests: accepts and turns in quests for you (hold Shift to do it yourself)
-- Social: accepts invites from friends, blocks invites, duels and shared quests from strangers, invites on whisper, says thanks when someone buffs you
+- **General:** faster looting, auto repair, sells your grays, a Train All button, skips cinematics, hides tutorials and error spam, more camera zoom
+- **Quests:** accepts and turns in quests automatically (hold Shift to do it yourself)
+- **Social:** accepts invites from friends, blocks invites, duels and shared quests from strangers, invites on whisper, says thanks when someone buffs you
 
-## Other
+## Tools
 
-- FPS & latency: a small readout you can put anywhere
-- Performance: CPU and memory use per addon
+- **FPS & Latency:** a small readout you can place anywhere
+- **Performance:** CPU and memory use for each addon
 
-## Install
-
-Copy the `Serene` folders into `Interface/AddOns`. `Serene` is the core and is required. The rest are optional.
+---
 
 ## Usage
 
 - `/serene` opens the options.
-- `/serene reset` sets everything back to default.
-- The minimap icon opens the options on left-click and reloads the UI on right-click.
+- `/serene reset` resets all settings to default.
+- **Minimap icon:** left-click opens the options, right-click reloads the UI.
+
+## Installation
+
+Install with the CurseForge app, or extract every `Serene` folder into `Interface/AddOns`. **Serene** is the core and is required. All other modules are optional.
+
+## Feedback
+
+Bug reports and suggestions are welcome as GitHub issues or in the CurseForge comments.

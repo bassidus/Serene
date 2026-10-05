@@ -14,6 +14,7 @@ W.PANEL  = { 0.09, 0.095, 0.11, 1 }
 W.FIELD  = { 0.11, 0.115, 0.135, 1 }
 W.EDGE   = { 0.24, 0.25, 0.28, 1 }
 W.DIM    = { 0.62, 0.64, 0.68 }
+W.GOLD   = { 1, 0.82, 0 }
 
 local ACCENT, FIELD, EDGE, DIM = W.ACCENT, W.FIELD, W.EDGE, W.DIM
 local CONTROL_W = 260
@@ -1019,8 +1020,73 @@ function W.ColorField(parent, f)
     return holder
 end
 
--- The dropdown list and the editor, e.g. when the page changes.
+-------------------------------------------------------------------------------
+--  Help -- a gold "?" whose click shows help in the tooltip until it is
+--  clicked again, a click lands anywhere else or the popups close.
+--  help = { { label =, text = }, ... }, under title.
+-------------------------------------------------------------------------------
+local helpOpen  -- the "?" whose help shows
+local helpWatch = CreateFrame("Frame")
+
+local function HelpShown(q)
+    return helpOpen == q and GameTooltip:IsShown() and GameTooltip:GetOwner() == q
+end
+
+local function CloseHelp()
+    local q = helpOpen
+    if not q then return end
+    helpOpen = nil
+    helpWatch:UnregisterEvent("GLOBAL_MOUSE_DOWN")
+    if GameTooltip:GetOwner() == q then GameTooltip_Hide() end
+    q.Paint(q:IsMouseOver())
+end
+
+helpWatch:SetScript("OnEvent", function()
+    -- A click on the "?" itself toggles it closed in its OnClick.
+    if helpOpen and not helpOpen:IsMouseOver() then CloseHelp() end
+end)
+
+function W.Help(parent, title, help)
+    local q = CreateFrame("Button", nil, parent)
+    q:SetSize(16, 16)
+    -- A size up and outlined so it stands out as bold.
+    local text = q:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    local path, size = text:GetFont()
+    text:SetFont(path, size, "OUTLINE")
+    text:SetPoint("CENTER")
+    text:SetText("?")
+
+    -- White while hovered or showing its help.
+    function q.Paint(hover)
+        local c = (hover or HelpShown(q)) and { 1, 1, 1 } or W.GOLD
+        text:SetTextColor(c[1], c[2], c[3])
+    end
+    q:SetScript("OnClick", function(self)
+        PlayClick()
+        local shown = HelpShown(self)
+        CloseHelp()
+        if shown then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(title, 1, 1, 1)
+        for _, h in ipairs(help) do
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(h.label, ACCENT[1], ACCENT[2], ACCENT[3])
+            GameTooltip:AddLine(h.text, nil, nil, nil, true)
+        end
+        GameTooltip:Show()
+        helpOpen = self
+        helpWatch:RegisterEvent("GLOBAL_MOUSE_DOWN")
+        self.Paint(true)
+    end)
+    q:SetScript("OnEnter", function() q.Paint(true) end)
+    q:SetScript("OnLeave", function() q.Paint(false) end)
+    q.Paint(false)
+    return q
+end
+
+-- The dropdown list, the editor and the help, e.g. when the page changes.
 function W.ClosePopups()
     CloseMenu()
     if editor then editor:Hide() end
+    CloseHelp()
 end

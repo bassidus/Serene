@@ -26,7 +26,7 @@ local AddOns = C_AddOns
 
 -- Idle text colors of the sidebar buttons that are not settings tabs.
 local RED = { 1, 0.35, 0.35 }
-local GOLD = { 1, 0.82, 0 }  -- Reset defaults, Reset page and the categories' "?"
+local GOLD = W.GOLD  -- Reset defaults and Reset page
 local BUTTON_COLORS = {
     [MODULES] = W.ACCENT,
     Performance = { 0.45, 0.7, 1 },
@@ -418,37 +418,6 @@ local function CategoryHelp(section, category)
     return help
 end
 
--- A "?" left of a category's plus/minus (marker); hovering it lists what
--- each setting does.
-local function CreateHelpButton(group, marker, title, help)
-    local q = CreateFrame("Button", nil, group)
-    q:SetFrameLevel(group:GetFrameLevel() + 3)  -- over the heading's row button
-    q:SetSize(16, 16)
-    q:SetPoint("RIGHT", marker, "LEFT", -6, 0)
-    -- Gold, a size up and outlined so it stands out as bold.
-    local text = q:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    local path, size = text:GetFont()
-    text:SetFont(path, size, "OUTLINE")
-    text:SetPoint("CENTER")
-    text:SetText("?")
-    text:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
-    q:SetScript("OnEnter", function(self)
-        text:SetTextColor(1, 1, 1)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(title, 1, 1, 1)
-        for _, h in ipairs(help) do
-            GameTooltip:AddLine(" ")
-            GameTooltip:AddLine(h.label, W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
-            GameTooltip:AddLine(h.text, nil, nil, nil, true)
-        end
-        GameTooltip:Show()
-    end)
-    q:SetScript("OnLeave", function()
-        text:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
-        GameTooltip_Hide()
-    end)
-end
-
 -- A category: a thin frame with its heading inside, around the settings
 -- that follow. The heading's row is a button running onToggle, with a plus
 -- (closed) or minus (open) at its right; group.SetOpen(open) shows which.
@@ -482,7 +451,11 @@ local function CreateGroup(page, text, onToggle, help)
     btn:SetScript("OnEnter", function() Paint({ 1, 1, 1 }) end)
     btn:SetScript("OnLeave", function() Paint(W.ACCENT) end)
     function group.SetOpen(open) down:SetShown(not open) end
-    if help and #help > 0 then CreateHelpButton(group, across, text, help) end
+    if help and #help > 0 then
+        local q = W.Help(group, text, help)
+        q:SetFrameLevel(btn:GetFrameLevel() + 1)  -- over the heading's row button
+        q:SetPoint("RIGHT", across, "LEFT", -6, 0)
+    end
     return group
 end
 

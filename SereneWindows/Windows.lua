@@ -28,8 +28,9 @@
 --
 --  Each entry lists the frame names the window may have on this client
 --  (classic and modern names; every one that exists on UIParent is used,
---  so a panel inside another window is left alone) and the load-on-demand
---  addons that create them. At 100 % a window Serene never scaled is left
+--  so a panel inside another window is left alone). Frames made by an
+--  addon loaded later (load on demand or not) are taken in as each addon
+--  loads. At 100 % a window Serene never scaled is left
 --  to Blizzard. A scaleOnly entry (the objective tracker, which Edit Mode
 --  places) only gets its scale: its anchors, the screen height limit and
 --  the mouse are left out, and it need not sit on UIParent.
@@ -44,24 +45,22 @@ local WINDOWS = {
       frames = { "CharacterFrame" },
       tooltip = "The character window, with reputation, skills and honor." },
     { key = "Spellbook", label = "Spellbook", category = "Your character",
-      frames = { "SpellBookFrame", "PlayerSpellsFrame" }, addons = { "Blizzard_PlayerSpells" } },
+      frames = { "SpellBookFrame", "PlayerSpellsFrame" } },
     { key = "Talents", label = "Talents", category = "Your character",
       frames = { "TalentFrame", "PlayerTalentFrame", "ClassTalentFrame" },
-      addons = { "Blizzard_TalentUI", "Blizzard_ClassTalentUI" },
       tooltip = "Where talents share the spellbook's window, the Spellbook size is used." },
     { key = "Professions", label = "Professions", category = "Your character",
       frames = { "TradeSkillFrame", "CraftFrame", "ProfessionsFrame", "ProfessionsBookFrame" },
-      addons = { "Blizzard_TradeSkillUI", "Blizzard_CraftUI", "Blizzard_Professions", "Blizzard_ProfessionsBook" },
       tooltip = "Profession windows such as Blacksmithing, Cooking and Enchanting." },
     { key = "QuestLog", label = "Quest log", category = "Your character",
       frames = { "QuestLogFrame", "QuestLogDetailFrame" } },
     { key = "Social", label = "Social", category = "Your character",
-      frames = { "FriendsFrame", "CommunitiesFrame" }, addons = { "Blizzard_Communities" },
+      frames = { "FriendsFrame", "CommunitiesFrame" },
       tooltip = "Friends, who, guild and raid." },
     { key = "Achievements", label = "Achievements", category = "Your character",
-      frames = { "AchievementFrame" }, addons = { "Blizzard_AchievementUI" } },
+      frames = { "AchievementFrame" } },
     { key = "Macros", label = "Macros", category = "Your character",
-      frames = { "MacroFrame" }, addons = { "Blizzard_MacroUI" } },
+      frames = { "MacroFrame" } },
 
     { key = "Gossip", label = "Quest givers & gossip", category = "NPCs",
       frames = { "QuestFrame", "GossipFrame", "ItemTextFrame" },
@@ -69,37 +68,33 @@ local WINDOWS = {
     { key = "Merchant", label = "Vendors", category = "NPCs",
       frames = { "MerchantFrame" } },
     { key = "Trainer", label = "Trainers", category = "NPCs",
-      frames = { "ClassTrainerFrame" }, addons = { "Blizzard_TrainerUI" } },
+      frames = { "ClassTrainerFrame" } },
     { key = "Bank", label = "Bank", category = "NPCs",
       frames = { "BankFrame" } },
     { key = "Mail", label = "Mailbox", category = "NPCs",
       frames = { "MailFrame", "OpenMailFrame" } },
     { key = "Auction", label = "Auction house", category = "NPCs",
-      frames = { "AuctionFrame", "AuctionHouseFrame" },
-      addons = { "Blizzard_AuctionUI", "Blizzard_AuctionHouseUI" } },
+      frames = { "AuctionFrame", "AuctionHouseFrame" } },
     { key = "Taxi", label = "Flight master", category = "NPCs",
-      frames = { "TaxiFrame", "FlightMapFrame" }, addons = { "Blizzard_FlightMap" } },
+      frames = { "TaxiFrame", "FlightMapFrame" } },
     { key = "Stable", label = "Stable master", category = "NPCs",
-      frames = { "PetStableFrame", "StableFrame" }, addons = { "Blizzard_StableUI" } },
+      frames = { "PetStableFrame", "StableFrame" } },
 
     { key = "WorldMap", label = "World map", category = "Other",
       frames = { "WorldMapFrame" } },
     { key = "Groups", label = "Group finder & PvP", category = "Other",
-      frames = { "LFGParentFrame", "PVEFrame", "PVPFrame", "PVPParentFrame", "BattlefieldFrame", "WorldStateScoreFrame" },
-      addons = { "Blizzard_PVPUI" } },
+      frames = { "LFGParentFrame", "PVEFrame", "PVPFrame", "PVPParentFrame", "BattlefieldFrame", "WorldStateScoreFrame" } },
     { key = "DressUp", label = "Dressing room", category = "Other",
       frames = { "DressUpFrame" } },
     { key = "Inspect", label = "Inspect", category = "Other",
-      frames = { "InspectFrame" }, addons = { "Blizzard_InspectUI" } },
+      frames = { "InspectFrame" } },
     { key = "Trade", label = "Trade", category = "Other",
       frames = { "TradeFrame" } },
     { key = "GameMenu", label = "Game menu & settings", category = "Other",
       frames = { "GameMenuFrame", "SettingsPanel", "InterfaceOptionsFrame", "VideoOptionsFrame", "KeyBindingFrame", "AddonList" },
-      addons = { "Blizzard_BindingUI" },
       tooltip = "The Escape menu, Blizzard's settings, key bindings and the addon list." },
     { key = "Tracker", label = "Objective tracker", category = "Other", scaleOnly = true,
       frames = { "ObjectiveTrackerFrame", "WatchFrame", "QuestWatchFrame" },
-      addons = { "Blizzard_ObjectiveTracker" },
       tooltip = "The quest list at the side of the screen. It grows and shrinks from where Blizzard "
           .. "(or Edit Mode) puts it, and is not moved with the mouse." },
 }
@@ -364,9 +359,15 @@ local function ApplyAll()
     for _, window in ipairs(WINDOWS) do ApplyWindow(window) end
 end
 
-local byAddon = {}
-for _, window in ipairs(WINDOWS) do
-    for _, addon in ipairs(window.addons or {}) do byAddon[addon] = window end
+-- A frame of the window that has turned up on UIParent since it was applied.
+local function NewFrame(window)
+    for _, name in ipairs(window.frames) do
+        local frame = _G[name]
+        if type(frame) == "table" and frame.SetScale and not hooked[frame]
+            and (window.scaleOnly or frame:GetParent() == UIParent) then
+            return true
+        end
+    end
 end
 
 local events = CreateFrame("Frame")
@@ -377,7 +378,11 @@ events:RegisterEvent("GLOBAL_MOUSE_DOWN")
 events:RegisterEvent("GLOBAL_MOUSE_UP")
 events:SetScript("OnEvent", function(_, event, arg)
     if event == "ADDON_LOADED" then
-        if SereneDB and byAddon[arg] then ApplyWindow(byAddon[arg]) end
+        -- Before login the frames are taken in by ApplyAll.
+        if not IsLoggedIn() then return end
+        for _, window in ipairs(WINDOWS) do
+            if NewFrame(window) then ApplyWindow(window) end
+        end
         return
     end
     if event == "MODIFIER_STATE_CHANGED" then

@@ -315,6 +315,10 @@ local function Field(parent, labelText, onClick)
     end)
     btn:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
     btn:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
+    -- Narrower than CONTROL_W in a half-width category; a plain button keeps its own width.
+    holder:SetScript("OnSizeChanged", function(_, w)
+        if not btn.plain and w > 0 then btn:SetWidth(math.min(CONTROL_W, w)) end
+    end)
     return holder, btn, text, arrow
 end
 
@@ -326,6 +330,7 @@ local function AsButton(btn, text, arrow, label)
     text:SetJustifyH("CENTER")
     text:SetText(label)
     btn:SetWidth(math.ceil(text:GetStringWidth()) + 32)
+    btn.plain = true
 end
 
 -------------------------------------------------------------------------------

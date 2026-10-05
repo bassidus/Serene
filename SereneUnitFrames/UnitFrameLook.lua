@@ -406,7 +406,7 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFeature({
-    key = "unitFrameText", label = "Health/mana numbers", section = SECTION, category = "Health & mana",
+    key = "unitFrameText", label = "Format", section = SECTION, category = "Health & mana",
     type = "dropdown",
     default = "both", apply = ApplyText,
     tooltip = "How the numbers on the health and mana bars read. None shows them only while the mouse is over a bar.\n"

@@ -370,6 +370,7 @@ ns.RegisterPositionSettings({
 })
 ns.RegisterFeature({
     key = "showMacroText", label = "Show macro names", section = SECTION, category = "Macro names",
+    beside = true,  -- to the right of Keybinds
     default = false, apply = ApplySetting,
     tooltip = "Shows the name written on buttons that hold a macro.",
 })

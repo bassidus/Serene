@@ -217,18 +217,20 @@ local function CreatePageFrame(name)
 end
 
 -- The Enable checkbox at the top of a tab whose features come from their
--- own addon. It turns the addon on or off for all characters, which the
--- client applies on the next load; until then a note beside it says so.
--- Returns the y below it.
+-- own addon. It starts out as whether the addon is loaded and then shows
+-- the choice made here; the choice turns the addon on or off for all
+-- characters, which the client applies on the next load, and until then a
+-- note beside it says so. The client's own enable state is not read back:
+-- it does not reliably answer for this character. Returns the y below it.
 local function CreateAddonToggle(page, module, y)
-    local function WillLoad()
-        return AddOns.GetAddOnEnableState(module.name, UnitName("player")) > 0
-    end
+    local loaded = AddOns.IsAddOnLoaded(module.name) and true or false
+    local wanted = loaded
     local box = W.Checkbox(page, {
         label = "Enable",
         tooltip = "Turns " .. module.title .. " on or off for all characters. Takes effect after Reload UI.",
-        get = WillLoad,
+        get = function() return wanted end,
         set = function(on)
+            wanted = on
             if on then AddOns.EnableAddOn(module.name) else AddOns.DisableAddOn(module.name) end
             ns.RefreshOptions()
         end,
@@ -244,7 +246,7 @@ local function CreateAddonToggle(page, module, y)
     local refresh = box.Refresh
     function box.Refresh()
         refresh()
-        note:SetShown(WillLoad() ~= (AddOns.IsAddOnLoaded(module.name) and true or false))
+        note:SetShown(wanted ~= loaded)
     end
     return y - box:GetHeight() - SPACING
 end

@@ -38,6 +38,7 @@ ns.featureByKey = {}
 --              previous one at half width; otherwise: right of the previous setting
 --   button     a plain button with this text in place of the field
 --   requires   key (or list) of booleans; dimmed and locked while any is off
+--              ("!key": while it is on)
 --   addon      the Serene* addon that does the work; locked while not loaded
 --   group, pos set by RegisterFontSettings / RegisterPositionSettings
 function ns.RegisterFeature(def)

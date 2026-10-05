@@ -69,13 +69,20 @@ end
 
 -- Dims a widget whose setting depends on a toggle that is off or an addon
 -- that is not loaded; returns whether it can be used.
+-- A requires key is met while that boolean is on, or with "!" in front
+-- while it is off.
+local function Met(key)
+    if key:sub(1, 1) == "!" then return not SereneDB[key:sub(2)] end
+    return SereneDB[key] and true or false
+end
+
 local function Available(holder, f)
     local on = not MissingAddon(f)
     local req = f.requires
     if type(req) == "table" then
-        for _, key in ipairs(req) do on = on and SereneDB[key] and true or false end
+        for _, key in ipairs(req) do on = on and Met(key) end
     elseif req then
-        on = on and SereneDB[req] and true or false
+        on = on and Met(req)
     end
     holder:SetAlpha(on and 1 or 0.4)
     return on

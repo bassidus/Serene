@@ -200,6 +200,7 @@ local function Render()
     -- Never narrower than the columns plus the least name room.
     local minW = 2 * PAD_X + MIN_NAME + colsW
     local width = math.max(minW, ns.Get("overlayWidth"))
+    local auto = ns.Enabled("overlayAutoHeight")
     local height = ns.Get("overlayHeight")
 
     local y = PAD_Y
@@ -212,7 +213,7 @@ local function Render()
     local entries = ns.entries
     table.sort(entries, ns.SORTS[ns.Get("overlaySort")])
     local pinned = SereneDB.overlayPinned or {}
-    local fit = math.max(0, math.floor((height - y - bottomH - PAD_Y) / rowH))
+    local fit = auto and math.huge or math.max(0, math.floor((height - y - bottomH - PAD_Y) / rowH))
     local nPinned = 0
     for _, e in ipairs(entries) do
         if pinned[e.name] then nPinned = nPinned + 1 end
@@ -234,6 +235,7 @@ local function Render()
         end
     end
     for i = shown + 1, #rows do HideRow(rows[i]) end
+    if auto then height = y + bottomH + PAD_Y end
 
     -- The totals keep to the bottom edge, under a line.
     line:SetShown(hasTotals)
@@ -528,7 +530,13 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "overlayHeight", label = "Height", section = SECTION, category = "Size", type = "slider",
-    min = 40, max = 800, step = 1, default = 130, requires = LIST, apply = Apply,
+    min = 40, max = 800, step = 1, default = 130, requires = { ON, "overlayAddons", "!overlayAutoHeight" },
+    apply = Apply,
+})
+ns.RegisterFeature({
+    key = "overlayAutoHeight", label = "Automatic height", section = SECTION, category = "Size",
+    requires = LIST, apply = Apply,
+    tooltip = "Just tall enough for the addons it lists; Height is then not used.",
 })
 ns.RegisterFeature({
     key = "overlayScale", label = "Scale", section = SECTION, category = "Size", type = "slider",

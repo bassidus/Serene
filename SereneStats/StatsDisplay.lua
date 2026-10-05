@@ -242,7 +242,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "statsLocked", label = "Lock position", section = SECTION, category = "Display",
-    default = false, apply = Apply,
+    default = true, apply = Apply,
     tooltip = "Unlocked, you can drag the box anywhere on the screen.",
 })
 ns.RegisterFeature({

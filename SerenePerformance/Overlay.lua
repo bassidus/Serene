@@ -22,7 +22,7 @@ local MEMORY_EVERY = 5  -- ticks between memory rescans
 local PAD_X, PAD_Y, COL_GAP = 6, 4, 6
 local DIVIDER_W = 8
 local MIN_COL, MIN_NAME = 30, 40
-local DEFAULTS = { cpuW = 40, memW = 49 }
+local DEFAULTS = { cpuW = 40, memW = 50 }
 -- overlayGrow -> the corner that stays put when the size changes.
 local ANCHORS = { downright = "TOPLEFT", downleft = "TOPRIGHT", upright = "BOTTOMLEFT", upleft = "BOTTOMRIGHT" }
 

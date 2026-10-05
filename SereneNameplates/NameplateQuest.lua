@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Nameplate Quest Mobs -- a quest icon with the objective's progress (e.g.
+--  Nameplate Quest Enemies -- a quest icon with the objective's progress (e.g.
 --  3/8) on enemies your quests still need, and optionally a colored bar.
 --
 --  The unit's tooltip data carries quest title and objective lines with a
@@ -164,15 +164,15 @@ local function Refresh()
 end
 
 ns.RegisterFeature({
-    key = "nameplateQuest", label = "Quest Mobs", section = "Quests", apply = Refresh,
+    key = "nameplateQuest", label = "Mark Quest Enemies on Nameplates", section = "Quests", apply = Refresh,
     tooltip = "Marks enemies your quests still need with a quest icon and your progress (e.g. 3/8).",
 })
 ns.RegisterFeature({
-    key = "nameplateQuestColor", label = "Color Quest Mobs", section = "Quests", requires = "nameplateQuest",
+    key = "nameplateQuestColor", label = "Color Quest Enemies", section = "Quests", requires = "nameplateQuest",
     apply = Refresh,
 })
 ns.RegisterFeature({
-    key = "nameplateQuestBarColor", label = "Quest Mob Color", section = "Quests", type = "color",
+    key = "nameplateQuestBarColor", label = "Quest Enemy Color", section = "Quests", type = "color",
     default = "default", requires = { "nameplateQuest", "nameplateQuestColor" }, apply = Refresh,
     specials = {
         { value = "default", label = "Default" },

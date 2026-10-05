@@ -149,10 +149,25 @@ local function LevelColor(unit)
     if c then return c.r, c.g, c.b end
 end
 
+-- A player's "14 Undead Paladin" (level and class colored) for the merged
+-- level line, or nil when a value is secret or missing.
+local function CompactLevelText(unit, className, classColor, lr, lg, lb)
+    local level, race = UnitLevel(unit), UnitRace(unit)
+    if not (Clean(level) and Clean(race) and level and race) then return end
+    local text = level > 0 and tostring(level) or "??"
+    if lr then text = ColorCode(lr, lg, lb) .. text .. "|r" end
+    text = text .. " " .. race .. " "
+    if classColor then
+        return text .. ColorCode(classColor.r, classColor.g, classColor.b) .. className .. "|r"
+    end
+    return text .. className
+end
+
 -- Colors the body lines: "Level N" by difficulty, the class by class color
 -- (its own line on Forever, inside the level line on retail layouts) and the
--- Alliance/Horde line by faction. Already-colored text no longer matches, so
--- refresh passes leave it alone.
+-- Alliance/Horde line by faction. With tooltipCompactLevel a player's level
+-- line becomes "14 Undead Paladin" and the separate class line is hidden.
+-- Already-colored text no longer matches, so refresh passes leave it alone.
 local function ColorBodyLines(tt, unit)
     local lr, lg, lb = LevelColor(unit)
 
@@ -163,6 +178,8 @@ local function ColorBodyLines(tt, unit)
             className, classColor = name, RAID_CLASS_COLORS[file]
         end
     end
+    local compact = className and ns.Enabled("tooltipCompactLevel")
+    local hid = false
 
     local factionName, factionColor
     local group, localized = UnitFactionGroup(unit)
@@ -175,8 +192,15 @@ local function ColorBodyLines(tt, unit)
         if fs and Clean(txt) and txt then
             if factionColor and txt == factionName then
                 fs:SetTextColor(factionColor[1], factionColor[2], factionColor[3])
+            elseif compact and txt == className then
+                fs:SetText("")
+                fs:Hide()
+                hid = true
             elseif classColor and txt == className then
                 fs:SetTextColor(classColor.r, classColor.g, classColor.b)
+            elseif compact and txt:find(LEVEL_PATTERN) then
+                local new = CompactLevelText(unit, className, classColor, lr, lg, lb)
+                if new then fs:SetText(new) end
             elseif txt:find(LEVEL_PATTERN) then
                 local new = txt
                 if lr then
@@ -193,6 +217,7 @@ local function ColorBodyLines(tt, unit)
             end
         end
     end
+    return hid
 end
 
 -------------------------------------------------------------------------------
@@ -315,9 +340,9 @@ local function OnUnit(tt)
         PlayerLines(tt, unit)
         if ns.Enabled("tooltipPlayerItemLevel") then added = PlayerItemLevel(tt, unit) end
     end
-    ColorBodyLines(tt, unit)
+    if ColorBodyLines(tt, unit) then added = true end  -- a hidden line resizes too
     if ns.Enabled("tooltipTarget") and TargetLine(tt, unit) then added = true end
-    if added then tt:Show() end  -- resize for the added rows
+    if added then tt:Show() end  -- resize for the added or hidden rows
 end
 
 -------------------------------------------------------------------------------
@@ -392,3 +417,5 @@ Content("Information", "tooltipPlayerItemLevel", "Show players' item level", tru
     "Adds a player's average item level. Other players are inspected when you hover them, out of combat.", true)
 Content("Information", "tooltipItemLevel", "Show item level on items", true)
 Content("Information", "tooltipIDs", "Show spell and item IDs", false, nil, nil, true)
+Content("Information", "tooltipCompactLevel", "Merge level, race and class", true, nil,
+    "Shows players as \"14 Undead Paladin\" on one line instead of \"Level 14 Undead (Player)\" with the class below it.")

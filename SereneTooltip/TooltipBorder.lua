@@ -4,6 +4,7 @@
 --  hide the border the whole NineSlice is faded out (alpha only, never Hide)
 --  and a flat background, tinted like the NineSlice's center, takes its
 --  place. Opacity scales only the background; 100% is Blizzard's normal.
+--  The "Equipped" tab above comparison tooltips gets the same flat look.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -19,6 +20,35 @@ local dimmed = setmetatable({}, { __mode = "k" }) -- tooltips whose center we ma
 
 local function Opacity()
     return ns.Get("tooltipBgOpacity") / 100
+end
+
+-- The compare tab's framed atlas is its only texture and has no parentKey.
+local function TabArt(header)
+    for _, region in ipairs({ header:GetRegions() }) do
+        if region:IsObjectType("Texture") then return region end
+    end
+end
+
+local function StyleTab(header, flat, r, g, b, a, opacity)
+    local art = TabArt(header)
+    if not art then return end
+    if flat then
+        local bg = backgrounds[header]
+        if not bg then
+            bg = header:CreateTexture(nil, "BACKGROUND", nil, -8)
+            -- Stops at the tooltip's edge so the 1px overlap is not dimmed twice.
+            bg:SetPoint("TOPLEFT")
+            bg:SetPoint("BOTTOMRIGHT", 0, 1)
+            backgrounds[header] = bg
+        end
+        bg:SetColorTexture(r, g, b, a)
+        bg:SetAlpha(opacity)
+        bg:Show()
+        art:SetAlpha(0)
+    else
+        art:SetAlpha(1)
+        if backgrounds[header] then backgrounds[header]:Hide() end
+    end
 end
 
 local function Style(tt)
@@ -40,11 +70,13 @@ local function Style(tt)
         bg:Show()
         nine:SetAlpha(0)
         faded[tt] = true
+        if tt.CompareHeader then StyleTab(tt.CompareHeader, true, r, g, b, a, opacity) end
     elseif faded[tt] then
         -- Off: only tooltips we changed need undoing, once.
         faded[tt] = nil
         nine:SetAlpha(1)
         if backgrounds[tt] then backgrounds[tt]:Hide() end
+        if tt.CompareHeader then StyleTab(tt.CompareHeader, false) end
     end
     -- Only touched once it is off 100%, and put back once when it returns.
     if nine.Center and (opacity < 1 or dimmed[tt]) then

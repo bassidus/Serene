@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Tooltip: Hide Border also flattens the "Equipped" tab on comparison tooltips
 - Tooltip: Player Item Level shows a player's average item level (others are inspected on hover)
 - Keybinds: remove Keybind Position; offsets count from the middle of the button, text stays right-aligned
 - Options: font, size and outline are one row per feature that opens a font editor

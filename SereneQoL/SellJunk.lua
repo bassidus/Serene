@@ -133,6 +133,6 @@ end)
 
 ns.RegisterFeature({
     key = "autoSellJunk", label = "Sell gray items at vendors",
-    section = "Quality of life", category = "Vendors & trainers",
+    section = "General", category = "Vendors & trainers",
     tooltip = "Sells every gray (junk) item in your bags when you talk to a vendor.",
 })

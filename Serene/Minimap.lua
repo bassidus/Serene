@@ -117,6 +117,6 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "minimapIcon", label = "Show minimap icon", section = "General", apply = Apply,
+    key = "minimapIcon", label = "Show minimap icon", apply = Apply,
     tooltip = "Left-click the icon to open these options, right-click it to reload the UI. Drag it to move it.",
 })

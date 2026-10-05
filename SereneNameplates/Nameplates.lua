@@ -37,10 +37,6 @@ local THREAT_LEVEL = { [0] = "LOW", [1] = "MEDIUM", [2] = "MEDIUM", [3] = "HIGH"
 
 local Clean = ns.Clean
 
-function NP.Active()
-    return ns.Enabled("nameplates")
-end
-
 -- Font for every plate text: the chosen typeface and outline at the plate's
 -- size (+delta).
 function NP.SetFont(fs, delta)
@@ -481,7 +477,7 @@ local function Evaluate(unit)
         Detach(unit)
         return
     end
-    local ours = NP.Active() and Clean(UnitCanAttack("player", unit))
+    local ours = Clean(UnitCanAttack("player", unit))
     if ours then
         if not NP.plates[unit] then Attach(unit, nameplate) end
     else
@@ -490,7 +486,7 @@ local function Evaluate(unit)
     end
 end
 
--- World events the manager needs only while Serene draws plates.
+-- World events the manager listens to from login on.
 local MANAGER_EVENTS = { "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "PLAYER_TARGET_CHANGED",
     "UPDATE_MOUSEOVER_UNIT", "RAID_TARGET_UPDATE", "GROUP_ROSTER_UPDATE", "PLAYER_ROLES_ASSIGNED",
     "PLAYER_REGEN_ENABLED", "UNIT_FACTION" }
@@ -500,15 +496,10 @@ local ROLE_EVENTS = { UPDATE_SHAPESHIFT_FORM = true, PLAYER_SPECIALIZATION_CHANG
     ACTIVE_TALENT_GROUP_CHANGED = true, UNIT_AURA = true }
 local manager = CreateFrame("Frame")
 
-local function SyncManagerEvents()
-    local on = NP.Active()
-    for _, ev in ipairs(MANAGER_EVENTS) do
-        if on then manager:RegisterEvent(ev) else manager:UnregisterEvent(ev) end
-    end
+local function RegisterManagerEvents()
+    for _, ev in ipairs(MANAGER_EVENTS) do manager:RegisterEvent(ev) end
     for ev in pairs(ROLE_EVENTS) do
-        if not on then
-            pcall(manager.UnregisterEvent, manager, ev)
-        elseif ev == "UNIT_AURA" then
+        if ev == "UNIT_AURA" then
             manager:RegisterUnitEvent(ev, "player")  -- Righteous Fury and the like
         else
             pcall(manager.RegisterEvent, manager, ev)
@@ -534,10 +525,6 @@ function NP.RefreshAll()
     end
     for unit in pairs(NP.plates) do Detach(unit) end
     for unit in pairs(units) do Evaluate(unit) end
-    if not NP.Active() then
-        for uf in pairs(held) do RestoreBlizzard(uf) end
-    end
-    SyncManagerEvents()
     RunRefreshHooks()
 end
 
@@ -572,11 +559,12 @@ manager:SetScript("OnEvent", function(self, event, unit)
             hooksecurefunc(NamePlateDriverFrame, "OnNamePlateAdded", function(_, added)
                 if not added or added == "preview" or not next(held) then return end
                 local np = C_NamePlate.GetNamePlateForUnit(added)
-                if np and held[np.UnitFrame] and not (NP.Active() and Clean(UnitCanAttack("player", added))) then
+                if np and held[np.UnitFrame] and not Clean(UnitCanAttack("player", added)) then
                     RestoreBlizzard(np.UnitFrame)
                 end
             end)
         end
+        RegisterManagerEvents()
         UpdateRole()
         NP.RefreshAll()
     elseif ROLE_EVENTS[event] then
@@ -604,18 +592,12 @@ end)
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
-local function Refresh() if NP.layoutGen then NP.RefreshAll() end end
 local function Relayout() if NP.layoutGen then NP.Relayout() end end
 NP.ApplyRelayout = Relayout
 
 -- Threat colors, font and sizes are in NameplateLook.lua, after the cast bar
 -- and debuff toggles, so the options page lists every toggle first.
 
-ns.RegisterFeature({
-    key = "nameplates", label = "Use Serene's enemy nameplates", section = "Nameplates", apply = Refresh,
-    tooltip = "Replaces Blizzard's enemy nameplates with flat ones: health bar, name and level, cast bar and "
-        .. "debuffs. Friendly nameplates stay Blizzard's. Everything below is for these nameplates.",
-})
 ns.RegisterFeature({
     key = "nameplateClassColors", label = "Class colors for players", section = "Nameplates", category = "Colors",
     apply = Relayout,

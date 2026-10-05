@@ -12,7 +12,8 @@ Serene = ns
 ns.features = {}
 ns.featureByKey = {}
 
--- def = { key = SereneDB key, label = display name, section = options page,
+-- def = { key = SereneDB key, label = display name, section = options page
+--         (none for a setting the options window places itself),
 --         category = heading on its page; the settings sharing one are shown
 --         together under it, in the order the categories first appear,
 --         tooltip = help text, apply = optional fn run on login and change,
@@ -73,33 +74,41 @@ function ns.SetValue(key, value)
     if ns.RefreshOptions then ns.RefreshOptions() end
 end
 
--- Short lines for the options window's footer, e.g. "/rl reloads the UI.".
--- AddShiftSkip("auto loot") joins the one "Hold Shift to skip ..." line.
-ns.hints, ns.shiftSkips = {}, {}
-function ns.AddHint(text)
-    ns.hints[#ns.hints + 1] = text
-end
+-- AddShiftSkip("auto loot") joins the "Hold Shift to skip ..." line in the
+-- options window's footer.
+ns.shiftSkips = {}
 function ns.AddShiftSkip(what)
     ns.shiftSkips[#ns.shiftSkips + 1] = what
 end
 
 -- Extra state a feature wants cleared by Reset Defaults (e.g. a moved
--- frame's spot); fn runs before the features re-apply.
+-- frame's spot); fn runs before the features re-apply. section: the
+-- options page whose own reset also runs it.
 ns.resetHooks = {}
-function ns.OnReset(fn)
-    ns.resetHooks[#ns.resetHooks + 1] = fn
+function ns.OnReset(fn, section)
+    ns.resetHooks[#ns.resetHooks + 1] = { fn = fn, section = section }
 end
 
--- Puts every option back to its default. Window state, the minimap icon's
--- spot and the Performance sort are not options and stay.
-function ns.ResetDefaults()
-    for _, f in ipairs(ns.features) do SereneDB[f.key] = f.default end
-    for _, fn in ipairs(ns.resetHooks) do fn() end
+-- Puts every option back to its default, or with a section only the
+-- options on that page. Window state, the minimap icon's spot and the
+-- Performance sort are not options and stay.
+function ns.ResetDefaults(section)
+    local function Included(s) return not section or s == section end
     for _, f in ipairs(ns.features) do
-        if f.apply then f.apply() end
+        if Included(f.section) then SereneDB[f.key] = f.default end
+    end
+    for _, hook in ipairs(ns.resetHooks) do
+        if Included(hook.section) then hook.fn() end
+    end
+    for _, f in ipairs(ns.features) do
+        if Included(f.section) and f.apply then f.apply() end
     end
     if ns.RefreshOptions then ns.RefreshOptions() end
-    ns.Print("All options are back to their defaults.")
+    if section then
+        ns.Print(section .. " options are back to their defaults.")
+    else
+        ns.Print("All options are back to their defaults.")
+    end
 end
 
 -------------------------------------------------------------------------------

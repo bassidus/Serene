@@ -103,7 +103,7 @@ loader:SetScript("OnEvent", function(self, _, addon)
 end)
 
 ns.RegisterFeature({
-    key = "trainAllButton", label = "Train All button", section = "Quality of life", category = "Vendors & trainers",
+    key = "trainAllButton", label = "Train All button", section = "General", category = "Vendors & trainers",
     apply = Apply,
     tooltip = "Adds a Train All button at trainers.",
 })

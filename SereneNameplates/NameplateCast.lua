@@ -205,7 +205,7 @@ local CAST_EVENTS = {
 local dispatcher = CreateFrame("Frame")
 local listening
 NP.OnRefresh(function()
-    local on = Enabled() and NP.Active() or false
+    local on = Enabled() and true or false
     if on == listening then return end
     listening = on
     for _, ev in ipairs(CAST_EVENTS) do

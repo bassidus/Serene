@@ -177,7 +177,7 @@ ns.OnReset(function()
     SereneDB.statsPos = nil
     SereneDB.statsToggleMemory = nil
     if frame then Place() end
-end)
+end, SECTION)
 
 -------------------------------------------------------------------------------
 --  Toggle key -- hides the box, remembering which of the two were on, and

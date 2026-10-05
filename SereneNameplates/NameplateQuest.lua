@@ -145,7 +145,7 @@ watcher:SetScript("OnEvent", function()
 end)
 
 local function SyncEvents()
-    if ns.Enabled("nameplateQuest") and NP.Active() then
+    if ns.Enabled("nameplateQuest") then
         watcher:RegisterEvent("QUEST_LOG_UPDATE")
         -- Your own log only; group members' changes do not affect your marks.
         watcher:RegisterUnitEvent("UNIT_QUEST_LOG_CHANGED", "player")

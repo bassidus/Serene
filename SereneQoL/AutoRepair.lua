@@ -23,6 +23,6 @@ f:SetScript("OnEvent", function()
 end)
 
 ns.RegisterFeature({
-    key = "autoRepair", label = "Repair at vendors", section = "Quality of life", category = "Vendors & trainers",
+    key = "autoRepair", label = "Repair at vendors", section = "General", category = "Vendors & trainers",
     tooltip = "Repairs all your gear with your own gold when you talk to a vendor who can repair. The cost is shown in chat.",
 })

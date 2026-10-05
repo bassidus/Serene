@@ -140,7 +140,7 @@ f:SetScript("OnEvent", function(_, _, addonName)
 end)
 
 ns.RegisterFeature({
-    key = "hideTutorials", label = "Hide tutorial pop-ups", section = "Quality of life", category = "Interface",
+    key = "hideTutorials", label = "Hide tutorial pop-ups", section = "General", category = "Interface",
     apply = Apply,
     tooltip = "Hides the yellow tutorial tips and the (i) help buttons in Blizzard's windows, and turns off the game's tutorials.",
 })

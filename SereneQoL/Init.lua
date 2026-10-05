@@ -4,4 +4,3 @@ local _, ns = ...
 setmetatable(ns, { __index = Serene })
 
 ns.AddShiftSkip("auto loot")
-ns.AddHint("/rl reloads the UI.")

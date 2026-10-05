@@ -23,7 +23,7 @@ end)
 
 ns.RegisterFeature({
     key = "skipLootWarnings", label = "Skip bind-on-pickup warnings",
-    section = "Quality of life", category = "Loot & items",
+    section = "General", category = "Loot & items",
     apply = function()
         for _, event in ipairs(EVENTS) do
             if ns.Enabled("skipLootWarnings") then

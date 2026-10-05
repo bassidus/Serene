@@ -45,7 +45,7 @@ All off by default.
 - Keep the unit tooltip while hovering a unit frame's health or mana bar.
 - Content: class, level and faction colors, player titles, guild rank, the unit's target, health bar, item level of items and players, spell/item IDs.
 
-### Nameplates
+### Enemy nameplates
 Flat enemy nameplates: threat / class / reaction colors, level, health percent, target highlight, cast bar, debuffs (everyone's, or only yours) and quest mob markers with progress and an optional bar color. You can set font, size, outline, width and height.
 
 ### Performance

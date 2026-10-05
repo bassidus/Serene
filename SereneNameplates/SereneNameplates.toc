@@ -5,7 +5,7 @@
 ## Version: 1.2.0
 ## Dependencies: Serene
 ## OptionalDeps: SereneQuests
-## X-Serene-Section: Nameplates
+## X-Serene-Section: Enemy nameplates
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

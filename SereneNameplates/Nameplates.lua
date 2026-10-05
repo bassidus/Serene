@@ -599,7 +599,7 @@ NP.ApplyRelayout = Relayout
 -- sizes are in NameplateLook.lua, after the cast bar and debuff toggles, so
 -- the options page lists every toggle first.
 ns.RegisterFeature({
-    key = "nameplateThreat", label = "Select role", section = "Nameplates", category = "Threat colors",
+    key = "nameplateThreat", label = "Select role", section = "Enemy nameplates", category = "Threat colors",
     type = "dropdown", default = "auto",
     apply = Relayout,
     note = "Tank: green = you have aggro, yellow = close, red = lost, blue = another tank.\n"
@@ -615,10 +615,10 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "nameplateLevel", label = "Show level", section = "Nameplates", category = "Text", apply = Relayout,
+    key = "nameplateLevel", label = "Show level", section = "Enemy nameplates", category = "Text", apply = Relayout,
 })
 ns.RegisterFeature({
-    key = "nameplateHealthText", label = "Show health percent", section = "Nameplates", category = "Text",
+    key = "nameplateHealthText", label = "Show health percent", section = "Enemy nameplates", category = "Text",
     apply = Relayout,
     tooltip = "Health left as a percent, on the health bar.",
 })

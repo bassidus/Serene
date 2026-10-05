@@ -129,7 +129,7 @@ function W.Checkbox(parent, f)
     row:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
     AttachTooltip(row, f)
 
-    -- "Requires Nameplates" beside the label; on the parent, so the row's
+    -- "Requires Enemy nameplates" beside the label; on the parent, so the row's
     -- dimming leaves it readable.
     local note
     if f.addon then

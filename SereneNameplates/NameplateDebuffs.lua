@@ -176,12 +176,12 @@ NP.RegisterModule({
 })
 
 ns.RegisterFeature({
-    key = "nameplateDebuffs", label = "Show debuffs", section = "Nameplates", category = "Cast bar & debuffs",
+    key = "nameplateDebuffs", label = "Show debuffs", section = "Enemy nameplates", category = "Cast bar & debuffs",
     tooltip = "A row of debuff icons above the name, with time left and stacks.",
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
 })
 ns.RegisterFeature({
-    key = "nameplateDebuffsMine", label = "Only your own debuffs", section = "Nameplates",
+    key = "nameplateDebuffsMine", label = "Only your own debuffs", section = "Enemy nameplates",
     category = "Cast bar & debuffs",
     tooltip = "Leaves out the debuffs other players put on the enemy.",
     default = false,

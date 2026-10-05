@@ -8,7 +8,7 @@
 local ns = Serene
 local W = ns.Widgets
 
-local WIDTH, SIDEBAR_W, TITLE_H, PAD, FOOTER_H = 680, 160, 40, 20, 26
+local WIDTH, SIDEBAR_W, TITLE_H, PAD, FOOTER_H = 700, 180, 40, 20, 26
 local TAB_H, SPACING = 30, 10
 local MENU_HEADING_H, MENU_GAP, MENU_INDENT = 22, 8, 26  -- the sidebar's group headings
 local GROUP_PAD = 10  -- inside a category's frame, around its heading and settings
@@ -36,7 +36,7 @@ local BUTTON_COLORS = {
 -- The sidebar's groups: a heading over its settings tabs, in this order.
 -- Sections not listed here go under Other.
 local MENU = {
-    { "Interface", { "Action bars", "Nameplates", "Unit frames", "Tooltip", "FPS & latency" } },
+    { "Interface", { "Action bars", "Enemy nameplates", "Unit frames", "Tooltip", "FPS & latency" } },
     { "Quality of life", { "General", "Quests", "Social" } },
 }
 local OTHER = "Other"

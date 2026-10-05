@@ -418,9 +418,9 @@ Content("Information", "tooltipGuildRank", "Show guild rank", true, nil,
     "Shows the player's rank before their guild's name, as in \"Initiate of Die Laughing\".", true)
 Content("Information", "tooltipTarget", "Show what the unit targets", true, nil,
     "Adds a line with who the unit is targeting.")
-Content("Information", "tooltipPlayerItemLevel", "Show players' item level", true, nil,
-    "Adds a player's average item level. Other players are inspected when you hover them, out of combat.", true)
+Content("Information", "tooltipFaction", "Show faction", true, nil,
+    "Off hides the Alliance or Horde line.", true)
 Content("Information", "tooltipItemLevel", "Show item level on items", true)
 Content("Information", "tooltipIDs", "Show spell and item IDs", false, nil, nil, true)
-Content("Information", "tooltipFaction", "Show faction", true, nil,
-    "Off hides the Alliance or Horde line.")
+Content("Information", "tooltipPlayerItemLevel", "Show players' item level", true, nil,
+    "Adds a player's average item level. Other players are inspected when you hover them, out of combat.")

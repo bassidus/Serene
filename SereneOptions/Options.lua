@@ -632,7 +632,7 @@ local function CreateMenu(parent)
         local heading = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         heading:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 16, y - MENU_HEADING_H + 4)
         heading:SetText(group.heading)
-        heading:SetTextColor(W.DIM[1], W.DIM[2], W.DIM[3])
+        heading:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
         y = y - MENU_HEADING_H
         for _, name in ipairs(group.names) do
             tabs[name] = CreateTab(parent, name, y)

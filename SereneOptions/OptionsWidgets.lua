@@ -39,8 +39,10 @@ function W.SetBorderColor(edges, c)
     for _, e in ipairs(edges) do e:SetColorTexture(c[1], c[2], c[3], c[4] or 1) end
 end
 
+-- Only for a setting under no category: a category's settings are explained
+-- by the "?" after its heading.
 local function AttachTooltip(region, f)
-    if not f.tooltip then return end
+    if not f.tooltip or f.category then return end
     region:HookScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(f.label, 1, 1, 1)
@@ -455,12 +457,13 @@ function W.Color(parent, f, labeled)
 
     local choices = {}  -- { button, edges, value (special word or hex), [fill] }
     -- tip: the choice's own help text (a special's tooltip), else the setting's;
-    -- with neither, hovering shows no tooltip.
+    -- with neither, or under a category (its "?" has them), hovering shows no
+    -- tooltip.
     local function Choice(button, value, name, tip)
         local c = { button = button, value = value }
         W.Solid(button, "BACKGROUND", FIELD):SetAllPoints()
         c.edges = W.Border(button, EDGE)
-        tip = tip or f.tooltip
+        tip = not f.category and (tip or f.tooltip) or nil
         button:SetScript("OnEnter", function(self)
             W.SetBorderColor(c.edges, ACCENT)
             if not tip then return end

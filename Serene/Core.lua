@@ -16,13 +16,14 @@ ns.featureByKey = {}
 --         (none for a setting the options window places itself),
 --         category = heading on its page; the settings sharing one are shown
 --         together under it, in the order the categories first appear,
---         tooltip = help text, apply = optional fn run on login and change,
+--         tooltip = help text, listed under the category's "?" (a setting under
+--         no category shows it on hover), apply = optional fn run on login and change,
 --         type = "boolean" (default) | "dropdown" | "slider" | "color" | "outline",
 --         default = initial value,
 --         options = fn returning { { value =, label = }, ... } (dropdown),
 --         preview = true to draw dropdown entries in their own font (dropdown),
 --         hideLabel = true to leave the label out above the button, where the
---         choices say it themselves; it still titles the tooltip (dropdown),
+--         choices say it themselves; it still names it in the help (dropdown),
 --         min, max, step, suffix = text after the value, e.g. "%" (slider),
 --         specials = { { value =, label =, tooltip =, swatch = }, ... } choices shown
 --         before the palette, e.g. "Class color" (color; the value is a word, not
@@ -35,7 +36,7 @@ ns.featureByKey = {}
 --         goes to the right of the one before it, the two at half width; on
 --         any other setting: it goes to the right of the setting before it,
 --         button = text for a plain button in place of a color field, e.g.
---         "Color"; the label still titles the palette and the tooltip,
+--         "Color"; the label still titles the palette and names it in the help,
 --         requires = key of a boolean setting, or a list of them; the control
 --         is dimmed and locked while any is off,
 --         addon = the Serene* addon that does the work, when another addon

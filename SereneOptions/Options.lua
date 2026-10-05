@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 --  Options window -- a sidebar tab per feature section, each page stacking
---  a control per registered feature, then the ns.RegisterPage pages. Tabs
---  of Serene* addons that are not loaded are listed too, with only their
---  Enable checkbox. Built on first open; position and scale last for the
---  session.
+--  a control per registered feature, then the ns.RegisterPage pages. General
+--  also lists every Serene* addon, loaded or not, with a checkbox to turn it
+--  on or off. Built on first open; position and scale last for the session.
 -------------------------------------------------------------------------------
 local ns = Serene
 local W = ns.Widgets
@@ -16,46 +15,52 @@ local widgets, pages, tabs = {}, {}, {}
 
 local AddOns = C_AddOns
 
--- The Serene* addons behind the tabs, found by the X-Serene-Section (a
--- settings tab) or X-Serene-Page (an ns.RegisterPage tab) line in their TOC,
--- loaded or not. Keyed by tab name.
+-- Settings tabs come first, General leading and the rest alphabetical,
+-- then page tabs.
+local function TabOrder(a, aIsPage, b, bIsPage)
+    if aIsPage ~= bIsPage then return bIsPage end
+    if (a == "General") ~= (b == "General") then return a == "General" end
+    return a < b
+end
+
+-- The Serene* addons with a tab, found by the X-Serene-Section (a settings
+-- tab) or X-Serene-Page (an ns.RegisterPage tab) line in their TOC, loaded
+-- or not; in tab order.
 local function Modules()
-    local byTab = {}
+    local list = {}
     for i = 1, AddOns.GetNumAddOns() do
         local name = AddOns.GetAddOnInfo(i)
         local section = AddOns.GetAddOnMetadata(name, "X-Serene-Section")
         local page = AddOns.GetAddOnMetadata(name, "X-Serene-Page")
         if section or page then
-            byTab[section or page] = {
+            list[#list + 1] = {
                 name = name,
+                tab = section or page,
                 title = AddOns.GetAddOnMetadata(name, "Title") or name,
                 isPage = not section,
             }
         end
     end
-    return byTab
+    table.sort(list, function(a, b) return TabOrder(a.tab, a.isPage, b.tab, b.isPage) end)
+    return list
 end
 
--- Settings tabs, General first and the rest alphabetical, then page tabs.
-local function TabNames(modules)
-    local sections, pageNames, seen = {}, {}, {}
-    local function Add(list, name)
-        if seen[name] then return end
-        seen[name] = true
-        list[#list + 1] = name
-    end
+local function TabNames()
+    local list, isPage = {}, {}
     for _, f in ipairs(ns.features) do
-        if f.section then Add(sections, f.section) end
+        if f.section and isPage[f.section] == nil then
+            isPage[f.section] = false
+            list[#list + 1] = f.section
+        end
     end
-    for _, def in ipairs(ns.pages) do Add(pageNames, def.name) end
-    for tab, m in pairs(modules) do Add(m.isPage and pageNames or sections, tab) end
-    table.sort(sections, function(a, b)
-        if (a == "General") ~= (b == "General") then return a == "General" end
-        return a < b
-    end)
-    table.sort(pageNames)
-    for _, name in ipairs(pageNames) do sections[#sections + 1] = name end
-    return sections
+    for _, def in ipairs(ns.pages) do
+        if isPage[def.name] == nil then
+            isPage[def.name] = true
+            list[#list + 1] = def.name
+        end
+    end
+    table.sort(list, function(a, b) return TabOrder(a, isPage[a], b, isPage[b]) end)
+    return list
 end
 
 local function ShowPage(section)
@@ -216,17 +221,17 @@ local function CreatePageFrame(name)
     return page
 end
 
--- The Enable checkbox at the top of a tab whose features come from their
--- own addon. It starts out as whether the addon is loaded and then shows
--- the choice made here; the choice turns the addon on or off for all
--- characters, which the client applies on the next load, and until then a
--- note beside it says so. The client's own enable state is not read back:
--- it does not reliably answer for this character. Returns the y below it.
+-- A checkbox on General for a Serene* addon, named after its tab. It
+-- starts out as whether the addon is loaded and then shows the choice made
+-- here; the choice turns the addon on or off for all characters, which the
+-- client applies on the next load, and until then a note beside it says so.
+-- The client's own enable state is not read back: it does not reliably
+-- answer for this character. Returns the y below it.
 local function CreateAddonToggle(page, module, y)
     local loaded = AddOns.IsAddOnLoaded(module.name) and true or false
     local wanted = loaded
     local box = W.Checkbox(page, {
-        label = "Enable",
+        label = module.tab,
         tooltip = "Turns " .. module.title .. " on or off for all characters. Takes effect after Reload UI.",
         get = function() return wanted end,
         set = function(on)
@@ -248,31 +253,38 @@ local function CreateAddonToggle(page, module, y)
         refresh()
         note:SetShown(wanted ~= loaded)
     end
-    return y - box:GetHeight() - SPACING
+    return y - box:GetHeight() - 2
 end
 
--- A page registered with ns.RegisterPage builds its own content, below the
--- Enable checkbox when it has one.
-local function CreateCustomPage(def, module)
-    local page = CreatePageFrame(def.name)
-    local body, top = page, 0
-    if module then
-        top = CreateAddonToggle(page, module, -36) + 36
-        body = CreateFrame("Frame", nil, page)
-        body:SetPoint("TOPLEFT", 0, top)
-        body:SetPoint("BOTTOMRIGHT")
+-- General's list of Serene* addons under its own heading. Returns the y
+-- below it.
+local function CreateModuleList(page, y)
+    local modules = Modules()
+    if #modules == 0 then return y end
+    local heading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    heading:SetPoint("TOPLEFT", 0, y - SPACING)
+    heading:SetText("Modules")
+    heading:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
+    y = y - SPACING - heading:GetStringHeight() - 6
+    for _, module in ipairs(modules) do
+        y = CreateAddonToggle(page, module, y)
     end
-    def.build(body)
-    page.contentHeight = (body.contentHeight or 0) - top
+    return y
+end
+
+-- A page registered with ns.RegisterPage builds its own content.
+local function CreateCustomPage(def)
+    local page = CreatePageFrame(def.name)
+    def.build(page)
+    page.contentHeight = page.contentHeight or 0
     page:Hide()
     return page
 end
 
-local function CreatePage(section, module)
+local function CreatePage(section)
     local page = CreatePageFrame(section)
 
     local y = -36
-    if module then y = CreateAddonToggle(page, module, y) end
     for _, f in ipairs(ns.features) do
         if f.section == section then
             local w
@@ -303,6 +315,7 @@ local function CreatePage(section, module)
             end
         end
     end
+    if section == "General" then y = CreateModuleList(page, y) end
     page.contentHeight = -y
     page:Hide()
     return page
@@ -462,17 +475,16 @@ local function Build()
 
     -- Pages; the window is as tall as the tallest page, or as the sidebar
     -- needs for its tabs plus the Reload UI button at the bottom.
-    local modules = Modules()
-    local names = TabNames(modules)
+    local names = TabNames()
     local pageDefs = {}
     for _, def in ipairs(ns.pages) do pageDefs[def.name] = def end
     local tallest = 10 + (#names + 2) * TAB_H + 40 - PAD - FOOTER_H
     for i, name in ipairs(names) do
         tabs[name] = CreateTab(tabList, name, i)
         if pageDefs[name] then
-            pages[name] = CreateCustomPage(pageDefs[name], modules[name])
+            pages[name] = CreateCustomPage(pageDefs[name])
         else
-            pages[name] = CreatePage(name, modules[name])
+            pages[name] = CreatePage(name)
         end
         tallest = math.max(tallest, pages[name].contentHeight + PAD)
     end

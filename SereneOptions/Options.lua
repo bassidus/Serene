@@ -388,21 +388,50 @@ local function CreateAddonToggle(page, module, x, y)
 end
 
 -- A category: a thin frame with its heading inside, around the settings
--- that follow. Returns the group and the y for its first setting, which
--- goes GROUP_PAD in from the frame's edges; CloseGroup sizes the frame.
--- left, right: the frame's inset from the page's edges (0 for full width).
-local function OpenGroup(page, text, y, left, right)
+-- that follow. With onToggle, the heading's row is a button with a plus
+-- (closed) or minus (open) at its right; group.SetOpen(open) shows which.
+local function CreateGroup(page, text, onToggle)
     local group = CreateFrame("Frame", nil, page)
-    group.top, group.left, group.right = y - SPACING, left, right
-    group:SetPoint("TOPLEFT", left, group.top)
-    group:SetPoint("TOPRIGHT", -right, group.top)
     W.Border(group, W.EDGE)
 
     local heading = group:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     heading:SetPoint("TOPLEFT", GROUP_PAD, -GROUP_PAD)
     heading:SetText(text)
     heading:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
-    return group, group.top - GROUP_PAD - heading:GetStringHeight() - 6
+    group.headingH = heading:GetStringHeight()
+    if not onToggle then return group end
+
+    local btn = CreateFrame("Button", nil, group)
+    btn:SetPoint("TOPLEFT")
+    btn:SetPoint("TOPRIGHT")
+    btn:SetHeight(2 * GROUP_PAD + group.headingH)
+    local across = W.Solid(btn, "ARTWORK", W.ACCENT)
+    across:SetSize(9, 2)
+    across:SetPoint("RIGHT", -GROUP_PAD, 0)
+    local down = W.Solid(btn, "ARTWORK", W.ACCENT)
+    down:SetSize(2, 9)
+    down:SetPoint("CENTER", across)
+    local function Paint(c)
+        heading:SetTextColor(c[1], c[2], c[3])
+        across:SetColorTexture(c[1], c[2], c[3])
+        down:SetColorTexture(c[1], c[2], c[3])
+    end
+    btn:SetScript("OnClick", function() W.PlayClick(); onToggle() end)
+    btn:SetScript("OnEnter", function() Paint({ 1, 1, 1 }) end)
+    btn:SetScript("OnLeave", function() Paint(W.ACCENT) end)
+    function group.SetOpen(open) down:SetShown(not open) end
+    return group
+end
+
+-- Puts a group's frame at y; left, right: its inset from the page's edges
+-- (0 for full width). Returns the y for its first setting, which goes
+-- GROUP_PAD in from the frame's edges; CloseGroup sizes the frame.
+local function PlaceGroup(group, y, left, right)
+    group.top, group.left, group.right = y - SPACING, left, right
+    group:ClearAllPoints()
+    group:SetPoint("TOPLEFT", left, group.top)
+    group:SetPoint("TOPRIGHT", -right, group.top)
+    return group.top - GROUP_PAD - group.headingH - 6
 end
 
 -- y is the bottom of the group's last setting. Returns the y below the frame.
@@ -486,6 +515,9 @@ local function Columns(list)
     return column
 end
 
+-- Categories with collapse = true open and close by their heading; open
+-- ones are kept in SereneDB.optionsOpen ("<section>/<category>"), so they
+-- start closed. A change lays the page out again.
 local function CreatePage(section)
     local page = CreatePageFrame(section)
     CreatePageReset(page, section)
@@ -494,57 +526,33 @@ local function CreatePage(section)
     local column = Columns(list)
     local half = (PAGE_W - SPACING) / 2
 
-    -- gap: the space left under the last setting, which a group's frame
-    -- takes back so it closes snugly below it.
-    local y, gap, group = -(36 - HEADER_H), 0, nil
-    local left  -- the left group of a pair, while the right one is laid out
-
-    -- Returns the y the next group opens at: beside a left group, its top.
-    local function Close()
-        local bottom = CloseGroup(group, y + gap)
-        local col = column[group.category]
-        if col == "left" then
-            left = group
-            left.bottom = bottom
-            return group.start
-        elseif col == "right" and left then
-            -- Both end at the lower one's bottom.
-            bottom = math.min(bottom, left.bottom)
-            left:SetHeight(left.top - bottom)
-            group:SetHeight(group.top - bottom)
-            left = nil
-        end
-        return bottom
+    local collapsible = {}
+    for _, f in ipairs(list) do
+        if f.collapse and f.category then collapsible[f.category] = true end
+    end
+    local function Open(category)
+        return not collapsible[category] or (SereneDB.optionsOpen or {})[section .. "/" .. category]
     end
 
-    -- A setting with beside (not a category's first) sits to the right of the
-    -- one before it: row is that pair's top and the left one's bottom.
-    local row
-    local function Beside(f) return f and f.beside and group and f.category == group.category end
+    local Layout
+    local groups = {}  -- category -> its frame, made once
+    local function Group(category)
+        if not groups[category] then
+            groups[category] = CreateGroup(content, category, collapsible[category] and function()
+                SereneDB.optionsOpen = SereneDB.optionsOpen or {}
+                local key = section .. "/" .. category
+                SereneDB.optionsOpen[key] = not SereneDB.optionsOpen[key] or nil
+                W.ClosePopups()
+                Layout()
+            end)
+            groups[category].category = category
+        end
+        return groups[category]
+    end
 
-    for i, f in ipairs(list) do
-        local right = row and Beside(f)
-        if f.category ~= (group and group.category) then
-            if group then y = Close() end
-            group, right = nil, false
-            if f.category then
-                local col, start = column[f.category], y
-                group, y = OpenGroup(content, f.category, y,
-                    col == "right" and half + SPACING or 0, col == "left" and half + SPACING or 0)
-                group.category, group.start = f.category, start
-            end
-        end
-        if f.space and not right then y = y - BLANK_ROW end
-        local x = group and group.left + GROUP_PAD or 0
-        local xr = group and group.right + GROUP_PAD or 0
-        local halfRow = (PAGE_W - x - xr + SPACING) / 2
-        if right then
-            x, y = x + halfRow, row.top
-        elseif Beside(list[i + 1]) then
-            xr, row = xr + halfRow, { top = y }
-        else
-            row = nil
-        end
+    local made = {}  -- feature -> { control, note }, made once
+    local function Made(f)
+        if made[f] then return made[f] end
         local w
         if f.group then
             w = W.FontGroup(content, f.group)
@@ -561,31 +569,105 @@ local function CreatePage(section)
         else
             w = W.Checkbox(content, f)
         end
-        w:SetPoint("TOPLEFT", x, y)
-        w:SetPoint("TOPRIGHT", -xr, y)
-        gap = f.type == "boolean" and 2 or SPACING
-        y = y - w:GetHeight() - gap
         widgets[#widgets + 1] = w
+        local note
         if f.note then
-            -- Under a checkbox it lines up with the label.
-            local indent = x + (f.type == "boolean" and 26 or 0)
-            local note = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-            note:SetPoint("TOPLEFT", indent, y + 2)
-            note:SetWidth(PAGE_W - indent - xr)
+            note = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
             note:SetJustifyH("LEFT")
             note:SetText(f.note)
-            gap = SPACING - 2
-            y = y - note:GetStringHeight() - gap
         end
-        if right then
-            y, row = math.min(y, row.bottom), nil
-        elseif row then
-            row.bottom = y
-        end
+        made[f] = { w, note }
+        return made[f]
     end
-    if group then y = Close() end
-    content:SetHeight(-y)
-    page.contentHeight = HEADER_H - y
+
+    -- Returns the content's height.
+    function Layout()
+        -- gap: the space left under the last setting, which a group's frame
+        -- takes back so it closes snugly below it.
+        local y, gap, group = -(36 - HEADER_H), 0, nil
+        local left  -- the left group of a pair, while the right one is laid out
+
+        -- Returns the y the next group opens at: beside a left group, its top.
+        local function Close()
+            local bottom = CloseGroup(group, y + gap)
+            local col = column[group.category]
+            if col == "left" then
+                left = group
+                left.bottom = bottom
+                return group.start
+            elseif col == "right" and left then
+                -- Both end at the lower one's bottom.
+                bottom = math.min(bottom, left.bottom)
+                left:SetHeight(left.top - bottom)
+                group:SetHeight(group.top - bottom)
+                left = nil
+            end
+            return bottom
+        end
+
+        -- A setting with beside (not a category's first) sits to the right of the
+        -- one before it: row is that pair's top and the left one's bottom.
+        local row
+        local function Beside(f) return f and f.beside and group and f.category == group.category end
+
+        for i, f in ipairs(list) do
+            local right = row and Beside(f)
+            if f.category ~= (group and group.category) then
+                if group then y = Close() end
+                group, right = nil, false
+                if f.category then
+                    local col, start = column[f.category], y
+                    group = Group(f.category)
+                    y = PlaceGroup(group, y, col == "right" and half + SPACING or 0, col == "left" and half + SPACING or 0)
+                    group.start = start
+                    if group.SetOpen then group.SetOpen(Open(f.category)) end
+                    -- Closed: the frame ends as far under the heading as it starts above it.
+                    if not Open(f.category) then y, gap = group.top - GROUP_PAD * 1.5 - group.headingH, 0 end
+                end
+            end
+            local w, note = unpack(Made(f))
+            local shown = not group or Open(group.category)
+            w:SetShown(shown)
+            if note then note:SetShown(shown) end
+            if shown then
+                if f.space and not right then y = y - BLANK_ROW end
+                local x = group and group.left + GROUP_PAD or 0
+                local xr = group and group.right + GROUP_PAD or 0
+                local halfRow = (PAGE_W - x - xr + SPACING) / 2
+                if right then
+                    x, y = x + halfRow, row.top
+                elseif Beside(list[i + 1]) then
+                    xr, row = xr + halfRow, { top = y }
+                else
+                    row = nil
+                end
+                w:ClearAllPoints()
+                w:SetPoint("TOPLEFT", x, y)
+                w:SetPoint("TOPRIGHT", -xr, y)
+                gap = f.type == "boolean" and 2 or SPACING
+                y = y - w:GetHeight() - gap
+                if note then
+                    -- Under a checkbox it lines up with the label.
+                    local indent = x + (f.type == "boolean" and 26 or 0)
+                    note:ClearAllPoints()
+                    note:SetPoint("TOPLEFT", indent, y + 2)
+                    note:SetWidth(PAGE_W - indent - xr)
+                    gap = SPACING - 2
+                    y = y - note:GetStringHeight() - gap
+                end
+                if right then
+                    y, row = math.min(y, row.bottom), nil
+                elseif row then
+                    row.bottom = y
+                end
+            end
+        end
+        if group then y = Close() end
+        content:SetHeight(-y)
+        return -y
+    end
+
+    page.contentHeight = HEADER_H + Layout()
     page:Hide()
     return page
 end

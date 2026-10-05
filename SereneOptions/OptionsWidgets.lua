@@ -53,6 +53,7 @@ end
 local function PlayClick()
     if SOUNDKIT and SOUNDKIT.U_CHAT_SCROLL_BUTTON then PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON) end
 end
+W.PlayClick = PlayClick
 
 -- The tab name of the Serene* addon a setting needs (f.addon), while that
 -- addon is not loaded.

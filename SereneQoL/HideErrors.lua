@@ -75,11 +75,11 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "hideErrors", label = "Hide Error Messages", section = "QoL", apply = Apply,
+    key = "hideErrors", label = "Hide Error Messages", section = "Quality of Life", apply = Apply,
     tooltip = "Hides the red error text and its voice line (\"Not enough rage\", \"Out of range\"...).",
 })
 ns.RegisterFeature({
-    key = "hideErrorsWhen", label = "Hide Errors", section = "QoL", type = "dropdown", default = "always",
+    key = "hideErrorsWhen", label = "Hide Errors", section = "Quality of Life", type = "dropdown", default = "always",
     requires = "hideErrors", apply = Apply,
     options = function()
         return {

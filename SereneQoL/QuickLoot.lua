@@ -23,5 +23,5 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "quickLoot", label = "Quick Loot", section = "QoL", apply = Apply,
+    key = "quickLoot", label = "Quick Loot", section = "Quality of Life", apply = Apply,
 })

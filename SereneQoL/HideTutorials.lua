@@ -140,5 +140,5 @@ f:SetScript("OnEvent", function(_, _, addonName)
 end)
 
 ns.RegisterFeature({
-    key = "hideTutorials", label = "Hide Tutorials", section = "QoL", apply = Apply,
+    key = "hideTutorials", label = "Hide Tutorials", section = "Quality of Life", apply = Apply,
 })

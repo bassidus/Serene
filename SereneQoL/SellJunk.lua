@@ -132,5 +132,5 @@ f:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "autoSellJunk", label = "Auto Sell Junk", section = "QoL",
+    key = "autoSellJunk", label = "Auto Sell Junk", section = "Quality of Life",
 })

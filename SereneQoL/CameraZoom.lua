@@ -21,5 +21,5 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "maxCameraZoom", label = "Max Camera Zoom", section = "QoL", apply = Apply,
+    key = "maxCameraZoom", label = "Max Camera Zoom", section = "Quality of Life", apply = Apply,
 })

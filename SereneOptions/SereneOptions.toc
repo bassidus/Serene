@@ -4,7 +4,7 @@
 ## Notes: The Serene options window (/serene). Loads when first opened.
 ## Version: 1.2.0
 ## LoadOnDemand: 1
-## Dependencies: SereneCore
+## Dependencies: Serene
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 OptionsWidgets.lua

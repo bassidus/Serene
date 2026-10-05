@@ -1,39 +1,16 @@
 ## Interface: 16001
 ## Title: Serene
-## Notes: Lightweight QoL: quick loot, auto repair, sell junk, delete auto-fill, hide tutorials, social filters, thank for buffs, train all, camera zoom, auto accept/turn-in quests, tooltip position/font/content, class colored unit frames, nameplates, /rl.
+## Notes: Lightweight QoL for WoW Forever. Shared settings, fonts and the minimap icon for the Serene addons; /serene opens the options.
 ## Version: 1.2.0
-## Dependencies: SereneCore
+## SavedVariables: SereneDB
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
-Init.lua
+# Libraries (minimap icon)
+Libs\LibStub.lua
+Libs\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0.lua
 
-# Features (listed in this order in /serene and the options window)
-Modules\StatsDisplay.lua
-Modules\QuickLoot.lua
-Modules\LootWarnings.lua
-Modules\DeleteConfirm.lua
-Modules\AutoRepair.lua
-Modules\SellJunk.lua
-Modules\TrainAll.lua
-Modules\Quests.lua
-Modules\Social.lua
-Modules\ThankBuffs.lua
-Modules\HideTutorials.lua
-Modules\MovieSkip.lua
-Modules\CameraZoom.lua
-Modules\TooltipAnchor.lua
-Modules\TooltipFont.lua
-Modules\TooltipBorder.lua
-Modules\TooltipIssueHint.lua
-Modules\TooltipContent.lua
-Modules\UnitFrameColors.lua
-Modules\HideErrors.lua
-Modules\Nameplates.lua
-Modules\NameplateCast.lua
-Modules\NameplateDebuffs.lua
-Modules\NameplateQuest.lua
-Modules\NameplateLook.lua
-Modules\ReloadAlias.lua
-
-# Options pages that are not settings
-Performance.lua
+Core.lua
+Fonts.lua
+Minimap.lua

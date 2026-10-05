@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Serene Tooltip
+## Group: Serene
+## Notes: Tooltip position, font, border, content and hiding the issue hint.
+## Version: 1.2.0
+## Dependencies: Serene
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+TooltipAnchor.lua
+TooltipFont.lua
+TooltipBorder.lua
+TooltipIssueHint.lua
+TooltipContent.lua

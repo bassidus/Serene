@@ -4,7 +4,7 @@
 --  ns.RegisterPage pages. Built on first open; position and scale last for
 --  the session.
 -------------------------------------------------------------------------------
-local ns = SereneCore
+local ns = Serene
 local W = ns.Widgets
 
 local WIDTH, SIDEBAR_W, TITLE_H, PAD, FOOTER_H = 640, 160, 40, 20, 26
@@ -362,7 +362,7 @@ local function Build()
     title:SetText("Serene")
     title:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
 
-    local version = C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("SereneCore", "Version")
+    local version = C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("Serene", "Version")
     if version then
         local v = titleBar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
         v:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 6, 1)
@@ -400,7 +400,7 @@ local function Build()
 
     local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     footer:SetPoint("BOTTOMLEFT", SIDEBAR_W + PAD, 10)
-    footer:SetText("Hold Shift to skip auto loot and auto quests.   /rl reloads the UI.")
+    footer:SetText(table.concat(ns.hints, "   "))
 
     CreateScaleGrip()
     frame:SetScale(DEFAULT_SCALE)
@@ -427,7 +427,7 @@ function ns.RefreshOptions()
     for _, w in ipairs(widgets) do w.Refresh() end
 end
 
--- Called through ns.ToggleOptions in SereneCore, which loads this addon.
+-- Called through ns.ToggleOptions in Serene, which loads this addon.
 -- Combat: no opening, and an open window closes as combat starts.
 function ns.ToggleOptionsWindow()
     if frame and frame:IsShown() then

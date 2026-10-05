@@ -1,12 +1,13 @@
 -------------------------------------------------------------------------------
 --  Serene -- lightweight quality-of-life tools for WoW Forever.
---  SereneCore: shared helpers, the feature registry, SavedVariables and
---  /serene. The other Serene addons reach it through the global SereneCore;
---  each feature file calls ns.RegisterFeature, and the options window lists
---  them in registration order.
+--  This addon holds the shared helpers, the feature registry,
+--  SavedVariables and /serene; the features live in the Serene* addons,
+--  which reach it through the global Serene. Each feature file calls
+--  ns.RegisterFeature, and the options window lists them in registration
+--  order.
 -------------------------------------------------------------------------------
 local ADDON, ns = ...
-SereneCore = ns
+Serene = ns
 
 ns.features = {}
 ns.featureByKey = {}
@@ -30,7 +31,7 @@ function ns.RegisterFeature(def)
     if def.default == nil and def.type == "boolean" then def.default = true end
     ns.features[#ns.features + 1] = def
     ns.featureByKey[def.key] = def
-    -- Addons loading after SereneCore register once SereneDB exists.
+    -- Addons loading after this one register once SereneDB exists.
     if SereneDB and SereneDB[def.key] == nil then SereneDB[def.key] = def.default end
 end
 
@@ -60,6 +61,12 @@ function ns.SetValue(key, value)
     local f = ns.featureByKey[key]
     if f and f.apply then f.apply() end
     if ns.RefreshOptions then ns.RefreshOptions() end
+end
+
+-- Short lines for the options window's footer, e.g. "/rl reloads the UI.".
+ns.hints = {}
+function ns.AddHint(text)
+    ns.hints[#ns.hints + 1] = text
 end
 
 -- Extra state a feature wants cleared by Reset Defaults (e.g. a moved

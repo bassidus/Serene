@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: Serene FPS & Latency
+## Group: Serene
+## Notes: A small movable framerate and latency readout.
+## Version: 1.2.0
+## Dependencies: Serene
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+StatsDisplay.lua

@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: Serene Performance
+## Group: Serene
+## Notes: An options page with framerate, latency and every addon's CPU and memory.
+## Version: 1.2.0
+## Dependencies: Serene
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+Performance.lua

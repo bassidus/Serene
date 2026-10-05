@@ -46,8 +46,9 @@ local function IsFriend(name, guid)
     return guild and InGuild(name)
 end
 
--- Quests.lua asks before accepting a quest: one shared by a stranger is not.
-function ns.BlockedQuestShare()
+-- Quests.lua (SereneQoL) asks before accepting a quest: one shared by a
+-- stranger is not. Set on Serene so other addons can reach it.
+function Serene.BlockedQuestShare()
     if not ns.Enabled("blockSharedQuests") then return false end
     if not Clean(UnitIsPlayer("questnpc")) then return false end
     return not IsFriend(UnitName("questnpc"), UnitGUID("questnpc"))

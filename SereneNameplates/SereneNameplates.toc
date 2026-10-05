@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Serene Nameplates
+## Group: Serene
+## Notes: Flat enemy nameplates with cast bars, debuffs and quest mob progress.
+## Version: 1.2.0
+## Dependencies: Serene
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+Nameplates.lua
+NameplateCast.lua
+NameplateDebuffs.lua
+NameplateQuest.lua
+NameplateLook.lua

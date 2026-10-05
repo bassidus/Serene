@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: Serene Social
+## Group: Serene
+## Notes: Invite and duel filters, invite on whisper, thank for buffs.
+## Version: 1.2.0
+## Dependencies: Serene
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+Social.lua
+ThankBuffs.lua

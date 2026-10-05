@@ -4,6 +4,7 @@
 ## Notes: Tooltip position, font, border, content and hiding the issue hint.
 ## Version: 1.2.0
 ## Dependencies: Serene
+## X-Serene-Section: Tooltip
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

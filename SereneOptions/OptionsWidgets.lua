@@ -77,9 +77,15 @@ local function SetPreviewFont(fs, path, size)
 end
 
 -------------------------------------------------------------------------------
---  Checkbox
+--  Checkbox -- bound to f.key, or to f.get()/f.set(on) for state that is not
+--  in SereneDB.
 -------------------------------------------------------------------------------
 function W.Checkbox(parent, f)
+    local function Checked()
+        if f.get then return f.get() end
+        return SereneDB[f.key]
+    end
+
     local row = CreateFrame("Button", nil, parent)
     row:SetHeight(26)
 
@@ -95,17 +101,18 @@ function W.Checkbox(parent, f)
     local label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     label:SetPoint("LEFT", box, "RIGHT", 10, 0)
     label:SetText(f.label)
+    row.label = label
 
     row:SetScript("OnClick", function()
         PlayClick()
-        ns.SetValue(f.key, not SereneDB[f.key])
+        if f.set then f.set(not Checked()) else ns.SetValue(f.key, not SereneDB[f.key]) end
     end)
     row:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
     row:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
     AttachTooltip(row, f)
 
     function row.Refresh()
-        check:SetShown(SereneDB[f.key] and true or false)
+        check:SetShown(Checked() and true or false)
         row:SetEnabled(Available(row, f))
     end
     return row

@@ -4,6 +4,7 @@
 ## Notes: Invite and duel filters, invite on whisper, thank for buffs.
 ## Version: 1.2.0
 ## Dependencies: Serene
+## X-Serene-Section: Social
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

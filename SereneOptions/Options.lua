@@ -1,8 +1,9 @@
 -------------------------------------------------------------------------------
---  Options window -- a sidebar tab per feature section (in registration
---  order), each page stacking a control per registered feature, then the
---  ns.RegisterPage pages. Built on first open; position and scale last for
---  the session.
+--  Options window -- a sidebar tab per feature section, each page stacking
+--  a control per registered feature, then the ns.RegisterPage pages. Tabs
+--  of Serene* addons that are not loaded are listed too, with only their
+--  Enable checkbox. Built on first open; position and scale last for the
+--  session.
 -------------------------------------------------------------------------------
 local ns = Serene
 local W = ns.Widgets
@@ -13,15 +14,48 @@ local TAB_H, SPACING = 30, 10
 local frame
 local widgets, pages, tabs = {}, {}, {}
 
-local function Sections()
-    local list, seen = {}, {}
-    for _, f in ipairs(ns.features) do
-        if f.section and not seen[f.section] then
-            seen[f.section] = true
-            list[#list + 1] = f.section
+local AddOns = C_AddOns
+
+-- The Serene* addons behind the tabs, found by the X-Serene-Section (a
+-- settings tab) or X-Serene-Page (an ns.RegisterPage tab) line in their TOC,
+-- loaded or not. Keyed by tab name.
+local function Modules()
+    local byTab = {}
+    for i = 1, AddOns.GetNumAddOns() do
+        local name = AddOns.GetAddOnInfo(i)
+        local section = AddOns.GetAddOnMetadata(name, "X-Serene-Section")
+        local page = AddOns.GetAddOnMetadata(name, "X-Serene-Page")
+        if section or page then
+            byTab[section or page] = {
+                name = name,
+                title = AddOns.GetAddOnMetadata(name, "Title") or name,
+                isPage = not section,
+            }
         end
     end
-    return list
+    return byTab
+end
+
+-- Settings tabs, General first and the rest alphabetical, then page tabs.
+local function TabNames(modules)
+    local sections, pageNames, seen = {}, {}, {}
+    local function Add(list, name)
+        if seen[name] then return end
+        seen[name] = true
+        list[#list + 1] = name
+    end
+    for _, f in ipairs(ns.features) do
+        if f.section then Add(sections, f.section) end
+    end
+    for _, def in ipairs(ns.pages) do Add(pageNames, def.name) end
+    for tab, m in pairs(modules) do Add(m.isPage and pageNames or sections, tab) end
+    table.sort(sections, function(a, b)
+        if (a == "General") ~= (b == "General") then return a == "General" end
+        return a < b
+    end)
+    table.sort(pageNames)
+    for _, name in ipairs(pageNames) do sections[#sections + 1] = name end
+    return sections
 end
 
 local function ShowPage(section)
@@ -182,19 +216,61 @@ local function CreatePageFrame(name)
     return page
 end
 
--- A page registered with ns.RegisterPage builds its own content.
-local function CreateCustomPage(def)
+-- The Enable checkbox at the top of a tab whose features come from their
+-- own addon. It turns the addon on or off for all characters, which the
+-- client applies on the next load; until then a note beside it says so.
+-- Returns the y below it.
+local function CreateAddonToggle(page, module, y)
+    local function WillLoad()
+        return AddOns.GetAddOnEnableState(module.name, UnitName("player")) > 0
+    end
+    local box = W.Checkbox(page, {
+        label = "Enable",
+        tooltip = "Turns " .. module.title .. " on or off for all characters. Takes effect after Reload UI.",
+        get = WillLoad,
+        set = function(on)
+            if on then AddOns.EnableAddOn(module.name) else AddOns.DisableAddOn(module.name) end
+            ns.RefreshOptions()
+        end,
+    })
+    box:SetPoint("TOPLEFT", 0, y)
+    box:SetPoint("TOPRIGHT", 0, y)
+    widgets[#widgets + 1] = box
+
+    local note = box:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    note:SetPoint("LEFT", box.label, "RIGHT", 12, 0)
+    note:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
+    note:SetText("Reload UI to apply")
+    local refresh = box.Refresh
+    function box.Refresh()
+        refresh()
+        note:SetShown(WillLoad() ~= (AddOns.IsAddOnLoaded(module.name) and true or false))
+    end
+    return y - box:GetHeight() - SPACING
+end
+
+-- A page registered with ns.RegisterPage builds its own content, below the
+-- Enable checkbox when it has one.
+local function CreateCustomPage(def, module)
     local page = CreatePageFrame(def.name)
-    def.build(page)
-    page.contentHeight = page.contentHeight or 0
+    local body, top = page, 0
+    if module then
+        top = CreateAddonToggle(page, module, -36) + 36
+        body = CreateFrame("Frame", nil, page)
+        body:SetPoint("TOPLEFT", 0, top)
+        body:SetPoint("BOTTOMRIGHT")
+    end
+    def.build(body)
+    page.contentHeight = (body.contentHeight or 0) - top
     page:Hide()
     return page
 end
 
-local function CreatePage(section)
+local function CreatePage(section, module)
     local page = CreatePageFrame(section)
 
     local y = -36
+    if module then y = CreateAddonToggle(page, module, y) end
     for _, f in ipairs(ns.features) do
         if f.section == section then
             local w
@@ -384,17 +460,19 @@ local function Build()
 
     -- Pages; the window is as tall as the tallest page, or as the sidebar
     -- needs for its tabs plus the Reload UI button at the bottom.
-    local sections = Sections()
-    local tallest = 10 + (#sections + #ns.pages + 2) * TAB_H + 40 - PAD - FOOTER_H
-    for i, section in ipairs(sections) do
-        tabs[section] = CreateTab(tabList, section, i)
-        pages[section] = CreatePage(section)
-        tallest = math.max(tallest, pages[section].contentHeight + PAD)
-    end
-    for i, def in ipairs(ns.pages) do
-        tabs[def.name] = CreateTab(tabList, def.name, #sections + i)
-        pages[def.name] = CreateCustomPage(def)
-        tallest = math.max(tallest, pages[def.name].contentHeight + PAD)
+    local modules = Modules()
+    local names = TabNames(modules)
+    local pageDefs = {}
+    for _, def in ipairs(ns.pages) do pageDefs[def.name] = def end
+    local tallest = 10 + (#names + 2) * TAB_H + 40 - PAD - FOOTER_H
+    for i, name in ipairs(names) do
+        tabs[name] = CreateTab(tabList, name, i)
+        if pageDefs[name] then
+            pages[name] = CreateCustomPage(pageDefs[name], modules[name])
+        else
+            pages[name] = CreatePage(name, modules[name])
+        end
+        tallest = math.max(tallest, pages[name].contentHeight + PAD)
     end
     frame:SetSize(WIDTH, TITLE_H + PAD + tallest + FOOTER_H)
 
@@ -418,7 +496,7 @@ local function Build()
         if SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE then PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE) end
     end)
 
-    ShowPage(pages[SereneDB.optionsPage] and SereneDB.optionsPage or sections[1])
+    ShowPage(pages[SereneDB.optionsPage] and SereneDB.optionsPage or names[1])
     frame:Hide()
 end
 

@@ -4,6 +4,7 @@
 ## Notes: An options page with framerate, latency and every addon's CPU and memory.
 ## Version: 1.2.0
 ## Dependencies: Serene
+## X-Serene-Page: Performance
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

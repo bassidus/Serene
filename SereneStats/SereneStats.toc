@@ -4,6 +4,7 @@
 ## Notes: A small movable framerate and latency readout.
 ## Version: 1.2.0
 ## Dependencies: Serene
+## X-Serene-Section: FPS & Latency
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

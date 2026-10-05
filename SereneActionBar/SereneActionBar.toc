@@ -4,6 +4,7 @@
 ## Notes: Short keybind text and action bar range coloring.
 ## Version: 1.2.0
 ## Dependencies: Serene
+## X-Serene-Section: Action Bars
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

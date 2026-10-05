@@ -6,11 +6,11 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
--- The errors that always show.
+-- The errors that always show (not every one exists on this client).
 local KEEP = {}
 for _, name in ipairs({ "ERR_INV_FULL", "ERR_BAG_FULL", "ERR_QUEST_LOG_FULL", "ERR_ITEM_MAX_COUNT",
                         "ERR_NOT_ENOUGH_MONEY", "ERR_LOOT_GONE", "ERR_NO_ROOM_FOR_ITEM" }) do
-    KEEP[_G[name]] = true
+    if _G[name] then KEEP[_G[name]] = true end
 end
 
 local f = CreateFrame("Frame")

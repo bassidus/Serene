@@ -171,23 +171,18 @@ local function ColorName(fs, unit)
 end
 
 -------------------------------------------------------------------------------
---  Level in the name: "14 Hogger", the level colored like
---  Blizzard's (by difficulty for enemies, "??" when too high)
+--  Level in the name: "14 Hogger", in gold ("??" when too high). Used while
+--  the portrait is hidden, since the level circle sits on the frame art.
 -------------------------------------------------------------------------------
 local baseNames, ourNames = {}, {}  -- [font string] = Blizzard's text / the text we set
+
+local LEVEL_COLOR = "|cffffd100"  -- the gold of Blizzard's own level text
 
 local function LevelPrefix(unit)
     if not unit or not Clean(UnitExists(unit)) or Clean(UnitIsCorpse(unit)) then return nil end
     local level = Clean(UnitEffectiveLevel(unit))
     if not level then return nil end
-    if level <= 0 then return "|cffff1a1a??|r " end
-    if Clean(UnitCanAttack("player", unit)) and C_PlayerInfo and C_PlayerInfo.GetContentDifficultyCreatureForPlayer
-        and GetDifficultyColor then
-        local difficulty = Clean(C_PlayerInfo.GetContentDifficultyCreatureForPlayer(unit))
-        local c = difficulty and GetDifficultyColor(difficulty)
-        if c then return "|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. "|r " end
-    end
-    return level .. " "
+    return LEVEL_COLOR .. (level > 0 and level or "??") .. "|r "
 end
 
 local function NameLevel(fs, unit, on)
@@ -217,9 +212,9 @@ local function Style(frame)
     SetHidden(p.name, ns.Enabled("unitFrameHideName"))
     SetHidden(p.nameBackground, ns.Enabled("unitFrameHideNameBackground"))
     ColorName(p.name, frame.unit)
-    local level = ns.Get("unitFrameLevel")
-    for _, region in pairs(p.level) do SetHidden(region, level ~= "default") end
-    NameLevel(p.name, frame.unit, level == "name")
+    local hideLevel = ns.Enabled("unitFrameHideLevel")
+    for _, region in pairs(p.level) do SetHidden(region, hideLevel or noPortrait) end
+    NameLevel(p.name, frame.unit, noPortrait and not hideLevel)
 end
 
 local function StyleAll()
@@ -284,7 +279,7 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "unitFramePortrait", label = "Portrait", section = SECTION, type = "dropdown",
     default = "portrait", apply = ApplyPortrait,
-    tooltip = "Class Icon shows players' class icon instead of their face.\nHidden also hides the frame around it.",
+    tooltip = "Class Icon shows players' class icon instead of their face.\nHidden also hides the frame around it, and the level moves before the name.",
     options = function()
         return {
             { value = "portrait", label = "Portrait" },
@@ -312,30 +307,17 @@ ns.RegisterFeature({
 })
 -- The level in the name follows level ups.
 local levelWatch = CreateFrame("Frame")
+levelWatch:RegisterEvent("UNIT_LEVEL")
 levelWatch:SetScript("OnEvent", function(_, _, unit)
+    if ns.Get("unitFramePortrait") ~= "hidden" or ns.Enabled("unitFrameHideLevel") then return end
     for _, frame in ipairs(Frames()) do
         if frame.unit and Clean(UnitIsUnit(frame.unit, unit)) then Style(frame) end
     end
 end)
 
 ns.RegisterFeature({
-    key = "unitFrameLevel", label = "Level", section = SECTION, type = "dropdown", default = "default",
-    apply = function()
-        if ns.Get("unitFrameLevel") == "name" then
-            levelWatch:RegisterEvent("UNIT_LEVEL")
-        else
-            levelWatch:UnregisterAllEvents()
-        end
-        StyleAll()
-    end,
-    tooltip = "In Name shows it before the name, e.g. \"14 Hogger\", also on frames without a level.",
-    options = function()
-        return {
-            { value = "default", label = "Circle" },
-            { value = "name",    label = "In Name" },
-            { value = "hidden",  label = "Hidden" },
-        }
-    end,
+    key = "unitFrameHideLevel", label = "Hide Level", section = SECTION, default = false, apply = StyleAll,
+    tooltip = "While the portrait is hidden, the level is shown before the name instead, e.g. \"14 Hogger\".",
 })
 ns.RegisterFeature({
     key = "unitFrameText", label = "Health/Mana Text", section = SECTION, type = "dropdown",

@@ -161,6 +161,9 @@ end
 
 -- The TOCs name the same file in ## IconTexture (art/logo.svg is the source).
 ns.LOGO = "Interface\\AddOns\\Serene\\Media\\Logo"
+-- The logo's orange: the options window's accent, the chat prefix and the
+-- minimap tooltip's title.
+ns.ACCENT = { 1, 0.42, 0.16 }
 
 -------------------------------------------------------------------------------
 --  Colors -- a color setting holds a 6-digit hex ("ff4d1a") or one of its
@@ -209,7 +212,7 @@ function ns.Clean(v)
 end
 
 function ns.Print(msg)
-    DEFAULT_CHAT_FRAME:AddMessage("|cff7fd1c7Serene:|r " .. msg)
+    DEFAULT_CHAT_FRAME:AddMessage(CreateColor(unpack(ns.ACCENT)):WrapTextInColorCode("Serene:") .. " " .. msg)
 end
 
 -------------------------------------------------------------------------------

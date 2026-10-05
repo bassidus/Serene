@@ -25,7 +25,7 @@ local widgets, pages, tabs = {}, {}, {}
 local AddOns = C_AddOns
 
 -- Idle text colors of the sidebar buttons that are not settings tabs.
-local RED = { 1, 0.35, 0.35 }
+local RED = { 1, 0.3, 0.45 }
 local GOLD = W.GOLD  -- Reset defaults and Reset page
 local BUTTON_COLORS = {
     [MODULES] = W.ACCENT,

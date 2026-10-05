@@ -88,7 +88,7 @@ local function Register()
             end
         end,
         OnTooltipShow = function(tt)
-            tt:AddLine("Serene", 0.5, 0.82, 0.78)
+            tt:AddLine("Serene", unpack(ns.ACCENT))
             tt:AddLine("|cffffffffLeft-click|r to open the options.", 0.8, 0.8, 0.8)
             tt:AddLine("|cffffffffRight-click|r to reload the UI.", 0.8, 0.8, 0.8)
             tt:AddLine("|cffffffffDrag|r to move this icon.", 0.8, 0.8, 0.8)

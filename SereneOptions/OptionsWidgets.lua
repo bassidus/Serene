@@ -8,13 +8,14 @@ local ns = Serene
 local W = {}
 ns.Widgets = W
 
-W.ACCENT = { 0.5, 0.82, 0.78 }
-W.BG     = { 0.06, 0.065, 0.075, 0.97 }
-W.PANEL  = { 0.09, 0.095, 0.11, 1 }
-W.FIELD  = { 0.11, 0.115, 0.135, 1 }
-W.EDGE   = { 0.24, 0.25, 0.28, 1 }
-W.DIM    = { 0.62, 0.64, 0.68 }
+-- Warm darks, like the logo's face.
+W.ACCENT = ns.ACCENT
+W.BG     = { 0.07, 0.055, 0.055, 0.97 }
+W.PANEL  = { 0.1, 0.08, 0.078, 1 }
+W.FIELD  = { 0.125, 0.1, 0.097, 1 }
+W.EDGE   = { 0.28, 0.22, 0.21, 1 }
 W.GOLD   = { 1, 0.82, 0 }
+W.DIM    = W.GOLD
 
 local ACCENT, FIELD, EDGE, DIM = W.ACCENT, W.FIELD, W.EDGE, W.DIM
 local CONTROL_W = 260

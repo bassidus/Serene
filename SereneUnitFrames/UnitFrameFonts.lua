@@ -15,10 +15,10 @@ end
 
 local playerBar = PlayerFrame and PlayerFrame.healthbar
 local GROUPS = {
-    { prefix = "unitFrameName",  label = "Name font",        category = "Name",
-      base = SizeOf(PlayerName, 10) },
-    { prefix = "unitFrameLevel", label = "Level font",       category = "Level",
-      base = SizeOf(PlayerLevelText, 12) },
+    { prefix = "unitFrameName",  label = "Name text",        category = "Name",
+      base = SizeOf(PlayerName, 10), color = "unitFrameNameColor" },
+    { prefix = "unitFrameLevel", label = "Level text",       category = "Level",
+      base = SizeOf(PlayerLevelText, 12), color = "unitFrameLevelColor" },
     { prefix = "unitFrameBar",   label = "Health/mana font", category = "Health & mana",
       base = SizeOf(playerBar and playerBar.TextString, 10) },
 }
@@ -104,7 +104,7 @@ end
 for _, g in ipairs(GROUPS) do
     ns.RegisterFontSettings({
         prefix = g.prefix, label = g.label, section = "Unit frames", category = g.category, apply = Apply,
-        size = { 6, 24, g.base }, outline = "default",
+        size = { 6, 24, g.base }, outline = "default", color = g.color,
         blizzard = function()
             local fs = Strings(PlayerFrame)[g][1]
             if not fs then return {} end

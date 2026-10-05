@@ -329,8 +329,8 @@ ns.RegisterFeature({
     tooltip = "Hides the name written on buttons that hold a macro.",
 })
 ns.RegisterFontSettings({
-    prefix = "keybind", label = "Keybind font", section = SECTION, category = "Button text", apply = ApplySetting,
-    size = { 6, 24, DEFAULT_SIZE }, outline = "default",
+    prefix = "keybind", label = "Keybind text", section = SECTION, category = "Button text", apply = ApplySetting,
+    size = { 6, 24, DEFAULT_SIZE }, outline = "default", color = "keybindColor",
     blizzard = function()
         local hk = _G.ActionButton1HotKey
         if not hk then return {} end

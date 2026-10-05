@@ -279,8 +279,8 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFontSettings({
-    prefix = "stats", label = "Font", section = SECTION, category = "Appearance", apply = Apply,
-    size = { 8, 28, 12 }, outline = "OUTLINE",
+    prefix = "stats", label = "Text", section = SECTION, category = "Appearance", apply = Apply,
+    size = { 8, 28, 12 }, outline = "OUTLINE", color = "statsColors",
 })
 ns.RegisterFeature({
     key = "statsBackground", label = "Background opacity", section = SECTION, category = "Appearance", type = "slider",

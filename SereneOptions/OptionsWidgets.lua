@@ -339,8 +339,9 @@ end
 -------------------------------------------------------------------------------
 --  Color -- the feature's special choices as text chips, then a swatch per
 --  palette color, then "+" for any other color in Blizzard's color picker
---  (it shows that color once one is picked). One row with no label, for the
---  editor that W.ColorField opens.
+--  (it shows that color once one is picked). One row, for the editor that
+--  W.ColorField opens; labeled shows the setting's label above it, for a
+--  font group's editor.
 -------------------------------------------------------------------------------
 local SWATCH, SWATCH_GAP = 20, 4
 
@@ -378,6 +379,26 @@ local function Swatch(parent, size)
     return s
 end
 
+-- Shows a color setting's value on a swatch. Returns the value's name and
+-- whether the swatch shows.
+local function ShowColor(swatch, f)
+    local value = ns.Get(f.key)
+    local hex = ns.ColorHex(value)
+    if hex then
+        for _, p in ipairs(ns.PALETTE) do
+            if p.hex == hex then return p.label, swatch.SetColors(hex) end
+        end
+        return "#" .. hex, swatch.SetColors(hex)
+    end
+    for _, s in ipairs(f.specials or {}) do
+        if s.value == value then
+            if s.swatch then return s.label, swatch.SetColors(s.swatch()) end
+            return s.label, swatch.SetColors()
+        end
+    end
+    return tostring(value), swatch.SetColors()
+end
+
 -- Blizzard's picker, raised above the options window while it is open.
 local function OpenColorPicker(value, onChange)
     local picker = ColorPickerFrame
@@ -405,9 +426,16 @@ local function OpenColorPicker(value, onChange)
     picker:Raise()
 end
 
-function W.Color(parent, f)
+function W.Color(parent, f, labeled)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(SWATCH)
+    local top = 0
+    if labeled then
+        local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        label:SetPoint("TOPLEFT")
+        label:SetText(f.label)
+        top = -(math.ceil(label:GetStringHeight()) + 6)
+    end
+    holder:SetHeight(SWATCH - top)
 
     local choices = {}  -- { button, edges, value (special word or hex), [fill] }
     -- tip: the choice's own help text (a special's tooltip), else the setting's;
@@ -436,7 +464,7 @@ function W.Color(parent, f)
     local x = 0
     local function Place(button, width)
         button:SetSize(width, SWATCH)
-        button:SetPoint("TOPLEFT", x, 0)
+        button:SetPoint("TOPLEFT", x, top)
         x = x + width + SWATCH_GAP
     end
 
@@ -759,8 +787,9 @@ end
 
 -------------------------------------------------------------------------------
 --  Font group -- one field for a ns.RegisterFontSettings group: font, size
---  and outline at a glance, drawn in that font; its editor holds the group's
---  own dropdown, slider and outline controls.
+--  and outline at a glance, drawn in that font, after a swatch of its color
+--  if it has one; its editor holds the group's own dropdown, slider and
+--  outline controls, and the palette.
 -------------------------------------------------------------------------------
 -- "Outline, Shadow"; "No outline" for none.
 local function OutlineLabel(f)
@@ -772,13 +801,23 @@ local function OutlineLabel(f)
 end
 
 function W.FontGroup(parent, group)
-    local holder, _, text = Field(parent, group.label, function(self)
+    local color = group.color and ns.featureByKey[group.color]
+    local holder, btn, text = Field(parent, group.label, function(self)
         OpenEditor(self, group, group.label, function(panel)
-            return { W.Dropdown(panel, group.font), W.Slider(panel, group.size), W.Outline(panel, group.outline) }
+            local list = { W.Dropdown(panel, group.font), W.Slider(panel, group.size), W.Outline(panel, group.outline) }
+            if color then list[#list + 1] = W.Color(panel, color, true) end
+            return list
         end)
     end)
 
+    local swatch = color and Swatch(btn, 14)
+    if swatch then swatch:SetPoint("LEFT", 8, 0) end
+
     function holder.Refresh()
+        if swatch then
+            local _, shown = ShowColor(swatch, color)
+            text:SetPoint("LEFT", shown and 30 or 8, 0)
+        end
         local font = ns.Get(group.font.key)
         SetPreviewFont(text, font)
         text:SetText(OptionLabel(group.font, font) .. " / " .. ns.Get(group.size.key)
@@ -802,24 +841,9 @@ function W.ColorField(parent, f)
     swatch:SetPoint("LEFT", 8, 0)
 
     function holder.Refresh()
-        local value = ns.Get(f.key)
-        local hex = ns.ColorHex(value)
-        local name, shown
-        if hex then
-            for _, p in ipairs(ns.PALETTE) do
-                if p.hex == hex then name = p.label; break end
-            end
-            shown = swatch.SetColors(hex)
-        else
-            local special
-            for _, s in ipairs(f.specials or {}) do
-                if s.value == value then special = s; break end
-            end
-            name = special and special.label
-            shown = swatch.SetColors(special and special.swatch and special.swatch())
-        end
+        local name, shown = ShowColor(swatch, f)
         text:SetPoint("LEFT", shown and 30 or 8, 0)
-        text:SetText(name or (hex and "#" .. hex) or tostring(value))
+        text:SetText(name)
         btn:SetEnabled(Available(holder, f))
         RefreshEditor(f)
     end

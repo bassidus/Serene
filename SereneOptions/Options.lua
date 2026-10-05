@@ -375,11 +375,15 @@ end
 
 -- The section's settings with each category's gathered together, the
 -- categories in the order they first appear. A font group is one row, at
--- its first setting.
+-- its first setting, and its color goes with it.
 local function SectionFeatures(section)
+    local inGroup = {}
+    for _, f in ipairs(ns.features) do
+        if f.group and f.group.color then inGroup[f.group.color] = true end
+    end
     local order, byCategory = {}, {}
     for _, f in ipairs(ns.features) do
-        if f.section == section and (not f.group or f == f.group.font) then
+        if f.section == section and not inGroup[f.key] and (not f.group or f == f.group.font) then
             local category = f.category or ""
             if not byCategory[category] then
                 byCategory[category] = {}

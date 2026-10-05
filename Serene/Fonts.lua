@@ -106,9 +106,11 @@ end
 -- def = { prefix =, label = row name, section =, category =, apply =,
 --         size = { min, max, default },
 --         outline = default outline value ("default" offers Blizzard's own look),
---         blizzard = see type "outline" in Core.lua }
+--         blizzard = see type "outline" in Core.lua,
+--         color = key of a color setting for the same text; it is shown in
+--         the group's row and editor instead of a row of its own }
 function ns.RegisterFontSettings(def)
-    local group = { label = def.label }
+    local group = { label = def.label, color = def.color }
     group.font = {
         key = def.prefix .. "Font", label = "Font", section = def.section, category = def.category, type = "dropdown",
         default = "default", preview = true, apply = def.apply, options = ns.FontOptions, group = group,

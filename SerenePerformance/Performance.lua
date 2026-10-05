@@ -178,6 +178,9 @@ local function SortKey()
     return SORTS[SereneDB.perfSort] and SereneDB.perfSort or "mem"
 end
 
+-- /serene reset: back to sorting by memory; an open page shows it on its next update.
+ns.OnResetAll(function() SereneDB.perfSort = nil end)
+
 -------------------------------------------------------------------------------
 --  Page
 -------------------------------------------------------------------------------

@@ -58,4 +58,5 @@ A page listing every loaded addon's CPU and memory use (sortable), plus average 
 
 ## Usage
 `/serene` Opens or closes the options window.
+`/serene reset` Puts everything back to its defaults: every option, the options window's position and size, and the minimap icon's spot.
 The minimap icon opens the options when you left-click it and reloads the UI when you right-click it.

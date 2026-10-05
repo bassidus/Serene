@@ -128,10 +128,18 @@ function ns.OnReset(fn, section)
     ns.resetHooks[#ns.resetHooks + 1] = { fn = fn, section = section }
 end
 
+-- State that is not an option, which only /serene reset puts back (e.g.
+-- the minimap icon's spot); fn runs after the options are reset.
+ns.resetAllHooks = {}
+function ns.OnResetAll(fn)
+    ns.resetAllHooks[#ns.resetAllHooks + 1] = fn
+end
+
 -- Puts every option back to its default, or with a section only the
 -- options on that page. Window state, the minimap icon's spot and the
--- Performance sort are not options and stay.
-function ns.ResetDefaults(section)
+-- Performance sort are not options and stay (see ns.ResetAll). quiet: no
+-- message in chat.
+function ns.ResetDefaults(section, quiet)
     local function Included(s) return not section or s == section end
     for _, f in ipairs(ns.features) do
         if Included(f.section) then SereneDB[f.key] = f.default end
@@ -143,11 +151,22 @@ function ns.ResetDefaults(section)
         if Included(f.section) and f.apply then f.apply() end
     end
     if ns.RefreshOptions then ns.RefreshOptions() end
+    if quiet then return end
     if section then
         ns.Print(section .. " options are back to their defaults.")
     else
         ns.Print("All options are back to their defaults.")
     end
+end
+
+-- /serene reset: every option, and what Reset defaults leaves: the options
+-- window's spot, size, page and open categories (SereneOptions, which is
+-- load on demand, so cleared here) and the ns.OnResetAll state.
+function ns.ResetAll()
+    ns.ResetDefaults(nil, true)
+    SereneDB.optionsWindow, SereneDB.optionsPage, SereneDB.optionsOpen = nil, nil, nil
+    for _, fn in ipairs(ns.resetAllHooks) do fn() end
+    ns.Print("Everything is back to its defaults, the options window and the minimap icon too.")
 end
 
 -------------------------------------------------------------------------------
@@ -218,6 +237,7 @@ end
 -------------------------------------------------------------------------------
 --  /serene opens or closes the options window. The window lives in the
 --  load-on-demand SereneOptions, which sets ns.ToggleOptionsWindow.
+--  /serene reset puts everything back to its defaults (ns.ResetAll).
 -------------------------------------------------------------------------------
 local LoadAddOn = (C_AddOns and C_AddOns.LoadAddOn) or LoadAddOn
 
@@ -238,8 +258,14 @@ function ns.ToggleOptions()
 end
 
 SLASH_SERENE1 = "/serene"
-SlashCmdList["SERENE"] = function()
-    ns.ToggleOptions()
+SlashCmdList["SERENE"] = function(msg)
+    if strtrim(msg or ""):lower() ~= "reset" then
+        ns.ToggleOptions()
+    elseif InCombatLockdown() then
+        ns.Print("Cannot reset during combat.")
+    elseif SereneDB then
+        ns.ResetAll()
+    end
 end
 
 -------------------------------------------------------------------------------

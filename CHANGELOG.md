@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Options: the window keeps its position and size between sessions
+- Options: opening the window runs a full garbage collection, so memory figures are current
+- /serene reset puts everything back to its defaults, the options window and the minimap icon's spot included
+- Options: a "?" on each category explains its settings, in place of a tooltip on every setting
+- Tooltip: Size scales tooltips from 50% to 150%
 - Action bars: Hide Macro Names is now Show Macro Names (off by default), with its own font, size, outline, color and X/Y offset
 - Action bars: keybind and macro name positions open a popup with a dot to drag (right-click for Blizzard's spot) instead of X/Y sliders
 - Nameplates: enemy players always have class colors and your target is always highlighted; the Colors group is Threat colors with Select role

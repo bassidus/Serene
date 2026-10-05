@@ -3,7 +3,7 @@
 --  a control per registered feature. At the bottom, with the buttons: the
 --  Modules tab, listing every Serene* addon, loaded or not, with a checkbox
 --  to turn it on or off, then the ns.RegisterPage pages. Built on first
---  open; position and scale last for the session.
+--  open; position and scale are saved (SereneDB.optionsWindow).
 -------------------------------------------------------------------------------
 local ns = Serene
 local W = ns.Widgets
@@ -813,7 +813,6 @@ local function FitHeight()
     frame:SetHeight(math.max(sidebarH, math.min(wantedH, screenH)))
 end
 
--- Size and position last for the session only; nothing is saved.
 local function Center()
     frame:ClearAllPoints()
     frame:SetPoint("CENTER")
@@ -836,6 +835,20 @@ end
 
 local function CursorX()
     return GetCursorPosition() / UIParent:GetEffectiveScale()
+end
+
+-- Saved as the top left corner in UIParent units, and the scale.
+local function SaveWindow()
+    local s = frame:GetScale()
+    SereneDB.optionsWindow = { left = frame:GetLeft() * s, top = frame:GetTop() * s, scale = s }
+end
+
+-- Where it was saved, else the default size, centered.
+local function PlaceWindow()
+    local saved = SereneDB.optionsWindow
+    frame:SetScale(saved and saved.scale or DEFAULT_SCALE)
+    FitHeight()
+    if saved then PinTopLeft(saved.left, saved.top, saved.scale) else Center() end
 end
 
 local function CreateScaleGrip()
@@ -871,11 +884,11 @@ local function CreateScaleGrip()
     grip:SetScript("OnMouseUp", function(self, button)
         if button ~= "LeftButton" then return end
         self:SetScript("OnUpdate", nil)
+        SaveWindow()
     end)
     grip:SetScript("OnClick", function()  -- right-click: default size, centered
-        frame:SetScale(DEFAULT_SCALE)
-        FitHeight()
-        Center()
+        SereneDB.optionsWindow = nil
+        PlaceWindow()
     end)
     grip:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -907,6 +920,7 @@ local function Build()
     titleBar:SetScript("OnDragStop", function()
         frame:StopMovingOrSizing()
         frame:SetUserPlaced(false)  -- keep it out of the client's layout cache
+        SaveWindow()
     end)
     local titleLine = W.Solid(titleBar, "ARTWORK", W.EDGE)
     titleLine:SetPoint("BOTTOMLEFT", 1, 0)
@@ -959,12 +973,9 @@ local function Build()
     CreateFooter()
 
     CreateScaleGrip()
-    frame:SetScale(DEFAULT_SCALE)
-    FitHeight()
-
-    -- Every session starts centered: no client layout cache.
+    -- Saved by us, not in the client's layout cache.
     if frame.SetDontSavePosition then frame:SetDontSavePosition(true) end
-    Center()
+    PlaceWindow()
 
     frame:SetScript("OnShow", function()
         FitHeight()  -- the screen or UI scale may have changed
@@ -979,6 +990,14 @@ local function Build()
     ShowPage(pages[SereneDB.optionsPage] and SereneDB.optionsPage or first or MODULES)
     frame:Hide()
 end
+
+-- /serene reset (which clears the saved state): default size, centered,
+-- every category closed.
+ns.OnResetAll(function()
+    if not frame then return end
+    PlaceWindow()
+    CloseGroups()
+end)
 
 function ns.RefreshOptions()
     if not (frame and frame:IsShown()) then return end
@@ -997,6 +1016,9 @@ function ns.ToggleOptionsWindow()
         return
     end
     if not frame then Build() end
+    -- A full garbage collection first, so memory (e.g. on the Performance
+    -- page) reads what is really in use; the hitch lands on the click.
+    collectgarbage("collect")
     frame:Show()
 end
 

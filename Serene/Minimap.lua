@@ -116,6 +116,13 @@ local function Apply()
     if SereneDB.minimap.hide then DBIcon:Hide("Serene") else DBIcon:Show("Serene") end
 end
 
+-- /serene reset: the icon goes back to LibDBIcon's default spot.
+ns.OnResetAll(function()
+    if SereneDB.minimap then SereneDB.minimap.minimapPos = nil end
+    local DBIcon = registered and LibStub("LibDBIcon-1.0", true)
+    if DBIcon then DBIcon:Refresh("Serene") end
+end)
+
 ns.RegisterFeature({
     key = "minimapIcon", label = "Show minimap icon", apply = Apply,
     tooltip = "Left-click the icon to open these options, right-click it to reload the UI. Drag it to move it.",

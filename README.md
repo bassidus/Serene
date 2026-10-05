@@ -4,7 +4,6 @@ Small quality-of-life tweaks for WoW Forever.
 
 Serene is a core addon plus a set of modules, and every module is its own addon. If you don't want one, disable it in the addon list or on the Modules page in the options.
 
-
 ## Interface
 
 - Action bars: out-of-range coloring, shorter keybind text, macro names and fonts
@@ -13,9 +12,9 @@ Serene is a core addon plus a set of modules, and every module is its own addon.
 - Tooltip: follows the cursor, cleaner look, extra info like target, item level and guild rank
 - Unit frames: class colors, darker frames, options for the name, level and health text
 
-## Automation
+## Quality of life
 
-- QoL: faster looting, auto repair, sells your grays, a Train All button, skips cinematics, hides tutorials and error spam, more camera zoom
+- General: faster looting, auto repair, sells your grays, a Train All button, skips cinematics, hides tutorials and error spam, more camera zoom
 - Quests: accepts and turns in quests for you (hold Shift to do it yourself)
 - Social: accepts invites from friends, blocks invites, duels and shared quests from strangers, invites on whisper, says thanks when someone buffs you
 

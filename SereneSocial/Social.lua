@@ -244,13 +244,13 @@ end
 -- First and under no heading: it decides who is a friend for the whole page.
 ns.RegisterFeature({
     key = "socialGuildFriends", label = "Count your guild as friends", section = SECTION,
-    default = false, apply = Apply,
+    default = true, apply = Apply,
     tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every "
         .. "setting on this page.",
 })
 ns.RegisterFeature({
     key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION, category = "Invites",
-    default = false, apply = Apply,
+    default = true, apply = Apply,
     tooltip = "Joins at once when a friend invites you, as long as you are not already in a group.",
 })
 ns.RegisterFeature({

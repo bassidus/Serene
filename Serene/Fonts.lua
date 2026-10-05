@@ -108,21 +108,25 @@ end
 --         outline = default outline value ("default" offers Blizzard's own look),
 --         blizzard = see type "outline" in Core.lua,
 --         color = key of a color setting for the same text; it is shown in
---         the group's row and editor instead of a row of its own }
+--         the group's row and editor instead of a row of its own,
+--         requires = see Core.lua; the row is dimmed and locked with it }
 function ns.RegisterFontSettings(def)
     local group = { label = def.label, color = def.color }
     group.font = {
         key = def.prefix .. "Font", label = "Font", section = def.section, category = def.category, type = "dropdown",
         default = "default", preview = true, apply = def.apply, options = ns.FontOptions, group = group,
+        requires = def.requires,
     }
     group.size = {
         key = def.prefix .. "FontSize", label = "Size", section = def.section, category = def.category, type = "slider",
         min = def.size[1], max = def.size[2], step = 1, default = def.size[3], apply = def.apply, group = group,
+        requires = def.requires,
     }
     group.outline = {
         key = def.prefix .. "Outline", label = "Outline",
         section = def.section, category = def.category, type = "outline",
         default = def.outline, blizzard = def.blizzard, apply = def.apply, group = group,
+        requires = def.requires,
     }
     ns.RegisterFeature(group.font)
     ns.RegisterFeature(group.size)

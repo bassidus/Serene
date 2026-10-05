@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Action bars: Hide Macro Names is now Show Macro Names (off by default), with its own font, size, outline, color and X/Y offset
 - Unit Frames: Name, Level and Health/Mana fonts
 - Unit Frames: Hide Name Background removes the colored bar behind the target and focus names
 - Unit Frames: Hide Resting Glow and Hide Resting Zzz

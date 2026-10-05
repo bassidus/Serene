@@ -86,67 +86,73 @@ local function Update(btn)
 end
 
 -------------------------------------------------------------------------------
---  Style -- font, size, outline, color and position of the hotkey text.
---  Blizzard's look is captured per hotkey just before its first change and
---  put back exactly once a setting returns to default. Untouched hotkeys
---  cost nothing.
+--  Style -- font, size, outline, color and position of the hotkey text and
+--  the macro name. Blizzard's look is captured per text just before its
+--  first change and put back exactly once a setting returns to default.
+--  Untouched texts cost nothing.
 -------------------------------------------------------------------------------
-local DEFAULT_SIZE = 12  -- Blizzard's action button hotkey size
+-- One entry per text: the button's field, its settings prefix and Blizzard's
+-- size. Offsets put the text's `point` relative to the button's `rel`; at
+-- Blizzard's spot (x, y) its exact anchors are put back. The fractions are
+-- where that spot really lands (button 1), so the first step does not jump.
+-- The keybind stays right-aligned like Blizzard's, so wide text grows to the
+-- left. Current settings are read into each entry once per Apply.
+local KEYBIND = { field = "HotKey", prefix = "keybind", defaultSize = 12, point = "RIGHT", rel = "CENTER",
+                  justify = "RIGHT", x = 18, y = 13, fx = 0.5, fy = -0.5 }  -- Blizzard: 18.5, 12.5
+local MACRO = { field = "Name", prefix = "macro", defaultSize = 10, point = "BOTTOM", rel = "BOTTOM",
+                justify = "CENTER", x = 0, y = 2, fx = 0, fy = 0 }
+local TEXTS = { KEYBIND, MACRO }
 
-local orig = setmetatable({}, { __mode = "k" })  -- [hotkey] = Blizzard's look
+local orig = setmetatable({}, { __mode = "k" })  -- [text] = Blizzard's look
 local painting  -- set while we color, so our own calls are not taken for Blizzard's
 
--- Current settings, read once per Apply.
-local font, size, outline, color, offX, offY
-local noRed   -- Range Coloring is on: the icon shows range, the text stays put
-local styled  -- any of them off default
-
--- Blizzard turns the text red while the target is out of range.
+-- Blizzard turns the hotkey red while the target is out of range.
 local function IsRed(r, g, b)
     return type(r) == "number" and r > 0.9 and g < 0.3 and b < 0.3
 end
 
-local function Original(hk)
-    local o = orig[hk]
+local function Original(fs, t)
+    local o = orig[fs]
     if not o then
-        local path, sz, flags = hk:GetFont()
-        local sr, sg, sb, sa = hk:GetShadowColor()
-        o = { path = path, size = sz, flags = flags, shadow = { sr, sg, sb, sa },
-              justify = hk:GetJustifyH(), points = {} }
-        o.sx, o.sy = hk:GetShadowOffset()
+        local path, sz, flags = fs:GetFont()
+        local sr, sg, sb, sa = fs:GetShadowColor()
+        o = { t = t, path = path, size = sz, flags = flags, shadow = { sr, sg, sb, sa },
+              justify = fs:GetJustifyH(), points = {} }
+        o.sx, o.sy = fs:GetShadowOffset()
         -- Blizzard's in-range color (o.r/g/b) and, while out of range, its red.
-        local r, g, b = hk:GetTextColor()
+        local r, g, b = fs:GetTextColor()
         if IsRed(r, g, b) then
             o.red, o.rr, o.rg, o.rb = true, r, g, b
             local c = LIGHTGRAY_FONT_COLOR
             if c then r, g, b = c.r, c.g, c.b else r, g, b = 0.75, 0.75, 0.75 end
         end
         o.r, o.g, o.b = r, g, b
-        for i = 1, hk:GetNumPoints() do o.points[i] = { hk:GetPoint(i) } end
-        orig[hk] = o
+        for i = 1, fs:GetNumPoints() do o.points[i] = { fs:GetPoint(i) } end
+        orig[fs] = o
     end
     return o
 end
 
-local function StyleFont(hk, o)
-    if font == "default" and size == DEFAULT_SIZE and outline == "default" then
+local function StyleFont(fs, o)
+    local t = o.t
+    if t.font == "default" and t.size == t.defaultSize and t.outline == "default" then
         if o.font and o.path then
-            hk:SetFont(o.path, o.size, o.flags or "")
-            hk:SetShadowColor(o.shadow[1], o.shadow[2], o.shadow[3], o.shadow[4])
-            hk:SetShadowOffset(o.sx or 0, o.sy or 0)
+            fs:SetFont(o.path, o.size, o.flags or "")
+            fs:SetShadowColor(o.shadow[1], o.shadow[2], o.shadow[3], o.shadow[4])
+            fs:SetShadowOffset(o.sx or 0, o.sy or 0)
         end
         o.font = nil
         return
     end
     local flags, shadow = o.flags, nil
-    if outline ~= "default" then flags, shadow = ns.FontFlags(outline) end
-    -- Relative to each hotkey's own size, so smaller pet/stance text stays smaller.
-    ns.SetFont(hk, font, (o.size or DEFAULT_SIZE) + size - DEFAULT_SIZE, flags, o.path)
-    if outline == "default" then
-        hk:SetShadowColor(o.shadow[1], o.shadow[2], o.shadow[3], o.shadow[4])
-        hk:SetShadowOffset(o.sx or 0, o.sy or 0)
+    if t.outline ~= "default" then flags, shadow = ns.FontFlags(t.outline) end
+    -- Relative to each text's own size, so smaller pet/stance text stays smaller.
+    ns.SetFont(fs, t.font, (o.size or t.defaultSize) + t.size - t.defaultSize, flags, o.path)
+    if t.outline == "default" then
+        fs:SetShadowColor(o.shadow[1], o.shadow[2], o.shadow[3], o.shadow[4])
+        fs:SetShadowOffset(o.sx or 0, o.sy or 0)
     else
-        ns.SetShadow(hk, shadow)
+        ns.SetShadow(fs, shadow)
     end
     o.font = true
 end
@@ -154,22 +160,23 @@ end
 -- The color the text should have: Blizzard's out of range red (unless Range
 -- Coloring shows range on the icon), else our color, else Blizzard's own.
 local function Wanted(o)
-    if o.red and not noRed then return o.rr, o.rg, o.rb end
-    if color then return color[1], color[2], color[3] end
+    local t = o.t
+    if o.red and not t.noRed then return o.rr, o.rg, o.rb end
+    if t.color then return t.color[1], t.color[2], t.color[3] end
     return o.r, o.g, o.b
 end
 
-local function Paint(hk, r, g, b)
+local function Paint(fs, r, g, b)
     painting = true
-    hk:SetTextColor(r, g, b)
+    fs:SetTextColor(r, g, b)
     painting = nil
 end
 
 -- Every color Blizzard sets is remembered; while we manage the color, ours
 -- goes straight back on.
-local function OnColor(hk, r, g, b)
+local function OnColor(fs, r, g, b)
     if painting then return end
-    local o = orig[hk]
+    local o = orig[fs]
     if IsRed(r, g, b) then
         o.red, o.rr, o.rg, o.rb = true, r, g, b
     else
@@ -177,66 +184,74 @@ local function OnColor(hk, r, g, b)
     end
     if o.colored then
         local wr, wg, wb = Wanted(o)
-        if wr ~= r or wg ~= g or wb ~= b then Paint(hk, wr, wg, wb) end
+        if wr ~= r or wg ~= g or wb ~= b then Paint(fs, wr, wg, wb) end
     end
 end
 
-local function StyleColor(hk, o)
-    if color or noRed then
+local function StyleColor(fs, o)
+    if o.t.color or o.t.noRed then
         if not o.hooked then
             o.hooked = true
-            hooksecurefunc(hk, "SetTextColor", OnColor)
-            if hk.SetVertexColor then hooksecurefunc(hk, "SetVertexColor", OnColor) end
+            hooksecurefunc(fs, "SetTextColor", OnColor)
+            if fs.SetVertexColor then hooksecurefunc(fs, "SetVertexColor", OnColor) end
         end
         o.colored = true
-        Paint(hk, Wanted(o))
+        Paint(fs, Wanted(o))
     elseif o.colored then
         o.colored = nil
-        Paint(hk, Wanted(o))  -- Blizzard's own color, red included
+        Paint(fs, Wanted(o))  -- Blizzard's own color, red included
     end
 end
 
--- Offsets put the text's right edge relative to the middle of the button;
--- it stays right-aligned like Blizzard's, so wide text grows to the left.
--- At the defaults Blizzard's exact anchors are put back; the fractions are
--- where its spot really lands (button 1), so the first step does not jump.
-local BLIZZARD_X, BLIZZARD_Y = 18, 13
-local FRACTION_X, FRACTION_Y = 0.5, -0.5  -- Blizzard: 18.5, 12.5
-
-local function Place(btn, hk, o)
-    if offX == BLIZZARD_X and offY == BLIZZARD_Y then
+local function Place(btn, fs, o)
+    local t = o.t
+    if t.offX == t.x and t.offY == t.y then
         if o.placed then
-            hk:ClearAllPoints()
-            for _, p in ipairs(o.points) do hk:SetPoint(p[1], p[2], p[3], p[4], p[5]) end
-            hk:SetJustifyH(o.justify or "RIGHT")
+            fs:ClearAllPoints()
+            for _, p in ipairs(o.points) do fs:SetPoint(p[1], p[2], p[3], p[4], p[5]) end
+            fs:SetJustifyH(o.justify or t.justify)
             o.placed = nil
         end
         return
     end
-    hk:ClearAllPoints()
-    hk:SetPoint("RIGHT", btn, "CENTER", offX + FRACTION_X, offY + FRACTION_Y)
-    hk:SetJustifyH("RIGHT")
+    fs:ClearAllPoints()
+    fs:SetPoint(t.point, btn, t.rel, t.offX + t.fx, t.offY + t.fy)
+    fs:SetJustifyH(t.justify)
     o.placed = true
 end
 
 local function ReadSettings()
-    font, size, outline = ns.Get("keybindFont"), ns.Get("keybindFontSize"), ns.Get("keybindOutline")
-    offX, offY = ns.Get("keybindOffsetX"), ns.Get("keybindOffsetY")
-    local mode = ns.Get("keybindColor")
-    local r, g, b = ns.ColorRGB(mode == "class" and ns.PlayerClassHex() or mode)
-    color = r and { r, g, b } or nil
-    noRed = ns.Enabled("rangeColors") and true or false
-    styled = font ~= "default" or size ~= DEFAULT_SIZE or outline ~= "default" or color ~= nil or noRed
-        or offX ~= BLIZZARD_X or offY ~= BLIZZARD_Y
+    for _, t in ipairs(TEXTS) do
+        local p = t.prefix
+        t.font, t.size, t.outline = ns.Get(p .. "Font"), ns.Get(p .. "FontSize"), ns.Get(p .. "Outline")
+        t.offX, t.offY = ns.Get(p .. "OffsetX"), ns.Get(p .. "OffsetY")
+        local mode = ns.Get(p .. "Color")
+        local r, g, b = ns.ColorRGB(mode == "class" and ns.PlayerClassHex() or mode)
+        t.color = r and { r, g, b } or nil
+        t.styled = t.font ~= "default" or t.size ~= t.defaultSize or t.outline ~= "default" or t.color ~= nil
+            or t.offX ~= t.x or t.offY ~= t.y
+    end
+    -- Range Coloring is on: the icon shows range, the keybind stays put.
+    KEYBIND.noRed = ns.Enabled("rangeColors") and true or false
+    KEYBIND.styled = KEYBIND.styled or KEYBIND.noRed
 end
 
 local function Style(btn)
-    local hk = btn.HotKey
-    if not hk or not (styled or orig[hk]) then return end
-    local o = Original(hk)
-    StyleFont(hk, o)
-    StyleColor(hk, o)
-    Place(btn, hk, o)
+    for _, t in ipairs(TEXTS) do
+        local fs = btn[t.field]
+        if fs and (t.styled or orig[fs]) then
+            local o = Original(fs, t)
+            StyleFont(fs, o)
+            StyleColor(fs, o)
+            Place(btn, fs, o)
+        end
+    end
+end
+
+-- Blizzard's look of button 1's text, for the options' Default previews.
+local function Button1(t)
+    local fs = _G.ActionButton1 and _G.ActionButton1[t.field]
+    return fs and Original(fs, t)
 end
 
 local function CollectButtons()
@@ -261,13 +276,12 @@ local function CollectButtons()
     end
 end
 
--- Rewrites every button; settings back on default put Blizzard's look back.
 -- Macro names: hidden with alpha only, so Blizzard's own text updates carry on.
 local macroHidden = setmetatable({}, { __mode = "k" })
-local function MacroText(btn, hide)
+local function MacroText(btn, show)
     local name = btn.Name
     if not name then return end
-    if hide then
+    if not show then
         name:SetAlpha(0)
         macroHidden[name] = true
     elseif macroHidden[name] then
@@ -276,15 +290,16 @@ local function MacroText(btn, hide)
     end
 end
 
+-- Rewrites every button; settings back on default put Blizzard's look back.
 local function Apply()
     CollectButtons()
     ReadSettings()
     local enabled = ns.Enabled("shortKeybinds")
-    local hideMacro = ns.Enabled("hideMacroText")
+    local showMacro = ns.Enabled("showMacroText")
     for btn in pairs(buttons) do
         SetText(btn, enabled)
         Style(btn)
-        MacroText(btn, hideMacro)
+        MacroText(btn, showMacro)
     end
 end
 
@@ -294,7 +309,7 @@ end
 local pending, forced = false, false
 local function Run()
     pending = false
-    if forced or styled or ns.Enabled("shortKeybinds") then Apply() end
+    if forced or KEYBIND.styled or MACRO.styled or ns.Enabled("shortKeybinds") then Apply() end
     forced = false
 end
 local function Queue(force)
@@ -323,19 +338,12 @@ ns.RegisterFeature({
     apply = ApplySetting,
     tooltip = "Shortens the keybind shown on each button: CTRL-2 becomes C2, Mouse Button 4 M4, NUMPAD5 N5.",
 })
-ns.RegisterFeature({
-    key = "hideMacroText", label = "Hide macro names", section = SECTION, category = "Button text",
-    apply = ApplySetting,
-    tooltip = "Hides the name written on buttons that hold a macro.",
-})
 ns.RegisterFontSettings({
     prefix = "keybind", label = "Keybind text", section = SECTION, category = "Button text", apply = ApplySetting,
-    size = { 6, 24, DEFAULT_SIZE }, outline = "default", color = "keybindColor",
+    size = { 6, 24, KEYBIND.defaultSize }, outline = "default", color = "keybindColor",
     blizzard = function()
-        local hk = _G.ActionButton1HotKey
-        if not hk then return {} end
-        local o = Original(hk)
-        return ns.OutlineOf(o.flags, o.sx, o.sy)
+        local o = Button1(KEYBIND)
+        return o and ns.OutlineOf(o.flags, o.sx, o.sy) or {}
     end,
 })
 ns.RegisterFeature({
@@ -344,21 +352,56 @@ ns.RegisterFeature({
     apply = ApplySetting,
     specials = {
         { value = "default", label = "Default", swatch = function()
-            local hk = _G.ActionButton1HotKey
-            if not hk then return nil end
-            local o = Original(hk)
-            return ns.RGBToHex(o.r, o.g, o.b)
+            local o = Button1(KEYBIND)
+            return o and ns.RGBToHex(o.r, o.g, o.b)
         end },
         { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
     },
 })
 ns.RegisterFeature({
     key = "keybindOffsetX", label = "Move keybind left / right", section = SECTION, category = "Button text",
-    type = "slider", min = -25, max = 45, step = 1, default = BLIZZARD_X, apply = ApplySetting,
+    type = "slider", min = -25, max = 45, step = 1, default = KEYBIND.x, apply = ApplySetting,
     tooltip = "Where the keybind text ends, counted from the middle of the button. The default is Blizzard's spot.",
 })
 ns.RegisterFeature({
     key = "keybindOffsetY", label = "Move keybind up / down", section = SECTION, category = "Button text",
-    type = "slider", min = -30, max = 30, step = 1, default = BLIZZARD_Y, apply = ApplySetting,
+    type = "slider", min = -30, max = 30, step = 1, default = KEYBIND.y, apply = ApplySetting,
     tooltip = "0 is the middle of the button. The default is Blizzard's spot.",
+})
+ns.RegisterFeature({
+    key = "showMacroText", label = "Show macro names", section = SECTION, category = "Button text",
+    default = false, apply = ApplySetting,
+    tooltip = "Shows the name written on buttons that hold a macro.",
+})
+ns.RegisterFontSettings({
+    prefix = "macro", label = "Macro name text", section = SECTION, category = "Button text", apply = ApplySetting,
+    size = { 6, 24, MACRO.defaultSize }, outline = "default", color = "macroColor", requires = "showMacroText",
+    blizzard = function()
+        local o = Button1(MACRO)
+        return o and ns.OutlineOf(o.flags, o.sx, o.sy) or {}
+    end,
+})
+ns.RegisterFeature({
+    key = "macroColor", label = "Macro name color", section = SECTION, category = "Button text",
+    type = "color", default = "default", requires = "showMacroText",
+    apply = ApplySetting,
+    specials = {
+        { value = "default", label = "Default", swatch = function()
+            local o = Button1(MACRO)
+            return o and ns.RGBToHex(o.r, o.g, o.b)
+        end },
+        { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
+    },
+})
+ns.RegisterFeature({
+    key = "macroOffsetX", label = "Move macro name left / right", section = SECTION, category = "Button text",
+    type = "slider", min = -20, max = 20, step = 1, default = MACRO.x, requires = "showMacroText",
+    apply = ApplySetting,
+    tooltip = "0 is the middle of the button.",
+})
+ns.RegisterFeature({
+    key = "macroOffsetY", label = "Move macro name up / down", section = SECTION, category = "Button text",
+    type = "slider", min = -10, max = 40, step = 1, default = MACRO.y, requires = "showMacroText",
+    apply = ApplySetting,
+    tooltip = "Where the bottom of the macro name sits, counted from the bottom of the button. The default is Blizzard's spot.",
 })

@@ -822,6 +822,7 @@ function W.FontGroup(parent, group)
         SetPreviewFont(text, font)
         text:SetText(OptionLabel(group.font, font) .. " / " .. ns.Get(group.size.key)
             .. " / " .. OutlineLabel(group.outline))
+        btn:SetEnabled(Available(holder, group.font))
         RefreshEditor(group)
     end
     return holder

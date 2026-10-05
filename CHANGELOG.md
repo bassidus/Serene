@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Tooltip: unit frame health and mana bars keep the unit tooltip on hover
 - Tooltip: Hide Right Click Hint removes "<Right click for Frame Settings>" from unit frame tooltips
 - Tooltip: Hide Border also flattens the "Equipped" tab on comparison tooltips
 - Tooltip: Player Item Level shows a player's average item level (others are inspected on hover)

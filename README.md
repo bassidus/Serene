@@ -34,6 +34,7 @@ All off by default.
 - Hide the border and set background opacity.
 - Hide the beta "Press F6 to submit an issue" line.
 - Hide the "<Right click for Frame Settings>" line on unit frame tooltips.
+- Keep the unit tooltip while hovering a unit frame's health or mana bar.
 - Content: class, level and faction colors, player titles, guild rank, the unit's target, health bar, item level of items and players, spell/item IDs.
 
 ### Nameplates

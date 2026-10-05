@@ -237,7 +237,8 @@ NP.RegisterModule({
 })
 
 ns.RegisterFeature({
-    key = "nameplateCastBar", label = "Cast Bar", section = "Nameplates", category = "Cast Bar & Debuffs",
+    key = "nameplateCastBar", label = "Show cast bar", section = "Nameplates", category = "Cast bar & debuffs",
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
-    tooltip = "Cast bar under the health bar with icon, spell and time left.\nPurple can be interrupted, grey cannot.",
+    tooltip = "A bar under the health bar with the spell's icon, name and time left while the enemy casts.\n"
+        .. "Purple can be interrupted, gray cannot.",
 })

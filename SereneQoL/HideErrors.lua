@@ -75,13 +75,13 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "hideErrors", label = "Hide Error Messages / Speech", section = "Quality of Life", category = "Interface",
+    key = "hideErrors", label = "Hide error messages / speech", section = "Quality of life", category = "Interface",
     apply = Apply,
     tooltip = "Hides the red error text at the top of the screen and its voice line (\"Not enough rage\", \"Out of range\"...). "
         .. "Errors you need to act on, like full bags or not enough money, still show.",
 })
 ns.RegisterFeature({
-    key = "hideErrorsWhen", label = "When to Hide", section = "Quality of Life", category = "Interface",
+    key = "hideErrorsWhen", label = "When to hide", section = "Quality of life", category = "Interface",
     type = "dropdown", default = "always",
     requires = "hideErrors", apply = Apply,
     tooltip = "Always, or only while you are in combat.",

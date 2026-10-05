@@ -116,10 +116,12 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "tooltipHideBorder", label = "Hide Border", section = "Tooltip", category = "Appearance", apply = Apply,
+    key = "tooltipHideBorder", label = "Hide border", section = "Tooltip", category = "Appearance", apply = Apply,
+    tooltip = "Removes the frame around tooltips and leaves a flat background.",
 })
 ns.RegisterFeature({
-    key = "tooltipBgOpacity", label = "Background Opacity", section = "Tooltip", category = "Appearance",
+    key = "tooltipBgOpacity", label = "Background opacity", section = "Tooltip", category = "Appearance",
     type = "slider",
     min = 0, max = 100, step = 5, default = 90, apply = Apply,
+    tooltip = "0 is see-through, 100 is Blizzard's normal background.",
 })

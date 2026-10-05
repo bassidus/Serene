@@ -162,7 +162,7 @@ CreateResetButton = function(sidebar)
     local function Disarm()
         armed = false
         if timer then timer:Cancel(); timer = nil end
-        btn.label:SetText("Reset Defaults")
+        btn.label:SetText("Reset defaults")
         btn:SetSelected(false)
     end
     btn:SetScript("OnClick", function()

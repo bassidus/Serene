@@ -44,6 +44,6 @@ end
 hooksecurefunc(GameTooltip, "Show", Strip)
 
 ns.RegisterFeature({
-    key = "tooltipHideClickHint", label = "Hide Right Click Hint", section = "Tooltip", category = "Hints",
+    key = "tooltipHideClickHint", label = "Hide the right-click line", section = "Tooltip", category = "Hints",
     tooltip = "Removes the \"<Right click for Frame Settings>\" line from unit frame tooltips.",
 })

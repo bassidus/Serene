@@ -243,32 +243,40 @@ end
 -------------------------------------------------------------------------------
 -- First and under no heading: it decides who is a friend for the whole page.
 ns.RegisterFeature({
-    key = "socialGuildFriends", label = "Guild Counts as Friends", section = SECTION, default = false, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "partyFromFriends", label = "Accept Invites from Friends", section = SECTION, category = "Invites",
+    key = "socialGuildFriends", label = "Count your guild as friends", section = SECTION,
     default = false, apply = Apply,
+    tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every "
+        .. "setting on this page.",
 })
 ns.RegisterFeature({
-    key = "blockPartyInvites", label = "Block Group Invites", section = SECTION, category = "Blocking",
+    key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION, category = "Invites",
     default = false, apply = Apply,
-    tooltip = "Declines group invites from anyone who is not a friend.",
+    tooltip = "Joins at once when a friend invites you, as long as you are not already in a group.",
 })
 ns.RegisterFeature({
-    key = "blockDuels", label = "Block Duels", section = SECTION, category = "Blocking", default = false, apply = Apply,
-    tooltip = "Declines duels from anyone who is not a friend.",
-})
-ns.RegisterFeature({
-    key = "blockSharedQuests", label = "Block Shared Quests", section = SECTION, category = "Blocking",
+    key = "blockPartyInvites", label = "Block group invites from strangers", section = SECTION, category = "Blocking",
     default = false, apply = Apply,
-    tooltip = "Declines quests shared by anyone who is not a friend.",
+    tooltip = "Declines group invites from anyone who is not a friend. Chat says who was declined.",
 })
 ns.RegisterFeature({
-    key = "whisperInvite", label = "Invite on Whisper", section = SECTION, category = "Invites",
+    key = "blockDuels", label = "Block duels from strangers", section = SECTION, category = "Blocking",
     default = false, apply = Apply,
+    tooltip = "Declines duels from anyone who is not a friend. Chat says who was declined.",
 })
 ns.RegisterFeature({
-    key = "whisperInviteKeyword", label = "Invite Keyword", section = SECTION, category = "Invites",
+    key = "blockSharedQuests", label = "Block quests shared by strangers", section = SECTION, category = "Blocking",
+    default = false, apply = Apply,
+    tooltip = "Declines quests shared by anyone who is not a friend. Chat says who was declined.",
+})
+ns.RegisterFeature({
+    key = "whisperInvite", label = "Invite players who whisper a keyword", section = SECTION, category = "Invites",
+    default = false, apply = Apply,
+    tooltip = "Sends a group invite to whoever whispers you the keyword. If you can't invite (you are not the "
+        .. "leader, or the group is full), they get a whisper back saying why.",
+})
+ns.RegisterFeature({
+    key = "whisperInviteKeyword", label = "Keyword", section = SECTION, category = "Invites",
+    tooltip = "The word to whisper. Upper or lower case does not matter.",
     type = "dropdown", default = "both",
     requires = "whisperInvite",
     options = function()
@@ -280,7 +288,7 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "whisperInviteFrom", label = "Invite Whispers From", section = SECTION, category = "Invites",
+    key = "whisperInviteFrom", label = "Who gets invited", section = SECTION, category = "Invites",
     type = "dropdown",
     default = "anyone", requires = "whisperInvite",
     options = function()

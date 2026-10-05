@@ -9,7 +9,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "FPS & Latency"
+local SECTION = "FPS & latency"
 local UPDATE_INTERVAL = 1
 local PAD_X, PAD_Y, LINE_GAP = 5, 3, 2
 local DEFAULT_POINT = { "BOTTOMRIGHT", "BOTTOMRIGHT", -6, 6 }
@@ -233,14 +233,17 @@ end)
 --  Settings
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
-    key = "statsFps", label = "Show Framerate", section = SECTION, category = "Display", apply = Apply,
+    key = "statsFps", label = "Show framerate (FPS)", section = SECTION, category = "Display", apply = Apply,
+    tooltip = "Frames per second. The game's Toggle Framerate key hides and shows the whole box.",
 })
 ns.RegisterFeature({
-    key = "statsLatency", label = "Show Latency", section = SECTION, category = "Display", apply = Apply,
+    key = "statsLatency", label = "Show latency (ms)", section = SECTION, category = "Display", apply = Apply,
+    tooltip = "How long the server takes to answer you, in milliseconds.",
 })
 ns.RegisterFeature({
-    key = "statsLocked", label = "Lock Position", section = SECTION, category = "Display",
+    key = "statsLocked", label = "Lock position", section = SECTION, category = "Display",
     default = false, apply = Apply,
+    tooltip = "Unlocked, you can drag the box anywhere on the screen.",
 })
 ns.RegisterFeature({
     key = "statsLayout", label = "Layout", section = SECTION, category = "Appearance",
@@ -254,7 +257,7 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "statsLabels", label = "Format", section = SECTION, category = "Appearance",
+    key = "statsLabels", label = "Text format", section = SECTION, category = "Appearance",
     type = "dropdown", default = "suffix",
     apply = Apply,
     options = function()
@@ -266,11 +269,12 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "statsColors", label = "Colors", section = SECTION, category = "Appearance",
+    key = "statsColors", label = "Number color", section = SECTION, category = "Appearance",
     type = "color", default = "status",
     apply = Apply,
     specials = {
-        { value = "status", label = "By value", swatch = function() return GOOD, OK, BAD end },
+        { value = "status", label = "By value", swatch = function() return GOOD, OK, BAD end,
+          tooltip = "Green when good, yellow when so-so, red when poor." },
         { value = "class",  label = "By class", swatch = ns.PlayerClassHex },
     },
 })
@@ -279,6 +283,7 @@ ns.RegisterFontSettings({
     size = { 8, 28, 12 }, outline = "OUTLINE",
 })
 ns.RegisterFeature({
-    key = "statsBackground", label = "Background Opacity", section = SECTION, category = "Appearance", type = "slider",
+    key = "statsBackground", label = "Background opacity", section = SECTION, category = "Appearance", type = "slider",
     min = 0, max = 100, step = 5, default = 0, apply = Apply,
+    tooltip = "0 shows no background, 100 a solid black box.",
 })

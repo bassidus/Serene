@@ -36,8 +36,8 @@ local function Hook()
 end
 
 ns.RegisterFeature({
-    key = "fasterMovieSkip", label = "Skip Cinematics Without Asking",
-    section = "Quality of Life", category = "Camera & Cinematics",
+    key = "fasterMovieSkip", label = "Skip cinematics without asking",
+    section = "Quality of life", category = "Camera & cinematics",
     apply = function() if On() then Hook() end end,
     tooltip = "Escape, Space or Enter ends a cinematic or movie at once, without the \"Are you sure?\" question.",
 })

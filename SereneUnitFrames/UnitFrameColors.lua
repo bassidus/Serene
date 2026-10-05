@@ -146,7 +146,7 @@ watcher:SetScript("OnEvent", function(_, event, unit)
 end)
 
 ns.RegisterFeature({
-    key = "unitFrameClassColors", label = "Class Colored Healthbars", section = "Unit Frames", category = "Appearance",
+    key = "unitFrameClassColors", label = "Class-colored health bars", section = "Unit frames", category = "Appearance",
     apply = function()
         if ns.Enabled("unitFrameClassColors") then
             for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",
@@ -158,5 +158,6 @@ ns.RegisterFeature({
         end
         RefreshAll()
     end,
-    tooltip = "Class colors on the player, target, target of target and party frames.",
+    tooltip = "Players' health bars on the player, target, target of target, focus and party frames take their class "
+        .. "color. NPCs keep Blizzard's colors.",
 })

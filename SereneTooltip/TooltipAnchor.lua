@@ -36,7 +36,9 @@ end
 
 ns.RegisterFeature({
     key = "tooltipAnchor", type = "dropdown", default = "cursorRight",
-    label = "Tooltip Position", section = "Tooltip", category = "Position",
+    label = "Where tooltips appear", section = "Tooltip", category = "Position",
+    tooltip = "Blizzard default is the bottom-right corner. Tooltips that belong to a button, like action buttons "
+        .. "and bags, stay by their button.",
     options = function()
         return {
             { value = "default",     label = "Blizzard default" },
@@ -47,9 +49,11 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "tooltipOffsetX", type = "slider", default = 0, min = -100, max = 100, step = 1,
-    label = "Cursor Offset X", section = "Tooltip", category = "Position",
+    label = "Move left / right from cursor", section = "Tooltip", category = "Position",
+    tooltip = "Only used while tooltips follow the cursor.",
 })
 ns.RegisterFeature({
     key = "tooltipOffsetY", type = "slider", default = 0, min = -100, max = 100, step = 1,
-    label = "Cursor Offset Y", section = "Tooltip", category = "Position",
+    label = "Move up / down from cursor", section = "Tooltip", category = "Position",
+    tooltip = "Only used while tooltips follow the cursor.",
 })

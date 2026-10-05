@@ -21,7 +21,7 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "maxCameraZoom", label = "Farther Camera Zoom", section = "Quality of Life", category = "Camera & Cinematics",
+    key = "maxCameraZoom", label = "Farther camera zoom", section = "Quality of life", category = "Camera & cinematics",
     apply = Apply,
     tooltip = "Lets you zoom the camera out farther than Blizzard's default, as far as the game allows.",
 })

@@ -147,13 +147,14 @@ local function Apply()
     if ns.RefreshKeybinds then ns.RefreshKeybinds() end
 end
 
-local SECTION = "Action Bars"
+local SECTION = "Action bars"
 
 ns.RegisterFeature({
-    key = "rangeColors", label = "Range Coloring", section = SECTION, category = "Range", apply = Apply,
+    key = "rangeColors", label = "Color buttons out of range", section = SECTION, category = "Range", apply = Apply,
+    tooltip = "Tints an ability's icon while your target is too far away for it.",
 })
 ns.RegisterFeature({
-    key = "rangeColor", label = "Out of Range Color", section = SECTION, category = "Range",
+    key = "rangeColor", label = "Out-of-range color", section = SECTION, category = "Range",
     type = "color", default = "ff4d1a",
     requires = "rangeColors", apply = Apply,
 })

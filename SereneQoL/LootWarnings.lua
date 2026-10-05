@@ -22,8 +22,8 @@ f:SetScript("OnEvent", function(_, event, id, rollType)
 end)
 
 ns.RegisterFeature({
-    key = "skipLootWarnings", label = "Skip Bind-on-Pickup Warnings",
-    section = "Quality of Life", category = "Loot & Items",
+    key = "skipLootWarnings", label = "Skip bind-on-pickup warnings",
+    section = "Quality of life", category = "Loot & items",
     apply = function()
         for _, event in ipairs(EVENTS) do
             if ns.Enabled("skipLootWarnings") then

@@ -328,36 +328,37 @@ end
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
-local SECTION = "Unit Frames"
+local SECTION = "Unit frames"
 
 ns.RegisterFeature({
-    key = "unitFrameDark", label = "Dark Mode", section = SECTION, category = "Appearance",
+    key = "unitFrameDark", label = "Dark frames", section = SECTION, category = "Appearance",
     default = false, apply = StyleAll,
-    tooltip = "Dark frames around the player, target, party and pet frames.",
+    tooltip = "Darkens the art around the player, target, party and pet frames.",
 })
 ns.RegisterFeature({
     key = "unitFramePortrait", label = "Portrait", section = SECTION, category = "Appearance", type = "dropdown",
     default = "portrait", apply = ApplyPortrait,
-    tooltip = "Class Icon shows players' class icon instead of their face.\nHidden also hides the frame around it, and the level moves before the name.",
+    tooltip = "Class icon shows players' class icon instead of their face.\nHidden also hides the frame around it, and the level moves before the name.",
     options = function()
         return {
             { value = "portrait", label = "Portrait" },
-            { value = "class",    label = "Class Icon" },
+            { value = "class",    label = "Class icon" },
             { value = "hidden",   label = "Hidden" },
         }
     end,
 })
 ns.RegisterFeature({
-    key = "unitFrameHideName", label = "Hide Name", section = SECTION, category = "Name",
+    key = "unitFrameHideName", label = "Hide names", section = SECTION, category = "Name",
     default = false, apply = StyleAll,
 })
 ns.RegisterFeature({
-    key = "unitFrameHideNameBackground", label = "Hide Name Background", section = SECTION, category = "Name",
+    key = "unitFrameHideNameBackground", label = "Hide the colored bar behind names", section = SECTION,
+    category = "Name",
     apply = StyleAll,
     tooltip = "Removes the colored bar (blue, red, yellow...) behind the name on the target and focus frames, like the player frame.",
 })
 ns.RegisterFeature({
-    key = "unitFrameNameColor", label = "Name Color", section = SECTION, category = "Name", type = "color",
+    key = "unitFrameNameColor", label = "Name color", section = SECTION, category = "Name", type = "color",
     default = "default", apply = StyleAll,
     specials = {
         { value = "default", label = "Default", swatch = function() return "ffd100" end },
@@ -376,12 +377,12 @@ levelWatch:SetScript("OnEvent", function(_, _, unit)
 end)
 
 ns.RegisterFeature({
-    key = "unitFrameHideLevel", label = "Hide Level", section = SECTION, category = "Level",
+    key = "unitFrameHideLevel", label = "Hide level", section = SECTION, category = "Level",
     default = false, apply = StyleAll,
     tooltip = "While the portrait is hidden, the level is shown before the name instead, e.g. \"14 Hogger\".",
 })
 ns.RegisterFeature({
-    key = "unitFrameLevelColor", label = "Level Color", section = SECTION, category = "Level", type = "color",
+    key = "unitFrameLevelColor", label = "Level color", section = SECTION, category = "Level", type = "color",
     default = "ffd100", apply = StyleAll,
     specials = {
         { value = "default", label = "Default", swatch = function() return "ffffff", "40d940", "ffd100", "ff4d1a" end,
@@ -389,13 +390,15 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFeature({
-    key = "unitFrameText", label = "Health/Mana Text", section = SECTION, category = "Health & Mana", type = "dropdown",
+    key = "unitFrameText", label = "Health/mana numbers", section = SECTION, category = "Health & mana",
+    type = "dropdown",
     default = "blizzard", apply = ApplyText,
-    tooltip = "Value, Percent and Both are always shown.\nBlizzard keeps the game's own Status Text setting.",
+    tooltip = "How the numbers on the health and mana bars read. Current / max, Percent and Both are always shown.\n"
+        .. "Blizzard follows the game's own Status Text setting.",
     options = function()
         return {
-            { value = "blizzard", label = "Blizzard" },
-            { value = "value",    label = "Value" },
+            { value = "blizzard", label = "Blizzard setting" },
+            { value = "value",    label = "Current / max" },
             { value = "percent",  label = "Percent" },
             { value = "both",     label = "Both" },
         }

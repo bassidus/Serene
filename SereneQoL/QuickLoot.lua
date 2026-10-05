@@ -23,6 +23,6 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "quickLoot", label = "Fast Auto Loot", section = "Quality of Life", category = "Loot & Items", apply = Apply,
+    key = "quickLoot", label = "Fast auto loot", section = "Quality of life", category = "Loot & items", apply = Apply,
     tooltip = "Picks up everything the moment the loot window opens, faster than Blizzard's Auto Loot. Hold Shift to loot by hand.",
 })

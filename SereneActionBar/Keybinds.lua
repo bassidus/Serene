@@ -316,18 +316,20 @@ end)
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
-local SECTION = "Action Bars"
+local SECTION = "Action bars"
 
 ns.RegisterFeature({
-    key = "shortKeybinds", label = "Short Keybind Text", section = SECTION, category = "Button Text",
+    key = "shortKeybinds", label = "Shorten keybind text", section = SECTION, category = "Button text",
     apply = ApplySetting,
-    tooltip = "Shortens keybind text on the action bars (CTRL-2 -> C2, Mouse Button 4 -> M4, NUMPAD5 -> N5).",
+    tooltip = "Shortens the keybind shown on each button: CTRL-2 becomes C2, Mouse Button 4 M4, NUMPAD5 N5.",
 })
 ns.RegisterFeature({
-    key = "hideMacroText", label = "Hide Macro Text", section = SECTION, category = "Button Text", apply = ApplySetting,
+    key = "hideMacroText", label = "Hide macro names", section = SECTION, category = "Button text",
+    apply = ApplySetting,
+    tooltip = "Hides the name written on buttons that hold a macro.",
 })
 ns.RegisterFontSettings({
-    prefix = "keybind", label = "Keybind Font", section = SECTION, category = "Button Text", apply = ApplySetting,
+    prefix = "keybind", label = "Keybind font", section = SECTION, category = "Button text", apply = ApplySetting,
     size = { 6, 24, DEFAULT_SIZE }, outline = "default",
     blizzard = function()
         local hk = _G.ActionButton1HotKey
@@ -337,7 +339,7 @@ ns.RegisterFontSettings({
     end,
 })
 ns.RegisterFeature({
-    key = "keybindColor", label = "Keybind Color", section = SECTION, category = "Button Text",
+    key = "keybindColor", label = "Keybind color", section = SECTION, category = "Button text",
     type = "color", default = "default",
     apply = ApplySetting,
     specials = {
@@ -351,12 +353,12 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFeature({
-    key = "keybindOffsetX", label = "Keybind Offset X", section = SECTION, category = "Button Text", type = "slider",
-    min = -25, max = 45, step = 1, default = BLIZZARD_X, apply = ApplySetting,
-    tooltip = "Where the text ends, from the middle of the button; the default is Blizzard's spot.",
+    key = "keybindOffsetX", label = "Move keybind left / right", section = SECTION, category = "Button text",
+    type = "slider", min = -25, max = 45, step = 1, default = BLIZZARD_X, apply = ApplySetting,
+    tooltip = "Where the keybind text ends, counted from the middle of the button. The default is Blizzard's spot.",
 })
 ns.RegisterFeature({
-    key = "keybindOffsetY", label = "Keybind Offset Y", section = SECTION, category = "Button Text", type = "slider",
-    min = -30, max = 30, step = 1, default = BLIZZARD_Y, apply = ApplySetting,
-    tooltip = "0 is the middle of the button; the default is Blizzard's spot.",
+    key = "keybindOffsetY", label = "Move keybind up / down", section = SECTION, category = "Button text",
+    type = "slider", min = -30, max = 30, step = 1, default = BLIZZARD_Y, apply = ApplySetting,
+    tooltip = "0 is the middle of the button. The default is Blizzard's spot.",
 })

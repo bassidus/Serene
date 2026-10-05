@@ -186,9 +186,9 @@ local function Build(page)
 
     -- Summary: two columns of label / value.
     local STATS = {
-        { "fps",     "Average Framerate" }, { "cpuAvg",  "Average CPU" },
-        { "latency", "Average Latency" },   { "cpuPeak", "Peak CPU" },
-        { "memory",  "AddOn Memory" },
+        { "fps",     "Average framerate" }, { "cpuAvg",  "Average CPU" },
+        { "latency", "Average latency" },   { "cpuPeak", "Peak CPU" },
+        { "memory",  "Addon memory" },
     }
     local values, holders = {}, {}
     for i, s in ipairs(STATS) do
@@ -215,7 +215,7 @@ local function Build(page)
     end
 
     -- Framerate and latency: averages over the window, explained in a tooltip.
-    local AVERAGES = { fps = { "Average Framerate", "%.0f fps" }, latency = { "Average Latency", "%.0f ms" } }
+    local AVERAGES = { fps = { "Average framerate", "%.0f fps" }, latency = { "Average latency", "%.0f ms" } }
     for key, a in pairs(AVERAGES) do
         local h = holders[key]
         h:EnableMouse(true)

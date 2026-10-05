@@ -612,19 +612,25 @@ NP.ApplyRelayout = Relayout
 -- and debuff toggles, so the options page lists every toggle first.
 
 ns.RegisterFeature({
-    key = "nameplates", label = "Serene Enemy Nameplates", section = "Nameplates", apply = Refresh,
-    tooltip = "Serene's own plates for enemies: flat health bar, name and level, cast bar and your debuffs.",
+    key = "nameplates", label = "Use Serene's enemy nameplates", section = "Nameplates", apply = Refresh,
+    tooltip = "Replaces Blizzard's enemy nameplates with flat ones: health bar, name and level, cast bar and "
+        .. "debuffs. Friendly nameplates stay Blizzard's. Everything below is for these nameplates.",
 })
 ns.RegisterFeature({
-    key = "nameplateClassColors", label = "Class Colors", section = "Nameplates", category = "Colors", apply = Relayout,
-})
-ns.RegisterFeature({
-    key = "nameplateLevel", label = "Show Level", section = "Nameplates", category = "Text", apply = Relayout,
-})
-ns.RegisterFeature({
-    key = "nameplateHealthText", label = "Health Percent", section = "Nameplates", category = "Text", apply = Relayout,
-})
-ns.RegisterFeature({
-    key = "nameplateTargetHighlight", label = "Highlight Target", section = "Nameplates", category = "Colors",
+    key = "nameplateClassColors", label = "Class colors for players", section = "Nameplates", category = "Colors",
     apply = Relayout,
+    tooltip = "Enemy players' health bars take their class color instead of red.",
+})
+ns.RegisterFeature({
+    key = "nameplateLevel", label = "Show level", section = "Nameplates", category = "Text", apply = Relayout,
+})
+ns.RegisterFeature({
+    key = "nameplateHealthText", label = "Show health percent", section = "Nameplates", category = "Text",
+    apply = Relayout,
+    tooltip = "Health left as a percent, on the health bar.",
+})
+ns.RegisterFeature({
+    key = "nameplateTargetHighlight", label = "Highlight your target", section = "Nameplates", category = "Colors",
+    apply = Relayout,
+    tooltip = "Draws a white border around your target's nameplate.",
 })

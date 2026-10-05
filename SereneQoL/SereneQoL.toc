@@ -4,7 +4,7 @@
 ## Notes: Fast auto loot, skip bind-on-pickup warnings, type DELETE for you, repair and sell junk at vendors, train all, hide tutorials, skip cinematics, farther camera zoom, hide errors, /rl.
 ## Version: 1.2.0
 ## Dependencies: Serene
-## X-Serene-Section: Quality of Life
+## X-Serene-Section: Quality of life
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

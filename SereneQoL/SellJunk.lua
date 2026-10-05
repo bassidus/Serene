@@ -132,7 +132,7 @@ f:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "autoSellJunk", label = "Sell Gray Items at Vendors",
-    section = "Quality of Life", category = "Vendors & Trainers",
+    key = "autoSellJunk", label = "Sell gray items at vendors",
+    section = "Quality of life", category = "Vendors & trainers",
     tooltip = "Sells every gray (junk) item in your bags when you talk to a vendor.",
 })

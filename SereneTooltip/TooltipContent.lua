@@ -407,14 +407,21 @@ local function Content(category, key, label, default, apply, tooltip)
     })
 end
 
-Content("Colors", "tooltipClassColors", "Class Colors", true)
-Content("Colors", "tooltipLevelColor", "Level Color", true)
-Content("Colors", "tooltipFactionColor", "Faction Color", true)
-Content("Information", "tooltipTitles", "Player Titles", true)
-Content("Information", "tooltipGuildRank", "Guild Rank", true)
-Content("Information", "tooltipTarget", "Target", true, nil, "Adds a line with who the unit is targeting.")
-Content("Appearance", "tooltipHealthBar", "Health Bar", true, ApplyHealthBar)
-Content("Information", "tooltipItemLevel", "Item Level", true)
-Content("Information", "tooltipPlayerItemLevel", "Player Item Level", true, nil,
+Content("Colors", "tooltipClassColors", "Class-colored players", true, nil,
+    "Players' names and class in their class color.")
+Content("Colors", "tooltipLevelColor", "Level colored by difficulty", true, nil,
+    "Gray, green, yellow, orange or red, by how the level compares to yours.")
+Content("Colors", "tooltipFactionColor", "Faction colors", true, nil,
+    "The Alliance line in blue and the Horde line in red.")
+Content("Information", "tooltipTitles", "Show player titles", true, nil,
+    "Off shows players by name only, without titles like \"Private\".")
+Content("Information", "tooltipGuildRank", "Show guild rank", true, nil,
+    "Adds the player's rank after their guild's name.")
+Content("Information", "tooltipTarget", "Show what the unit targets", true, nil,
+    "Adds a line with who the unit is targeting.")
+Content("Appearance", "tooltipHealthBar", "Show health bar", true, ApplyHealthBar,
+    "The health bar under the tooltips of players, NPCs and mobs.")
+Content("Information", "tooltipItemLevel", "Show item level on items", true)
+Content("Information", "tooltipPlayerItemLevel", "Show players' item level", true, nil,
     "Adds a player's average item level. Other players are inspected when you hover them, out of combat.")
-Content("Information", "tooltipIDs", "Spell and Item IDs", false)
+Content("Information", "tooltipIDs", "Show spell and item IDs", false)

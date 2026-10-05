@@ -31,8 +31,8 @@ All off by default.
 ### Unit frames
 - **Class-colored health bars**: Class colors on Blizzard's unit frames.
 - **Dark frames**: dark frame art.
-- Portrait (portrait, class icon, or hidden together with the frame), hide name, name color (class or any color), hide the colored bar behind the target's name.
-- Level color (gold by default) and hide level; while the portrait is hidden, the level moves before the name ("14 Hogger").
+- Portrait (portrait or class icon), hide name, name color (class or any color). The colored bar behind the target's name is always hidden.
+- Level color (gold by default) and hide level.
 - Health/mana text as current, current / max, percent or both, or none (shown on mouseover); aligned left, center or right.
 - Font, size and outline for the names, the level and the health/mana text.
 - Hide the resting glow and Zzz animation on the player frame.

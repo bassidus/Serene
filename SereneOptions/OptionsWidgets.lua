@@ -332,7 +332,7 @@ end
 --  Dropdown
 -------------------------------------------------------------------------------
 function W.Dropdown(parent, f)
-    local holder, btn, text = Field(parent, f.label, function(self)
+    local holder, btn, text = Field(parent, not f.hideLabel and f.label, function(self)
         W.OpenMenu(self, f.options(), ns.Get(f.key), function(v) ns.SetValue(f.key, v) end, f.preview)
     end)
     AttachTooltip(btn, f)

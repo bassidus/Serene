@@ -20,14 +20,12 @@ local DARK = 0.3  -- vertex color of the desaturated frame art in Dark Mode
 -------------------------------------------------------------------------------
 local parts = setmetatable({}, { __mode = "k" })
 
--- art: darkened in Dark Mode. frame: hidden with the portrait, since the
--- frame art is drawn around it (with the combat and status glows that share
--- its shape).
+-- art: darkened in Dark Mode.
 local function PartsOf(frame)
     local p = parts[frame]
     if p then return p end
-    -- UnitFrame_Initialize keeps the name and portrait on the frame.
-    p = { name = frame.name, portrait = frame.portrait, level = {}, art = {}, frame = {} }
+    -- UnitFrame_Initialize keeps the name on the frame.
+    p = { name = frame.name, level = {}, art = {} }
     if frame == PlayerFrame then
         local box = frame.PlayerFrameContainer
         local main = frame.PlayerFrameContent and frame.PlayerFrameContent.PlayerFrameContentMain
@@ -37,8 +35,6 @@ local function PartsOf(frame)
         if box then
             p.art = { box.FrameTexture, box.AlternatePowerFrameTexture, box.VehicleFrameTexture,
                       extra and extra.PlayerPortraitCornerIcon, main and main.LevelBackgroundCircle }
-            p.frame = { box.FrameTexture, box.AlternatePowerFrameTexture, box.VehicleFrameTexture,
-                        box.FrameFlash, main and main.StatusTexture, extra and extra.PlayerPortraitCornerIcon }
         end
     elseif frame.TargetFrameContainer then  -- target and focus
         local box = frame.TargetFrameContainer
@@ -49,15 +45,11 @@ local function PartsOf(frame)
             p.levelText = main.LevelText
         end
         p.art = { box.FrameTexture, main and main.LevelBackgroundCircle }
-        p.frame = { box.FrameTexture, box.Flash, box.BossPortraitFrameTexture }
         p.nameBackground = main and main.ReputationColor
     elseif frame == PetFrame then
         p.art = { PetFrameTexture }
-        p.frame = { PetFrameTexture, PetFrameFlash, PetAttackModeTexture }
     else  -- target of target, party
         p.art = { frame.FrameTexture or frame.Texture, frame.VehicleTexture }
-        p.frame = { frame.FrameTexture or frame.Texture, frame.VehicleTexture, frame.Flash,
-                    frame.PartyMemberOverlay and frame.PartyMemberOverlay.Status }
     end
     parts[frame] = p
     return p
@@ -173,36 +165,11 @@ local function ColorName(fs, unit)
 end
 
 -------------------------------------------------------------------------------
---  Level color, and the level in the name: "14 Hogger" ("??" when too
---  high), used while the portrait is hidden, since the level circle sits on
---  the frame art.
+--  Level color
 -------------------------------------------------------------------------------
-local baseNames, ourNames = {}, {}  -- [font string] = Blizzard's text / the text we set
-
 -- The Level Color setting, or nil for Blizzard's own colors.
 local function LevelRGB()
     return ns.ColorRGB(ns.Get("unitFrameLevelColor"))
-end
-
-local function LevelPrefix(unit)
-    if not unit or not Clean(UnitExists(unit)) or Clean(UnitIsCorpse(unit)) then return nil end
-    local level = Clean(UnitEffectiveLevel(unit))
-    if not level then return nil end
-    level = level > 0 and level or "??"
-    local r, g, b = LevelRGB()
-    if not r then
-        -- Blizzard's colors: by difficulty for enemies, red when too high.
-        if level == "??" then
-            r, g, b = 1, 0.1, 0.1
-        elseif Clean(UnitCanAttack("player", unit)) and C_PlayerInfo
-            and C_PlayerInfo.GetContentDifficultyCreatureForPlayer and GetDifficultyColor then
-            local difficulty = Clean(C_PlayerInfo.GetContentDifficultyCreatureForPlayer(unit))
-            local c = difficulty and GetDifficultyColor(difficulty)
-            if c then r, g, b = c.r, c.g, c.b end
-        end
-    end
-    if not r then return level .. " " end
-    return "|cff" .. ns.RGBToHex(r, g, b) .. level .. "|r "
 end
 
 -- The level number in its circle: Blizzard colors it (by difficulty, or
@@ -239,19 +206,6 @@ local function ColorLevel(fs)
     end
 end
 
-local function NameLevel(fs, unit, on)
-    if not fs then return end
-    local text = fs:GetText()
-    if issecretvalue and issecretvalue(text) then return end
-    -- Blizzard wrote a new name since our last one: that is the base now.
-    if text ~= ourNames[fs] then baseNames[fs] = text end
-    local base = baseNames[fs]
-    local prefix = on and base and base ~= "" and LevelPrefix(unit)
-    local want = prefix and (prefix .. base) or base
-    if want ~= text then fs:SetText(want) end
-    ourNames[fs] = prefix and want or nil
-end
-
 -------------------------------------------------------------------------------
 --  Painting a frame
 -------------------------------------------------------------------------------
@@ -260,15 +214,11 @@ local function Style(frame)
     local p = PartsOf(frame)
     local dark = ns.Enabled("unitFrameDark")
     for _, tex in pairs(p.art) do SetDark(tex, dark) end
-    local noPortrait = ns.Get("unitFramePortrait") == "hidden"
-    SetHidden(p.portrait, noPortrait)
-    for _, region in pairs(p.frame) do SetHidden(region, noPortrait) end
     SetHidden(p.name, ns.Enabled("unitFrameHideName"))
-    SetHidden(p.nameBackground, ns.Enabled("unitFrameHideNameBackground"))
+    SetHidden(p.nameBackground, true)  -- the colored bar behind the name, gone like on the player frame
     ColorName(p.name, frame.unit)
     local hideLevel = ns.Enabled("unitFrameHideLevel")
-    for _, region in pairs(p.level) do SetHidden(region, hideLevel or noPortrait) end
-    NameLevel(p.name, frame.unit, noPortrait and not hideLevel)
+    for _, region in pairs(p.level) do SetHidden(region, hideLevel) end
     ColorLevel(p.levelText)
 end
 
@@ -291,7 +241,7 @@ for _, frame in ipairs({ TargetFrame, FocusFrame }) do
 end
 
 -------------------------------------------------------------------------------
---  Portrait: Blizzard's class icon CVars, or hidden
+--  Portrait: Blizzard's class icon CVars
 -------------------------------------------------------------------------------
 local PORTRAIT_CVARS = { "ReplaceMyPlayerPortrait", "ReplaceOtherPlayerPortraits" }
 local lastPortrait
@@ -310,7 +260,6 @@ local function ApplyPortrait()
             end
         end
     end
-    StyleAll()
 end
 
 -------------------------------------------------------------------------------
@@ -420,25 +369,19 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "unitFramePortrait", label = "Portrait", section = SECTION, category = "Appearance", type = "dropdown",
+    hideLabel = true,
     default = "portrait", apply = ApplyPortrait,
-    tooltip = "Class icon shows players' class icon instead of their face.\nHidden also hides the frame around it, and the level moves before the name.",
+    tooltip = "Class icon shows players' class icon instead of their face.",
     options = function()
         return {
             { value = "portrait", label = "Portrait" },
             { value = "class",    label = "Class icon" },
-            { value = "hidden",   label = "Hidden" },
         }
     end,
 })
 ns.RegisterFeature({
     key = "unitFrameHideName", label = "Hide names", section = SECTION, category = "Name",
     default = false, apply = StyleAll,
-})
-ns.RegisterFeature({
-    key = "unitFrameHideNameBackground", label = "Hide the colored bar behind names", section = SECTION,
-    category = "Name",
-    apply = StyleAll,
-    tooltip = "Removes the colored bar (blue, red, yellow...) behind the name on the target and focus frames, like the player frame.",
 })
 ns.RegisterFeature({
     key = "unitFrameNameColor", label = "Name color", section = SECTION, category = "Name", type = "color",
@@ -449,20 +392,9 @@ ns.RegisterFeature({
           tooltip = "Players' class color; everyone else keeps the default." },
     },
 })
--- The level in the name follows level ups.
-local levelWatch = CreateFrame("Frame")
-levelWatch:RegisterEvent("UNIT_LEVEL")
-levelWatch:SetScript("OnEvent", function(_, _, unit)
-    if ns.Get("unitFramePortrait") ~= "hidden" or ns.Enabled("unitFrameHideLevel") then return end
-    for _, frame in ipairs(Frames()) do
-        if frame.unit and Clean(UnitIsUnit(frame.unit, unit)) then Style(frame) end
-    end
-end)
-
 ns.RegisterFeature({
     key = "unitFrameHideLevel", label = "Hide level", section = SECTION, category = "Level",
     default = false, apply = StyleAll,
-    tooltip = "While the portrait is hidden, the level is shown before the name instead, e.g. \"14 Hogger\".",
 })
 ns.RegisterFeature({
     key = "unitFrameLevelColor", label = "Level color", section = SECTION, category = "Level", type = "color",

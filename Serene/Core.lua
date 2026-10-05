@@ -21,6 +21,8 @@ ns.featureByKey = {}
 --         default = initial value,
 --         options = fn returning { { value =, label = }, ... } (dropdown),
 --         preview = true to draw dropdown entries in their own font (dropdown),
+--         hideLabel = true to leave the label out above the button, where the
+--         choices say it themselves; it still titles the tooltip (dropdown),
 --         min, max, step (slider),
 --         specials = { { value =, label =, tooltip =, swatch = }, ... } choices shown
 --         before the palette, e.g. "Class color" (color; the value is a word, not

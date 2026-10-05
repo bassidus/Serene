@@ -1,39 +1,11 @@
 -------------------------------------------------------------------------------
---  Move & scale -- Blizzard's windows moved with the mouse and made
---  smaller or bigger: a scale in percent for each, from its slider or
---  Ctrl + scroll over it. A window grows and shrinks from its top left
---  corner, and is never made taller than the screen.
---
---  A frame's anchor offsets count in its own scale, so a smaller window
---  would slide toward the edge it is anchored to. Each anchor is kept as
---  set (by the window's XML or by Blizzard as it opens) and set again with
---  the offsets divided by the scale, which leaves the corner in place. A
---  window moved by hand goes to its own spot instead, every time Blizzard
---  places it, and gets its scale back every time Blizzard sets one (some
---  windows shrink themselves to fit the screen as they open).
---
---  Moved spots and Ctrl + scroll sizes last for the session. With
---  "Remember" on, the spots are kept in SereneDB.windowPositions (by frame
---  name, the top left corner in UIParent units) and Ctrl + scroll sets the
---  window's slider; with it off, windows start each session at Blizzard's
---  spot and their slider size. A middle click puts a window back at
---  Blizzard's spot and size.
---
---  A window is dragged from any spot that does not take the press itself
---  (a button, text field, slider or model), panels covering it included:
---  the left button is watched with GLOBAL_MOUSE_DOWN and the window set at
---  the cursor every frame, which also works on a window that was open when
---  moving was turned on (RegisterForDrag only takes effect once it opens
---  again).
---
---  Each entry lists the frame names the window may have on this client
---  (classic and modern names; every one that exists on UIParent is used,
---  so a panel inside another window is left alone). Frames made by an
---  addon loaded later (load on demand or not) are taken in as each addon
---  loads. At 100 % a window Serene never scaled is left
---  to Blizzard. A scaleOnly entry (the objective tracker, which Edit Mode
---  places) only gets its scale: its anchors, the screen height limit and
---  the mouse are left out, and it need not sit on UIParent.
+--  Move & scale -- Blizzard's windows dragged with the mouse and scaled from
+--  a slider or Ctrl + scroll. A window scales from its top left corner and
+--  is never made taller than the screen. A frame's anchor offsets count in
+--  its own scale, so each anchor Blizzard sets is kept at scale 1 and set
+--  again divided by the scale; a moved window goes to its own spot instead.
+--  Dragging watches GLOBAL_MOUSE_DOWN/UP and follows the cursor, since
+--  RegisterForDrag does not take on a window that is already open.
 --  Changes to a protected window wait for the end of combat.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -42,21 +14,13 @@ local SECTION = "Move & scale"
 
 local WINDOWS = {
     { key = "Character", label = "Character", category = "Your character",
-      frames = { "CharacterFrame" },
-      tooltip = "The character window, with reputation, skills and honor." },
-    { key = "Spellbook", label = "Spellbook", category = "Your character",
-      frames = { "SpellBookFrame", "PlayerSpellsFrame" } },
-    { key = "Talents", label = "Talents", category = "Your character",
-      frames = { "TalentFrame", "PlayerTalentFrame", "ClassTalentFrame" },
-      tooltip = "Where talents share the spellbook's window, the Spellbook size is used." },
+      frames = { "CharacterFrame" } },
+    { key = "Spellbook", label = "Spellbook & talents", category = "Your character",
+      frames = { "PlayerSpellsFrame" } },
     { key = "Professions", label = "Professions", category = "Your character",
-      frames = { "TradeSkillFrame", "CraftFrame", "ProfessionsFrame", "ProfessionsBookFrame" },
-      tooltip = "Profession windows such as Blacksmithing, Cooking and Enchanting." },
-    { key = "QuestLog", label = "Quest log", category = "Your character",
-      frames = { "QuestLogFrame", "QuestLogDetailFrame" } },
+      frames = { "ProfessionsFrame" } },
     { key = "Social", label = "Social", category = "Your character",
-      frames = { "FriendsFrame", "CommunitiesFrame" },
-      tooltip = "Friends, who, guild and raid." },
+      frames = { "FriendsFrame", "CommunitiesFrame" } },
     { key = "Achievements", label = "Achievements", category = "Your character",
       frames = { "AchievementFrame" } },
     { key = "Macros", label = "Macros", category = "Your character",
@@ -74,16 +38,16 @@ local WINDOWS = {
     { key = "Mail", label = "Mailbox", category = "NPCs",
       frames = { "MailFrame", "OpenMailFrame" } },
     { key = "Auction", label = "Auction house", category = "NPCs",
-      frames = { "AuctionFrame", "AuctionHouseFrame" } },
+      frames = { "AuctionHouseFrame" } },
     { key = "Taxi", label = "Flight master", category = "NPCs",
       frames = { "TaxiFrame", "FlightMapFrame" } },
     { key = "Stable", label = "Stable master", category = "NPCs",
-      frames = { "PetStableFrame", "StableFrame" } },
+      frames = { "PetStableFrame" } },
 
     { key = "WorldMap", label = "World map", category = "Other",
       frames = { "WorldMapFrame" } },
-    { key = "Groups", label = "Group finder & PvP", category = "Other",
-      frames = { "LFGParentFrame", "PVEFrame", "PVPFrame", "PVPParentFrame", "BattlefieldFrame", "WorldStateScoreFrame" } },
+    { key = "Groups", label = "Group finder", category = "Other",
+      frames = { "LFGParentFrame" } },
     { key = "DressUp", label = "Dressing room", category = "Other",
       frames = { "DressUpFrame" } },
     { key = "Inspect", label = "Inspect", category = "Other",
@@ -91,10 +55,10 @@ local WINDOWS = {
     { key = "Trade", label = "Trade", category = "Other",
       frames = { "TradeFrame" } },
     { key = "GameMenu", label = "Game menu & settings", category = "Other",
-      frames = { "GameMenuFrame", "SettingsPanel", "InterfaceOptionsFrame", "VideoOptionsFrame", "KeyBindingFrame", "AddonList" },
-      tooltip = "The Escape menu, Blizzard's settings, key bindings and the addon list." },
+      frames = { "GameMenuFrame", "SettingsPanel", "AddonList" },
+      tooltip = "The Escape menu, Blizzard's settings and the addon list." },
     { key = "Tracker", label = "Objective tracker", category = "Other", scaleOnly = true,
-      frames = { "ObjectiveTrackerFrame", "WatchFrame", "QuestWatchFrame" },
+      frames = { "ObjectiveTrackerFrame" },
       tooltip = "The quest list at the side of the screen. It grows and shrinks from where Blizzard "
           .. "(or Edit Mode) puts it, and is not moved with the mouse." },
 }
@@ -159,7 +123,7 @@ local function Scale(window, frame)
         local scale = pct / 100
         -- No taller than the screen (a maximized world map is the screen).
         local height = frame:GetHeight()
-        if scale > 1 and height and height > 0 and not window.scaleOnly then
+        if scale > 1 and height > 0 and not window.scaleOnly then
             scale = math.max(1, math.min(scale, UIParent:GetHeight() / height))
         end
         busy = true
@@ -285,14 +249,13 @@ local function TakesPress(region)
     for _, kind in ipairs(CLICKABLE) do
         if region:IsObjectType(kind) then return true end
     end
-    return region.HasScript and region:HasScript("OnMouseDown") and region:GetScript("OnMouseDown") ~= nil
+    return region:HasScript("OnMouseDown") and region:GetScript("OnMouseDown") ~= nil
 end
 
 -- The window under the cursor, unless what is on top there takes the press.
 local function WindowAtCursor()
-    local focus
-    if GetMouseFoci then focus = GetMouseFoci()[1] else focus = GetMouseFocus() end
-    if not focus or not focus.IsObjectType or (focus.IsForbidden and focus:IsForbidden()) then return end
+    local focus = GetMouseFoci()[1]
+    if not focus or not focus.IsObjectType or focus:IsForbidden() then return end
     if not mouse[focus] and TakesPress(focus) then return end
     while focus and not mouse[focus] do focus = focus:GetParent() end
     return focus
@@ -347,7 +310,7 @@ end
 function ApplyWindow(window)
     for _, name in ipairs(window.frames) do
         local frame = _G[name]
-        if type(frame) == "table" and frame.SetScale and (window.scaleOnly or frame:GetParent() == UIParent) then
+        if frame and (window.scaleOnly or frame:GetParent() == UIParent) then
             if not hooked[frame] then Hook(frame, window) end
             if ns.Enabled("windowMove") and not window.scaleOnly then EnableMouse(frame) end
             Scale(window, frame)
@@ -363,8 +326,7 @@ end
 local function NewFrame(window)
     for _, name in ipairs(window.frames) do
         local frame = _G[name]
-        if type(frame) == "table" and frame.SetScale and not hooked[frame]
-            and (window.scaleOnly or frame:GetParent() == UIParent) then
+        if frame and not hooked[frame] and (window.scaleOnly or frame:GetParent() == UIParent) then
             return true
         end
     end
@@ -417,15 +379,11 @@ end, SECTION)
 ns.SetPageIntro(SECTION, "With \"Move windows with the mouse\" on:\n"
     .. "- Drag a window by any spot that is not a button or a model to move it.\n"
     .. "- Hold Ctrl and scroll over a window to make it smaller or bigger.\n"
-    .. "- Middle-click a window to put it back at Blizzard's spot and size.\n"
-    .. "The sliders below set each window's size, from 50% to 150%. 100% is Blizzard's size.")
+    .. "- Middle-click a window to put it back at Blizzard's spot and size.")
 
 ns.RegisterFeature({
     key = "windowMove", label = "Move windows with the mouse", section = SECTION, category = "Mouse",
     default = false, apply = ApplyAll,
-    tooltip = "Drag a window by any spot that is not a button or a model to move it. Hold Ctrl and scroll over a "
-        .. "window to make it smaller or bigger. Middle-click a window to put it back at Blizzard's "
-        .. "spot and size.",
 })
 ns.RegisterFeature({
     key = "windowRemember", label = "Remember positions and sizes", section = SECTION, category = "Mouse",

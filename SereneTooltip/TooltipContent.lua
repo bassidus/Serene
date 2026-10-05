@@ -1,40 +1,25 @@
 -------------------------------------------------------------------------------
 --  Tooltip Content -- class, level, faction and guild colors, titles, guild rank,
---  target, item level and IDs. Every value read from a unit is
---  checked for secrecy before use. Lines are added, recolored or hidden, and
+--  target, item level and IDs. Every value read from a unit goes through
+--  ns.Clean (secret values). Lines are added, recolored or hidden, and
 --  tooltip refreshes update them in place instead of adding twice.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local issecret = issecretvalue
-local function Clean(v)
-    return v ~= nil and not (issecret and issecret(v))
-end
+local Clean = ns.Clean
 
--- Tooltip -> its global name, looked up once (line font strings are
--- <name>TextLeft<i> / <name>TextRight<i>).
-local names = setmetatable({}, { __mode = "k" })
-local function TipName(tt)
-    local name = names[tt]
-    if name == nil then
-        local ok, n = pcall(tt.GetName, tt)
-        name = ok and n or false
-        names[tt] = name
-    end
-    return name
-end
-
+-- A line's font string (<name>TextLeft<i> / <name>TextRight<i>) and its text.
 local function LineText(tt, side, i)
-    local name = TipName(tt)
+    local name = tt:GetName()  -- nil for an unnamed tooltip
     local fs = name and _G[name .. "Text" .. side .. i]
-    return fs, fs and fs:GetText()
+    return fs, fs and Clean(fs:GetText())
 end
 
 -- Finds a left-side line equal to (or, with pattern = true, matching) text.
 local function FindLine(tt, text, pattern)
     for i = 1, tt:NumLines() do
         local _, txt = LineText(tt, "Left", i)
-        if Clean(txt) then
+        if txt then
             if pattern then
                 if txt:find(text) then return i end
             elseif txt == text then
@@ -62,18 +47,17 @@ local function TargetLine(tt, unit)
         if UnitIsUnit(tu, "player") then
             tName, r, g, b = ">>> YOU <<<", 1, 0.3, 0.3
         else
-            local n = UnitName(tu)
-            if Clean(n) then
+            local n = Clean(UnitName(tu))
+            if n then
                 tName, r, g, b = n, 0.9, 0.9, 0.9
+                local c
                 if UnitIsPlayer(tu) then
                     local _, class = UnitClass(tu)
-                    local c = Clean(class) and RAID_CLASS_COLORS[class]
-                    if c then r, g, b = c.r, c.g, c.b end
+                    c = RAID_CLASS_COLORS[Clean(class)]
                 else
-                    local reaction = UnitReaction(tu, "player")
-                    local c = Clean(reaction) and FACTION_BAR_COLORS[reaction]
-                    if c then r, g, b = c.r, c.g, c.b end
+                    c = FACTION_BAR_COLORS[Clean(UnitReaction(tu, "player"))]
                 end
+                if c then r, g, b = c.r, c.g, c.b end
             end
         end
     end
@@ -99,16 +83,14 @@ local function PlayerLines(tt, unit)
     if not ns.Enabled("tooltipTitles") then
         -- Rewrite line 1 only when a title is genuinely present. Forever is one
         -- mega realm, so the plain name never needs a realm suffix.
-        local name = UnitName(unit)
-        local titled = UnitPVPName and UnitPVPName(unit)
-        local cur = nameLine:GetText()
-        if Clean(name) and Clean(titled) and Clean(cur) and titled ~= name and cur ~= name then
+        local name, titled, cur = Clean(UnitName(unit)), Clean(UnitPVPName(unit)), Clean(nameLine:GetText())
+        if name and titled and cur and titled ~= name and cur ~= name then
             nameLine:SetText(name)
         end
     end
 
     local _, class = UnitClass(unit)
-    local c = Clean(class) and RAID_CLASS_COLORS[class]
+    local c = RAID_CLASS_COLORS[Clean(class)]
     if c then nameLine:SetTextColor(c.r, c.g, c.b) end
 
     -- The guild line becomes "Initiate of Die Laughing" (rank in white, guild
@@ -116,11 +98,12 @@ local function PlayerLines(tt, unit)
     -- Returns true when the line got wider. With the rank added the text no
     -- longer matches, so refresh passes leave it alone.
     local guild, rank = GetGuildInfo(unit)
-    if Clean(guild) and guild then
+    guild, rank = Clean(guild), Clean(rank)
+    if guild then
         for i = 2, tt:NumLines() do
             local fs, txt = LineText(tt, "Left", i)
-            if Clean(txt) and (txt == guild or txt == "<" .. guild .. ">") then
-                if ns.Enabled("tooltipGuildRank") and Clean(rank) and rank then
+            if txt == guild or txt == "<" .. guild .. ">" then
+                if ns.Enabled("tooltipGuildRank") and rank then
                     fs:SetText(rank .. " of |cff40ff40" .. guild .. "|r")
                     fs:SetTextColor(1, 1, 1)
                     return true
@@ -134,7 +117,7 @@ local function PlayerLines(tt, unit)
 end
 
 -- "Level 6", "Level ??" at the start of the level line (localized via LEVEL).
-local LEVEL_PATTERN = "^(" .. (LEVEL or "Level") .. " [%d%?]+)"
+local LEVEL_PATTERN = "^(" .. LEVEL .. " [%d%?]+)"
 local FACTION_COLORS = {
     Alliance = { 0.29, 0.56, 1 },
     Horde    = { 1, 0.27, 0.27 },
@@ -143,19 +126,18 @@ local FACTION_COLORS = {
 -- Difficulty color of the unit's level relative to yours (gray/green/yellow/
 -- orange/red); level ?? (skull, too high to see) is red.
 local function LevelColor(unit)
-    local level = UnitLevel(unit)
-    if not Clean(level) or not level then return end
+    local level = Clean(UnitLevel(unit))
+    if not level then return end
     if level <= 0 then return 1, 0.1, 0.1 end
-    local GetColor = GetCreatureDifficultyColor or GetQuestDifficultyColor
-    local c = GetColor and GetColor(level)
-    if c then return c.r, c.g, c.b end
+    local c = GetCreatureDifficultyColor(level)
+    return c.r, c.g, c.b
 end
 
 -- A player's "14 Undead Paladin" (level and class colored) for the merged
 -- level line, or nil when a value is secret or missing.
 local function CompactLevelText(unit, className, classColor, lr, lg, lb)
-    local level, race = UnitLevel(unit), UnitRace(unit)
-    if not (Clean(level) and Clean(race) and level and race) then return end
+    local level, race = Clean(UnitLevel(unit)), Clean(UnitRace(unit))
+    if not (level and race) then return end
     local text = level > 0 and tostring(level) or "??"
     if lr then text = ColorCode(lr, lg, lb) .. text .. "|r" end
     text = text .. " " .. race .. " "
@@ -176,22 +158,20 @@ local function ColorBodyLines(tt, unit)
     local className, classColor
     if UnitIsPlayer(unit) then
         local name, file = UnitClass(unit)
-        if Clean(name) and Clean(file) and name then
-            className, classColor = name, RAID_CLASS_COLORS[file]
-        end
+        name, file = Clean(name), Clean(file)
+        if name and file then className, classColor = name, RAID_CLASS_COLORS[file] end
     end
     local showFaction = ns.Enabled("tooltipFaction")
     local hid, merged = false, false
 
     local factionName, factionColor
     local group, localized = UnitFactionGroup(unit)
-    if Clean(group) and Clean(localized) then
-        factionName, factionColor = localized, FACTION_COLORS[group]
-    end
+    group, localized = Clean(group), Clean(localized)
+    if group and localized then factionName, factionColor = localized, FACTION_COLORS[group] end
 
     for i = 2, tt:NumLines() do
         local fs, txt = LineText(tt, "Left", i)
-        if fs and Clean(txt) and txt then
+        if txt then
             local isLevel = txt:find(LEVEL_PATTERN)
             local compactText = isLevel and className
                 and CompactLevelText(unit, className, classColor, lr, lg, lb)
@@ -257,12 +237,10 @@ end
 local function TooltipUnitGUID()
     if GameTooltip:IsForbidden() or not GameTooltip:IsShown() then return end
     local _, unit = GameTooltip:GetUnit()
-    if not Clean(unit) or not unit then
-        unit = UnitExists("mouseover") and "mouseover" or nil
-    end
+    unit = Clean(unit) or (UnitExists("mouseover") and "mouseover" or nil)
     if not unit then return end
-    local guid = UnitGUID(unit)
-    if Clean(guid) and guid then return guid, unit end
+    local guid = Clean(UnitGUID(unit))
+    if guid then return guid, unit end
 end
 
 local function CachedItemLevel(guid)
@@ -275,9 +253,7 @@ local function InFlight(guid)
 end
 
 local function RequestInspect(unit, guid)
-    if InCombatLockdown() or (InspectFrame and InspectFrame:IsShown()) then return end
-    if not (NotifyInspect and C_PaperDollInfo and C_PaperDollInfo.GetInspectItemLevel) then return end
-    if not CanInspect(unit) then return end
+    if InCombatLockdown() or (InspectFrame and InspectFrame:IsShown()) or not CanInspect(unit) then return end
     local wait = lastInspect + INSPECT_GAP - GetTime()
     if wait > 0 then
         -- Ask again once the gap has passed, for whoever is hovered then.
@@ -302,12 +278,11 @@ end
 -- Returns true when a row was added.
 local function PlayerItemLevel(tt, unit)
     if UnitIsUnit(unit, "player") then
-        local _, equipped
-        if GetAverageItemLevel then _, equipped = GetAverageItemLevel() end
-        return equipped and equipped > 0 and ItemLevelLine(tt, unit, equipped) or false
+        local _, equipped = GetAverageItemLevel()
+        return equipped > 0 and ItemLevelLine(tt, unit, equipped)
     end
-    local guid = UnitGUID(unit)
-    if not Clean(guid) or not guid then return false end
+    local guid = Clean(UnitGUID(unit))
+    if not guid then return false end
     local ilvl = CachedItemLevel(guid)
     if not ilvl and not InFlight(guid) then RequestInspect(unit, guid) end
     return ItemLevelLine(tt, unit, ilvl)
@@ -316,11 +291,10 @@ end
 local inspectEvents = CreateFrame("Frame")
 inspectEvents:RegisterEvent("INSPECT_READY")
 inspectEvents:SetScript("OnEvent", function(_, _, guid)
-    if not pending or not Clean(guid) or guid ~= pending.guid then return end
+    if not pending or Clean(guid) ~= pending.guid then return end
     local unit = pending.unit
     pending = nil
-    local now = UnitGUID(unit)
-    if not Clean(now) or now ~= guid then return end  -- the token points elsewhere now
+    if Clean(UnitGUID(unit)) ~= guid then return end  -- the token points elsewhere now
     local ilvl = C_PaperDollInfo.GetInspectItemLevel(unit)
     -- Leave Blizzard's inspect alone if its window took over meanwhile.
     if not (InspectFrame and InspectFrame:IsShown()) then ClearInspectPlayer() end
@@ -335,9 +309,7 @@ end)
 local function OnUnit(tt)
     if tt ~= GameTooltip or tt:IsForbidden() then return end
     local _, unit = tt:GetUnit()
-    if not Clean(unit) or not unit then
-        unit = UnitExists("mouseover") and "mouseover" or nil
-    end
+    unit = Clean(unit) or (UnitExists("mouseover") and "mouseover" or nil)
     if not unit then return end
 
     local added = false
@@ -353,13 +325,14 @@ end
 -------------------------------------------------------------------------------
 --  Items and spells
 -------------------------------------------------------------------------------
-local ITEM_LEVEL_FORMAT = ITEM_LEVEL or "Item Level %d"
+local ITEM_LEVEL_FORMAT = ITEM_LEVEL
 local ITEM_LEVEL_PATTERN = "^" .. ITEM_LEVEL_FORMAT:gsub("%%d", "%%d+")
 local NO_ILVL_SLOTS = { [""] = true, INVTYPE_BAG = true, INVTYPE_NON_EQUIP_IGNORE = true,
                         INVTYPE_BODY = true, INVTYPE_TABARD = true }
 
 local function AddID(tt, label, id)
-    if not Clean(id) or not id or FindLine(tt, label) then return false end
+    id = Clean(id)
+    if not id or FindLine(tt, label) then return false end
     tt:AddDoubleLine(label, tostring(id), 1, 0.82, 0, 1, 1, 1)
     return true
 end
@@ -370,7 +343,8 @@ local function OnItem(tt, data)
 
     if ns.Enabled("tooltipItemLevel") and tt.GetItem then
         local _, link = tt:GetItem()
-        if Clean(link) and link then
+        link = Clean(link)
+        if link then
             local equipLoc = select(9, C_Item.GetItemInfo(link))
             if equipLoc and not NO_ILVL_SLOTS[equipLoc] and not FindLine(tt, ITEM_LEVEL_PATTERN, true) then
                 local ilvl = C_Item.GetDetailedItemLevelInfo(link)
@@ -394,33 +368,25 @@ local function OnSpell(tt, data)
     if AddID(tt, "Spell ID", data.id) then tt:Show() end
 end
 
-if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum.TooltipDataType then
-    local T = Enum.TooltipDataType
-    TooltipDataProcessor.AddTooltipPostCall(T.Unit, OnUnit)
-    TooltipDataProcessor.AddTooltipPostCall(T.Item, OnItem)
-    TooltipDataProcessor.AddTooltipPostCall(T.Spell, OnSpell)
-    if T.UnitAura then TooltipDataProcessor.AddTooltipPostCall(T.UnitAura, OnSpell) end
-    if T.PetAction then TooltipDataProcessor.AddTooltipPostCall(T.PetAction, OnSpell) end
-end
+local T = Enum.TooltipDataType
+TooltipDataProcessor.AddTooltipPostCall(T.Unit, OnUnit)
+TooltipDataProcessor.AddTooltipPostCall(T.Item, OnItem)
+TooltipDataProcessor.AddTooltipPostCall(T.Spell, OnSpell)
+TooltipDataProcessor.AddTooltipPostCall(T.UnitAura, OnSpell)
+TooltipDataProcessor.AddTooltipPostCall(T.PetAction, OnSpell)
 
 -------------------------------------------------------------------------------
--- beside: to the right of the setting before it.
-local function Content(category, key, label, default, apply, tooltip, beside)
-    ns.RegisterFeature({
-        key = key, label = label, tooltip = tooltip, default = default,
-        section = "Tooltip", category = category, apply = apply, beside = beside,
-    })
+-- In pairs, the second beside the first.
+for _, def in ipairs({
+    { key = "tooltipTitles",          label = "Show player titles" },
+    { key = "tooltipGuildRank",       label = "Show guild rank", beside = true },
+    { key = "tooltipTarget",          label = "Show what the unit targets" },
+    { key = "tooltipFaction",         label = "Show faction", beside = true },
+    { key = "tooltipItemLevel",       label = "Show item level on items" },
+    { key = "tooltipIDs",             label = "Show spell and item IDs", default = false, beside = true },
+    { key = "tooltipPlayerItemLevel", label = "Show players' item level", default = false,
+      tooltip = "Other players are inspected when you hover them, out of combat." },
+}) do
+    def.section, def.category = "Tooltip", "Information"
+    ns.RegisterFeature(def)
 end
-
-Content("Information", "tooltipTitles", "Show player titles", true, nil,
-    "Off shows players by name only, without titles like \"Private\".")
-Content("Information", "tooltipGuildRank", "Show guild rank", true, nil,
-    "Shows the player's rank before their guild's name, as in \"Initiate of Die Laughing\".", true)
-Content("Information", "tooltipTarget", "Show what the unit targets", true, nil,
-    "Adds a line with who the unit is targeting.")
-Content("Information", "tooltipFaction", "Show faction", true, nil,
-    "Off hides the Alliance or Horde line.", true)
-Content("Information", "tooltipItemLevel", "Show item level on items", true)
-Content("Information", "tooltipIDs", "Show spell and item IDs", false, nil, nil, true)
-Content("Information", "tooltipPlayerItemLevel", "Show players' item level", false, nil,
-    "Adds a player's average item level. Other players are inspected when you hover them, out of combat.")

@@ -16,9 +16,7 @@ local takenTitle, takenID = {}, {}  -- [title] / [questID] = GetTime() when take
 local function Recent(t) return t and GetTime() - t < RECENT end
 
 local function OnQuest(questID)
-    if Recent(takenID[questID]) then return true end
-    if C_QuestLog and C_QuestLog.IsOnQuest then return C_QuestLog.IsOnQuest(questID) end
-    return false
+    return Recent(takenID[questID]) or C_QuestLog.IsOnQuest(questID)
 end
 
 local function Settings()
@@ -28,16 +26,15 @@ end
 
 local function Gossip()
     local accept, turnIn = Settings()
-    if not C_GossipInfo then return end
-    if turnIn and C_GossipInfo.GetActiveQuests then
-        for _, quest in ipairs(C_GossipInfo.GetActiveQuests() or {}) do
+    if turnIn then
+        for _, quest in ipairs(C_GossipInfo.GetActiveQuests()) do
             if quest.questID and quest.isComplete and not Recent(takenID[quest.questID]) then
                 return C_GossipInfo.SelectActiveQuest(quest.questID)
             end
         end
     end
-    if accept and C_GossipInfo.GetAvailableQuests then
-        for _, quest in ipairs(C_GossipInfo.GetAvailableQuests() or {}) do
+    if accept then
+        for _, quest in ipairs(C_GossipInfo.GetAvailableQuests()) do
             if quest.questID and not quest.isTrivial and not quest.repeatable and not OnQuest(quest.questID) then
                 return C_GossipInfo.SelectAvailableQuest(quest.questID)
             end
@@ -66,17 +63,17 @@ end
 -- Remembers the quest in the open window, so a stale list does not pick it again.
 local function Taken()
     local now = GetTime()
-    local title = GetTitleText and GetTitleText()
+    local title = GetTitleText()
     if title and title ~= "" then takenTitle[title] = now end
-    local id = GetQuestID and GetQuestID()
+    local id = GetQuestID()
     if id and id ~= 0 then takenID[id] = now end
 end
 
 -- The NPC's list, if it is still (or again) on screen.
 local function Next()
-    if GossipFrame and GossipFrame:IsShown() then
+    if GossipFrame:IsShown() then
         Gossip()
-    elseif QuestFrameGreetingPanel and QuestFrameGreetingPanel:IsShown() then
+    elseif QuestFrameGreetingPanel:IsShown() then
         Greeting()
     end
 end
@@ -125,12 +122,10 @@ end)
 
 ns.RegisterFeature({
     key = "autoAcceptQuests", label = "Accept quests automatically", section = "Quests", category = "Automation",
-    tooltip = "Accepts every quest an NPC offers when you talk to them. Hold Shift while talking to read it yourself.",
 })
 ns.RegisterFeature({
     key = "autoTurnInQuests", label = "Turn in quests automatically", section = "Quests", category = "Automation",
-    tooltip = "Hands in finished quests when you talk to the NPC. When there is a reward to choose, you pick it "
-        .. "yourself. Hold Shift to skip.",
+    tooltip = "When there is a reward to choose, you pick it yourself.",
 })
 
 -- Drawn by SereneNameplates (NameplateQuest.lua), which adds the apply.

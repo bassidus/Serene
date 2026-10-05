@@ -28,24 +28,19 @@ local function PartsOf(frame)
     p = { name = frame.name, level = {}, art = {} }
     if frame == PlayerFrame then
         local box = frame.PlayerFrameContainer
-        local main = frame.PlayerFrameContent and frame.PlayerFrameContent.PlayerFrameContentMain
-        local extra = frame.PlayerFrameContent and frame.PlayerFrameContent.PlayerFrameContentContextual
-        p.level = { PlayerLevelText, main and main.LevelBackgroundCircle }
+        local main = frame.PlayerFrameContent.PlayerFrameContentMain
+        local extra = frame.PlayerFrameContent.PlayerFrameContentContextual
+        p.level = { PlayerLevelText, main.LevelBackgroundCircle }
         p.levelText = PlayerLevelText
-        if box then
-            p.art = { box.FrameTexture, box.AlternatePowerFrameTexture, box.VehicleFrameTexture,
-                      extra and extra.PlayerPortraitCornerIcon, main and main.LevelBackgroundCircle }
-        end
+        p.art = { box.FrameTexture, box.AlternatePowerFrameTexture, box.VehicleFrameTexture,
+                  extra.PlayerPortraitCornerIcon, main.LevelBackgroundCircle }
     elseif frame.TargetFrameContainer then  -- target and focus
-        local box = frame.TargetFrameContainer
-        local main = frame.TargetFrameContent and frame.TargetFrameContent.TargetFrameContentMain
-        local extra = frame.TargetFrameContent and frame.TargetFrameContent.TargetFrameContentContextual
-        if main then
-            p.level = { main.LevelText, main.LevelBackgroundCircle, extra and extra.HighLevelTexture }
-            p.levelText = main.LevelText
-        end
-        p.art = { box.FrameTexture, main and main.LevelBackgroundCircle }
-        p.nameBackground = main and main.ReputationColor
+        local main = frame.TargetFrameContent.TargetFrameContentMain
+        local extra = frame.TargetFrameContent.TargetFrameContentContextual
+        p.level = { main.LevelText, main.LevelBackgroundCircle, extra.HighLevelTexture }
+        p.levelText = main.LevelText
+        p.art = { frame.TargetFrameContainer.FrameTexture, main.LevelBackgroundCircle }
+        p.nameBackground = main.ReputationColor
     elseif frame == PetFrame then
         p.art = { PetFrameTexture }
     else  -- target of target, party
@@ -55,28 +50,16 @@ local function PartsOf(frame)
     return p
 end
 
-local FRAMES = { "PlayerFrame", "PetFrame", "TargetFrame", "TargetFrameToT", "FocusFrame", "FocusFrameToT",
-    "PartyMemberFrame1", "PartyMemberFrame2", "PartyMemberFrame3", "PartyMemberFrame4" }
+local FRAMES = { PlayerFrame, PetFrame, TargetFrame, TargetFrameToT, FocusFrame, FocusFrameToT,
+    PartyFrame.MemberFrame1, PartyFrame.MemberFrame2, PartyFrame.MemberFrame3, PartyFrame.MemberFrame4 }
 
-local function Frames()
-    local list = {}
-    for _, name in ipairs(FRAMES) do
-        if _G[name] then list[#list + 1] = _G[name] end
-    end
-    if PartyFrame and PartyFrame.PartyMemberFramePool then
-        for f in PartyFrame.PartyMemberFramePool:EnumerateActive() do list[#list + 1] = f end
-    end
-    return list
-end
+local ours = {}
+for _, frame in ipairs(FRAMES) do ours[frame] = true end
+
+local function Frames() return FRAMES end
 
 -- Only the frames above; boss and arena frames also go through UnitFrame_Update.
-local function IsOurs(frame)
-    if parts[frame] then return true end
-    for _, name in ipairs(FRAMES) do
-        if _G[name] == frame then return true end
-    end
-    return PartyFrame ~= nil and frame:GetParent() == PartyFrame
-end
+local function IsOurs(frame) return ours[frame] end
 
 -------------------------------------------------------------------------------
 --  Hiding: alpha 0, put back whenever Blizzard sets an alpha of its own
@@ -132,18 +115,10 @@ end
 -------------------------------------------------------------------------------
 local nameColors = {}  -- [font string] = Blizzard's color
 
-local classColors = {}
 local function ClassColor(unit)
     if not unit or not Clean(UnitIsPlayer(unit)) then return nil end
     local _, class = UnitClass(unit)
-    class = Clean(class)
-    if not class then return nil end
-    local c = classColors[class]
-    if not c then
-        c = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
-        classColors[class] = c
-    end
-    return c
+    return RAID_CLASS_COLORS[Clean(class)]
 end
 
 local function ColorName(fs, unit)
@@ -210,7 +185,6 @@ end
 --  Painting a frame
 -------------------------------------------------------------------------------
 local function Style(frame)
-    if not frame or frame.IsForbidden and frame:IsForbidden() then return end
     local p = PartsOf(frame)
     local dark = ns.Enabled("unitFrameDark")
     for _, tex in pairs(p.art) do SetDark(tex, dark) end
@@ -229,16 +203,9 @@ end
 -- For the unit frame fonts.
 ns.UnitFrames, ns.IsUnitFrame, ns.UnitFrameParts = Frames, IsOurs, PartsOf
 
--- Every Blizzard unit frame passes through here when its unit changes.
-if UnitFrame_Update then
-    hooksecurefunc("UnitFrame_Update", function(frame)
-        if IsOurs(frame) then Style(frame) end
-    end)
-end
--- Target and focus swap their frame art (rare, elite...) after that update.
-for _, frame in ipairs({ TargetFrame, FocusFrame }) do
-    if frame and frame.CheckClassification then hooksecurefunc(frame, "CheckClassification", Style) end
-end
+-- Target and focus swap their frame art (rare, elite...) after UnitFrame_Update.
+hooksecurefunc(TargetFrame, "CheckClassification", Style)
+hooksecurefunc(FocusFrame, "CheckClassification", Style)
 
 -------------------------------------------------------------------------------
 --  Portrait: Blizzard's class icon CVars
@@ -253,11 +220,9 @@ local function ApplyPortrait()
     local cvar = value == "class" and "1" or (lastPortrait == "class" and "0") or nil
     lastPortrait = value
     if cvar then
-        for _, name in ipairs(PORTRAIT_CVARS) do pcall(SetCVar, name, cvar) end
-        if UnitFramePortrait_Update then
-            for _, frame in ipairs(Frames()) do
-                if frame.portrait and frame.unit then pcall(UnitFramePortrait_Update, frame) end
-            end
+        for _, name in ipairs(PORTRAIT_CVARS) do SetCVar(name, cvar) end
+        for _, frame in ipairs(Frames()) do
+            if frame.portrait and frame.unit then UnitFramePortrait_Update(frame) end
         end
     end
 end
@@ -323,37 +288,35 @@ local function AlignAll()
     for _, frame in ipairs(Frames()) do AlignBars(frame) end
 end
 
-if UnitFrame_Update then
-    hooksecurefunc("UnitFrame_Update", function(frame)
-        if IsOurs(frame) then
-            HookBars(frame)
-            AlignBars(frame)
-        end
-    end)
-end
+-- Every Blizzard unit frame passes through here when its unit changes.
+hooksecurefunc("UnitFrame_Update", function(frame)
+    if not IsOurs(frame) then return end
+    Style(frame)
+    HookBars(frame)
+    AlignBars(frame)
+end)
 
 local lastText
 
 local function ApplyText()
     local value = ns.Get("unitFrameText")
     local mode = TEXT_MODES[value]
-    if not mode then return end
     for _, frame in ipairs(Frames()) do HookBars(frame) end
     -- Current and Current / max share a CVar value, so the option itself
     -- counts too (and the first time, so Current takes the max off at login).
     local changed = GetCVar("statusTextDisplay") ~= mode or lastText ~= value
     lastText = value
-    if GetCVar("statusTextDisplay") ~= mode then pcall(SetCVar, "statusTextDisplay", mode) end
+    if GetCVar("statusTextDisplay") ~= mode then SetCVar("statusTextDisplay", mode) end
     -- The bars only redraw their text when "statusText" changes or the value
     -- does, so at full health a new mode would not show until a hit.
     -- Changing "statusText" lets Blizzard's own CVAR_UPDATE handler redraw
     -- them; calling the bars from here can't read their (secret) values.
     local on = mode == "NONE" and "0" or "1"
     if GetCVar("statusText") ~= on then
-        pcall(SetCVar, "statusText", on)
+        SetCVar("statusText", on)
     elseif changed and on == "1" and not InCombatLockdown() then
-        pcall(SetCVar, "statusText", "0")
-        pcall(SetCVar, "statusText", "1")
+        SetCVar("statusText", "0")
+        SetCVar("statusText", "1")
     end
 end
 
@@ -364,14 +327,12 @@ local SECTION = "Unit frames"
 
 ns.RegisterFeature({
     key = "unitFrameDark", label = "Dark frames", section = SECTION, category = "Appearance",
-    default = true, apply = StyleAll,
-    tooltip = "Darkens the art around the player, target, party and pet frames.",
+    apply = StyleAll,
 })
 ns.RegisterFeature({
     key = "unitFramePortrait", label = "Portrait", section = SECTION, category = "Appearance", type = "dropdown",
     hideLabel = true,
     default = "portrait", apply = ApplyPortrait,
-    tooltip = "Class icon shows players' class icon instead of their face.",
     options = function()
         return {
             { value = "portrait", label = "Portrait" },

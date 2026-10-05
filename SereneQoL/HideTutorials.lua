@@ -23,7 +23,7 @@ local function HideButton(btn)
     hiddenByUs[btn] = true
 end
 
-local function DoHideOpenTips()
+local function HideOpenTips()
     for tip in HelpTip.framePool:EnumerateActive() do
         if tip:IsShown() then
             local info = tip.info
@@ -33,10 +33,6 @@ local function DoHideOpenTips()
             tip:Hide()
         end
     end
-end
-local function HideOpenTips()
-    if not (HelpTip and HelpTip.framePool and HelpTip.framePool.EnumerateActive) then return end
-    pcall(DoHideOpenTips)
 end
 
 -- Some Blizzard frame trees refuse GetChildren from insecure code; this walk
@@ -76,40 +72,32 @@ local coreHooked = false
 local function InstallCoreHooks()
     if coreHooked then return end
     coreHooked = true
-    if HelpTip and HelpTip.Show then
-        hooksecurefunc(HelpTip, "Show", function()
-            if On() then HideOpenTips() end
-        end)
-    end
-    if ShowUIPanel then
-        hooksecurefunc("ShowUIPanel", function(frame)
-            if On() and frame then
-                -- Not marked before the fingerprint exists (Blizzard_HelpPlate
-                -- not loaded yet), so the panel is walked once that loads.
-                if not scanned[frame] and GetFingerprint() then
-                    scanned[frame] = true
-                    HideButtonsUnder(frame)
-                end
-                HideOpenTips()
+    hooksecurefunc(HelpTip, "Show", function()
+        if On() then HideOpenTips() end
+    end)
+    hooksecurefunc("ShowUIPanel", function(frame)
+        if On() and frame then
+            -- Not marked before the fingerprint exists (Blizzard_HelpPlate
+            -- not loaded yet), so the panel is walked once that loads.
+            if not scanned[frame] and GetFingerprint() then
+                scanned[frame] = true
+                HideButtonsUnder(frame)
             end
-        end)
-    end
+            HideOpenTips()
+        end
+    end)
 end
 
 local tooltipHooked = false
 local function InstallTooltipHook()
     if tooltipHooked or not HelpPlateTooltip then return end
     tooltipHooked = true
-    if HelpPlate and HelpPlate.ShowTutorialTooltip then
-        hooksecurefunc(HelpPlate, "ShowTutorialTooltip", function()
-            if On() and HelpPlateTooltip then HelpPlateTooltip:Hide() end
-        end)
-    end
-    if HelpPlateTooltip.Init then
-        hooksecurefunc(HelpPlateTooltip, "Init", function(self)
-            if On() then self:Hide() end
-        end)
-    end
+    hooksecurefunc(HelpPlate, "ShowTutorialTooltip", function()
+        if On() then HelpPlateTooltip:Hide() end
+    end)
+    hooksecurefunc(HelpPlateTooltip, "Init", function(self)
+        if On() then self:Hide() end
+    end)
 end
 
 local weSetCVar = false
@@ -117,14 +105,14 @@ local function Apply()
     if On() then
         InstallCoreHooks()
         InstallTooltipHook()
-        pcall(SetCVar, "hideHelptips", "1")
-        pcall(SetCVar, "showTutorials", "0")
+        SetCVar("hideHelptips", "1")
+        SetCVar("showTutorials", "0")
         weSetCVar = true
         HideOpenTips()
     else
         if weSetCVar then
-            pcall(SetCVar, "hideHelptips", "0")
-            pcall(SetCVar, "showTutorials", "1")
+            SetCVar("hideHelptips", "0")
+            SetCVar("showTutorials", "1")
             weSetCVar = false
         end
         RestoreButtons()

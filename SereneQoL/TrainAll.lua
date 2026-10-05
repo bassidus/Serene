@@ -8,7 +8,6 @@ local _, ns = ...
 local button
 
 local function FreeProfessionSlots()
-    if not GetProfessions then return 2 end
     local a, b = GetProfessions()
     return 2 - (a and 1 or 0) - (b and 1 or 0)
 end
@@ -19,9 +18,7 @@ local function Affordable(i, money, slots)
     local _, kind = GetTrainerServiceInfo(i)
     if kind ~= "available" then return false end
     local cost, takesSlot = GetTrainerServiceCost(i)
-    cost = cost or 0
-    -- Only a real boolean: older clients return other numbers in that spot.
-    takesSlot = takesSlot == true
+    takesSlot = takesSlot == true  -- not every client returns a boolean there
     if cost > money or (takesSlot and slots <= 0) then return false end
     return true, cost, takesSlot
 end
@@ -61,36 +58,27 @@ local function TrainAll()
 end
 
 local function Create()
-    if button or not (ClassTrainerFrame and ClassTrainerTrainButton) then return end
+    if button then return end
     button = CreateFrame("Button", nil, ClassTrainerFrame, "MagicButtonTemplate")
     button:SetText("Train All")
-    button:SetSize(80, ClassTrainerTrainButton:GetHeight() or 22)
+    button:SetSize(80, ClassTrainerTrainButton:GetHeight())
     button:SetPoint("RIGHT", ClassTrainerTrainButton, "LEFT", -2, 0)
     button:SetScript("OnClick", TrainAll)
     button:SetScript("OnEnter", function(self)
         local n, total = Summary()
         if n <= 0 then return end
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText(format("Learn %d skill%s for %s", n, n == 1 and "" or "s", ns.CoinString(total)), 1, 1, 1)
+        GameTooltip:SetText(format("Learn %d skill%s for %s", n, n == 1 and "" or "s", C_CurrencyInfo.GetCoinTextureString(total)), 1, 1, 1)
         GameTooltip:Show()
     end)
     button:SetScript("OnLeave", GameTooltip_Hide)
 
-    if ClassTrainerFrame_Update then
-        hooksecurefunc("ClassTrainerFrame_Update", Refresh)
-    else
-        local watcher = CreateFrame("Frame")
-        watcher:RegisterEvent("TRAINER_UPDATE")
-        watcher:SetScript("OnEvent", Refresh)
-    end
+    hooksecurefunc("ClassTrainerFrame_Update", Refresh)
     Refresh()
 end
 
 local function Apply()
-    if ns.Enabled("trainAllButton") then
-        local IsLoaded = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded
-        if IsLoaded("Blizzard_TrainerUI") then Create() end
-    end
+    if ns.Enabled("trainAllButton") and C_AddOns.IsAddOnLoaded("Blizzard_TrainerUI") then Create() end
     Refresh()
 end
 
@@ -99,11 +87,10 @@ loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(self, _, addon)
     if addon ~= "Blizzard_TrainerUI" then return end
     self:UnregisterEvent("ADDON_LOADED")
-    if SereneDB and ns.Enabled("trainAllButton") then Create() end
+    if ns.Enabled("trainAllButton") then Create() end
 end)
 
 ns.RegisterFeature({
     key = "trainAllButton", label = "Train All button", section = "General", category = "Vendors & trainers",
     apply = Apply,
-    tooltip = "Adds a Train All button at trainers.",
 })

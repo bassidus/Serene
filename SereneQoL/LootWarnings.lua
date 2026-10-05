@@ -26,12 +26,7 @@ ns.RegisterFeature({
     section = "General", category = "Loot & items",
     apply = function()
         for _, event in ipairs(EVENTS) do
-            if ns.Enabled("skipLootWarnings") then
-                pcall(f.RegisterEvent, f, event)
-            else
-                pcall(f.UnregisterEvent, f, event)
-            end
+            if ns.Enabled("skipLootWarnings") then f:RegisterEvent(event) else f:UnregisterEvent(event) end
         end
     end,
-    tooltip = "Answers yes for you when the game asks whether an item may bind to you, on loot and on rolls.",
 })

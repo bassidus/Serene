@@ -31,8 +31,8 @@ C_Timer.NewTicker(1, function()
     local _, _, _, world = GetNetStats()
     slot = slot % WINDOW + 1
     history.time[slot] = GetTime()
-    history.fps[slot] = GetFramerate() or 0
-    history.latency[slot] = world or 0
+    history.fps[slot] = GetFramerate()
+    history.latency[slot] = world
 end)
 
 local loading = CreateFrame("Frame")
@@ -59,29 +59,13 @@ end
 --  Data
 -------------------------------------------------------------------------------
 local Profiler = C_AddOnProfiler
-local Metric = Enum and Enum.AddOnProfilerMetric
+local Metric = Enum.AddOnProfilerMetric
 
-local function ProfilerOn()
-    return Profiler and Profiler.GetAddOnMetric and Metric
-        and (not Profiler.IsEnabled or Profiler.IsEnabled())
-end
-
-local function ProfilerOff()
-    return Profiler and Profiler.IsEnabled and not Profiler.IsEnabled()
-end
-
--- Share of the client's frame time, in percent. Without the application
--- metric an average is compared to the current frame time instead; a peak
--- has nothing comparable then and stays nil (shown in ms).
+-- Share of the client's frame time, in percent; nil before the client has
+-- measured any.
 local function Percent(value, metric)
-    if not value then return nil end
-    local ok, app = false, nil
-    if Profiler.GetApplicationMetric then ok, app = pcall(Profiler.GetApplicationMetric, metric) end
-    if ok and app and app > 0 then return value / app * 100 end
-    if metric == Metric.PeakTime then return nil end
-    local fps = GetFramerate()
-    if fps and fps > 0 then return value / (1000 / fps) * 100 end
-    return nil
+    local app = Profiler.GetApplicationMetric(metric)
+    if value and app > 0 then return value / app * 100 end
 end
 
 local function FormatMs(ms)
@@ -102,16 +86,12 @@ local function FormatMemory(kb)
     return string.format("%.0f KB", kb)
 end
 
-local NumAddOns = (C_AddOns and C_AddOns.GetNumAddOns) or GetNumAddOns
-local AddOnInfo = (C_AddOns and C_AddOns.GetAddOnInfo) or GetAddOnInfo
-local IsLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
-
-local Metadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+local Metadata = C_AddOns.GetAddOnMetadata
 
 -- Title (with version), notes and icon per addon; these never change.
 local infoCache = {}
 local function Info(i)
-    local name, title, notes = AddOnInfo(i)
+    local name, title, notes = C_AddOns.GetAddOnInfo(i)
     local info = infoCache[name]
     if info then return name, info end
     if not title or title == "" then title = name end
@@ -129,30 +109,25 @@ local function Info(i)
     return name, info
 end
 
-local function AddOnMetric(name, metric)
-    local ok, v = pcall(Profiler.GetAddOnMetric, name, metric)
-    return ok and v or nil
-end
-
 local entries = {}
 local entryByName = {}  -- one row record per addon, reused every tick
 
 local function Collect(rescanMemory)
-    if rescanMemory and UpdateAddOnMemoryUsage then UpdateAddOnMemoryUsage() end
-    local cpuOn = ProfilerOn()
+    if rescanMemory then UpdateAddOnMemoryUsage() end
+    local cpuOn = Profiler.IsEnabled()
     wipe(entries)
-    for i = 1, NumAddOns() do
-        if IsLoaded(i) then
+    for i = 1, C_AddOns.GetNumAddOns() do
+        if C_AddOns.IsAddOnLoaded(i) then
             local name, info = Info(i)
             local e = entryByName[name]
             if not e then
                 e = { name = name, info = info, sortName = info.sortName }
                 entryByName[name] = e
             end
-            e.mem = GetAddOnMemoryUsage and GetAddOnMemoryUsage(i) or 0
+            e.mem = GetAddOnMemoryUsage(i)
             if cpuOn then
-                e.recentMs = AddOnMetric(name, Metric.RecentAverageTime)
-                e.peakMs = AddOnMetric(name, Metric.PeakTime)
+                e.recentMs = Profiler.GetAddOnMetric(name, Metric.RecentAverageTime)
+                e.peakMs = Profiler.GetAddOnMetric(name, Metric.PeakTime)
                 e.cpu = Percent(e.recentMs, Metric.RecentAverageTime)
             else
                 e.recentMs, e.peakMs, e.cpu = nil, nil, nil
@@ -253,7 +228,7 @@ local function Build(page)
     end)
     enable:SetScript("OnClick", function()
         C_CVar.SetCVar("addonProfilerEnabled", "1")
-        if ProfilerOff() then
+        if not Profiler.IsEnabled() then
             ns.Print("Addon profiling is still off. Another addon may be switching it off.")
         end
         GameTooltip_Hide()
@@ -408,10 +383,10 @@ local function Build(page)
         for _, e in ipairs(entries) do total = total + e.mem end
         values.memory:SetText(FormatMemory(total))
 
-        local off = ProfilerOff()
-        enable:SetShown(off)
-        values.cpuAvg:SetShown(not off)
-        if ProfilerOn() and Profiler.GetOverallMetric then
+        local on = Profiler.IsEnabled()
+        enable:SetShown(not on)
+        values.cpuAvg:SetShown(on)
+        if on then
             local avg = Metric.RecentAverageTime
             values.cpuAvg:SetText(FormatPercent(Percent(Profiler.GetOverallMetric(avg), avg)))
             local peak = Metric.PeakTime

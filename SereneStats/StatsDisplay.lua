@@ -46,7 +46,7 @@ end
 -- and reads the same.
 local function Latency()
     local _, _, _, world = GetNetStats()
-    return world or 0
+    return world
 end
 
 local frame, bg, ticker
@@ -77,7 +77,7 @@ local function Update()
     local n = 0
     if ns.Enabled("statsFps") then
         n = n + 1
-        texts[n] = Part("fps", math.floor((GetFramerate() or 0) + 0.5))
+        texts[n] = Part("fps", math.floor(GetFramerate() + 0.5))
     end
     if ns.Enabled("statsLatency") then
         n = n + 1
@@ -122,7 +122,7 @@ local function Build()
     frame:SetMovable(true)
     frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
-    if frame.SetDontSavePosition then frame:SetDontSavePosition(true) end
+    frame:SetDontSavePosition(true)
 
     bg = frame:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
@@ -146,7 +146,7 @@ local function Build()
     frame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
         GameTooltip:SetText("FPS & Latency", 1, 1, 1)
-        GameTooltip:AddDoubleLine("Framerate", string.format("%.0f fps", GetFramerate() or 0), 1, 0.82, 0, 1, 1, 1)
+        GameTooltip:AddDoubleLine("Framerate", string.format("%.0f fps", GetFramerate()), 1, 0.82, 0, 1, 1, 1)
         GameTooltip:AddDoubleLine("Latency", Latency() .. " ms", 1, 0.82, 0, 1, 1, 1)
         if not ns.Enabled("statsLocked") then
             GameTooltip:AddLine(" ")
@@ -226,7 +226,7 @@ bindOwner:RegisterEvent("PLAYER_LOGIN")
 bindOwner:RegisterEvent("UPDATE_BINDINGS")
 bindOwner:SetScript("OnEvent", function(self, event)
     if event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_LOGIN" then self:UnregisterEvent(event) end
-    if SereneDB then UpdateBinding() end
+    UpdateBinding()
 end)
 
 -------------------------------------------------------------------------------
@@ -234,16 +234,13 @@ end)
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
     key = "statsFps", label = "Show framerate (FPS)", section = SECTION, category = "Display", default = false, apply = Apply,
-    tooltip = "Frames per second. The game's Toggle Framerate key hides and shows the whole box.",
+    tooltip = "The game's Toggle Framerate key hides and shows the whole box.",
 })
 ns.RegisterFeature({
     key = "statsLatency", label = "Show latency (ms)", section = SECTION, category = "Display", default = false, apply = Apply,
-    tooltip = "How long the server takes to answer you, in milliseconds.",
 })
 ns.RegisterFeature({
-    key = "statsLocked", label = "Lock position", section = SECTION, category = "Display",
-    default = true, apply = Apply,
-    tooltip = "Unlocked, you can drag the box anywhere on the screen.",
+    key = "statsLocked", label = "Lock position", section = SECTION, category = "Display", apply = Apply,
 })
 ns.RegisterFeature({
     key = "statsLayout", label = "Layout", section = SECTION, category = "Appearance",
@@ -286,5 +283,4 @@ ns.RegisterFontSettings({
 ns.RegisterFeature({
     key = "statsBackground", label = "Background opacity", section = SECTION, category = "Appearance", type = "slider",
     min = 0, max = 100, step = 5, default = 0, apply = Apply,
-    tooltip = "0 shows no background, 100 a solid black box.",
 })

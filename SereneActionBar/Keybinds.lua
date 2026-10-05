@@ -51,29 +51,16 @@ local buttons = {}  -- [button] = binding command
 local hooked = setmetatable({}, { __mode = "k" })
 
 local function BindingKey(btn)
-    local key = GetBindingKey(buttons[btn])
-    if not key and btn.GetName and btn:GetName() then
-        key = GetBindingKey("CLICK " .. btn:GetName() .. ":LeftButton")
-    end
-    return key
+    return GetBindingKey(buttons[btn]) or GetBindingKey("CLICK " .. btn:GetName() .. ":LeftButton")
 end
-
--- Formatted text per binding key; bindings are few and rarely change.
-local short = {}
 
 -- No binding: leave Blizzard's text alone (it hides it or shows the range dot).
 local function SetText(btn, enabled)
     local hk = btn.HotKey
-    if not hk then return end
     local key = BindingKey(btn)
     if not key then return end
     if enabled then
-        local text = short[key]
-        if not text then
-            text = FormatHotkeyText(key)
-            short[key] = text
-        end
-        hk:SetText(text)
+        hk:SetText(FormatHotkeyText(key))
     else
         hk:SetText(GetBindingText(key, 1))
     end
@@ -115,17 +102,13 @@ end
 local function Original(fs, t)
     local o = orig[fs]
     if not o then
-        local path, sz, flags = fs:GetFont()
-        local sr, sg, sb, sa = fs:GetShadowColor()
-        o = { t = t, path = path, size = sz, flags = flags, shadow = { sr, sg, sb, sa },
-              justify = fs:GetJustifyH(), points = {} }
-        o.sx, o.sy = fs:GetShadowOffset()
+        o = ns.FontState(fs)
+        o.t, o.justify, o.points = t, fs:GetJustifyH(), {}
         -- Blizzard's in-range color (o.r/g/b) and, while out of range, its red.
         local r, g, b = fs:GetTextColor()
         if IsRed(r, g, b) then
             o.red, o.rr, o.rg, o.rb = true, r, g, b
-            local c = LIGHTGRAY_FONT_COLOR
-            if c then r, g, b = c.r, c.g, c.b else r, g, b = 0.75, 0.75, 0.75 end
+            r, g, b = LIGHTGRAY_FONT_COLOR:GetRGB()
         end
         o.r, o.g, o.b = r, g, b
         for i = 1, fs:GetNumPoints() do o.points[i] = { fs:GetPoint(i) } end
@@ -137,24 +120,12 @@ end
 local function StyleFont(fs, o)
     local t = o.t
     if t.font == "default" and t.size == t.defaultSize and t.outline == "default" then
-        if o.font and o.path then
-            fs:SetFont(o.path, o.size, o.flags or "")
-            fs:SetShadowColor(o.shadow[1], o.shadow[2], o.shadow[3], o.shadow[4])
-            fs:SetShadowOffset(o.sx or 0, o.sy or 0)
-        end
+        if o.font then ns.RestoreFont(fs, o) end
         o.font = nil
         return
     end
-    local flags, shadow = o.flags, nil
-    if t.outline ~= "default" then flags, shadow = ns.FontFlags(t.outline) end
     -- Relative to each text's own size, so smaller pet/stance text stays smaller.
-    ns.SetFont(fs, t.font, (o.size or t.defaultSize) + t.size - t.defaultSize, flags, o.path)
-    if t.outline == "default" then
-        fs:SetShadowColor(o.shadow[1], o.shadow[2], o.shadow[3], o.shadow[4])
-        fs:SetShadowOffset(o.sx or 0, o.sy or 0)
-    else
-        ns.SetShadow(fs, shadow)
-    end
+    ns.ApplyFont(fs, o, t.font, o.size + t.size - t.defaultSize, t.outline)
     o.font = true
 end
 
@@ -251,8 +222,7 @@ end
 
 -- Blizzard's look of button 1's text, for the options' Default previews.
 local function Button1(t)
-    local fs = _G.ActionButton1 and _G.ActionButton1[t.field]
-    return fs and Original(fs, t)
+    return Original(ActionButton1[t.field], t)
 end
 
 local function CollectButtons()
@@ -325,9 +295,7 @@ ns.RefreshKeybinds = ApplySetting  -- Range Coloring changes whether the text tu
 local f = CreateFrame("Frame")
 f:RegisterEvent("UPDATE_BINDINGS")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:SetScript("OnEvent", function()
-    if SereneDB then Queue() end
-end)
+f:SetScript("OnEvent", function() Queue() end)
 
 -------------------------------------------------------------------------------
 --  Settings
@@ -345,7 +313,7 @@ ns.RegisterFontSettings({
     position = "keybindOffsetX",
     blizzard = function()
         local o = Button1(KEYBIND)
-        return o and ns.OutlineOf(o.flags, o.sx, o.sy) or {}
+        return ns.OutlineOf(o.flags, o.sx, o.sy)
     end,
 })
 ns.RegisterFeature({
@@ -355,7 +323,7 @@ ns.RegisterFeature({
     specials = {
         { value = "default", label = "Default", swatch = function()
             local o = Button1(KEYBIND)
-            return o and ns.RGBToHex(o.r, o.g, o.b)
+            return ns.RGBToHex(o.r, o.g, o.b)
         end },
         { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
     },
@@ -371,8 +339,7 @@ ns.RegisterPositionSettings({
 ns.RegisterFeature({
     key = "showMacroText", label = "Show macro names", section = SECTION, category = "Macro names",
     beside = true,  -- to the right of Keybinds
-    default = true, apply = ApplySetting,
-    tooltip = "Shows the name written on buttons that hold a macro.",
+    apply = ApplySetting,
 })
 ns.RegisterFontSettings({
     prefix = "macro", label = "Macro name text", section = SECTION, category = "Macro names", apply = ApplySetting,
@@ -380,7 +347,7 @@ ns.RegisterFontSettings({
     button = "Font", position = "macroOffsetX",
     blizzard = function()
         local o = Button1(MACRO)
-        return o and ns.OutlineOf(o.flags, o.sx, o.sy) or {}
+        return ns.OutlineOf(o.flags, o.sx, o.sy)
     end,
 })
 ns.RegisterFeature({
@@ -390,7 +357,7 @@ ns.RegisterFeature({
     specials = {
         { value = "default", label = "Default", swatch = function()
             local o = Button1(MACRO)
-            return o and ns.RGBToHex(o.r, o.g, o.b)
+            return ns.RGBToHex(o.r, o.g, o.b)
         end },
         { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
     },

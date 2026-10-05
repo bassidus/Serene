@@ -24,5 +24,4 @@ end
 
 ns.RegisterFeature({
     key = "quickLoot", label = "Fast auto loot", section = "General", category = "Loot & items", apply = Apply,
-    tooltip = "Picks up everything the moment the loot window opens, faster than Blizzard's Auto Loot. Hold Shift to loot by hand.",
 })

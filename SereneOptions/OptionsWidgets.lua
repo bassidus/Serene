@@ -54,7 +54,7 @@ local function AttachTooltip(region, f)
 end
 
 local function PlayClick()
-    if SOUNDKIT and SOUNDKIT.U_CHAT_SCROLL_BUTTON then PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON) end
+    PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 end
 W.PlayClick = PlayClick
 
@@ -81,11 +81,9 @@ local function Available(holder, f)
 end
 
 -- Draws text in a font file, falling back to the stock font if it fails to load.
-local function SetPreviewFont(fs, path, size)
+local function SetPreviewFont(fs, path)
     fs:SetFontObject(GameFontHighlight)
-    if path and path ~= "default" and fs:SetFont(path, size or 13, "") == false then
-        fs:SetFontObject(GameFontHighlight)
-    end
+    if path ~= "default" and not fs:SetFont(path, 13, "") then fs:SetFontObject(GameFontHighlight) end
 end
 
 -- A dropdown setting's label for a value; a saved value no longer offered
@@ -161,8 +159,6 @@ end
 local MAX_ROWS, ROW_H = 12, 20
 local menu, menuRows, state = nil, {}, {}
 
-local Render
-
 local function MenuRow(i)
     if menuRows[i] then return menuRows[i] end
     local r = CreateFrame("Button", nil, menu)
@@ -188,7 +184,7 @@ local function MenuRow(i)
     return r
 end
 
-Render = function()
+local function Render()
     local opts = state.options
     local n = math.min(#opts, MAX_ROWS)
     for i = 1, n do
@@ -415,7 +411,6 @@ local function ShowColor(swatch, f)
             return s.label, swatch.SetColors()
         end
     end
-    return tostring(value), swatch.SetColors()
 end
 
 -- Blizzard's picker, raised above the options window while it is open.
@@ -427,16 +422,8 @@ local function OpenColorPicker(value, onChange)
         onChange(ns.RGBToHex(picker:GetColorRGB()))
     end
     local function Cancelled() onChange(value) end
-    if picker.SetupColorPickerAndShow then
-        picker:SetupColorPickerAndShow({ r = r, g = g, b = b, hasOpacity = false,
-                                         swatchFunc = Picked, cancelFunc = Cancelled })
-    else
-        picker.hasOpacity, picker.opacityFunc = false, nil
-        picker.func, picker.cancelFunc = Picked, Cancelled
-        picker.previousValues = { r, g, b }
-        picker:SetColorRGB(r, g, b)
-        ShowUIPanel(picker)
-    end
+    picker:SetupColorPickerAndShow({ r = r, g = g, b = b, hasOpacity = false,
+                                     swatchFunc = Picked, cancelFunc = Cancelled })
     if not picker.sereneStrata then
         picker.sereneStrata = picker:GetFrameStrata()
         picker:HookScript("OnHide", function(self) self:SetFrameStrata(self.sereneStrata) end)
@@ -456,27 +443,14 @@ function W.Color(parent, f, labeled)
     end
     holder:SetHeight(SWATCH - top)
 
+    -- Every color setting sits under a category, whose "?" explains it.
     local choices = {}  -- { button, edges, value (special word or hex), [fill] }
-    -- tip: the choice's own help text (a special's tooltip), else the setting's;
-    -- with neither, or under a category (its "?" has them), hovering shows no
-    -- tooltip.
-    local function Choice(button, value, name, tip)
+    local function Choice(button, value)
         local c = { button = button, value = value }
         W.Solid(button, "BACKGROUND", FIELD):SetAllPoints()
         c.edges = W.Border(button, EDGE)
-        tip = not f.category and (tip or f.tooltip) or nil
-        button:SetScript("OnEnter", function(self)
-            W.SetBorderColor(c.edges, ACCENT)
-            if not tip then return end
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText(f.label .. ": " .. name, 1, 1, 1)
-            GameTooltip:AddLine(tip, nil, nil, nil, true)
-            GameTooltip:Show()
-        end)
-        button:SetScript("OnLeave", function()
-            GameTooltip_Hide()
-            holder.Refresh()
-        end)
+        button:SetScript("OnEnter", function() W.SetBorderColor(c.edges, ACCENT) end)
+        button:SetScript("OnLeave", function() holder.Refresh() end)
         choices[#choices + 1] = c
         return c
     end
@@ -503,7 +477,7 @@ function W.Color(parent, f, labeled)
             text:SetPoint("CENTER")
         end
         Place(chip, width)
-        local c = Choice(chip, s.value, s.label, s.tooltip)
+        local c = Choice(chip, s.value)
         c.text = text
         chip:SetScript("OnClick", function() PlayClick(); ns.SetValue(f.key, s.value) end)
     end
@@ -512,7 +486,7 @@ function W.Color(parent, f, labeled)
     for _, p in ipairs(ns.PALETTE) do
         local swatch = CreateFrame("Button", nil, holder)
         Place(swatch, SWATCH)
-        Choice(swatch, p.hex, p.label)
+        Choice(swatch, p.hex)
         local fill = swatch:CreateTexture(nil, "ARTWORK")
         fill:SetPoint("TOPLEFT", 2, -2)
         fill:SetPoint("BOTTOMRIGHT", -2, 2)
@@ -521,22 +495,19 @@ function W.Color(parent, f, labeled)
         swatch:SetScript("OnClick", function() PlayClick(); ns.SetValue(f.key, p.hex) end)
     end
 
-    local custom
-    if ColorPickerFrame then
-        local button = CreateFrame("Button", nil, holder)
-        Place(button, SWATCH)
-        custom = Choice(button, nil, "Other color...")
-        custom.fill = button:CreateTexture(nil, "ARTWORK")
-        custom.fill:SetPoint("TOPLEFT", 2, -2)
-        custom.fill:SetPoint("BOTTOMRIGHT", -2, 2)
-        custom.plus = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        custom.plus:SetPoint("CENTER", 0, 1)
-        custom.plus:SetText("+")
-        button:SetScript("OnClick", function()
-            PlayClick()
-            OpenColorPicker(ns.Get(f.key), function(hex) ns.SetValue(f.key, hex) end)
-        end)
-    end
+    local button = CreateFrame("Button", nil, holder)
+    Place(button, SWATCH)
+    local custom = Choice(button, nil)
+    custom.fill = button:CreateTexture(nil, "ARTWORK")
+    custom.fill:SetPoint("TOPLEFT", 2, -2)
+    custom.fill:SetPoint("BOTTOMRIGHT", -2, 2)
+    custom.plus = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    custom.plus:SetPoint("CENTER", 0, 1)
+    custom.plus:SetText("+")
+    button:SetScript("OnClick", function()
+        PlayClick()
+        OpenColorPicker(ns.Get(f.key), function(hex) ns.SetValue(f.key, hex) end)
+    end)
     holder.width = x - SWATCH_GAP  -- the row's own width, for the editor
 
     function holder.Refresh()
@@ -552,14 +523,12 @@ function W.Color(parent, f, labeled)
             end
         end
         -- A color off the palette lives on the "+" swatch.
-        if custom then
-            local r, g, b = ns.ColorRGB(value)
-            local own = not matched and r ~= nil
-            custom.fill:SetShown(own)
-            custom.plus:SetShown(not own)
-            if own then custom.fill:SetColorTexture(r, g, b, 1) end
-            W.SetBorderColor(custom.edges, own and ACCENT or EDGE)
-        end
+        local r, g, b = ns.ColorRGB(value)
+        local own = not matched and r ~= nil
+        custom.fill:SetShown(own)
+        custom.plus:SetShown(not own)
+        if own then custom.fill:SetColorTexture(r, g, b, 1) end
+        W.SetBorderColor(custom.edges, own and ACCENT or EDGE)
         local on = Available(holder, f)
         for _, c in ipairs(choices) do c.button:SetEnabled(on) end
     end

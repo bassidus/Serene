@@ -14,7 +14,6 @@ local SECTION = "Social"
 local COOLDOWN = 60      -- seconds before anyone is thanked again
 local SETTLE = 2         -- seconds after a loading screen with no thanks
 
-local issecret = issecretvalue
 local Clean = ns.Clean
 
 -------------------------------------------------------------------------------
@@ -91,7 +90,7 @@ local settleUntil = 0
 -- Secret answers count as "in the group": better a missed thanks than a wrong one.
 local function InMyGroup(who)
     local party, raid = UnitInParty(who), UnitInRaid(who)
-    if (issecret and (issecret(party) or issecret(raid))) then return true end
+    if issecretvalue(party) or issecretvalue(raid) then return true end
     return party or raid
 end
 
@@ -102,12 +101,7 @@ local function Thank()
     -- A short, varied pause reads less like a macro than an instant reply.
     C_Timer.After(1.5 + math.random() * 1.5, function()
         if not ns.Enabled("thankBuffs") then return end
-        local msg = PickMessage()
-        if C_ChatInfo and C_ChatInfo.SendChatMessage then
-            C_ChatInfo.SendChatMessage(msg, "EMOTE")
-        else
-            SendChatMessage(msg, "EMOTE")
-        end
+        C_ChatInfo.SendChatMessage(PickMessage(), "EMOTE")
     end)
 end
 
@@ -139,7 +133,7 @@ f:SetScript("OnEvent", function(_, event, ...)
         -- In combat the update itself is secret (flag and list alike): nothing
         -- can be read, so nothing is thanked.
         local full, added = info.isFullUpdate, Clean(info.addedAuras)
-        if not added or (issecret and issecret(full)) or full then return end
+        if not added or issecretvalue(full) or full then return end
         for _, aura in ipairs(added) do
             aura = Clean(aura)
             if aura then OnAuraAdded(aura) end
@@ -158,7 +152,6 @@ end)
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
     key = "thankBuffs", label = "Thank players who buff you", section = SECTION, category = "Thanks for buffs",
-    default = true,
     apply = function()
         local on = ns.Enabled("thankBuffs")
         if on then
@@ -169,15 +162,14 @@ ns.RegisterFeature({
         end
         Listen(on)
     end,
-    tooltip = "Says thanks with an /emote when a player outside your group buffs you (Fortitude, Mark of "
-        .. "the Wild, Arcane Intellect, Blessings and the like). At most once a minute. Buffs given in "
-        .. "combat are not thanked.",
+    tooltip = "An /emote for players outside your group, at most once a minute. Buffs given in combat are "
+        .. "not thanked.",
 })
 ns.RegisterFeature({
     key = "thankBuffMessage", label = "Message", section = SECTION, category = "Thanks for buffs",
     type = "dropdown", default = "random",
     requires = "thankBuffs",
-    tooltip = "Your name comes first in chat. Random picks a new one each time.",
+    tooltip = "Your name comes first in chat.",
     options = function()
         local list = { { value = "random", label = "Random" } }
         for _, m in ipairs(MESSAGES) do list[#list + 1] = m end
@@ -190,7 +182,6 @@ ns.RegisterFeature({
 -- because this file loads last.
 ns.RegisterFeature({
     key = "socialGuildFriends", label = "Count your guild as friends", section = SECTION,
-    default = true,
     tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every "
         .. "setting on this page.",
 })

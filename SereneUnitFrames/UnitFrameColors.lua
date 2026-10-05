@@ -16,37 +16,11 @@ local Clean = ns.Clean
 local state = setmetatable({}, { __mode = "k" })  -- [bar] = Blizzard's look + ours
 local painting  -- set while we color, so our own calls are not taken for Blizzard's
 
--- C_ClassColor.GetClassColor builds a new table on every call, and this
--- runs on every health change, so each class's color is fetched once.
-local classColors = {}
-
 local function ClassColor(unit)
     if not (unit and ns.Enabled("unitFrameClassColors")) then return nil end
     if not Clean(UnitIsPlayer(unit)) or not Clean(UnitIsConnected(unit)) then return nil end
     local _, class = UnitClass(unit)
-    class = Clean(class)
-    if not class then return nil end
-    local c = classColors[class]
-    if not c then
-        c = C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class]
-        classColors[class] = c
-    end
-    return c
-end
-
-local function IsDesaturated(bar)
-    if bar.IsStatusBarDesaturated then return bar:IsStatusBarDesaturated() end
-    local tex = bar:GetStatusBarTexture()
-    return tex and tex:IsDesaturated() or false
-end
-
-local function SetDesaturated(bar, on)
-    if bar.SetStatusBarDesaturated then
-        bar:SetStatusBarDesaturated(on)
-    else
-        local tex = bar:GetStatusBarTexture()
-        if tex then tex:SetDesaturated(on) end
-    end
+    return RAID_CLASS_COLORS[Clean(class)]
 end
 
 -- c is the class color when the caller has just looked it up.
@@ -57,11 +31,11 @@ local function Paint(bar, unit, c)
     c = c or ClassColor(s.unit)
     painting = true
     if c then
-        SetDesaturated(bar, true)
+        bar:SetStatusBarDesaturated(true)
         bar:SetStatusBarColor(c.r, c.g, c.b)
         s.colored = true
     elseif s.colored then
-        SetDesaturated(bar, s.desat)
+        bar:SetStatusBarDesaturated(s.desat)
         bar:SetStatusBarColor(s.r, s.g, s.b)
         s.colored = nil
     end
@@ -70,10 +44,9 @@ end
 
 -- First sight of a bar: remember Blizzard's look and follow its repaints.
 local function Track(bar, unit)
-    if not bar or not bar.SetStatusBarColor then return end
     if not state[bar] then
         local r, g, b = bar:GetStatusBarColor()
-        state[bar] = { r = r, g = g, b = b, desat = IsDesaturated(bar) }
+        state[bar] = { r = r, g = g, b = b, desat = bar:IsStatusBarDesaturated() }
         hooksecurefunc(bar, "SetStatusBarColor", function(self, r2, g2, b2)
             if painting then return end
             local s = state[self]
@@ -84,54 +57,26 @@ local function Track(bar, unit)
                 -- Blizzard's color for a non-player is what we hand back later.
                 s.r, s.g, s.b = r2, g2, b2
                 if s.colored then
-                    SetDesaturated(self, s.desat)
+                    self:SetStatusBarDesaturated(s.desat)
                     s.colored = nil
                 end
             end
         end)
         -- New art (vehicle, Edit Mode) arrives saturated.
         hooksecurefunc(bar, "SetStatusBarTexture", function(self)
-            if state[self].colored then SetDesaturated(self, true) end
+            if state[self].colored then self:SetStatusBarDesaturated(true) end
         end)
     end
     Paint(bar, unit or bar.unit)
 end
 
-local function FindBar(frame)
-    if not frame then return nil end
-    local bar = frame.healthbar or frame.healthBar or frame.HealthBar
-    if bar then return bar end
-    local box = frame.HealthBarsContainer or frame.HealthBarContainer
-    if not box then
-        -- 12.x art: Frame.FrameContent.FrameContentMain.HealthBarsContainer
-        local name = frame:GetName()
-        local content = name and frame[name .. "Content"]
-        local main = content and content[name .. "ContentMain"]
-        box = main and main.HealthBarsContainer
-    end
-    return box and (box.HealthBar or box.healthBar)
-end
-
-local FRAMES = { "PlayerFrame", "TargetFrame", "TargetFrameToT", "FocusFrame", "FocusFrameToT",
-    "PartyMemberFrame1", "PartyMemberFrame2", "PartyMemberFrame3", "PartyMemberFrame4" }
-
-local function TrackFrame(frame)
-    local bar = FindBar(frame)
-    if bar then Track(bar, bar.unit or frame.unit) end
-end
-
 local function RefreshAll()
-    for _, name in ipairs(FRAMES) do TrackFrame(_G[name]) end
-    if PartyFrame and PartyFrame.PartyMemberFramePool then
-        for f in PartyFrame.PartyMemberFramePool:EnumerateActive() do TrackFrame(f) end
-    end
+    for _, frame in ipairs(ns.UnitFrames()) do Track(frame.healthbar, frame.healthbar.unit or frame.unit) end
     for bar in pairs(state) do Paint(bar) end
 end
 
 -- Every Blizzard unit frame bar passes through here when its unit changes.
-if UnitFrameHealthBar_Update then
-    hooksecurefunc("UnitFrameHealthBar_Update", function(bar, unit) Track(bar, unit) end)
-end
+hooksecurefunc("UnitFrameHealthBar_Update", Track)
 
 -- Fallback for paths that skip the update above (and the first paint).
 local watcher = CreateFrame("Frame")
@@ -151,13 +96,12 @@ ns.RegisterFeature({
         if ns.Enabled("unitFrameClassColors") then
             for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",
                                      "GROUP_ROSTER_UPDATE", "UNIT_CONNECTION" }) do
-                pcall(watcher.RegisterEvent, watcher, event)
+                watcher:RegisterEvent(event)
             end
         else
             watcher:UnregisterAllEvents()
         end
         RefreshAll()
     end,
-    tooltip = "Players' health bars on the player, target, target of target, focus and party frames take their class "
-        .. "color. NPCs keep Blizzard's colors.",
+    tooltip = "NPCs keep Blizzard's colors.",
 })

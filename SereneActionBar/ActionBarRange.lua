@@ -68,7 +68,7 @@ local function OnRange(btn, checksRange, inRange)
 end
 
 local function Register(btn)
-    if buttons[btn] or not btn or not btn.icon then return end
+    if buttons[btn] or not btn.icon then return end
     buttons[btn] = true
     if type(btn.UpdateUsable) == "function" then
         hooksecurefunc(btn, "UpdateUsable", OnUsable)
@@ -134,8 +134,7 @@ end
 -------------------------------------------------------------------------------
 local function Apply()
     enabled = ns.Enabled("rangeColors")
-    local r, g, b = ns.ColorRGB(ns.Get("rangeColor"))
-    color = r and { r, g, b } or { 1, 0.3, 0.1 }
+    color = { ns.ColorRGB(ns.Get("rangeColor")) }
     CollectButtons()
     for btn in pairs(buttons) do
         if enabled or tinted[btn] then Color(btn, enabled and OutOfRange(btn)) end
@@ -144,14 +143,13 @@ local function Apply()
         PetUpdate(PetActionBar)
     end
     -- The keybind text stops turning red while the icon shows range.
-    if ns.RefreshKeybinds then ns.RefreshKeybinds() end
+    ns.RefreshKeybinds()
 end
 
 local SECTION = "Action bars"
 
 ns.RegisterFeature({
     key = "rangeColors", label = "Color buttons out of range", section = SECTION, category = "Range", apply = Apply,
-    tooltip = "Tints an ability's icon while your target is too far away for it.",
 })
 ns.RegisterFeature({
     key = "rangeColor", label = "Out-of-range color", section = SECTION, category = "Range",

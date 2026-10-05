@@ -4,7 +4,6 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
--- Blizzard's own fonts; any other addon's come from LibSharedMedia.
 local BUILTIN = {
     { value = "Fonts\\FRIZQT__.TTF", label = "Friz Quadrata" },
     { value = "Fonts\\ARIALN.TTF",   label = "Arial Narrow" },
@@ -12,12 +11,10 @@ local BUILTIN = {
     { value = "Fonts\\MORPHEUS.ttf", label = "Morpheus" },
 }
 
--- "Blizzard default" first, Blizzard's fonts, then any font other addons
--- registered with LibSharedMedia.
+-- "Blizzard default", Blizzard's fonts, then LibSharedMedia's. Each font is
+-- listed once, matched by path, file name and name.
 function ns.FontOptions()
     local list = { { value = "default", label = "Blizzard default" } }
-    -- A font is listed once, also when another addon registers its own copy
-    -- of one: matched by path, file name and name.
     local seen = {}
     local function Key(path) return path:lower():match("([^\\/]+)$") end
     for _, o in ipairs(BUILTIN) do
@@ -77,8 +74,7 @@ function ns.RegisterFontSettings(def)
 end
 
 -- Sets a font string's (or font object's) font from a setting's value.
--- "default" is Blizzard's standard font; a missing file (e.g. an uninstalled
--- LibSharedMedia font) would blank the text, so it falls back to `fallback`
+-- "default" and a file that fails to load both mean `fallback`
 -- (default: STANDARD_TEXT_FONT).
 function ns.SetFont(fs, font, size, flags, fallback)
     fallback = fallback or STANDARD_TEXT_FONT
@@ -145,5 +141,36 @@ function ns.SetShadow(fs, on)
         fs:SetShadowOffset(1, -1)
     else
         fs:SetShadowOffset(0, 0)
+    end
+end
+
+-- A text's own look, to put back later: { path, size, flags, shadow, sx, sy }.
+function ns.FontState(fs)
+    local o = { shadow = { fs:GetShadowColor() } }
+    o.path, o.size, o.flags = fs:GetFont()
+    o.sx, o.sy = fs:GetShadowOffset()
+    return o
+end
+
+function ns.RestoreShadow(fs, o)
+    fs:SetShadowColor(unpack(o.shadow))
+    fs:SetShadowOffset(o.sx, o.sy)
+end
+
+function ns.RestoreFont(fs, o)
+    fs:SetFont(o.path, o.size, o.flags)
+    ns.RestoreShadow(fs, o)
+end
+
+-- Font settings on a text whose own look is o (ns.FontState): an outline of
+-- "default" keeps its flags and shadow.
+function ns.ApplyFont(fs, o, font, size, outline)
+    if outline == "default" then
+        ns.SetFont(fs, font, size, o.flags, o.path)
+        ns.RestoreShadow(fs, o)
+    else
+        local flags, shadow = ns.FontFlags(outline)
+        ns.SetFont(fs, font, size, flags, o.path)
+        ns.SetShadow(fs, shadow)
     end
 end

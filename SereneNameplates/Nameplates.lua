@@ -206,39 +206,22 @@ local function UpdateHealth(plate, valueOnly)
         plate.healthText:SetText("")
     elseif UnitIsDeadOrGhost(unit) then
         plate.healthText:SetText("0%")
-    elseif UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100 then
-        plate.healthText:SetFormattedText("%d%%", UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
     else
-        local cur, max = Clean(UnitHealth(unit)), Clean(UnitHealthMax(unit))
-        if cur and max and max > 0 then
-            plate.healthText:SetFormattedText("%d%%", cur / max * 100)
-        else
-            plate.healthText:SetText("")
-        end
+        plate.healthText:SetFormattedText("%d%%", UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
     end
 end
 
--- Auto role: the spec's role where specs have one,
--- else Defensive Stance, Bear Form or a tank aura (Righteous Fury, Blood
--- Presence, Season of Discovery's tank runes).
-local TANK_AURAS = { 20468, 20469, 20470, 25780, 48263, 407627, 408680, 403789 }
-local SPEC_ROLES = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
-    or (GetClassicExpansionLevel and LE_EXPANSION_MISTS_OF_PANDARIA
-        and GetClassicExpansionLevel() >= LE_EXPANSION_MISTS_OF_PANDARIA)
+-- Auto role: Defensive Stance, Bear or Dire Bear Form, or Righteous Fury.
+local TANK_AURAS = { 20468, 20469, 20470, 25780 }
+local BEAR_FORMS = { [5] = true, [8] = true }
 
 local function DetectTank()
-    if SPEC_ROLES then
-        local spec = GetSpecialization()
-        return spec ~= nil and select(5, GetSpecializationInfo(spec)) == "TANK"
-    end
     local _, class = UnitClass("player")
-    local form = GetShapeshiftFormID and GetShapeshiftFormID()
+    local form = GetShapeshiftFormID()
     if class == "WARRIOR" then return form == 18 end
-    if class == "DRUID" then return form ~= nil and (form == BEAR_FORM or form == 8) end
-    if C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
-        for _, id in ipairs(TANK_AURAS) do
-            if C_UnitAuras.GetPlayerAuraBySpellID(id) then return true end
-        end
+    if class == "DRUID" then return BEAR_FORMS[form] or false end
+    for _, id in ipairs(TANK_AURAS) do
+        if C_UnitAuras.GetPlayerAuraBySpellID(id) then return true end
     end
     return false
 end
@@ -259,10 +242,10 @@ local function IsTank()
     return mode == "tank"
 end
 
--- Before Mists the main tank assignment stands in for the group role.
+-- The main tank assignment counts as the tank role too.
 local function GroupRole(unit)
-    if GetPartyAssignment and Clean(GetPartyAssignment("MAINTANK", unit)) then return "TANK" end
-    return Clean(UnitGroupRolesAssigned and UnitGroupRolesAssigned(unit)) or "NONE"
+    if Clean(GetPartyAssignment("MAINTANK", unit)) then return "TANK" end
+    return Clean(UnitGroupRolesAssigned(unit)) or "NONE"
 end
 
 -- A tank without aggro: is the mob's target another tank or your pet holding
@@ -306,8 +289,7 @@ local function UpdateHealthColor(plate)
         or (not fighting and NP.QuestColor and NP.QuestColor(unit))
     if not c and Clean(UnitIsPlayer(unit)) then
         local _, class = UnitClass(unit)
-        class = Clean(class)
-        local cc = class and (C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class])
+        local cc = RAID_CLASS_COLORS[Clean(class)]
         if cc then
             plate.health:SetStatusBarColor(cc.r, cc.g, cc.b)
             return
@@ -327,15 +309,13 @@ local function UpdateHealthColor(plate)
 end
 
 local function LevelText(unit)
-    local level = Clean(UnitEffectiveLevel and UnitEffectiveLevel(unit) or UnitLevel(unit))
+    local level = Clean(UnitEffectiveLevel(unit))
     if not level then return "" end
     local class = Clean(UnitClassification(unit))
     if level <= 0 or class == "worldboss" then return "|cffff1a1a??|r " end
     local suffix = (class == "elite" or class == "rareelite") and "+" or ""
-    local GetColor = GetCreatureDifficultyColor or GetQuestDifficultyColor
-    local c = GetColor and GetColor(level)
-    local hex = c and string.format("%02x%02x%02x", c.r * 255, c.g * 255, c.b * 255) or "ffffff"
-    return "|cff" .. hex .. level .. suffix .. "|r "
+    local c = GetCreatureDifficultyColor(level)
+    return "|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. suffix .. "|r "
 end
 
 local function UpdateName(plate)
@@ -461,9 +441,7 @@ local function Attach(unit, nameplate)
     plate:ClearAllPoints()
     plate:SetPoint("CENTER", nameplate, "CENTER")
     plate:SetFrameLevel(nameplate:GetFrameLevel() + 1)
-    for _, ev in ipairs(PLATE_EVENTS) do
-        pcall(plate.RegisterUnitEvent, plate, ev, unit)
-    end
+    for _, ev in ipairs(PLATE_EVENTS) do plate:RegisterUnitEvent(ev, unit) end
     HideBlizzard(nameplate)
     plate:Show()
     UpdateAll(plate)
@@ -490,41 +468,24 @@ end
 local MANAGER_EVENTS = { "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "PLAYER_TARGET_CHANGED",
     "UPDATE_MOUSEOVER_UNIT", "RAID_TARGET_UPDATE", "GROUP_ROSTER_UPDATE", "PLAYER_ROLES_ASSIGNED",
     "PLAYER_REGEN_ENABLED", "UNIT_FACTION" }
--- Stance, form and spec changes move the auto role; not every client has
--- every one of them.
-local ROLE_EVENTS = { UPDATE_SHAPESHIFT_FORM = true, PLAYER_SPECIALIZATION_CHANGED = true,
-    ACTIVE_TALENT_GROUP_CHANGED = true, UNIT_AURA = true }
+-- Stance and form changes, and Righteous Fury, move the auto role.
+local ROLE_EVENTS = { UPDATE_SHAPESHIFT_FORM = true, UNIT_AURA = true }
 local manager = CreateFrame("Frame")
 
 local function RegisterManagerEvents()
     for _, ev in ipairs(MANAGER_EVENTS) do manager:RegisterEvent(ev) end
-    for ev in pairs(ROLE_EVENTS) do
-        if ev == "UNIT_AURA" then
-            manager:RegisterUnitEvent(ev, "player")  -- Righteous Fury and the like
-        else
-            pcall(manager.RegisterEvent, manager, ev)
-        end
-    end
+    manager:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+    manager:RegisterUnitEvent("UNIT_AURA", "player")
 end
 
 -- Re-runs every visible plate, e.g. after a setting changed.
--- The units come from our own plates and the nameplate tokens themselves;
--- namePlateUnitToken on the nameplate frames is not set on every client,
--- and relying on it alone left every plate detached and hidden.
 local MAX_TOKENS = 80
 function NP.RefreshAll()
-    local units = {}
-    for unit in pairs(NP.plates) do units[unit] = true end
-    for _, nameplate in ipairs(C_NamePlate.GetNamePlates()) do
-        local unit = nameplate.namePlateUnitToken
-        if unit then units[unit] = true end
-    end
+    for unit in pairs(NP.plates) do Detach(unit) end
     for i = 1, MAX_TOKENS do
         local unit = "nameplate" .. i
-        if UnitExists(unit) then units[unit] = true end
+        if UnitExists(unit) then Evaluate(unit) end
     end
-    for unit in pairs(NP.plates) do Detach(unit) end
-    for unit in pairs(units) do Evaluate(unit) end
     RunRefreshHooks()
 end
 
@@ -555,15 +516,13 @@ manager:SetScript("OnEvent", function(self, event, unit)
         NP.layoutGen = 1
         -- A pooled UnitFrame reused for a unit Serene does not take gets its
         -- hidden pieces back before Blizzard lays it out.
-        if NamePlateDriverFrame and NamePlateDriverFrame.OnNamePlateAdded then
-            hooksecurefunc(NamePlateDriverFrame, "OnNamePlateAdded", function(_, added)
-                if not added or added == "preview" or not next(held) then return end
-                local np = C_NamePlate.GetNamePlateForUnit(added)
-                if np and held[np.UnitFrame] and not Clean(UnitCanAttack("player", added)) then
-                    RestoreBlizzard(np.UnitFrame)
-                end
-            end)
-        end
+        hooksecurefunc(NamePlateDriverFrame, "OnNamePlateAdded", function(_, added)
+            if not added or added == "preview" or not next(held) then return end
+            local np = C_NamePlate.GetNamePlateForUnit(added)
+            if np and held[np.UnitFrame] and not Clean(UnitCanAttack("player", added)) then
+                RestoreBlizzard(np.UnitFrame)
+            end
+        end)
         RegisterManagerEvents()
         UpdateRole()
         NP.RefreshAll()
@@ -620,5 +579,4 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "nameplateHealthText", label = "Show health percent", section = "Enemy nameplates", category = "Text",
     apply = Relayout,
-    tooltip = "Health left as a percent, on the health bar.",
 })

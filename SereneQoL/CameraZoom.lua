@@ -11,8 +11,7 @@ local MAX = 2.6
 
 local function Apply()
     if ns.Enabled("maxCameraZoom") then
-        local current = tonumber(GetCVar(CVAR))
-        if not current or math.abs(current - MAX) > 0.01 then SetCVar(CVAR, MAX) end
+        SetCVar(CVAR, MAX)
         SereneDB.cameraZoomSet = true
     elseif SereneDB.cameraZoomSet then
         SetCVar(CVAR, GetCVarDefault(CVAR))
@@ -23,5 +22,4 @@ end
 ns.RegisterFeature({
     key = "maxCameraZoom", label = "Farther camera zoom", section = "General", category = "Camera & cinematics",
     apply = Apply,
-    tooltip = "Lets you zoom the camera out farther than Blizzard's default, as far as the game allows.",
 })

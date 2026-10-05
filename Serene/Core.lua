@@ -12,40 +12,30 @@ Serene = ns
 ns.features = {}
 ns.featureByKey = {}
 
--- def = { key = SereneDB key, label = display name, section = options page
---         (none for a setting the options window places itself),
---         category = heading on its page; the settings sharing one are shown
---         together under it, in the order the categories first appear,
---         tooltip = help text, listed under the category's "?" (a setting under
---         no category shows it on hover), apply = optional fn run on login and change,
---         type = "boolean" (default) | "dropdown" | "slider" | "color" | "outline",
---         default = initial value,
---         options = fn returning { { value =, label = }, ... } (dropdown),
---         preview = true to draw dropdown entries in their own font (dropdown),
---         hideLabel = true to leave the label out above the button, where the
---         choices say it themselves; it still names it in the help (dropdown),
---         min, max, step, suffix = text after the value, e.g. "%" (slider),
---         specials = { { value =, label =, tooltip =, swatch = }, ... } choices shown
---         before the palette, e.g. "Class color" (color; the value is a word, not
---         a hex); swatch = fn returning the hex(es) it stands for, to show them,
---         blizzard = fn returning Blizzard's own outline as a flag set, shown
---         while the value is "default" (outline),
---         note = short text always shown under the control,
---         space = true: an empty row above the control,
---         beside = true on a category's first setting: that category's frame
---         goes to the right of the one before it, the two at half width; on
---         any other setting: it goes to the right of the setting before it,
---         button = text for a plain button in place of a color field, e.g.
---         "Color"; the label still titles the palette and names it in the help,
---         requires = key of a boolean setting, or a list of them; the control
---         is dimmed and locked while any is off,
---         addon = the Serene* addon that does the work, when another addon
---         registers the setting; the control is dimmed and locked, a
---         checkbox with a "Requires ..." note, while it is not loaded,
---         group = set by ns.RegisterFontSettings: shown as one row with its
---         siblings,
---         pos = set by ns.RegisterPositionSettings: the X and Y offsets shown
---         as one button }
+-- def fields:
+--   key        SereneDB key
+--   label      display name
+--   section    options page; none for a setting the window places itself
+--   category   heading on its page; categories keep their first-seen order
+--   tooltip    help text under the category's "?" (on hover without a category)
+--   apply      fn run at login and on every change
+--   type       "boolean" (default) | "dropdown" | "slider" | "color" | "outline"
+--   default    initial value
+--   options    dropdown: fn returning { { value =, label = }, ... }
+--   preview    dropdown: draw entries in their own font
+--   hideLabel  dropdown: no label above the button (still named in the help)
+--   min, max, step, suffix   slider
+--   specials   color: { { value =, label =, tooltip =, swatch = }, ... } before
+--              the palette; swatch returns the hex(es) the word stands for
+--   blizzard   outline: fn returning Blizzard's own flags, shown on "default"
+--   note       text always shown under the control
+--   space      an empty row above the control
+--   beside     on a category's first setting: that category goes right of the
+--              previous one at half width; otherwise: right of the previous setting
+--   button     a plain button with this text in place of the field
+--   requires   key (or list) of booleans; dimmed and locked while any is off
+--   addon      the Serene* addon that does the work; locked while not loaded
+--   group, pos set by RegisterFontSettings / RegisterPositionSettings
 function ns.RegisterFeature(def)
     def.type = def.type or "boolean"
     if def.default == nil and def.type == "boolean" then def.default = true end
@@ -94,14 +84,14 @@ function ns.SetPageIntro(section, text)
 end
 
 function ns.Get(key)
-    local v = SereneDB and SereneDB[key]
+    local v = SereneDB[key]
     if v ~= nil then return v end
     local f = ns.featureByKey[key]
     return f and f.default
 end
 
 function ns.Enabled(key)
-    return SereneDB and SereneDB[key]
+    return SereneDB[key]
 end
 
 -- The one write path: stores the value, applies the feature and refreshes
@@ -203,23 +193,15 @@ function ns.RGBToHex(r, g, b)
         math.floor(b * 255 + 0.5))
 end
 
--- The player's class color as hex; white before the class is known.
-local classHex
 function ns.PlayerClassHex()
-    if not classHex then
-        local _, class = UnitClass("player")
-        local c = class and (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
-        if not c then return "ffffff" end
-        classHex = ns.RGBToHex(c.r, c.g, c.b)
-    end
-    return classHex
+    local _, class = UnitClass("player")
+    local c = RAID_CLASS_COLORS[class]
+    return ns.RGBToHex(c.r, c.g, c.b)
 end
 
 -- A value from the game, or nil when it is secret or otherwise unreadable.
-local issecret, canaccess = issecretvalue, canaccessvalue
 function ns.Clean(v)
-    if issecret and issecret(v) then return nil end
-    if canaccess and not canaccess(v) then return nil end
+    if issecretvalue(v) or not canaccessvalue(v) then return nil end
     return v
 end
 
@@ -227,28 +209,18 @@ function ns.Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage("|cff7fd1c7Serene:|r " .. msg)
 end
 
-function ns.CoinString(amount)
-    if C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString then
-        return C_CurrencyInfo.GetCoinTextureString(amount)
-    end
-    return GetCoinTextureString(amount)
-end
-
 -------------------------------------------------------------------------------
 --  /serene opens or closes the options window. The window lives in the
 --  load-on-demand SereneOptions, which sets ns.ToggleOptionsWindow.
 --  /serene reset puts everything back to its defaults (ns.ResetAll).
 -------------------------------------------------------------------------------
-local LoadAddOn = (C_AddOns and C_AddOns.LoadAddOn) or LoadAddOn
-
 function ns.ToggleOptions()
-    if not SereneDB then return end
     if not ns.ToggleOptionsWindow then
         if InCombatLockdown() then
             ns.Print("Cannot open options during combat.")
             return
         end
-        LoadAddOn("SereneOptions")
+        C_AddOns.LoadAddOn("SereneOptions")
         if not ns.ToggleOptionsWindow then
             ns.Print("SereneOptions is not installed or is disabled.")
             return
@@ -259,11 +231,11 @@ end
 
 SLASH_SERENE1 = "/serene"
 SlashCmdList["SERENE"] = function(msg)
-    if strtrim(msg or ""):lower() ~= "reset" then
+    if strtrim(msg):lower() ~= "reset" then
         ns.ToggleOptions()
     elseif InCombatLockdown() then
         ns.Print("Cannot reset during combat.")
-    elseif SereneDB then
+    else
         ns.ResetAll()
     end
 end

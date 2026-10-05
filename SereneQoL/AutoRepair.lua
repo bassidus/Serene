@@ -5,15 +5,15 @@
 local _, ns = ...
 
 local function AutoRepair()
-    if not (CanMerchantRepair and CanMerchantRepair()) then return end
+    if not CanMerchantRepair() then return end
     local cost, canRepair = GetRepairAllCost()
-    if not (canRepair and cost and cost > 0) then return end
+    if not (canRepair and cost > 0) then return end
     if GetMoney() < cost then
         ns.Print("|cffff6060Not enough gold to repair.|r")
         return
     end
     RepairAllItems(false)
-    ns.Print("Repaired all items for " .. ns.CoinString(cost))
+    ns.Print("Repaired all items for " .. C_CurrencyInfo.GetCoinTextureString(cost))
 end
 
 local f = CreateFrame("Frame")
@@ -25,5 +25,4 @@ end)
 ns.RegisterFeature({
     key = "autoRepair", label = "Repair at vendors", section = "General", category = "Vendors & trainers",
     beside = true,  -- to the right of Loot & items
-    tooltip = "Repairs all your gear with your own gold when you talk to a vendor who can repair. The cost is shown in chat.",
 })

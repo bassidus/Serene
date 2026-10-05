@@ -6,31 +6,18 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local issecret = issecretvalue
-
--- Global string names of the errors that always show.
-local KEEP_NAMES = {
-    "ERR_INV_FULL", "ERR_BAG_FULL", "ERR_QUEST_LOG_FULL", "ERR_ITEM_MAX_COUNT",
-    "ERR_NOT_ENOUGH_MONEY", "ERR_LOOT_GONE", "ERR_NO_ROOM_FOR_ITEM",
-}
-local keep
-
-local function IsKept(msg)
-    if not keep then
-        keep = {}
-        for _, name in ipairs(KEEP_NAMES) do
-            local s = _G[name]
-            if type(s) == "string" then keep[s] = true end
-        end
-    end
-    return keep[msg]
+-- The errors that always show.
+local KEEP = {}
+for _, name in ipairs({ "ERR_INV_FULL", "ERR_BAG_FULL", "ERR_QUEST_LOG_FULL", "ERR_ITEM_MAX_COUNT",
+                        "ERR_NOT_ENOUGH_MONEY", "ERR_LOOT_GONE", "ERR_NO_ROOM_FOR_ITEM" }) do
+    KEEP[_G[name]] = true
 end
 
 local f = CreateFrame("Frame")
 local hiding = false
 
 local function SetHiding(on)
-    if on == hiding or not UIErrorsFrame then return end
+    if on == hiding then return end
     hiding = on
     if on then
         UIErrorsFrame:UnregisterEvent("UI_ERROR_MESSAGE")
@@ -44,7 +31,7 @@ end
 local function Update()
     local when = ns.Get("hideErrors")
     if when == "combat" or when == "outOfCombat" then
-        SetHiding((UnitAffectingCombat("player") and true or false) == (when == "combat"))
+        SetHiding(UnitAffectingCombat("player") == (when == "combat"))
     else
         SetHiding(when == "always")
     end
@@ -52,13 +39,8 @@ end
 
 f:SetScript("OnEvent", function(_, event, _, msg)
     if event == "UI_ERROR_MESSAGE" then
-        if type(msg) == "string" and not (issecret and issecret(msg)) and IsKept(msg) then
-            if UIErrorsFrame.AddExternalErrorMessage then
-                UIErrorsFrame:AddExternalErrorMessage(msg)
-            else
-                UIErrorsFrame:AddMessage(msg, 1, 0.1, 0.1)
-            end
-        end
+        msg = ns.Clean(msg)
+        if msg and KEEP[msg] then UIErrorsFrame:AddExternalErrorMessage(msg) end
         return
     end
     Update()  -- entering or leaving combat

@@ -19,10 +19,7 @@ local GROUPS = {
 }
 local MAX_ICONS = 6
 
-if C_AddOns and not C_AddOns.IsAddOnLoaded("Blizzard_AuraContainer") then
-    pcall(C_AddOns.LoadAddOn, "Blizzard_AuraContainer")
-end
-local unavailable  -- set when this client has no aura container
+C_AddOns.LoadAddOn("Blizzard_AuraContainer")
 
 local function Enabled()
     return ns.Enabled("nameplateDebuffs")
@@ -80,39 +77,22 @@ local function InitButton(button)
 end
 
 local function Create(plate)
-    if unavailable then return end
-    local made, c = pcall(CreateFrame, "AuraContainer", nil, plate, "CustomAuraContainerTemplate")
-    if not made then
-        ns.Print("Nameplate debuffs are not available on this client.")
-        unavailable = true
-        return
-    end
+    local c = CreateFrame("AuraContainer", nil, plate, "CustomAuraContainerTemplate")
     c:SetPoint("BOTTOM", plate.health, "TOP", 0, ns.Get("nameplateFontSize") + 8)
     c:SetSize(1, 1)
-    local set = c.SetFlowLayoutAnchorPoint or c.SetAuraLayoutAnchorPoint
-    if set then set(c, "BOTTOMLEFT") end
+    c:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
     -- Growth takes AnchorUtil.FlowDirection values, not point names.
-    local FD = AnchorUtil and AnchorUtil.FlowDirection
-    set = c.SetFlowLayoutGrowthDirection or c.SetAuraLayoutGrowthDirection
-    if set and FD then set(c, FD.Right, FD.Up) end
+    c:SetFlowLayoutGrowthDirection(AnchorUtil.FlowDirection.Right, AnchorUtil.FlowDirection.Up)
 
     local size = IconSize()
-    local ok, err
     for key, filter in pairs(GROUPS) do
-        ok, err = pcall(c.AddAuraGroup, c, key, filter, {
+        c:AddAuraGroup(key, filter, {
             maxFrameCount = 0,
-            sortMethod = AuraContainerSortMethod and AuraContainerSortMethod.Default,
-            sortDirection = AuraContainerSortDirection and AuraContainerSortDirection.Normal,
+            sortMethod = AuraContainerSortMethod.Default,
+            sortDirection = AuraContainerSortDirection.Normal,
             initializeFrame = InitButton,
             layout = { elementWidth = size, elementHeight = size, elementSpacing = 3, lineSpacing = 3 },
         })
-        if not ok then break end
-    end
-    if not ok then
-        -- Said once, so a broken engine call does not just look like "no debuffs".
-        if not unavailable then ns.Print("Nameplate debuffs could not start: " .. tostring(err)) end
-        unavailable = true
-        return
     end
     c.iconSize = size
     plate.debuffs = c
@@ -121,8 +101,8 @@ end
 -- Shows the group for the current setting and parks the other.
 local function SetGroupCounts(c)
     local mine = ns.Enabled("nameplateDebuffsMine")
-    pcall(c.SetAuraGroupMaxFrameCount, c, "all", mine and 0 or MAX_ICONS)
-    pcall(c.SetAuraGroupMaxFrameCount, c, "mine", mine and MAX_ICONS or 0)
+    c:SetAuraGroupMaxFrameCount("all", mine and 0 or MAX_ICONS)
+    c:SetAuraGroupMaxFrameCount("mine", mine and MAX_ICONS or 0)
     c.mineOnly = mine
 end
 
@@ -136,7 +116,6 @@ end
 
 local function Attach(plate, unit)
     local c = plate.debuffs
-    if not c then return end
     if not Enabled() then Unbind(c) return end
     if c.mineOnly ~= (ns.Enabled("nameplateDebuffsMine") and true or false) then SetGroupCounts(c) end
     c:Show()
@@ -148,15 +127,13 @@ end
 -- Icon size follows the plate width.
 local function Layout(plate)
     local c = plate.debuffs
-    if not c then return end
     c:ClearAllPoints()
     c:SetPoint("BOTTOM", plate.health, "TOP", 0, ns.Get("nameplateFontSize") + 8)
     local size = IconSize()
-    if c.iconSize ~= size and c.SetAuraGroupLayout then
+    if c.iconSize ~= size then
         c.iconSize = size
         for key in pairs(GROUPS) do
-            pcall(c.SetAuraGroupLayout, c, key,
-                { elementWidth = size, elementHeight = size, elementSpacing = 3, lineSpacing = 3 })
+            c:SetAuraGroupLayout(key, { elementWidth = size, elementHeight = size, elementSpacing = 3, lineSpacing = 3 })
         end
     end
     -- Resizing a button is refused while auras are secret (combat); the next
@@ -172,24 +149,22 @@ NP.RegisterModule({
     create = Create,
     layout = Layout,
     attach = Attach,
-    detach = function(plate) if plate.debuffs then Unbind(plate.debuffs) end end,
+    detach = function(plate) Unbind(plate.debuffs) end,
 })
 
 ns.RegisterFeature({
     key = "nameplateDebuffs", label = "Show debuffs", section = "Enemy nameplates", category = "Cast bar & debuffs",
-    tooltip = "A row of debuff icons above the name, with time left and stacks.",
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
 })
 ns.RegisterFeature({
     key = "nameplateDebuffsMine", label = "Only your own debuffs", section = "Enemy nameplates",
     category = "Cast bar & debuffs",
-    tooltip = "Leaves out the debuffs other players put on the enemy.",
     default = false,
     requires = "nameplateDebuffs",
     apply = function()
         for _, plate in pairs(NP.plates) do
             local c = plate.debuffs
-            if c and c.bound then
+            if c.bound then
                 SetGroupCounts(c)
                 c:UpdateAllAuras()
             end

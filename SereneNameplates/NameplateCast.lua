@@ -5,7 +5,7 @@
 --  Start/end times can be secret, so the bar runs on the unit's duration
 --  object (SetTimerDuration); the "not interruptible" flag can be secret too,
 --  so the color comes from C_CurveUtil.EvaluateColorValueFromBoolean instead
---  of an if. Clients without those APIs fall back to plain start/end times.
+--  of an if.
 -------------------------------------------------------------------------------
 local _, ns = ...
 local NP = ns.NP
@@ -79,38 +79,25 @@ local function StopCast(plate)
     if cast.holdTimer then return end  -- the interrupted flash hides it itself
     cast:Hide()
     cast.timer:SetText("")
-    cast.fallback = nil
 end
 
 local function ApplyColor(cast, notInterruptible)
     if type(notInterruptible) == "nil" then notInterruptible = false end
-    local ev = C_CurveUtil and C_CurveUtil.EvaluateColorValueFromBoolean
-    if ev then
-        cast:SetStatusBarColor(
-            ev(notInterruptible, SHIELD_COLOR[1], CAST_COLOR[1]),
-            ev(notInterruptible, SHIELD_COLOR[2], CAST_COLOR[2]),
-            ev(notInterruptible, SHIELD_COLOR[3], CAST_COLOR[3]))
-    else
-        local c = notInterruptible and SHIELD_COLOR or CAST_COLOR
-        cast:SetStatusBarColor(c[1], c[2], c[3])
-    end
-end
-
-local function DurationObject(unit, channel)
-    if channel then
-        return UnitChannelDuration and UnitChannelDuration(unit)
-    end
-    return UnitCastingDuration and UnitCastingDuration(unit)
+    local ev = C_CurveUtil.EvaluateColorValueFromBoolean
+    cast:SetStatusBarColor(
+        ev(notInterruptible, SHIELD_COLOR[1], CAST_COLOR[1]),
+        ev(notInterruptible, SHIELD_COLOR[2], CAST_COLOR[2]),
+        ev(notInterruptible, SHIELD_COLOR[3], CAST_COLOR[3]))
 end
 
 local function UpdateCast(plate)
     local unit, cast = plate.unit, plate.cast
     if not unit or not Enabled() then StopCast(plate) return end
 
-    local name, _, texture, startMS, endMS, _, _, notInt = UnitCastingInfo(unit)
+    local name, _, texture, _, _, _, _, notInt = UnitCastingInfo(unit)
     local channel = false
     if type(name) == "nil" then
-        name, _, texture, startMS, endMS, _, notInt = UnitChannelInfo(unit)
+        name, _, texture, _, _, _, notInt = UnitChannelInfo(unit)
         channel = true
     end
     if type(name) == "nil" then StopCast(plate) return end
@@ -119,28 +106,16 @@ local function UpdateCast(plate)
         cast.holdTimer:Cancel()
         cast.holdTimer = nil
     end
-    cast.channel = channel
     cast.icon:SetTexture(texture)
     cast.name:SetText(name)
     cast.name:SetTextColor(1, 1, 1)
     ApplyColor(cast, notInt)
 
-    local duration = DurationObject(unit, channel)
-    if duration and cast.SetTimerDuration then
-        cast.fallback = nil
-        cast.duration = duration
-        cast:SetTimerDuration(duration, nil, channel
-            and Enum.StatusBarTimerDirection.RemainingTime
-            or Enum.StatusBarTimerDirection.ElapsedTime)
-    else
-        -- Older API: plain times in ms, stepped by the shared ticker below.
-        cast.duration = nil
-        startMS, endMS = ns.Clean(startMS), ns.Clean(endMS)
-        if not (startMS and endMS) then StopCast(plate) return end
-        cast.fallback = true
-        cast.startTime, cast.endTime = startMS / 1000, endMS / 1000
-        cast:SetMinMaxValues(0, cast.endTime - cast.startTime)
-    end
+    cast.duration = channel and UnitChannelDuration(unit) or UnitCastingDuration(unit)
+    if not cast.duration then StopCast(plate) return end
+    cast:SetTimerDuration(cast.duration, nil, channel
+        and Enum.StatusBarTimerDirection.RemainingTime
+        or Enum.StatusBarTimerDirection.ElapsedTime)
     cast:Show()
     casting[plate] = true
     NP.castTicker:Show()
@@ -150,11 +125,10 @@ local function ShowInterrupted(plate)
     local cast = plate.cast
     if not cast:IsShown() then return end
     casting[plate] = nil
-    cast.fallback = nil
     cast:SetStatusBarColor(INTERRUPT_COLOR[1], INTERRUPT_COLOR[2], INTERRUPT_COLOR[3])
     cast:SetMinMaxValues(0, 1)
     cast:SetValue(1)
-    cast.name:SetText(INTERRUPTED or "Interrupted")
+    cast.name:SetText(INTERRUPTED)
     cast.timer:SetText("")
     if cast.holdTimer then cast.holdTimer:Cancel() end
     cast.holdTimer = C_Timer.NewTimer(INTERRUPT_HOLD, function()
@@ -171,23 +145,10 @@ local elapsedSince = 0
 ticker:SetScript("OnUpdate", function(self, elapsed)
     if not next(casting) then self:Hide() return end
     elapsedSince = elapsedSince + elapsed
-    local now = GetTime()
-    for plate in pairs(casting) do
-        local cast = plate.cast
-        if cast.fallback then
-            local v = cast.channel and (cast.endTime - now) or (now - cast.startTime)
-            cast:SetValue(math.max(0, v))
-        end
-    end
     if elapsedSince < 0.1 then return end
     elapsedSince = 0
     for plate in pairs(casting) do
-        local cast = plate.cast
-        if cast.duration then
-            cast.timer:SetFormattedText("%.1f", cast.duration:GetRemainingDuration())
-        elseif cast.fallback then
-            cast.timer:SetFormattedText("%.1f", math.max(0, cast.endTime - now))
-        end
+        plate.cast.timer:SetFormattedText("%.1f", plate.cast.duration:GetRemainingDuration())
     end
 end)
 
@@ -209,8 +170,7 @@ NP.OnRefresh(function()
     if on == listening then return end
     listening = on
     for _, ev in ipairs(CAST_EVENTS) do
-        -- pcall: not every client knows every cast event.
-        pcall(on and dispatcher.RegisterEvent or dispatcher.UnregisterEvent, dispatcher, ev)
+        if on then dispatcher:RegisterEvent(ev) else dispatcher:UnregisterEvent(ev) end
     end
 end)
 dispatcher:SetScript("OnEvent", function(_, event, unit)

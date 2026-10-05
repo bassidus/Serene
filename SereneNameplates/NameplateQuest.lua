@@ -20,11 +20,10 @@ local function QuestProgress(unit)
     local cached = cache[unit]
     if cached ~= nil then return cached end
     local result = false
-    local LT = Enum and Enum.TooltipDataLineType
+    local LT = Enum.TooltipDataLineType
     -- Players are never quest kills; skip their tooltip data.
-    local info = LT and C_TooltipInfo and not Clean(UnitIsPlayer(unit)) and C_TooltipInfo.GetUnit(unit)
-    if info and info.lines then
-        local onQuest = C_QuestLog and C_QuestLog.IsOnQuest
+    local info = not Clean(UnitIsPlayer(unit)) and C_TooltipInfo.GetUnit(unit)
+    if info then
         local questID
         for _, line in ipairs(info.lines) do
             if line.type == LT.QuestTitle then
@@ -32,7 +31,7 @@ local function QuestProgress(unit)
             elseif line.type == LT.QuestObjective then
                 local done = Clean(line.completed)
                 -- An unreadable quest id counts, so a real quest mob is never missed.
-                if done == false and (not questID or not onQuest or onQuest(questID)) then
+                if done == false and (not questID or C_QuestLog.IsOnQuest(questID)) then
                     local have, need = Clean(line.numFulfilled), Clean(line.numRequired)
                     local text = Clean(line.leftText)
                     -- Area objectives keep their real progress (a percent) in the text only.
@@ -82,11 +81,7 @@ local function Create(plate)
     q:Hide()
     q.icon = q:CreateTexture(nil, "OVERLAY")
     q.icon:SetAllPoints()
-    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("Crosshair_Quest_64") then
-        q.icon:SetAtlas("Crosshair_Quest_64")
-    else
-        q.icon:SetTexture("Interface\\GossipFrame\\AvailableQuestIcon")
-    end
+    q.icon:SetAtlas("Crosshair_Quest_64")
     q.text = q:CreateFontString(nil, "OVERLAY")
     q.text:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, 3)
     q.text:SetJustifyH("RIGHT")

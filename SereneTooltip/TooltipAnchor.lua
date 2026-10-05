@@ -28,11 +28,9 @@ end)
 
 -- World-unit tooltips fade out slowly on mouse-off; while riding the cursor
 -- that fade trails the pointer, so hide them at once instead.
-if GameTooltip.FadeOut then
-    hooksecurefunc(GameTooltip, "FadeOut", function(self)
-        if self == GameTooltip and CursorAnchor() then self:Hide() end
-    end)
-end
+hooksecurefunc(GameTooltip, "FadeOut", function(self)
+    if CursorAnchor() then self:Hide() end
+end)
 
 ns.RegisterFeature({
     key = "tooltipAnchor", type = "dropdown", default = "cursorRight",

@@ -7,38 +7,28 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local function Parts()
-    local content = PlayerFrame and PlayerFrame.PlayerFrameContent
-    local main = content and content.PlayerFrameContentMain
-    local extra = content and content.PlayerFrameContentContextual
-    return main and main.StatusTexture, extra and extra.PlayerRestLoop
-end
+local GLOW = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.StatusTexture
+local ZZZ = PlayerFrame.PlayerFrameContent.PlayerFrameContentContextual.PlayerRestLoop
 
-local function Hide()
+hooksecurefunc("PlayerFrame_UpdateStatus", function()
     if not IsResting() then return end
-    local glow, zzz = Parts()
-    if glow and ns.Enabled("unitFrameHideRestGlow") then glow:Hide() end
-    if zzz and ns.Enabled("unitFrameHideRestZzz") then
-        if zzz.PlayerRestLoopAnim then zzz.PlayerRestLoopAnim:Stop() end
-        zzz:Hide()
+    if ns.Enabled("unitFrameHideRestGlow") then GLOW:Hide() end
+    if ns.Enabled("unitFrameHideRestZzz") then
+        ZZZ.PlayerRestLoopAnim:Stop()
+        ZZZ:Hide()
     end
-end
-
-if PlayerFrame_UpdateStatus then hooksecurefunc("PlayerFrame_UpdateStatus", Hide) end
+end)
 
 -- Turning a setting off lets Blizzard show its own state again.
-local function Apply()
-    if PlayerFrame_UpdateStatus then pcall(PlayerFrame_UpdateStatus) else Hide() end
-end
+local function Apply() PlayerFrame_UpdateStatus() end
 
 ns.RegisterFeature({
     key = "unitFrameHideRestGlow", label = "Hide resting glow", section = "Unit frames", category = "Resting",
     beside = true,  -- to the right of Appearance; loaded before the other categories for that
-    default = true,
-    apply = Apply, tooltip = "Stops the player frame from pulsing yellow in inns and cities.",
+    apply = Apply,
 })
 ns.RegisterFeature({
     key = "unitFrameHideRestZzz", label = "Hide resting Zzz", section = "Unit frames", category = "Resting",
     default = false,
-    apply = Apply, tooltip = "Hides the Zzz animation on the player frame while resting.",
+    apply = Apply,
 })

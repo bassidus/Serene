@@ -12,38 +12,22 @@ local Clean = ns.Clean
 -------------------------------------------------------------------------------
 --  Friends
 -------------------------------------------------------------------------------
-local function InGuild(name)
-    if not (IsInGuild and IsInGuild()) then return false end
-    if C_GuildInfo and C_GuildInfo.MemberExistsByName then
-        return C_GuildInfo.MemberExistsByName(name) and true or false
-    end
-    for i = 1, GetNumGuildMembers() do
-        local member = GetGuildRosterInfo(i)
-        if member and Ambiguate(member, "none") == name then return true end
-    end
-    return false
-end
-
 local function IsFriend(name, guid)
     name, guid = Clean(name), Clean(guid)
     local guild = ns.Enabled("socialGuildFriends")
     if guid and guid ~= "" then
-        if C_FriendList and C_FriendList.IsFriend and C_FriendList.IsFriend(guid) then return true end
-        if C_BattleNet and C_BattleNet.GetGameAccountInfoByGUID
-            and C_BattleNet.GetGameAccountInfoByGUID(guid) then return true end
-        if guild and IsGuildMember and IsGuildMember(guid) then return true end
+        if C_FriendList.IsFriend(guid) or C_BattleNet.GetGameAccountInfoByGUID(guid) then return true end
+        if guild and IsGuildMember(guid) then return true end
     end
     if not name or name == "" then return false end
     name = Ambiguate(name, "none")
-    if C_FriendList and C_FriendList.GetFriendInfo and C_FriendList.GetFriendInfo(name) then return true end
-    if BNGetNumFriends and C_BattleNet and C_BattleNet.GetFriendAccountInfo then
-        for i = 1, BNGetNumFriends() do
-            local account = C_BattleNet.GetFriendAccountInfo(i)
-            local game = account and account.gameAccountInfo
-            if game and game.characterName == name then return true end
-        end
+    if C_FriendList.GetFriendInfo(name) then return true end
+    for i = 1, BNGetNumFriends() do
+        local account = C_BattleNet.GetFriendAccountInfo(i)
+        local game = account and account.gameAccountInfo
+        if game and game.characterName == name then return true end
     end
-    return guild and InGuild(name)
+    return guild and IsInGuild() and C_GuildInfo.MemberExistsByName(name) or false
 end
 
 -- Quests.lua (SereneQuests) asks before accepting a quest: one shared by a
@@ -59,7 +43,7 @@ end
 -------------------------------------------------------------------------------
 local function HideInvite()
     StaticPopup_Hide("PARTY_INVITE")
-    if LFGInvitePopup and StaticPopupSpecial_Hide then StaticPopupSpecial_Hide(LFGInvitePopup) end
+    StaticPopupSpecial_Hide(LFGInvitePopup)
 end
 local function HideDuel() StaticPopup_Hide("DUEL_REQUESTED") end
 
@@ -94,39 +78,19 @@ end
 
 local function Reply(name, reason)
     if not CanReply(name) then return end
-    local msg = "<Serene> Can't invite you: " .. reason
-    if C_ChatInfo and C_ChatInfo.SendChatMessage then
-        C_ChatInfo.SendChatMessage(msg, "WHISPER", nil, name)
-    else
-        SendChatMessage(msg, "WHISPER", nil, name)
-    end
+    C_ChatInfo.SendChatMessage("<Serene> Can't invite you: " .. reason, "WHISPER", nil, name)
 end
 
 local function ReplyBNet(accountID, reason)
     if not CanReply(accountID) then return end
-    local msg = "<Serene> Can't invite you: " .. reason
-    local send = (C_BattleNet and C_BattleNet.SendWhisper) or BNSendWhisper
-    if send then send(accountID, msg) end
+    C_BattleNet.SendWhisper(accountID, "<Serene> Can't invite you: " .. reason)
 end
 
 local function IsKeyword(text)
     text = Clean(text)
-    if type(text) ~= "string" then return false end
-    local words = KEYWORDS[ns.Get("whisperInviteKeyword")] or KEYWORDS.both
-    return words[strtrim(text):lower()] or false
+    return text and KEYWORDS[ns.Get("whisperInviteKeyword")][strtrim(text):lower()] or false
 end
 
-local function Invite(name)
-    if C_PartyInfo and C_PartyInfo.InviteUnit then
-        C_PartyInfo.InviteUnit(name)
-    else
-        InviteUnit(name)
-    end
-    ns.Print("Invited " .. name .. " (whispered the invite keyword).")
-end
-
--- Character whisper. The name comes as Name-Realm; on your own realm the
--- plain name is used, as Blizzard's own invite does.
 local function OnWhisper(text, sender, guid)
     sender = Clean(sender)
     if not sender or not IsKeyword(text) then return end
@@ -134,10 +98,8 @@ local function OnWhisper(text, sender, guid)
     if ns.Get("whisperInviteFrom") == "friends" and not IsFriend(sender, guid) then return end
     local reason = CannotInvite()
     if reason then return Reply(sender, reason) end
-    local name, realm = strsplit("-", sender, 2)
-    local myRealm = GetNormalizedRealmName and GetNormalizedRealmName()
-    if realm and myRealm and realm == myRealm then sender = name end
-    Invite(sender)
+    C_PartyInfo.InviteUnit(sender)
+    ns.Print("Invited " .. sender .. " (whispered the invite keyword).")
 end
 
 -- Battle.net whisper: the friend's WoW character gets the invite (they are
@@ -145,8 +107,8 @@ end
 local function OnBNetWhisper(text, accountID)
     accountID = Clean(accountID)
     if not accountID or not IsKeyword(text) then return end
-    local index = BNGetFriendIndex and BNGetFriendIndex(accountID)
-    local account = index and C_BattleNet and C_BattleNet.GetFriendAccountInfo(index)
+    local index = BNGetFriendIndex(accountID)
+    local account = index and C_BattleNet.GetFriendAccountInfo(index)
     local game = account and account.gameAccountInfo
     if not (game and game.isOnline and game.clientProgram == BNET_CLIENT_WOW) then return end
     -- No cross-faction groups: say why instead of sending an invite that fails.
@@ -158,17 +120,8 @@ local function OnBNetWhisper(text, accountID)
     end
     local reason = CannotInvite()
     if reason then return ReplyBNet(accountID, reason) end
-    local invite = (C_BattleNet and C_BattleNet.InviteFriend) or BNInviteFriend
-    if invite and game.gameAccountID then
-        invite(game.gameAccountID)
-        ns.Print("Invited " .. (game.characterName or "your Battle.net friend") .. " (whispered the invite keyword).")
-    elseif game.characterName then
-        local name = game.characterName
-        if game.realmName and game.realmName ~= "" and game.realmName ~= GetRealmName() then
-            name = name .. "-" .. game.realmName:gsub("%s", "")
-        end
-        Invite(name)
-    end
+    C_BattleNet.InviteFriend(game.gameAccountID)
+    ns.Print("Invited " .. (game.characterName or "your Battle.net friend") .. " (whispered the invite keyword).")
 end
 
 -------------------------------------------------------------------------------
@@ -244,23 +197,21 @@ end
 -- Count your guild as friends is at the end of ThankBuffs.lua, last on the page.
 ns.RegisterFeature({
     key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION, category = "Invites",
-    default = true, apply = Apply,
-    tooltip = "Joins at once when a friend invites you, as long as you are not already in a group.",
+    apply = Apply,
+    tooltip = "Only while you are not already in a group.",
 })
 ns.RegisterFeature({
     key = "blockPartyInvites", label = "Block group invites from strangers", section = SECTION, category = "Blocking",
     default = false, apply = Apply,
-    tooltip = "Declines group invites from anyone who is not a friend. Chat says who was declined.",
+    tooltip = "Chat says who was declined.",
 })
 ns.RegisterFeature({
     key = "blockDuels", label = "Block duels from strangers", section = SECTION, category = "Blocking",
     default = false, apply = Apply,
-    tooltip = "Declines duels from anyone who is not a friend. Chat says who was declined.",
 })
 ns.RegisterFeature({
     key = "blockSharedQuests", label = "Block quests shared by strangers", section = SECTION, category = "Blocking",
     default = false, apply = Apply,
-    tooltip = "Declines quests shared by anyone who is not a friend. Chat says who was declined.",
 })
 ns.RegisterFeature({
     key = "whisperInvite", label = "Invite players who whisper a keyword", section = SECTION, category = "Invites",
@@ -270,7 +221,6 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "whisperInviteKeyword", label = "Keyword", section = SECTION, category = "Invites",
-    tooltip = "The word to whisper. Upper or lower case does not matter.",
     type = "dropdown", default = "both",
     requires = "whisperInvite",
     options = function()

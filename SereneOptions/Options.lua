@@ -75,7 +75,6 @@ local function Modules()
             list[#list + 1] = {
                 name = name,
                 tab = section or page,
-                title = AddOns.GetAddOnMetadata(name, "Title") or name,
                 isPage = not section,
             }
         end
@@ -173,29 +172,40 @@ local function CloseGroups(section)
     end
 end
 
-local function CreateResetButton(sidebar)
-    local btn = StyleSidebarButton(CreateFrame("Button", nil, sidebar), "Reset defaults")
+-- Makes btn ask for a second click before onConfirm runs. setArmed(on)
+-- shows which state it is in. Returns a function telling whether it is armed.
+local function TwoClick(btn, setArmed, onConfirm)
     local armed, timer
     local function Disarm()
         armed = false
         if timer then timer:Cancel(); timer = nil end
-        btn.label:SetText("Reset defaults")
-        btn:SetSelected(false)
+        setArmed(false)
     end
     btn:SetScript("OnClick", function()
         if armed then
             Disarm()
-            ns.ResetDefaults()
-            CloseGroups()
+            onConfirm()
             return
         end
         armed = true
-        btn.label:SetText("Click again to reset")
-        btn.label:SetTextColor(RED[1], RED[2], RED[3])
+        setArmed(true)
         timer = C_Timer.NewTimer(CONFIRM_TIME, Disarm)
     end)
-    btn:HookScript("OnLeave", function() if armed then btn.label:SetTextColor(RED[1], RED[2], RED[3]) end end)
     btn:HookScript("OnHide", Disarm)
+    Disarm()
+    return function() return armed end
+end
+
+local function CreateResetButton(sidebar)
+    local btn = StyleSidebarButton(CreateFrame("Button", nil, sidebar), "Reset defaults")
+    local IsArmed = TwoClick(btn, function(on)
+        btn.label:SetText(on and "Click again to reset" or "Reset defaults")
+        if on then btn.label:SetTextColor(RED[1], RED[2], RED[3]) else btn:SetSelected(false) end
+    end, function()
+        ns.ResetDefaults()
+        CloseGroups()
+    end)
+    btn:HookScript("OnLeave", function() if IsArmed() then btn.label:SetTextColor(RED[1], RED[2], RED[3]) end end)
     return btn
 end
 
@@ -261,42 +271,17 @@ local function CreatePageReset(page, section)
     local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     text:SetPoint("RIGHT")
 
-    local armed, timer
-    local function Show(label, r, g, b)
-        text:SetText(label)
-        text:SetTextColor(r, g, b)
+    local IsArmed = TwoClick(btn, function(on)
+        local c = on and RED or GOLD
+        text:SetText(on and "Click again to reset" or "Reset page")
+        text:SetTextColor(c[1], c[2], c[3])
         btn:SetWidth(math.ceil(text:GetStringWidth()))
-    end
-    local function Disarm()
-        armed = false
-        if timer then timer:Cancel(); timer = nil end
-        Show("Reset page", GOLD[1], GOLD[2], GOLD[3])
-    end
-    btn:SetScript("OnClick", function()
-        if armed then
-            Disarm()
-            ns.ResetDefaults(section)
-            CloseGroups(section)
-            return
-        end
-        armed = true
-        Show("Click again to reset", RED[1], RED[2], RED[3])
-        timer = C_Timer.NewTimer(CONFIRM_TIME, Disarm)
+    end, function()
+        ns.ResetDefaults(section)
+        CloseGroups(section)
     end)
-    btn:SetScript("OnEnter", function(self)
-        if not armed then text:SetTextColor(1, 1, 1) end
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Reset page", 1, 1, 1)
-        GameTooltip:AddLine("Puts the options on this page back to their defaults. The other pages keep theirs.",
-            nil, nil, nil, true)
-        GameTooltip:Show()
-    end)
-    btn:SetScript("OnLeave", function()
-        GameTooltip_Hide()
-        if not armed then text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) end
-    end)
-    btn:SetScript("OnHide", Disarm)
-    Disarm()
+    btn:SetScript("OnEnter", function() if not IsArmed() then text:SetTextColor(1, 1, 1) end end)
+    btn:SetScript("OnLeave", function() if not IsArmed() then text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) end end)
 end
 
 -- Puts a settings page's content in a scroll frame under its title, with a
@@ -376,7 +361,6 @@ local function CreateAddonToggle(page, module, x, y)
     local wanted = loaded
     local box = W.Checkbox(page, {
         label = module.tab,
-        tooltip = "Turns " .. module.title .. " on or off for all characters. Takes effect after Reload UI.",
         get = function() return wanted end,
         set = function(on)
             wanted = on
@@ -539,16 +523,20 @@ local function SectionFeatures(section)
 end
 
 -- A category whose first setting has beside = true goes to the right of the
--- one before it, the two at half width. Returns [category] = "left" | "right".
+-- one before it, the two at half width. Returns [category] = "left" | "right"
+-- and [category] = the other category of its pair.
 local function Columns(list)
-    local column, prev = {}, nil
+    local column, partner, prev = {}, {}, nil
     for _, f in ipairs(list) do
         if f.category ~= prev then
-            if f.beside and prev and f.category then column[prev], column[f.category] = "left", "right" end
+            if f.beside and prev and f.category then
+                column[prev], column[f.category] = "left", "right"
+                partner[prev], partner[f.category] = f.category, prev
+            end
             prev = f.category
         end
     end
-    return column
+    return column, partner
 end
 
 -- Each category opens and closes by its heading; open ones are kept in
@@ -559,7 +547,8 @@ local function CreatePage(section)
     CreatePageReset(page, section)
     local content = AddScrolling(page)
     local list = SectionFeatures(section)
-    local column = Columns(list)
+    -- Two categories side by side open and close together.
+    local column, partner = Columns(list)
     local half = (PAGE_W - SPACING) / 2
 
     local allOpen  -- while measuring the page with every category open
@@ -569,16 +558,6 @@ local function CreatePage(section)
 
     local Layout
     local groups = {}  -- category -> its frame, made once
-    -- Two categories side by side open and close together.
-    local partner, prev = {}, nil
-    for _, f in ipairs(list) do
-        if f.category and f.category ~= prev then
-            if column[f.category] == "right" and prev then
-                partner[f.category], partner[prev] = prev, f.category
-            end
-            prev = f.category
-        end
-    end
 
     local function Group(category)
         if not groups[category] then
@@ -767,9 +746,7 @@ local function CreateFooter()
     footer:SetPoint("BOTTOMLEFT", SIDEBAR_W + PAD, 10)
     footer:SetText(FooterText())
 
-    local minimap = ns.featureByKey.minimapIcon
-    if not minimap then return end
-    local box = W.Checkbox(frame, minimap)
+    local box = W.Checkbox(frame, ns.featureByKey.minimapIcon)
     box.label:SetFontObject("GameFontHighlightSmall")
     box:SetSize(26 + math.ceil(box.label:GetStringWidth()), 20)
     if footer:GetText() ~= "" then
@@ -938,12 +915,9 @@ local function Build()
     title:SetText("Serene")
     title:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
 
-    local version = C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("Serene", "Version")
-    if version then
-        local v = titleBar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-        v:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 6, 1)
-        v:SetText("v" .. version)
-    end
+    local version = titleBar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    version:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 6, 1)
+    version:SetText("v" .. AddOns.GetAddOnMetadata("Serene", "Version"))
     CreateCloseButton(titleBar)
 
     local sidebar = CreateFrame("Frame", nil, frame)
@@ -974,17 +948,17 @@ local function Build()
 
     CreateScaleGrip()
     -- Saved by us, not in the client's layout cache.
-    if frame.SetDontSavePosition then frame:SetDontSavePosition(true) end
+    frame:SetDontSavePosition(true)
     PlaceWindow()
 
     frame:SetScript("OnShow", function()
         FitHeight()  -- the screen or UI scale may have changed
         ns.RefreshOptions()
-        if SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN then PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN) end
+        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
     end)
     frame:SetScript("OnHide", function()
         W.ClosePopups()
-        if SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE then PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE) end
+        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE)
     end)
 
     ShowPage(pages[SereneDB.optionsPage] and SereneDB.optionsPage or first or MODULES)

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Skip Cinematics Without Asking -- Escape, Space or Enter ends a cinematic or movie
+--  Skip Cinematics Without Asking -- Escape, Space or Enter ends a cinematic
 --  without the "Are you sure?" question.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -10,7 +10,7 @@ local hooked = false
 local function On() return ns.Enabled("fasterMovieSkip") end
 
 local function Hook()
-    if hooked or not (CinematicFrame and CinematicFrame.HookScript) then return end
+    if hooked then return end
     hooked = true
 
     -- Escape opens the confirmation on key down: close it at once and
@@ -22,17 +22,8 @@ local function Hook()
     end)
     CinematicFrame:HookScript("OnKeyUp", function(self, key)
         if not (SKIP_KEYS[key] and On() and self:IsShown() and self.closeDialog) then return end
-        local confirm = self.closeDialog.confirmButton or _G.CinematicFrameCloseDialogConfirmButton
-        if confirm then confirm:Click() end
+        CinematicFrameCloseDialogConfirmButton:Click()
     end)
-
-    if MovieFrame and MovieFrame.HookScript then
-        MovieFrame:HookScript("OnKeyUp", function(self, key)
-            if not (SKIP_KEYS[key] and On() and self:IsShown()) then return end
-            local dialog = self.CloseDialog
-            if dialog and dialog.ConfirmButton then dialog.ConfirmButton:Click() end
-        end)
-    end
 end
 
 ns.RegisterFeature({
@@ -40,5 +31,5 @@ ns.RegisterFeature({
     section = "General", category = "Camera & cinematics",
     beside = true,  -- to the right of Interface
     apply = function() if On() then Hook() end end,
-    tooltip = "Escape, Space or Enter ends a cinematic or movie at once, without the \"Are you sure?\" question.",
+    tooltip = "Escape, Space or Enter ends a cinematic at once, without the \"Are you sure?\" question.",
 })

@@ -9,19 +9,16 @@ local frameOf = {}  -- bar -> its unit frame
 
 local function OnEnter(bar)
     local frame = frameOf[bar]
-    local unit = frame and frame.unit
+    local unit = frame.unit
     if not unit or not UnitExists(unit) then return end
     GameTooltip_SetDefaultAnchor(GameTooltip, frame)
     GameTooltip:SetUnit(unit, frame.hideStatusOnTooltip)
 end
 
 local function Hook(frame)
-    if not frame then return end
     for _, bar in ipairs({ frame.healthbar, frame.manabar }) do
-        if bar and not frameOf[bar] and bar.HookScript then
-            frameOf[bar] = frame
-            bar:HookScript("OnEnter", OnEnter)
-        end
+        frameOf[bar] = frame
+        bar:HookScript("OnEnter", OnEnter)
     end
 end
 
@@ -31,7 +28,4 @@ Hook(TargetFrame)
 Hook(TargetFrameToT)
 Hook(FocusFrame)
 Hook(FocusFrameToT)
-for i = 1, 4 do
-    Hook(_G["PartyMemberFrame" .. i])
-    Hook(PartyFrame and PartyFrame["MemberFrame" .. i])
-end
+for i = 1, 4 do Hook(PartyFrame["MemberFrame" .. i]) end

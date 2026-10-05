@@ -6,7 +6,6 @@
 local _, ns = ...
 
 local ICON = "Interface\\Icons\\Spell_Nature_Tranquility"
-local registered = false
 
 -------------------------------------------------------------------------------
 --  Right-click reload. The Forever client blocks ReloadUI() from addon code,
@@ -36,7 +35,7 @@ local function AttachOverlay()
         overlay:SetAttribute("type2", "macro")
         overlay:SetAttribute("macrotext2", "/reload")
         overlay:HookScript("OnClick", function(_, button)
-            if button == "LeftButton" and ns.ToggleOptions then ns.ToggleOptions() end
+            if button == "LeftButton" then ns.ToggleOptions() end
         end)
         overlay:SetScript("OnDragStart", Forward("OnDragStart"))
         overlay:SetScript("OnDragStop", Forward("OnDragStop"))
@@ -63,7 +62,7 @@ local function DetachOverlay()
     overlay:Hide()
     overlay:ClearAllPoints()
     overlay:SetParent(UIParent)
-    if iconButton then iconButton:UnlockHighlight() end
+    iconButton:UnlockHighlight()
 end
 
 local combatWatcher = CreateFrame("Frame")
@@ -74,10 +73,10 @@ combatWatcher:SetScript("OnEvent", function(_, event)
 end)
 
 -------------------------------------------------------------------------------
-local function Register(DBIcon)
-    local LDB = LibStub("LibDataBroker-1.1", true)
-    if not LDB then return false end
-    local launcher = LDB:NewDataObject("Serene", {
+local DBIcon = LibStub("LibDBIcon-1.0")
+
+local function Register()
+    local launcher = LibStub("LibDataBroker-1.1"):NewDataObject("Serene", {
         type = "launcher",
         text = "Serene",
         icon = ICON,
@@ -86,7 +85,7 @@ local function Register(DBIcon)
         OnClick = function(_, button)
             if button == "RightButton" then
                 ns.Print("Cannot reload from the icon during combat. Type /reload instead.")
-            elseif ns.ToggleOptions then
+            else
                 ns.ToggleOptions()  -- refuses during combat itself
             end
         end,
@@ -97,33 +96,22 @@ local function Register(DBIcon)
             tt:AddLine("|cffffffffDrag|r to move this icon.", 0.8, 0.8, 0.8)
         end,
     })
-    if not launcher then return false end
     DBIcon:Register("Serene", launcher, SereneDB.minimap)
     iconButton = DBIcon:GetMinimapButton("Serene")
     AttachOverlay()
-    return true
 end
 
 local function Apply()
-    local DBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
-    if not DBIcon then return end
     SereneDB.minimap = SereneDB.minimap or {}
     SereneDB.minimap.hide = not ns.Enabled("minimapIcon")
-    if not registered then
-        registered = Register(DBIcon)
-        if not registered then return end
-    end
+    if not iconButton then Register() end
     if SereneDB.minimap.hide then DBIcon:Hide("Serene") else DBIcon:Show("Serene") end
 end
 
 -- /serene reset: the icon goes back to LibDBIcon's default spot.
 ns.OnResetAll(function()
-    if SereneDB.minimap then SereneDB.minimap.minimapPos = nil end
-    local DBIcon = registered and LibStub("LibDBIcon-1.0", true)
-    if DBIcon then DBIcon:Refresh("Serene") end
+    SereneDB.minimap.minimapPos = nil
+    DBIcon:Refresh("Serene")
 end)
 
-ns.RegisterFeature({
-    key = "minimapIcon", label = "Show minimap icon", apply = Apply,
-    tooltip = "Left-click the icon to open these options, right-click it to reload the UI. Drag it to move it.",
-})
+ns.RegisterFeature({ key = "minimapIcon", label = "Show minimap icon", apply = Apply })

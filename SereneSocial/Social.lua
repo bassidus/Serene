@@ -241,13 +241,7 @@ end
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
--- First and under no heading: it decides who is a friend for the whole page.
-ns.RegisterFeature({
-    key = "socialGuildFriends", label = "Count your guild as friends", section = SECTION,
-    default = true, apply = Apply,
-    tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every "
-        .. "setting on this page.",
-})
+-- Count your guild as friends is at the end of ThankBuffs.lua, last on the page.
 ns.RegisterFeature({
     key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION, category = "Invites",
     default = true, apply = Apply,

@@ -184,3 +184,13 @@ ns.RegisterFeature({
         return list
     end,
 })
+
+-- Last on the page and under no heading: it decides who is a friend for the
+-- whole page. Read by IsFriend in Social.lua, so it needs no apply; here
+-- because this file loads last.
+ns.RegisterFeature({
+    key = "socialGuildFriends", label = "Count your guild as friends", section = SECTION,
+    default = true,
+    tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every "
+        .. "setting on this page.",
+})

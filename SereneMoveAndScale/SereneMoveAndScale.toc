@@ -1,5 +1,5 @@
 ## Interface: 16001
-## Title: Serene Windows
+## Title: Serene Move & Scale
 ## Group: Serene
 ## Notes: Move Blizzard's windows (spellbook, character, professions...) with the mouse and make them smaller or bigger.
 ## Version: 1.2.0
@@ -8,4 +8,4 @@
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua
-Windows.lua
+MoveAndScale.lua

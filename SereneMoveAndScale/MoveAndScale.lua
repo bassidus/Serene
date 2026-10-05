@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---  Windows -- Blizzard's windows moved with the mouse and made smaller or
---  bigger: a scale in percent for each, from its slider or Ctrl + scroll
---  over it. A window grows and shrinks from its top left corner, and is
---  never made taller than the screen.
+--  Move & scale -- Blizzard's windows moved with the mouse and made
+--  smaller or bigger: a scale in percent for each, from its slider or
+--  Ctrl + scroll over it. A window grows and shrinks from its top left
+--  corner, and is never made taller than the screen.
 --
 --  A frame's anchor offsets count in its own scale, so a smaller window
 --  would slide toward the edge it is anchored to. Each anchor is kept as

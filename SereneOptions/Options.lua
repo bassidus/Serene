@@ -421,12 +421,13 @@ end
 
 -- A category: a thin frame with its heading inside, around the settings
 -- that follow. Returns the group and the y for its first setting, which
--- goes GROUP_PAD in from the page's edges; CloseGroup sizes the frame.
-local function OpenGroup(page, text, y)
+-- goes GROUP_PAD in from the frame's edges; CloseGroup sizes the frame.
+-- left, right: the frame's inset from the page's edges (0 for full width).
+local function OpenGroup(page, text, y, left, right)
     local group = CreateFrame("Frame", nil, page)
-    group.top = y - SPACING
-    group:SetPoint("TOPLEFT", 0, group.top)
-    group:SetPoint("TOPRIGHT", 0, group.top)
+    group.top, group.left, group.right = y - SPACING, left, right
+    group:SetPoint("TOPLEFT", left, group.top)
+    group:SetPoint("TOPRIGHT", -right, group.top)
     W.Border(group, W.EDGE)
 
     local heading = group:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -504,24 +505,63 @@ local function SectionFeatures(section)
     return list
 end
 
+-- A category whose first setting has beside = true goes to the right of the
+-- one before it, the two at half width. Returns [category] = "left" | "right".
+local function Columns(list)
+    local column, prev = {}, nil
+    for _, f in ipairs(list) do
+        if f.category ~= prev then
+            if f.beside and prev and f.category then column[prev], column[f.category] = "left", "right" end
+            prev = f.category
+        end
+    end
+    return column
+end
+
 local function CreatePage(section)
     local page = CreatePageFrame(section)
     CreatePageReset(page, section)
     local content = AddScrolling(page)
+    local list = SectionFeatures(section)
+    local column = Columns(list)
+    local half = (PAGE_W - SPACING) / 2
 
     -- gap: the space left under the last setting, which a group's frame
     -- takes back so it closes snugly below it.
     local y, gap, group = -(36 - HEADER_H), 0, nil
-    for _, f in ipairs(SectionFeatures(section)) do
+    local left  -- the left group of a pair, while the right one is laid out
+
+    -- Returns the y the next group opens at: beside a left group, its top.
+    local function Close()
+        local bottom = CloseGroup(group, y + gap)
+        local col = column[group.category]
+        if col == "left" then
+            left = group
+            left.bottom = bottom
+            return group.start
+        elseif col == "right" and left then
+            -- Both end at the lower one's bottom.
+            bottom = math.min(bottom, left.bottom)
+            left:SetHeight(left.top - bottom)
+            group:SetHeight(group.top - bottom)
+            left = nil
+        end
+        return bottom
+    end
+
+    for _, f in ipairs(list) do
         if f.category ~= (group and group.category) then
-            if group then y = CloseGroup(group, y + gap) end
+            if group then y = Close() end
             group = nil
             if f.category then
-                group, y = OpenGroup(content, f.category, y)
-                group.category = f.category
+                local col, start = column[f.category], y
+                group, y = OpenGroup(content, f.category, y,
+                    col == "right" and half + SPACING or 0, col == "left" and half + SPACING or 0)
+                group.category, group.start = f.category, start
             end
         end
-        local x = group and GROUP_PAD or 0
+        local x = group and group.left + GROUP_PAD or 0
+        local xr = group and group.right + GROUP_PAD or 0
         local w
         if f.group then
             w = W.FontGroup(content, f.group)
@@ -539,7 +579,7 @@ local function CreatePage(section)
             w = W.Checkbox(content, f)
         end
         w:SetPoint("TOPLEFT", x, y)
-        w:SetPoint("TOPRIGHT", -x, y)
+        w:SetPoint("TOPRIGHT", -xr, y)
         gap = f.type == "boolean" and 2 or SPACING
         y = y - w:GetHeight() - gap
         widgets[#widgets + 1] = w
@@ -548,14 +588,14 @@ local function CreatePage(section)
             local indent = x + (f.type == "boolean" and 26 or 0)
             local note = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
             note:SetPoint("TOPLEFT", indent, y + 2)
-            note:SetWidth(PAGE_W - indent - x)
+            note:SetWidth(PAGE_W - indent - xr)
             note:SetJustifyH("LEFT")
             note:SetText(f.note)
             gap = SPACING - 2
             y = y - note:GetStringHeight() - gap
         end
     end
-    if group then y = CloseGroup(group, y + gap) end
+    if group then y = Close() end
     content:SetHeight(-y)
     page.contentHeight = HEADER_H - y
     page:Hide()

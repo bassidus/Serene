@@ -394,6 +394,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "unitFrameHideLevel", label = "Hide level", section = SECTION, category = "Level",
+    beside = true,
     default = false, apply = StyleAll,
 })
 ns.RegisterFeature({

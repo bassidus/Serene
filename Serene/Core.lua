@@ -13,6 +13,8 @@ ns.features = {}
 ns.featureByKey = {}
 
 -- def = { key = SereneDB key, label = display name, section = options page,
+--         category = heading on its page; the settings sharing one are shown
+--         together under it, in the order the categories first appear,
 --         tooltip = help text, apply = optional fn run on login and change,
 --         type = "boolean" (default) | "dropdown" | "slider" | "color" | "outline",
 --         default = initial value,

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Quick Loot -- loots every slot when the loot window opens; Shift skips.
+--  Fast Auto Loot -- loots every slot when the loot window opens; Shift skips.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -23,5 +23,6 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "quickLoot", label = "Quick Loot", section = "Quality of Life", apply = Apply,
+    key = "quickLoot", label = "Fast Auto Loot", section = "Quality of Life", category = "Loot & Items", apply = Apply,
+    tooltip = "Picks up everything the moment the loot window opens, faster than Blizzard's Auto Loot. Hold Shift to loot by hand.",
 })

@@ -150,9 +150,10 @@ end
 local SECTION = "Action Bars"
 
 ns.RegisterFeature({
-    key = "rangeColors", label = "Range Coloring", section = SECTION, apply = Apply,
+    key = "rangeColors", label = "Range Coloring", section = SECTION, category = "Range", apply = Apply,
 })
 ns.RegisterFeature({
-    key = "rangeColor", label = "Out of Range Color", section = SECTION, type = "color", default = "ff4d1a",
+    key = "rangeColor", label = "Out of Range Color", section = SECTION, category = "Range",
+    type = "color", default = "ff4d1a",
     requires = "rangeColors", apply = Apply,
 })

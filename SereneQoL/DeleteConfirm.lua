@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Auto-Fill Delete -- types DELETE into the "delete this good item?" popup.
+--  Type DELETE for You -- types DELETE into the "delete this good item?" popup.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -25,6 +25,7 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "autoFillDelete", label = "Auto-Fill Delete", section = "Quality of Life", apply = Apply,
-    tooltip = "Types DELETE for you in the confirmation popup when destroying a valuable item.",
+    key = "autoFillDelete", label = "Type DELETE for You", section = "Quality of Life", category = "Loot & Items",
+    apply = Apply,
+    tooltip = "Fills in DELETE when the game asks you to type it to destroy a valuable item. You still click Yes yourself.",
 })

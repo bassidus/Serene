@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Faster Movie Skip -- Escape, Space or Enter ends a cinematic or movie
+--  Skip Cinematics Without Asking -- Escape, Space or Enter ends a cinematic or movie
 --  without the "Are you sure?" question.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -36,7 +36,8 @@ local function Hook()
 end
 
 ns.RegisterFeature({
-    key = "fasterMovieSkip", label = "Faster Movie Skip", section = "Quality of Life",
+    key = "fasterMovieSkip", label = "Skip Cinematics Without Asking",
+    section = "Quality of Life", category = "Camera & Cinematics",
     apply = function() if On() then Hook() end end,
-    tooltip = "Escape, Space or Enter skips a cinematic without confirmation.",
+    tooltip = "Escape, Space or Enter ends a cinematic or movie at once, without the \"Are you sure?\" question.",
 })

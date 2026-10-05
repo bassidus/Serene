@@ -9,6 +9,7 @@ local W = ns.Widgets
 
 local WIDTH, SIDEBAR_W, TITLE_H, PAD, FOOTER_H = 640, 160, 40, 20, 26
 local TAB_H, SPACING = 30, 10
+local GROUP_PAD = 10  -- inside a category's frame, around its heading and settings
 
 local frame
 local widgets, pages, tabs = {}, {}, {}
@@ -227,7 +228,7 @@ end
 -- client applies on the next load, and until then a note beside it says so.
 -- The client's own enable state is not read back: it does not reliably
 -- answer for this character. Returns the y below it.
-local function CreateAddonToggle(page, module, y)
+local function CreateAddonToggle(page, module, x, y)
     local loaded = AddOns.IsAddOnLoaded(module.name) and true or false
     local wanted = loaded
     local box = W.Checkbox(page, {
@@ -240,8 +241,8 @@ local function CreateAddonToggle(page, module, y)
             ns.RefreshOptions()
         end,
     })
-    box:SetPoint("TOPLEFT", 0, y)
-    box:SetPoint("TOPRIGHT", 0, y)
+    box:SetPoint("TOPLEFT", x, y)
+    box:SetPoint("TOPRIGHT", -x, y)
     widgets[#widgets + 1] = box
 
     local note = box:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -256,20 +257,41 @@ local function CreateAddonToggle(page, module, y)
     return y - box:GetHeight() - 2
 end
 
+-- A category: a thin frame with its heading inside, around the settings
+-- that follow. Returns the group and the y for its first setting, which
+-- goes GROUP_PAD in from the page's edges; CloseGroup sizes the frame.
+local function OpenGroup(page, text, y)
+    local group = CreateFrame("Frame", nil, page)
+    group.top = y - SPACING
+    group:SetPoint("TOPLEFT", 0, group.top)
+    group:SetPoint("TOPRIGHT", 0, group.top)
+    W.Border(group, W.EDGE)
+
+    local heading = group:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    heading:SetPoint("TOPLEFT", GROUP_PAD, -GROUP_PAD)
+    heading:SetText(text)
+    heading:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
+    return group, group.top - GROUP_PAD - heading:GetStringHeight() - 6
+end
+
+-- y is the bottom of the group's last setting. Returns the y below the frame.
+local function CloseGroup(group, y)
+    local bottom = y - GROUP_PAD / 2
+    group:SetHeight(group.top - bottom)
+    return bottom
+end
+
 -- General's list of Serene* addons under its own heading. Returns the y
 -- below it.
 local function CreateModuleList(page, y)
     local modules = Modules()
     if #modules == 0 then return y end
-    local heading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    heading:SetPoint("TOPLEFT", 0, y - SPACING)
-    heading:SetText("Modules")
-    heading:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
-    y = y - SPACING - heading:GetStringHeight() - 6
+    local group
+    group, y = OpenGroup(page, "Modules", y)
     for _, module in ipairs(modules) do
-        y = CreateAddonToggle(page, module, y)
+        y = CreateAddonToggle(page, module, GROUP_PAD, y)
     end
-    return y
+    return CloseGroup(group, y + 2)
 end
 
 -- A page registered with ns.RegisterPage builds its own content.
@@ -281,43 +303,76 @@ local function CreateCustomPage(def)
     return page
 end
 
+-- The section's settings with each category's gathered together, the
+-- categories in the order they first appear. A font group is one row, at
+-- its first setting.
+local function SectionFeatures(section)
+    local order, byCategory = {}, {}
+    for _, f in ipairs(ns.features) do
+        if f.section == section and (not f.group or f == f.group.font) then
+            local category = f.category or ""
+            if not byCategory[category] then
+                byCategory[category] = {}
+                order[#order + 1] = category
+            end
+            table.insert(byCategory[category], f)
+        end
+    end
+    local list = {}
+    for _, category in ipairs(order) do
+        for _, f in ipairs(byCategory[category]) do list[#list + 1] = f end
+    end
+    return list
+end
+
 local function CreatePage(section)
     local page = CreatePageFrame(section)
 
-    local y = -36
-    for _, f in ipairs(ns.features) do
-        -- A font group is one row, at its first setting.
-        if f.section == section and (not f.group or f == f.group.font) then
-            local w
-            if f.group then
-                w = W.FontGroup(page, f.group)
-            elseif f.type == "dropdown" then
-                w = W.Dropdown(page, f)
-            elseif f.type == "slider" then
-                w = W.Slider(page, f)
-            elseif f.type == "color" then
-                w = W.ColorField(page, f)
-            elseif f.type == "outline" then
-                w = W.Outline(page, f)
-            else
-                w = W.Checkbox(page, f)
-            end
-            w:SetPoint("TOPLEFT", 0, y)
-            w:SetPoint("TOPRIGHT", 0, y)
-            y = y - w:GetHeight() - (f.type == "boolean" and 2 or SPACING)
-            widgets[#widgets + 1] = w
-            if f.note then
-                -- Under a checkbox it lines up with the label.
-                local indent = f.type == "boolean" and 26 or 0
-                local note = page:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-                note:SetPoint("TOPLEFT", indent, y + 2)
-                note:SetWidth(WIDTH - SIDEBAR_W - 2 * PAD - indent)
-                note:SetJustifyH("LEFT")
-                note:SetText(f.note)
-                y = y - note:GetStringHeight() - SPACING + 2
+    -- gap: the space left under the last setting, which a group's frame
+    -- takes back so it closes snugly below it.
+    local y, gap, group = -36, 0, nil
+    for _, f in ipairs(SectionFeatures(section)) do
+        if f.category ~= (group and group.category) then
+            if group then y = CloseGroup(group, y + gap) end
+            group = nil
+            if f.category then
+                group, y = OpenGroup(page, f.category, y)
+                group.category = f.category
             end
         end
+        local x = group and GROUP_PAD or 0
+        local w
+        if f.group then
+            w = W.FontGroup(page, f.group)
+        elseif f.type == "dropdown" then
+            w = W.Dropdown(page, f)
+        elseif f.type == "slider" then
+            w = W.Slider(page, f)
+        elseif f.type == "color" then
+            w = W.ColorField(page, f)
+        elseif f.type == "outline" then
+            w = W.Outline(page, f)
+        else
+            w = W.Checkbox(page, f)
+        end
+        w:SetPoint("TOPLEFT", x, y)
+        w:SetPoint("TOPRIGHT", -x, y)
+        gap = f.type == "boolean" and 2 or SPACING
+        y = y - w:GetHeight() - gap
+        widgets[#widgets + 1] = w
+        if f.note then
+            -- Under a checkbox it lines up with the label.
+            local indent = x + (f.type == "boolean" and 26 or 0)
+            local note = page:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+            note:SetPoint("TOPLEFT", indent, y + 2)
+            note:SetWidth(WIDTH - SIDEBAR_W - 2 * PAD - indent - x)
+            note:SetJustifyH("LEFT")
+            note:SetText(f.note)
+            gap = SPACING - 2
+            y = y - note:GetStringHeight() - gap
+        end
     end
+    if group then y = CloseGroup(group, y + gap) end
     if section == "General" then y = CreateModuleList(page, y) end
     page.contentHeight = -y
     page:Hide()

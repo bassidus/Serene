@@ -40,6 +40,6 @@ for i = 1, 4 do
 end
 
 ns.RegisterFeature({
-    key = "tooltipUnitBars", label = "Tooltip on Health/Mana Bars", section = "Tooltip",
+    key = "tooltipUnitBars", label = "Tooltip on Health/Mana Bars", section = "Tooltip", category = "Position",
     tooltip = "Keeps the unit tooltip while hovering a unit frame's health or mana bar.",
 })

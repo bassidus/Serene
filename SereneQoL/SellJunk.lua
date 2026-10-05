@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Auto Sell Junk
+--  Sell Gray Items at Vendors
 --  SellAllJunkItems() is fire-and-forget: the server drops sell requests past
 --  its rate limit, and uncached item data at MERCHANT_SHOW is skipped, so one
 --  call routinely strands grays -- re-count after each pass and fire again
@@ -132,5 +132,7 @@ f:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "autoSellJunk", label = "Auto Sell Junk", section = "Quality of Life",
+    key = "autoSellJunk", label = "Sell Gray Items at Vendors",
+    section = "Quality of Life", category = "Vendors & Trainers",
+    tooltip = "Sells every gray (junk) item in your bags when you talk to a vendor.",
 })

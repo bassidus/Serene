@@ -331,11 +331,12 @@ end
 local SECTION = "Unit Frames"
 
 ns.RegisterFeature({
-    key = "unitFrameDark", label = "Dark Mode", section = SECTION, default = false, apply = StyleAll,
+    key = "unitFrameDark", label = "Dark Mode", section = SECTION, category = "Appearance",
+    default = false, apply = StyleAll,
     tooltip = "Dark frames around the player, target, party and pet frames.",
 })
 ns.RegisterFeature({
-    key = "unitFramePortrait", label = "Portrait", section = SECTION, type = "dropdown",
+    key = "unitFramePortrait", label = "Portrait", section = SECTION, category = "Appearance", type = "dropdown",
     default = "portrait", apply = ApplyPortrait,
     tooltip = "Class Icon shows players' class icon instead of their face.\nHidden also hides the frame around it, and the level moves before the name.",
     options = function()
@@ -347,15 +348,16 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "unitFrameHideName", label = "Hide Name", section = SECTION, default = false, apply = StyleAll,
+    key = "unitFrameHideName", label = "Hide Name", section = SECTION, category = "Name",
+    default = false, apply = StyleAll,
 })
 ns.RegisterFeature({
-    key = "unitFrameHideNameBackground", label = "Hide Name Background", section = SECTION,
+    key = "unitFrameHideNameBackground", label = "Hide Name Background", section = SECTION, category = "Name",
     apply = StyleAll,
     tooltip = "Removes the colored bar (blue, red, yellow...) behind the name on the target and focus frames, like the player frame.",
 })
 ns.RegisterFeature({
-    key = "unitFrameNameColor", label = "Name Color", section = SECTION, type = "color",
+    key = "unitFrameNameColor", label = "Name Color", section = SECTION, category = "Name", type = "color",
     default = "default", apply = StyleAll,
     specials = {
         { value = "default", label = "Default", swatch = function() return "ffd100" end },
@@ -374,11 +376,12 @@ levelWatch:SetScript("OnEvent", function(_, _, unit)
 end)
 
 ns.RegisterFeature({
-    key = "unitFrameHideLevel", label = "Hide Level", section = SECTION, default = false, apply = StyleAll,
+    key = "unitFrameHideLevel", label = "Hide Level", section = SECTION, category = "Level",
+    default = false, apply = StyleAll,
     tooltip = "While the portrait is hidden, the level is shown before the name instead, e.g. \"14 Hogger\".",
 })
 ns.RegisterFeature({
-    key = "unitFrameLevelColor", label = "Level Color", section = SECTION, type = "color",
+    key = "unitFrameLevelColor", label = "Level Color", section = SECTION, category = "Level", type = "color",
     default = "ffd100", apply = StyleAll,
     specials = {
         { value = "default", label = "Default", swatch = function() return "ffffff", "40d940", "ffd100", "ff4d1a" end,
@@ -386,7 +389,7 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFeature({
-    key = "unitFrameText", label = "Health/Mana Text", section = SECTION, type = "dropdown",
+    key = "unitFrameText", label = "Health/Mana Text", section = SECTION, category = "Health & Mana", type = "dropdown",
     default = "blizzard", apply = ApplyText,
     tooltip = "Value, Percent and Both are always shown.\nBlizzard keeps the game's own Status Text setting.",
     options = function()

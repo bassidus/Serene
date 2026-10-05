@@ -233,16 +233,18 @@ end)
 --  Settings
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
-    key = "statsFps", label = "Show Framerate", section = SECTION, apply = Apply,
+    key = "statsFps", label = "Show Framerate", section = SECTION, category = "Display", apply = Apply,
 })
 ns.RegisterFeature({
-    key = "statsLatency", label = "Show Latency", section = SECTION, apply = Apply,
+    key = "statsLatency", label = "Show Latency", section = SECTION, category = "Display", apply = Apply,
 })
 ns.RegisterFeature({
-    key = "statsLocked", label = "Lock Position", section = SECTION, default = false, apply = Apply,
+    key = "statsLocked", label = "Lock Position", section = SECTION, category = "Display",
+    default = false, apply = Apply,
 })
 ns.RegisterFeature({
-    key = "statsLayout", label = "Layout", section = SECTION, type = "dropdown", default = "row",
+    key = "statsLayout", label = "Layout", section = SECTION, category = "Appearance",
+    type = "dropdown", default = "row",
     apply = Apply,
     options = function()
         return {
@@ -252,7 +254,8 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "statsLabels", label = "Format", section = SECTION, type = "dropdown", default = "suffix",
+    key = "statsLabels", label = "Format", section = SECTION, category = "Appearance",
+    type = "dropdown", default = "suffix",
     apply = Apply,
     options = function()
         return {
@@ -263,7 +266,8 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "statsColors", label = "Colors", section = SECTION, type = "color", default = "status",
+    key = "statsColors", label = "Colors", section = SECTION, category = "Appearance",
+    type = "color", default = "status",
     apply = Apply,
     specials = {
         { value = "status", label = "By value", swatch = function() return GOOD, OK, BAD end },
@@ -271,10 +275,10 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFontSettings({
-    prefix = "stats", label = "Font", section = SECTION, apply = Apply,
+    prefix = "stats", label = "Font", section = SECTION, category = "Appearance", apply = Apply,
     size = { 8, 28, 12 }, outline = "OUTLINE",
 })
 ns.RegisterFeature({
-    key = "statsBackground", label = "Background Opacity", section = SECTION, type = "slider",
+    key = "statsBackground", label = "Background Opacity", section = SECTION, category = "Appearance", type = "slider",
     min = 0, max = 100, step = 5, default = 0, apply = Apply,
 })

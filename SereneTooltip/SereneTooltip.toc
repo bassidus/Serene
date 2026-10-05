@@ -11,7 +11,7 @@ Init.lua
 TooltipAnchor.lua
 TooltipFont.lua
 TooltipBorder.lua
-TooltipIssueHint.lua
-TooltipClickHint.lua
 TooltipUnitBars.lua
 TooltipContent.lua
+TooltipIssueHint.lua
+TooltipClickHint.lua

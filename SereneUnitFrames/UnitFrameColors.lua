@@ -146,7 +146,7 @@ watcher:SetScript("OnEvent", function(_, event, unit)
 end)
 
 ns.RegisterFeature({
-    key = "unitFrameClassColors", label = "Class Colored Healthbars", section = "Unit Frames",
+    key = "unitFrameClassColors", label = "Class Colored Healthbars", section = "Unit Frames", category = "Appearance",
     apply = function()
         if ns.Enabled("unitFrameClassColors") then
             for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",

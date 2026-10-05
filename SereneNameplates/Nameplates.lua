@@ -616,14 +616,15 @@ ns.RegisterFeature({
     tooltip = "Serene's own plates for enemies: flat health bar, name and level, cast bar and your debuffs.",
 })
 ns.RegisterFeature({
-    key = "nameplateClassColors", label = "Class Colors", section = "Nameplates", apply = Relayout,
+    key = "nameplateClassColors", label = "Class Colors", section = "Nameplates", category = "Colors", apply = Relayout,
 })
 ns.RegisterFeature({
-    key = "nameplateLevel", label = "Show Level", section = "Nameplates", apply = Relayout,
+    key = "nameplateLevel", label = "Show Level", section = "Nameplates", category = "Text", apply = Relayout,
 })
 ns.RegisterFeature({
-    key = "nameplateHealthText", label = "Health Percent", section = "Nameplates", apply = Relayout,
+    key = "nameplateHealthText", label = "Health Percent", section = "Nameplates", category = "Text", apply = Relayout,
 })
 ns.RegisterFeature({
-    key = "nameplateTargetHighlight", label = "Highlight Target", section = "Nameplates", apply = Relayout,
+    key = "nameplateTargetHighlight", label = "Highlight Target", section = "Nameplates", category = "Colors",
+    apply = Relayout,
 })

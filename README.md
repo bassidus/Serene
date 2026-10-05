@@ -3,17 +3,17 @@
 Lightweight QoL addon for World of Warcraft Forever. Each feature is small and can be toggled on its own.
 
 ### Features
-- **Quick Loot**: Loots quicker than default Auto Loot.
-- **Skip Loot Warnings**: Automatically confirms the "will bind to you" question.
-- **Auto-Fill Delete**: Automatically types DELETE into the "delete this good item?" popup.
-- **Auto Repair**: Automatically repairs at merchants.
-- **Auto Sell Junk**: Automatically sells gray items at merchants.
+- **Fast Auto Loot**: Loots quicker than Blizzard's Auto Loot. Hold Shift to loot by hand.
+- **Skip Bind-on-Pickup Warnings**: Automatically confirms the "will bind to you" question.
+- **Type DELETE for You**: Automatically types DELETE into the "delete this good item?" popup.
+- **Repair at Vendors**: Automatically repairs at vendors.
+- **Sell Gray Items at Vendors**: Automatically sells gray items at vendors.
 - **Train All Button**: Learns everything you can train at a trainer.
 - **Auto Accept / Turn-In Quests**: Hold Shift to handle a quest yourself.
-- **Hide Tutorials**: Hides tutorial pop-ups.
-- **Faster Movie Skip**: Escape, Space or Enter skips a movie right away, without confirmation.
-- **Max Camera Zoom**: Lets the camera zoom out further.
-- **Hide Error Messages**: Hides the "Not enough rage" / "Out of range" warnings.
+- **Hide Tutorial Pop-ups**: Hides tutorial pop-ups.
+- **Skip Cinematics Without Asking**: Escape, Space or Enter skips a movie right away, without confirmation.
+- **Farther Camera Zoom**: Lets the camera zoom out further.
+- **Hide Error Messages / Speech**: Hides the "Not enough rage" / "Out of range" warnings.
 - **FPS & Latency**: A small on-screen readout you can drag anywhere.
 
 ### Social

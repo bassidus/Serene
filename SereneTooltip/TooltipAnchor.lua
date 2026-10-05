@@ -36,7 +36,7 @@ end
 
 ns.RegisterFeature({
     key = "tooltipAnchor", type = "dropdown", default = "cursorRight",
-    label = "Tooltip Position", section = "Tooltip",
+    label = "Tooltip Position", section = "Tooltip", category = "Position",
     options = function()
         return {
             { value = "default",     label = "Blizzard default" },
@@ -47,9 +47,9 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "tooltipOffsetX", type = "slider", default = 0, min = -100, max = 100, step = 1,
-    label = "Cursor Offset X", section = "Tooltip",
+    label = "Cursor Offset X", section = "Tooltip", category = "Position",
 })
 ns.RegisterFeature({
     key = "tooltipOffsetY", type = "slider", default = 0, min = -100, max = 100, step = 1,
-    label = "Cursor Offset Y", section = "Tooltip",
+    label = "Cursor Offset Y", section = "Tooltip", category = "Position",
 })

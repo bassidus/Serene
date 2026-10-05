@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---  Hide Error Messages -- takes UI_ERROR_MESSAGE away from UIErrorsFrame while
---  hiding and hands it back after; the errors worth acting on (bags full,
---  not enough money...) are passed on by hand. Yellow info messages are
---  never touched.
+--  Hide Error Messages / Speech -- takes UI_ERROR_MESSAGE away from
+--  UIErrorsFrame while hiding and hands it back after; the errors worth
+--  acting on (bags full, not enough money...) are passed on by hand. Yellow
+--  info messages are never touched.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -75,16 +75,20 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "hideErrors", label = "Hide Error Messages", section = "Quality of Life", apply = Apply,
-    tooltip = "Hides the red error text and its voice line (\"Not enough rage\", \"Out of range\"...).",
+    key = "hideErrors", label = "Hide Error Messages / Speech", section = "Quality of Life", category = "Interface",
+    apply = Apply,
+    tooltip = "Hides the red error text at the top of the screen and its voice line (\"Not enough rage\", \"Out of range\"...). "
+        .. "Errors you need to act on, like full bags or not enough money, still show.",
 })
 ns.RegisterFeature({
-    key = "hideErrorsWhen", label = "Hide Errors", section = "Quality of Life", type = "dropdown", default = "always",
+    key = "hideErrorsWhen", label = "When to Hide", section = "Quality of Life", category = "Interface",
+    type = "dropdown", default = "always",
     requires = "hideErrors", apply = Apply,
+    tooltip = "Always, or only while you are in combat.",
     options = function()
         return {
             { value = "always", label = "Always" },
-            { value = "combat", label = "In combat only" },
+            { value = "combat", label = "Only in combat" },
         }
     end,
 })

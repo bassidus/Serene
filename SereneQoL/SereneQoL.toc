@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene QoL
 ## Group: Serene
-## Notes: Quick loot, auto repair, sell junk, delete auto-fill, train all, hide tutorials, skip movies, camera zoom, hide errors, /rl.
+## Notes: Fast auto loot, skip bind-on-pickup warnings, type DELETE for you, repair and sell junk at vendors, train all, hide tutorials, skip cinematics, farther camera zoom, hide errors, /rl.
 ## Version: 1.2.0
 ## Dependencies: Serene
 ## X-Serene-Section: Quality of Life

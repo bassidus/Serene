@@ -32,10 +32,12 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "unitFrameHideRestGlow", label = "Hide Resting Glow", section = "Unit Frames", default = false,
+    key = "unitFrameHideRestGlow", label = "Hide Resting Glow", section = "Unit Frames", category = "Resting",
+    default = false,
     apply = Apply, tooltip = "Stops the player frame from pulsing yellow in inns and cities.",
 })
 ns.RegisterFeature({
-    key = "unitFrameHideRestZzz", label = "Hide Resting Zzz", section = "Unit Frames", default = false,
+    key = "unitFrameHideRestZzz", label = "Hide Resting Zzz", section = "Unit Frames", category = "Resting",
+    default = false,
     apply = Apply, tooltip = "Hides the Zzz animation on the player frame while resting.",
 })

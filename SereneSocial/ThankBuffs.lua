@@ -157,7 +157,8 @@ end)
 --  Settings
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
-    key = "thankBuffs", label = "Thank you for the buff", section = SECTION, default = false,
+    key = "thankBuffs", label = "Thank you for the buff", section = SECTION, category = "Thanks for Buffs",
+    default = false,
     apply = function()
         local on = ns.Enabled("thankBuffs")
         if on then
@@ -173,7 +174,8 @@ ns.RegisterFeature({
         .. "combat are not thanked.",
 })
 ns.RegisterFeature({
-    key = "thankBuffMessage", label = "Thank Message", section = SECTION, type = "dropdown", default = "random",
+    key = "thankBuffMessage", label = "Thank Message", section = SECTION, category = "Thanks for Buffs",
+    type = "dropdown", default = "random",
     requires = "thankBuffs",
     tooltip = "Your name comes first in chat. Random picks a new one each time.",
     options = function()

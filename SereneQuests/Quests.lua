@@ -124,27 +124,29 @@ f:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "autoAcceptQuests", label = "Auto Accept Quests", section = "Quests",
+    key = "autoAcceptQuests", label = "Auto Accept Quests", section = "Quests", category = "Automation",
     tooltip = "Accepts quests automatically. Hold Shift to skip.",
 })
 ns.RegisterFeature({
-    key = "autoTurnInQuests", label = "Auto Turn-In Quests", section = "Quests",
+    key = "autoTurnInQuests", label = "Auto Turn-In Quests", section = "Quests", category = "Automation",
     tooltip = "Turns in quests automatically. Hold Shift to skip.",
 })
 
 -- Drawn by SereneNameplates (NameplateQuest.lua), which adds the apply.
 local QUEST_GREEN = "28da79"  -- the nameplates' own quest color
 ns.RegisterFeature({
-    key = "nameplateQuest", label = "Mark Quest Enemies on Nameplates", section = "Quests",
+    key = "nameplateQuest", label = "Mark Quest Enemies on Nameplates", section = "Quests", category = "Nameplates",
     addon = "SereneNameplates",
     tooltip = "Marks enemies your quests still need with a quest icon and your progress (e.g. 3/8).",
 })
 ns.RegisterFeature({
-    key = "nameplateQuestColor", label = "Color Quest Enemies", section = "Quests", requires = "nameplateQuest",
+    key = "nameplateQuestColor", label = "Color Quest Enemies", section = "Quests", category = "Nameplates",
+    requires = "nameplateQuest",
     addon = "SereneNameplates",
 })
 ns.RegisterFeature({
-    key = "nameplateQuestBarColor", label = "Quest Enemy Color", section = "Quests", type = "color",
+    key = "nameplateQuestBarColor", label = "Quest Enemy Color", section = "Quests", category = "Nameplates",
+    type = "color",
     hideLabel = true, default = "default", requires = { "nameplateQuest", "nameplateQuestColor" },
     addon = "SereneNameplates",
     specials = {

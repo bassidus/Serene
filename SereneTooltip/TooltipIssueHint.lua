@@ -67,6 +67,6 @@ for _, tipName in ipairs(TOOLTIPS) do
 end
 
 ns.RegisterFeature({
-    key = "tooltipHideIssueHint", label = "Hide Issue Hint", section = "Tooltip",
+    key = "tooltipHideIssueHint", label = "Hide Issue Hint", section = "Tooltip", category = "Hints",
     tooltip = "Removes the \"Press F6 to submit an issue\" line that the beta adds to tooltips.",
 })

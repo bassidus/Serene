@@ -241,29 +241,35 @@ end
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
-ns.RegisterFeature({
-    key = "partyFromFriends", label = "Accept Invites from Friends", section = SECTION, default = false, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "blockPartyInvites", label = "Block Group Invites", section = SECTION, default = false, apply = Apply,
-    tooltip = "Declines group invites from anyone who is not a friend.",
-})
-ns.RegisterFeature({
-    key = "blockDuels", label = "Block Duels", section = SECTION, default = false, apply = Apply,
-    tooltip = "Declines duels from anyone who is not a friend.",
-})
-ns.RegisterFeature({
-    key = "blockSharedQuests", label = "Block Shared Quests", section = SECTION, default = false, apply = Apply,
-    tooltip = "Declines quests shared by anyone who is not a friend.",
-})
+-- First and under no heading: it decides who is a friend for the whole page.
 ns.RegisterFeature({
     key = "socialGuildFriends", label = "Guild Counts as Friends", section = SECTION, default = false, apply = Apply,
 })
 ns.RegisterFeature({
-    key = "whisperInvite", label = "Invite on Whisper", section = SECTION, default = false, apply = Apply,
+    key = "partyFromFriends", label = "Accept Invites from Friends", section = SECTION, category = "Invites",
+    default = false, apply = Apply,
 })
 ns.RegisterFeature({
-    key = "whisperInviteKeyword", label = "Invite Keyword", section = SECTION, type = "dropdown", default = "both",
+    key = "blockPartyInvites", label = "Block Group Invites", section = SECTION, category = "Blocking",
+    default = false, apply = Apply,
+    tooltip = "Declines group invites from anyone who is not a friend.",
+})
+ns.RegisterFeature({
+    key = "blockDuels", label = "Block Duels", section = SECTION, category = "Blocking", default = false, apply = Apply,
+    tooltip = "Declines duels from anyone who is not a friend.",
+})
+ns.RegisterFeature({
+    key = "blockSharedQuests", label = "Block Shared Quests", section = SECTION, category = "Blocking",
+    default = false, apply = Apply,
+    tooltip = "Declines quests shared by anyone who is not a friend.",
+})
+ns.RegisterFeature({
+    key = "whisperInvite", label = "Invite on Whisper", section = SECTION, category = "Invites",
+    default = false, apply = Apply,
+})
+ns.RegisterFeature({
+    key = "whisperInviteKeyword", label = "Invite Keyword", section = SECTION, category = "Invites",
+    type = "dropdown", default = "both",
     requires = "whisperInvite",
     options = function()
         return {
@@ -274,7 +280,8 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "whisperInviteFrom", label = "Invite Whispers From", section = SECTION, type = "dropdown",
+    key = "whisperInviteFrom", label = "Invite Whispers From", section = SECTION, category = "Invites",
+    type = "dropdown",
     default = "anyone", requires = "whisperInvite",
     options = function()
         return {

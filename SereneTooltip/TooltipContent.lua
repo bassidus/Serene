@@ -400,21 +400,21 @@ if GameTooltipStatusBar then
 end
 
 -------------------------------------------------------------------------------
-local function Content(key, label, default, apply, tooltip)
+local function Content(category, key, label, default, apply, tooltip)
     ns.RegisterFeature({
         key = key, label = label, tooltip = tooltip, default = default,
-        section = "Tooltip", apply = apply,
+        section = "Tooltip", category = category, apply = apply,
     })
 end
 
-Content("tooltipClassColors", "Class Colors", true)
-Content("tooltipLevelColor", "Level Color", true)
-Content("tooltipFactionColor", "Faction Color", true)
-Content("tooltipTitles", "Player Titles", true)
-Content("tooltipGuildRank", "Guild Rank", true)
-Content("tooltipTarget", "Target", true, nil, "Adds a line with who the unit is targeting.")
-Content("tooltipHealthBar", "Health Bar", true, ApplyHealthBar)
-Content("tooltipItemLevel", "Item Level", true)
-Content("tooltipPlayerItemLevel", "Player Item Level", true, nil,
+Content("Colors", "tooltipClassColors", "Class Colors", true)
+Content("Colors", "tooltipLevelColor", "Level Color", true)
+Content("Colors", "tooltipFactionColor", "Faction Color", true)
+Content("Information", "tooltipTitles", "Player Titles", true)
+Content("Information", "tooltipGuildRank", "Guild Rank", true)
+Content("Information", "tooltipTarget", "Target", true, nil, "Adds a line with who the unit is targeting.")
+Content("Appearance", "tooltipHealthBar", "Health Bar", true, ApplyHealthBar)
+Content("Information", "tooltipItemLevel", "Item Level", true)
+Content("Information", "tooltipPlayerItemLevel", "Player Item Level", true, nil,
     "Adds a player's average item level. Other players are inspected when you hover them, out of combat.")
-Content("tooltipIDs", "Spell and Item IDs", false)
+Content("Information", "tooltipIDs", "Spell and Item IDs", false)

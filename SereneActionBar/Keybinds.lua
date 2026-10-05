@@ -319,14 +319,15 @@ end)
 local SECTION = "Action Bars"
 
 ns.RegisterFeature({
-    key = "shortKeybinds", label = "Short Keybind Text", section = SECTION, apply = ApplySetting,
+    key = "shortKeybinds", label = "Short Keybind Text", section = SECTION, category = "Button Text",
+    apply = ApplySetting,
     tooltip = "Shortens keybind text on the action bars (CTRL-2 -> C2, Mouse Button 4 -> M4, NUMPAD5 -> N5).",
 })
 ns.RegisterFeature({
-    key = "hideMacroText", label = "Hide Macro Text", section = SECTION, apply = ApplySetting,
+    key = "hideMacroText", label = "Hide Macro Text", section = SECTION, category = "Button Text", apply = ApplySetting,
 })
 ns.RegisterFontSettings({
-    prefix = "keybind", label = "Keybind Font", section = SECTION, apply = ApplySetting,
+    prefix = "keybind", label = "Keybind Font", section = SECTION, category = "Button Text", apply = ApplySetting,
     size = { 6, 24, DEFAULT_SIZE }, outline = "default",
     blizzard = function()
         local hk = _G.ActionButton1HotKey
@@ -336,7 +337,8 @@ ns.RegisterFontSettings({
     end,
 })
 ns.RegisterFeature({
-    key = "keybindColor", label = "Keybind Color", section = SECTION, type = "color", default = "default",
+    key = "keybindColor", label = "Keybind Color", section = SECTION, category = "Button Text",
+    type = "color", default = "default",
     apply = ApplySetting,
     specials = {
         { value = "default", label = "Default", swatch = function()
@@ -349,12 +351,12 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFeature({
-    key = "keybindOffsetX", label = "Keybind Offset X", section = SECTION, type = "slider",
+    key = "keybindOffsetX", label = "Keybind Offset X", section = SECTION, category = "Button Text", type = "slider",
     min = -25, max = 45, step = 1, default = BLIZZARD_X, apply = ApplySetting,
     tooltip = "Where the text ends, from the middle of the button; the default is Blizzard's spot.",
 })
 ns.RegisterFeature({
-    key = "keybindOffsetY", label = "Keybind Offset Y", section = SECTION, type = "slider",
+    key = "keybindOffsetY", label = "Keybind Offset Y", section = SECTION, category = "Button Text", type = "slider",
     min = -30, max = 30, step = 1, default = BLIZZARD_Y, apply = ApplySetting,
     tooltip = "0 is the middle of the button; the default is Blizzard's spot.",
 })

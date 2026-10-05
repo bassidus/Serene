@@ -10,6 +10,10 @@ local W = ns.Widgets
 local WIDTH, SIDEBAR_W, TITLE_H, PAD, FOOTER_H = 640, 160, 40, 20, 26
 local TAB_H, SPACING = 30, 10
 local GROUP_PAD = 10  -- inside a category's frame, around its heading and settings
+local PAGE_W = WIDTH - SIDEBAR_W - 2 * PAD
+local HEADER_H = 26   -- a settings page's title, which stays put while the rest scrolls
+local SCROLL_STEP = 40
+local MAX_SCREEN = 0.45 -- the window's height at most, as a share of the screen's
 
 local frame
 local widgets, pages, tabs = {}, {}, {}
@@ -157,7 +161,7 @@ end
 local CONFIRM_TIME = 4
 
 CreateResetButton = function(sidebar)
-    local btn = StyleSidebarButton(CreateFrame("Button", nil, sidebar), "Reset Defaults")
+    local btn = StyleSidebarButton(CreateFrame("Button", nil, sidebar), "Reset defaults")
     local armed, timer
     local function Disarm()
         armed = false
@@ -220,6 +224,72 @@ local function CreatePageFrame(name)
     header:SetText(name)
     header:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
     return page
+end
+
+-- Puts a settings page's content in a scroll frame under its title, with a
+-- thin bar in the right margin, shown only while the content does not fit;
+-- the wheel scrolls and the bar can be dragged. Returns the frame to build
+-- the content on, PAGE_W wide; its height is set by the caller.
+local function AddScrolling(page)
+    local scroll = CreateFrame("ScrollFrame", nil, page)
+    scroll:SetPoint("TOPLEFT", 0, -HEADER_H)
+    scroll:SetPoint("BOTTOMRIGHT")
+    local content = CreateFrame("Frame", nil, scroll)
+    content:SetSize(PAGE_W, 1)
+    scroll:SetScrollChild(content)
+
+    local bar = CreateFrame("Button", nil, page)
+    bar:SetWidth(9)
+    bar:Hide()
+    local thumb = W.Solid(bar, "ARTWORK", W.ACCENT)
+    thumb:SetPoint("TOP")
+    thumb:SetPoint("BOTTOM")
+    thumb:SetWidth(3)
+    thumb:SetAlpha(0.6)
+
+    local function Range() return scroll:GetVerticalScrollRange() end
+    local function PlaceBar()
+        local range, viewH = Range(), scroll:GetHeight()
+        bar:SetShown(range > 0.5)
+        if range <= 0.5 then return end
+        local barH = math.max(20, viewH * viewH / (viewH + range))
+        bar:SetHeight(barH)
+        bar:ClearAllPoints()
+        -- Centered in the right margin (PAD).
+        bar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", PAD / 2 - 4, -(viewH - barH) * scroll:GetVerticalScroll() / range)
+    end
+    local function ScrollTo(v)
+        scroll:SetVerticalScroll(math.max(0, math.min(Range(), v)))
+        PlaceBar()
+    end
+    local function Refit() ScrollTo(scroll:GetVerticalScroll()) end
+
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(_, delta)
+        W.ClosePopups()
+        ScrollTo(scroll:GetVerticalScroll() - delta * SCROLL_STEP)
+    end)
+    scroll:SetScript("OnScrollRangeChanged", Refit)
+    scroll:SetScript("OnSizeChanged", Refit)
+    scroll:SetScript("OnShow", Refit)
+
+    local function CursorY() return select(2, GetCursorPosition()) / bar:GetEffectiveScale() end
+    local startY, startScroll
+    local function Drag()
+        local track = scroll:GetHeight() - bar:GetHeight()
+        if track > 0 then ScrollTo(startScroll + (startY - CursorY()) * Range() / track) end
+    end
+    bar:SetScript("OnMouseDown", function(self, button)
+        if button ~= "LeftButton" then return end
+        W.ClosePopups()
+        startY, startScroll = CursorY(), scroll:GetVerticalScroll()
+        self:SetScript("OnUpdate", Drag)
+    end)
+    bar:SetScript("OnMouseUp", function(self) self:SetScript("OnUpdate", nil) end)
+    bar:SetScript("OnHide", function(self) self:SetScript("OnUpdate", nil) end)
+    bar:SetScript("OnEnter", function() thumb:SetAlpha(1) end)
+    bar:SetScript("OnLeave", function() thumb:SetAlpha(0.6) end)
+    return content
 end
 
 -- A checkbox on General for a Serene* addon, named after its tab. It
@@ -327,33 +397,34 @@ end
 
 local function CreatePage(section)
     local page = CreatePageFrame(section)
+    local content = AddScrolling(page)
 
     -- gap: the space left under the last setting, which a group's frame
     -- takes back so it closes snugly below it.
-    local y, gap, group = -36, 0, nil
+    local y, gap, group = -(36 - HEADER_H), 0, nil
     for _, f in ipairs(SectionFeatures(section)) do
         if f.category ~= (group and group.category) then
             if group then y = CloseGroup(group, y + gap) end
             group = nil
             if f.category then
-                group, y = OpenGroup(page, f.category, y)
+                group, y = OpenGroup(content, f.category, y)
                 group.category = f.category
             end
         end
         local x = group and GROUP_PAD or 0
         local w
         if f.group then
-            w = W.FontGroup(page, f.group)
+            w = W.FontGroup(content, f.group)
         elseif f.type == "dropdown" then
-            w = W.Dropdown(page, f)
+            w = W.Dropdown(content, f)
         elseif f.type == "slider" then
-            w = W.Slider(page, f)
+            w = W.Slider(content, f)
         elseif f.type == "color" then
-            w = W.ColorField(page, f)
+            w = W.ColorField(content, f)
         elseif f.type == "outline" then
-            w = W.Outline(page, f)
+            w = W.Outline(content, f)
         else
-            w = W.Checkbox(page, f)
+            w = W.Checkbox(content, f)
         end
         w:SetPoint("TOPLEFT", x, y)
         w:SetPoint("TOPRIGHT", -x, y)
@@ -363,9 +434,9 @@ local function CreatePage(section)
         if f.note then
             -- Under a checkbox it lines up with the label.
             local indent = x + (f.type == "boolean" and 26 or 0)
-            local note = page:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+            local note = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
             note:SetPoint("TOPLEFT", indent, y + 2)
-            note:SetWidth(WIDTH - SIDEBAR_W - 2 * PAD - indent - x)
+            note:SetWidth(PAGE_W - indent - x)
             note:SetJustifyH("LEFT")
             note:SetText(f.note)
             gap = SPACING - 2
@@ -373,8 +444,9 @@ local function CreatePage(section)
         end
     end
     if group then y = CloseGroup(group, y + gap) end
-    if section == "General" then y = CreateModuleList(page, y) end
-    page.contentHeight = -y
+    if section == "General" then y = CreateModuleList(content, y) end
+    content:SetHeight(-y)
+    page.contentHeight = HEADER_H - y
     page:Hide()
     return page
 end
@@ -412,6 +484,16 @@ local function CreateCloseButton(titleBar)
     close:SetScript("OnEnter", function() for _, t in ipairs(lines) do t:SetVertexColor(1, 0.4, 0.4) end end)
     close:SetScript("OnLeave", function() for _, t in ipairs(lines) do t:SetVertexColor(W.DIM[1], W.DIM[2], W.DIM[3]) end end)
     close:SetScript("OnClick", function() frame:Hide() end)
+end
+
+-- The height the pages want and the least the sidebar needs; set in Build.
+local wantedH, sidebarH
+
+-- As tall as the tallest page, but no taller than MAX_SCREEN of the screen
+-- at the current scale: longer pages scroll. Never shorter than the sidebar.
+local function FitHeight()
+    local screenH = UIParent:GetHeight() * MAX_SCREEN / frame:GetScale()
+    frame:SetHeight(math.max(sidebarH, math.min(wantedH, screenH)))
 end
 
 -- Size and position last for the session only; nothing is saved.
@@ -455,6 +537,7 @@ local function CreateScaleGrip()
         scale = math.floor(math.min(MAX_SCALE, math.max(MIN_SCALE, scale)) * 100 + 0.5) / 100
         if scale ~= frame:GetScale() then
             frame:SetScale(scale)
+            FitHeight()
             PinTopLeft(leftUI, topUI, scale)
         end
     end
@@ -474,6 +557,7 @@ local function CreateScaleGrip()
     end)
     grip:SetScript("OnClick", function()  -- right-click: default size, centered
         frame:SetScale(DEFAULT_SCALE)
+        FitHeight()
         Center()
     end)
     grip:SetScript("OnEnter", function(self)
@@ -543,12 +627,13 @@ local function Build()
 
     CreateReloadButton(sidebar)
 
-    -- Pages; the window is as tall as the tallest page, or as the sidebar
-    -- needs for its tabs plus the Reload UI button at the bottom.
+    -- Pages; the window wants to be as tall as the tallest page, and the
+    -- sidebar needs room for its tabs plus the two buttons at the bottom.
     local names = TabNames()
     local pageDefs = {}
     for _, def in ipairs(ns.pages) do pageDefs[def.name] = def end
-    local tallest = 10 + (#names + 2) * TAB_H + 40 - PAD - FOOTER_H
+    sidebarH = TITLE_H + 10 + (#names + 2) * TAB_H + 40
+    local tallest = 0
     for i, name in ipairs(names) do
         tabs[name] = CreateTab(tabList, name, i)
         if pageDefs[name] then
@@ -558,7 +643,8 @@ local function Build()
         end
         tallest = math.max(tallest, pages[name].contentHeight + PAD)
     end
-    frame:SetSize(WIDTH, TITLE_H + PAD + tallest + FOOTER_H)
+    wantedH = math.max(sidebarH, TITLE_H + PAD + tallest + FOOTER_H)
+    frame:SetWidth(WIDTH)
 
     local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     footer:SetPoint("BOTTOMLEFT", SIDEBAR_W + PAD, 10)
@@ -566,12 +652,14 @@ local function Build()
 
     CreateScaleGrip()
     frame:SetScale(DEFAULT_SCALE)
+    FitHeight()
 
     -- Every session starts centered: no client layout cache.
     if frame.SetDontSavePosition then frame:SetDontSavePosition(true) end
     Center()
 
     frame:SetScript("OnShow", function()
+        FitHeight()  -- the screen or UI scale may have changed
         ns.RefreshOptions()
         if SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN then PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN) end
     end)

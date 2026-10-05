@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Tooltip Content -- class, level and faction colors, titles, guild rank,
---  target, health bar, item level and IDs. Every value read from a unit is
+--  target, item level and IDs. Every value read from a unit is
 --  checked for secrecy before use. Lines are only added or recolored, and
 --  tooltip refreshes update them in place instead of adding twice.
 -------------------------------------------------------------------------------
@@ -108,11 +108,9 @@ local function PlayerLines(tt, unit)
         end
     end
 
-    if ns.Enabled("tooltipClassColors") then
-        local _, class = UnitClass(unit)
-        local c = Clean(class) and RAID_CLASS_COLORS[class]
-        if c then nameLine:SetTextColor(c.r, c.g, c.b) end
-    end
+    local _, class = UnitClass(unit)
+    local c = Clean(class) and RAID_CLASS_COLORS[class]
+    if c then nameLine:SetTextColor(c.r, c.g, c.b) end
 
     if ns.Enabled("tooltipGuildRank") then
         local guild, rank = GetGuildInfo(unit)
@@ -156,16 +154,10 @@ end
 -- Alliance/Horde line by faction. Already-colored text no longer matches, so
 -- refresh passes leave it alone.
 local function ColorBodyLines(tt, unit)
-    local doLevel = ns.Enabled("tooltipLevelColor")
-    local doClass = ns.Enabled("tooltipClassColors") and UnitIsPlayer(unit)
-    local doFaction = ns.Enabled("tooltipFactionColor")
-    if not (doLevel or doClass or doFaction) then return end
-
-    local lr, lg, lb
-    if doLevel then lr, lg, lb = LevelColor(unit) end
+    local lr, lg, lb = LevelColor(unit)
 
     local className, classColor
-    if doClass then
+    if UnitIsPlayer(unit) then
         local name, file = UnitClass(unit)
         if Clean(name) and Clean(file) and name then
             className, classColor = name, RAID_CLASS_COLORS[file]
@@ -173,11 +165,9 @@ local function ColorBodyLines(tt, unit)
     end
 
     local factionName, factionColor
-    if doFaction then
-        local group, localized = UnitFactionGroup(unit)
-        if Clean(group) and Clean(localized) then
-            factionName, factionColor = localized, FACTION_COLORS[group]
-        end
+    local group, localized = UnitFactionGroup(unit)
+    if Clean(group) and Clean(localized) then
+        factionName, factionColor = localized, FACTION_COLORS[group]
     end
 
     for i = 2, tt:NumLines() do
@@ -384,44 +374,21 @@ if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum.Too
 end
 
 -------------------------------------------------------------------------------
---  Health bar -- hidden with alpha only (never Hide/Show on the bar), re-
---  asserted each time Blizzard shows it.
--------------------------------------------------------------------------------
-local function ApplyHealthBar()
-    if GameTooltipStatusBar then
-        GameTooltipStatusBar:SetAlpha(ns.Enabled("tooltipHealthBar") and 1 or 0)
-    end
-end
-
-if GameTooltipStatusBar then
-    hooksecurefunc(GameTooltipStatusBar, "Show", function(bar)
-        if not ns.Enabled("tooltipHealthBar") then bar:SetAlpha(0) end
-    end)
-end
-
--------------------------------------------------------------------------------
-local function Content(category, key, label, default, apply, tooltip)
+-- beside: to the right of the setting before it.
+local function Content(category, key, label, default, apply, tooltip, beside)
     ns.RegisterFeature({
         key = key, label = label, tooltip = tooltip, default = default,
-        section = "Tooltip", category = category, apply = apply,
+        section = "Tooltip", category = category, apply = apply, beside = beside,
     })
 end
 
-Content("Colors", "tooltipClassColors", "Class-colored players", true, nil,
-    "Players' names and class in their class color.")
-Content("Colors", "tooltipLevelColor", "Level colored by difficulty", true, nil,
-    "Gray, green, yellow, orange or red, by how the level compares to yours.")
-Content("Colors", "tooltipFactionColor", "Faction colors", true, nil,
-    "The Alliance line in blue and the Horde line in red.")
 Content("Information", "tooltipTitles", "Show player titles", true, nil,
     "Off shows players by name only, without titles like \"Private\".")
 Content("Information", "tooltipGuildRank", "Show guild rank", true, nil,
-    "Adds the player's rank after their guild's name.")
+    "Adds the player's rank after their guild's name.", true)
 Content("Information", "tooltipTarget", "Show what the unit targets", true, nil,
     "Adds a line with who the unit is targeting.")
-Content("Appearance", "tooltipHealthBar", "Show health bar", true, ApplyHealthBar,
-    "The health bar under the tooltips of players, NPCs and mobs.")
-Content("Information", "tooltipItemLevel", "Show item level on items", true)
 Content("Information", "tooltipPlayerItemLevel", "Show players' item level", true, nil,
-    "Adds a player's average item level. Other players are inspected when you hover them, out of combat.")
-Content("Information", "tooltipIDs", "Show spell and item IDs", false)
+    "Adds a player's average item level. Other players are inspected when you hover them, out of combat.", true)
+Content("Information", "tooltipItemLevel", "Show item level on items", true)
+Content("Information", "tooltipIDs", "Show spell and item IDs", false, nil, nil, true)

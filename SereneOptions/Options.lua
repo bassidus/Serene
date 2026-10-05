@@ -12,6 +12,7 @@ local WIDTH, SIDEBAR_W, TITLE_H, PAD, FOOTER_H = 640, 160, 40, 20, 26
 local TAB_H, SPACING = 30, 10
 local MENU_HEADING_H, MENU_GAP, MENU_INDENT = 22, 8, 26  -- the sidebar's group headings
 local GROUP_PAD = 10  -- inside a category's frame, around its heading and settings
+local BLANK_ROW = 16  -- the empty row above a setting with space = true
 local PAGE_W = WIDTH - SIDEBAR_W - 2 * PAD
 local HEADER_H = 26   -- a settings page's title, which stays put while the rest scrolls
 local SCROLL_STEP = 40
@@ -549,10 +550,16 @@ local function CreatePage(section)
         return bottom
     end
 
-    for _, f in ipairs(list) do
+    -- A setting with beside (not a category's first) sits to the right of the
+    -- one before it: row is that pair's top and the left one's bottom.
+    local row
+    local function Beside(f) return f and f.beside and group and f.category == group.category end
+
+    for i, f in ipairs(list) do
+        local right = row and Beside(f)
         if f.category ~= (group and group.category) then
             if group then y = Close() end
-            group = nil
+            group, right = nil, false
             if f.category then
                 local col, start = column[f.category], y
                 group, y = OpenGroup(content, f.category, y,
@@ -560,8 +567,17 @@ local function CreatePage(section)
                 group.category, group.start = f.category, start
             end
         end
+        if f.space and not right then y = y - BLANK_ROW end
         local x = group and group.left + GROUP_PAD or 0
         local xr = group and group.right + GROUP_PAD or 0
+        local halfRow = (PAGE_W - x - xr + SPACING) / 2
+        if right then
+            x, y = x + halfRow, row.top
+        elseif Beside(list[i + 1]) then
+            xr, row = xr + halfRow, { top = y }
+        else
+            row = nil
+        end
         local w
         if f.group then
             w = W.FontGroup(content, f.group)
@@ -593,6 +609,11 @@ local function CreatePage(section)
             note:SetText(f.note)
             gap = SPACING - 2
             y = y - note:GetStringHeight() - gap
+        end
+        if right then
+            y, row = math.min(y, row.bottom), nil
+        elseif row then
+            row.bottom = y
         end
     end
     if group then y = Close() end

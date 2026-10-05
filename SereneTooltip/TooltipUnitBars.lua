@@ -5,12 +5,9 @@
 --  their own OnLeave already hides it. Nothing is written to Blizzard's
 --  frames; the (secure) unit frame's unit is only read.
 -------------------------------------------------------------------------------
-local _, ns = ...
-
 local frameOf = {}  -- bar -> its unit frame
 
 local function OnEnter(bar)
-    if not ns.Enabled("tooltipUnitBars") then return end
     local frame = frameOf[bar]
     local unit = frame and frame.unit
     if not unit or not UnitExists(unit) then return end
@@ -38,9 +35,3 @@ for i = 1, 4 do
     Hook(_G["PartyMemberFrame" .. i])
     Hook(PartyFrame and PartyFrame["MemberFrame" .. i])
 end
-
-ns.RegisterFeature({
-    key = "tooltipUnitBars", label = "Keep tooltip over health/mana bars", section = "Tooltip", category = "Position",
-    tooltip = "Moving the mouse onto a unit frame's health or mana bar keeps showing the unit's tooltip instead of "
-        .. "hiding it.",
-})

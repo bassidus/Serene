@@ -4,8 +4,6 @@
 --  tooltip. Blizzard adds both and then shows the tooltip, so a Show hook
 --  sees them; they are blanked and the tooltip re-shown to shrink.
 -------------------------------------------------------------------------------
-local _, ns = ...
-
 local HINT = UNIT_POPUP_RIGHT_CLICK or "<Right click for Frame Settings>"
 local SEARCH = 4  -- the hint is last, unless another addon appended after it
 
@@ -24,7 +22,7 @@ local function Blank(fs)
 end
 
 local function Strip(tt)
-    if not ns.Enabled("tooltipHideClickHint") or tt:IsForbidden() then return end
+    if tt:IsForbidden() then return end
     local n = tt:NumLines()
     for i = n, math.max(2, n - SEARCH + 1), -1 do
         local left = _G["GameTooltipTextLeft" .. i]
@@ -42,8 +40,3 @@ local function Strip(tt)
 end
 
 hooksecurefunc(GameTooltip, "Show", Strip)
-
-ns.RegisterFeature({
-    key = "tooltipHideClickHint", label = "Hide the right-click line", section = "Tooltip", category = "Hints",
-    tooltip = "Removes the \"<Right click for Frame Settings>\" line from unit frame tooltips.",
-})

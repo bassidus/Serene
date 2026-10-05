@@ -7,8 +7,6 @@
 --  when a hidden tooltip appears, so a refresh of a visible tooltip (moving
 --  between bag slots, a unit or item update) let the line flash through.
 -------------------------------------------------------------------------------
-local _, ns = ...
-
 local TOOLTIPS = {
     "GameTooltip", "ShoppingTooltip1", "ShoppingTooltip2",
     "ItemRefTooltip", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2",
@@ -38,7 +36,7 @@ local function Blank(fs)
 end
 
 local function Strip(tt, name)
-    if not ns.Enabled("tooltipHideIssueHint") or tt:IsForbidden() then return end
+    if tt:IsForbidden() then return end
     -- The hint sits at the end, so search backwards.
     for i = tt:NumLines(), 2, -1 do
         local left = _G[name .. "TextLeft" .. i]
@@ -65,8 +63,3 @@ for _, tipName in ipairs(TOOLTIPS) do
         tt:HookScript("OnShow", OnShow)  -- SetShown(true) bypasses Show
     end
 end
-
-ns.RegisterFeature({
-    key = "tooltipHideIssueHint", label = "Hide the \"Press F6\" line", section = "Tooltip", category = "Hints",
-    tooltip = "Removes the \"Press F6 to submit an issue\" line that the beta adds to tooltips.",
-})

@@ -5,6 +5,7 @@
 --  and a flat background, tinted like the NineSlice's center, takes its
 --  place. Opacity scales only the background; 100% is Blizzard's normal.
 --  The "Equipped" tab above comparison tooltips gets the same flat look.
+--  Also hides the health bar under unit tooltips.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -115,13 +116,32 @@ local function Apply()
     for _, name in ipairs(TOOLTIPS) do Style(_G[name]) end
 end
 
+-- The health bar is hidden with alpha only (never Hide/Show on the bar),
+-- re-asserted each time Blizzard shows it.
+local function ApplyHealthBar()
+    if GameTooltipStatusBar then
+        GameTooltipStatusBar:SetAlpha(ns.Enabled("tooltipHealthBar") and 1 or 0)
+    end
+end
+
+if GameTooltipStatusBar then
+    hooksecurefunc(GameTooltipStatusBar, "Show", function(bar)
+        if not ns.Enabled("tooltipHealthBar") then bar:SetAlpha(0) end
+    end)
+end
+
+ns.RegisterFeature({
+    key = "tooltipHealthBar", label = "Show health bar", section = "Tooltip", category = "Appearance",
+    default = true, apply = ApplyHealthBar,
+    tooltip = "The health bar under the tooltips of players, NPCs and mobs.",
+})
 ns.RegisterFeature({
     key = "tooltipHideBorder", label = "Hide border", section = "Tooltip", category = "Appearance", apply = Apply,
     tooltip = "Removes the frame around tooltips and leaves a flat background.",
 })
 ns.RegisterFeature({
     key = "tooltipBgOpacity", label = "Background opacity", section = "Tooltip", category = "Appearance",
-    type = "slider",
+    type = "slider", space = true,
     min = 0, max = 100, step = 5, default = 90, apply = Apply,
     tooltip = "0 is see-through, 100 is Blizzard's normal background.",
 })

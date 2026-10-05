@@ -54,15 +54,23 @@ local function PlayClick()
     if SOUNDKIT and SOUNDKIT.U_CHAT_SCROLL_BUTTON then PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON) end
 end
 
--- Dims a widget whose setting depends on a toggle that is off; returns
--- whether it can be used.
+-- The tab name of the Serene* addon a setting needs (f.addon), while that
+-- addon is not loaded.
+local function MissingAddon(f)
+    if f.addon and not C_AddOns.IsAddOnLoaded(f.addon) then
+        return C_AddOns.GetAddOnMetadata(f.addon, "X-Serene-Section") or f.addon
+    end
+end
+
+-- Dims a widget whose setting depends on a toggle that is off or an addon
+-- that is not loaded; returns whether it can be used.
 local function Available(holder, f)
-    local on = true
+    local on = not MissingAddon(f)
     local req = f.requires
     if type(req) == "table" then
         for _, key in ipairs(req) do on = on and SereneDB[key] and true or false end
     elseif req then
-        on = SereneDB[req] and true or false
+        on = on and SereneDB[req] and true or false
     end
     holder:SetAlpha(on and 1 or 0.4)
     return on
@@ -121,9 +129,23 @@ function W.Checkbox(parent, f)
     row:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
     AttachTooltip(row, f)
 
+    -- "Requires Nameplates" beside the label; on the parent, so the row's
+    -- dimming leaves it readable.
+    local note
+    if f.addon then
+        note = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        note:SetPoint("LEFT", label, "RIGHT", 12, 0)
+        note:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
+    end
+
     function row.Refresh()
         check:SetShown(Checked() and true or false)
         row:SetEnabled(Available(row, f))
+        if note then
+            local missing = MissingAddon(f)
+            note:SetText(missing and "Requires " .. missing or "")
+            note:SetShown(missing ~= nil)
+        end
     end
     return row
 end

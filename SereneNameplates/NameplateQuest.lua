@@ -163,18 +163,10 @@ local function Refresh()
     if NP.layoutGen then NP.Repaint() end
 end
 
-ns.RegisterFeature({
-    key = "nameplateQuest", label = "Mark Quest Enemies on Nameplates", section = "Quests", apply = Refresh,
-    tooltip = "Marks enemies your quests still need with a quest icon and your progress (e.g. 3/8).",
-})
-ns.RegisterFeature({
-    key = "nameplateQuestColor", label = "Color Quest Enemies", section = "Quests", requires = "nameplateQuest",
-    apply = Refresh,
-})
-ns.RegisterFeature({
-    key = "nameplateQuestBarColor", label = "Quest Enemy Color", section = "Quests", type = "color",
-    hideLabel = true, default = "default", requires = { "nameplateQuest", "nameplateQuestColor" }, apply = Refresh,
-    specials = {
-        { value = "default", label = "Default", swatch = function() return ns.RGBToHex(unpack(QUEST_COLOR)) end },
-    },
-})
+-- The settings are on the Quests tab, so SereneQuests registers them (the
+-- TOC loads it first) and shows them dimmed without this addon. Without
+-- SereneQuests they keep their saved values.
+for _, key in ipairs({ "nameplateQuest", "nameplateQuestColor", "nameplateQuestBarColor" }) do
+    local f = ns.featureByKey[key]
+    if f then f.apply = Refresh end
+end

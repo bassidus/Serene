@@ -131,3 +131,23 @@ ns.RegisterFeature({
     key = "autoTurnInQuests", label = "Auto Turn-In Quests", section = "Quests",
     tooltip = "Turns in quests automatically. Hold Shift to skip.",
 })
+
+-- Drawn by SereneNameplates (NameplateQuest.lua), which adds the apply.
+local QUEST_GREEN = "28da79"  -- the nameplates' own quest color
+ns.RegisterFeature({
+    key = "nameplateQuest", label = "Mark Quest Enemies on Nameplates", section = "Quests",
+    addon = "SereneNameplates",
+    tooltip = "Marks enemies your quests still need with a quest icon and your progress (e.g. 3/8).",
+})
+ns.RegisterFeature({
+    key = "nameplateQuestColor", label = "Color Quest Enemies", section = "Quests", requires = "nameplateQuest",
+    addon = "SereneNameplates",
+})
+ns.RegisterFeature({
+    key = "nameplateQuestBarColor", label = "Quest Enemy Color", section = "Quests", type = "color",
+    hideLabel = true, default = "default", requires = { "nameplateQuest", "nameplateQuestColor" },
+    addon = "SereneNameplates",
+    specials = {
+        { value = "default", label = "Default", swatch = function() return QUEST_GREEN end },
+    },
+})

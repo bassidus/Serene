@@ -29,6 +29,9 @@ ns.featureByKey = {}
 --         still titles the palette and the tooltip,
 --         requires = key of a boolean setting, or a list of them; the control
 --         is dimmed and locked while any is off,
+--         addon = the Serene* addon that does the work, when another addon
+--         registers the setting; the control is dimmed and locked, a
+--         checkbox with a "Requires ..." note, while it is not loaded,
 --         group = set by ns.RegisterFontSettings: shown as one row with its
 --         siblings }
 function ns.RegisterFeature(def)

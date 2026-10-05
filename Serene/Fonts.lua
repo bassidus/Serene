@@ -4,81 +4,20 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local MEDIA = "Interface\\AddOns\\Serene\\Media\\Fonts\\"
-
--- Blizzard's own, then the fonts shipped in Media\Fonts: Serene's set plus
--- a collection of free fonts (licenses in Media\Fonts\Licenses),
--- bundled so no extra addon is needed.
+-- Blizzard's own fonts; any other addon's come from LibSharedMedia.
 local BUILTIN = {
     { value = "Fonts\\FRIZQT__.TTF", label = "Friz Quadrata" },
     { value = "Fonts\\ARIALN.TTF",   label = "Arial Narrow" },
     { value = "Fonts\\skurri.ttf",   label = "Skurri" },
     { value = "Fonts\\MORPHEUS.ttf", label = "Morpheus" },
-    { value = MEDIA .. "Accidental Presidency.ttf",                 label = "Accidental Presidency" },
-    { value = MEDIA .. "ActionMan.ttf",                             label = "ACTION MAN" },
-    { value = MEDIA .. "ALBAS___.ttf",                              label = "Alba Super" },
-    { value = MEDIA .. "AnonymousPro-Regular.ttf",                  label = "Anonymous Pro" },
-    { value = MEDIA .. "ArmWrestler.ttf",                           label = "Arm Wrestler" },
-    { value = MEDIA .. "AtkinsonHyperlegibleNext-Regular.ttf",      label = "Atkinson Hyperlegible Next" },
-    { value = MEDIA .. "AvantGarde_LT_Book_Regular.ttf",            label = "AvantGarde LT Book" },
-    { value = MEDIA .. "BAARS___.TTF",                              label = "Baar Sophia" },
-    { value = MEDIA .. "BarlowCondensed.ttf",                       label = "Barlow Condensed" },
-    { value = MEDIA .. "Bazooka.ttf",                               label = "Bazooka" },
-    { value = MEDIA .. "Blazed.ttf",                                label = "Blazed" },
-    { value = MEDIA .. "BorisBlackBloxx.ttf",                       label = "Boris Black Bloxx" },
-    { value = MEDIA .. "BorisBlackBloxxDirty.ttf",                  label = "Boris Black Bloxx Dirty" },
-    { value = MEDIA .. "Cabin-Regular.ttf",                         label = "Cabin" },
-    { value = MEDIA .. "CelestiaMediumRedux1.55.ttf",               label = "Celestia Redux" },
-    { value = MEDIA .. "centurygothic.ttf",                         label = "Century Gothic" },
-    { value = MEDIA .. "COLLEGIA.ttf",                              label = "Collegiate" },
-    { value = MEDIA .. "ContinuumMedium.ttf",                       label = "Continuum Medium" },
-    { value = MEDIA .. "coolinbi.ttf",                              label = "Cooline, Bold Italic" },
-    { value = MEDIA .. "DejaVuSans.ttf",                            label = "DejaVu Sans" },
-    { value = MEDIA .. "DejaVuSans-Bold.ttf",                       label = "DejaVu Sans, Bold" },
-    { value = MEDIA .. "DieDieDie.ttf",                             label = "DieDieDie" },
-    { value = MEDIA .. "DIOGENES.ttf",                              label = "Diogenes" },
-    { value = MEDIA .. "Disko.ttf",                                 label = "Disko" },
-    { value = MEDIA .. "Expressway.ttf",                            label = "Expressway, Bold" },
-    { value = MEDIA .. "expressway rg.otf",                         label = "Expressway, Regular" },
-    { value = MEDIA .. "FiraSansMedium.ttf",                        label = "Fira Sans Medium" },
-    { value = MEDIA .. "FRAKS___.ttf",                              label = "Frakturika Spamless" },
-    { value = MEDIA .. "GothamNarrow.otf",                          label = "Gotham Narrow" },
-    { value = MEDIA .. "GothamNarrow-Ultra.ttf",                    label = "Gotham Narrow Ultra" },
-    { value = MEDIA .. "Homespun.ttf",                              label = "Homespun TT BRK" },
-    { value = MEDIA .. "impact.ttf",                                label = "Impact" },
-    { value = MEDIA .. "JetBrainsMono-Regular.ttf",                 label = "JetBrains Mono" },
-    { value = MEDIA .. "Lato.ttf",                                  label = "Lato" },
-    { value = MEDIA .. "LiberationSans-Regular.ttf",                label = "Liberation Sans" },
-    { value = MEDIA .. "LiberationSerif-Regular.ttf",               label = "Liberation Serif" },
-    { value = MEDIA .. "MystikOrbs.ttf",                            label = "Mystic Orbs" },
-    { value = MEDIA .. "NanumGothic-Regular.ttf",                   label = "NanumGothic" },
-    { value = MEDIA .. "Nunito-Regular.ttf",                        label = "Nunito" },
-    { value = MEDIA .. "OpenDyslexic3-Regular.ttf",                 label = "OpenDyslexic 3" },
-    { value = MEDIA .. "Pokemon Solid.ttf",                         label = "Pokemon Solid" },
-    { value = MEDIA .. "Poppins.ttf",                               label = "Poppins" },
-    { value = MEDIA .. "Prototype.ttf",                             label = "Prototype" },
-    { value = MEDIA .. "PTSansNarrow-Bold.ttf",                     label = "PT Sans Narrow, Bold" },
-    { value = MEDIA .. "RobotoCondensedBold.ttf",                   label = "Roboto Condensed Bold" },
-    { value = MEDIA .. "Rock Show Whiplash.ttf",                    label = "Rock Show Whiplash" },
-    { value = MEDIA .. "SF Diego Sans.ttf",                         label = "SF Diego Sans" },
-    { value = MEDIA .. "Solange.ttf",                               label = "Solange" },
-    { value = MEDIA .. "starcine.ttf",                              label = "Star Cine" },
-    { value = MEDIA .. "trashco.ttf",                               label = "Trashco" },
-    { value = MEDIA .. "Ubuntu.ttf",                                label = "Ubuntu" },
-    { value = MEDIA .. "Ubuntu-C.ttf",                              label = "Ubuntu Condensed" },
-    { value = MEDIA .. "Ubuntu-L.ttf",                              label = "Ubuntu Light" },
-    { value = MEDIA .. "Verdana.ttf",                               label = "Verdana" },
-    { value = MEDIA .. "waltographUI.ttf",                          label = "Waltograph UI" },
-    { value = MEDIA .. "X360.ttf",                                  label = "X360" },
-    { value = MEDIA .. "YanoneKaffeesatz-Regular.ttf",              label = "Yanone Kaffeesatz Regular" },
 }
 
--- "Blizzard default" first, the built-ins, then any font other addons
+-- "Blizzard default" first, Blizzard's fonts, then any font other addons
 -- registered with LibSharedMedia.
 function ns.FontOptions()
     local list = { { value = "default", label = "Blizzard default" } }
     -- A font is listed once, also when another addon registers its own copy
-    -- of a bundled file: matched by path, file name and name.
+    -- of one: matched by path, file name and name.
     local seen = {}
     local function Key(path) return path:lower():match("([^\\/]+)$") end
     for _, o in ipairs(BUILTIN) do

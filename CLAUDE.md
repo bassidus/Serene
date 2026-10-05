@@ -45,3 +45,4 @@ When unsure whether something exists, don't guess and don't write a fallback. Ad
 - Commit straight to `main`.
 - There are no tests. Check syntax with `luac -p` on the files you change (delete `luac.out` afterwards), then the user tests in game.
 - `tools/release.sh <version>` bumps `## Version` in every TOC, writes the CHANGELOG section and zips every `Serene*` folder into `dist/`. It refuses to run if `## Interface` differs between TOCs. `tools/release.sh --check` only checks that Interface and Version match everywhere.
+- Every release gets a written summary. After `release.sh`, replace the generated commit list under the new version in CHANGELOG.md with a short summary for players: an intro if something affects installing or updating, then `### New`, `### Changed` and `### Fixed` as needed. No internal changes (README, CLAUDE.md, tooling, refactors). Then commit and tag. Don't push unless asked.

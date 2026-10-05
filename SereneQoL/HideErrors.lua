@@ -42,11 +42,8 @@ local function SetHiding(on)
 end
 
 local function Update()
-    local on = ns.Enabled("hideErrors")
-    if on and ns.Get("hideErrorsWhen") == "combat" then
-        on = UnitAffectingCombat("player") and true or false
-    end
-    SetHiding(on)
+    local when = ns.Get("hideErrors")
+    SetHiding(when == "always" or (when == "combat" and UnitAffectingCombat("player") and true or false))
 end
 
 f:SetScript("OnEvent", function(_, event, _, msg)
@@ -64,7 +61,7 @@ f:SetScript("OnEvent", function(_, event, _, msg)
 end)
 
 local function Apply()
-    if ns.Enabled("hideErrors") and ns.Get("hideErrorsWhen") == "combat" then
+    if ns.Get("hideErrors") == "combat" then
         f:RegisterEvent("PLAYER_REGEN_DISABLED")
         f:RegisterEvent("PLAYER_REGEN_ENABLED")
     else
@@ -76,19 +73,14 @@ end
 
 ns.RegisterFeature({
     key = "hideErrors", label = "Hide error messages / speech", section = "General", category = "Interface",
-    apply = Apply,
+    type = "dropdown", default = "always", apply = Apply,
     tooltip = "Hides the red error text at the top of the screen and its voice line (\"Not enough rage\", \"Out of range\"...). "
         .. "Errors you need to act on, like full bags or not enough money, still show.",
-})
-ns.RegisterFeature({
-    key = "hideErrorsWhen", label = "When to hide", section = "General", category = "Interface",
-    type = "dropdown", default = "always",
-    requires = "hideErrors", apply = Apply,
-    tooltip = "Always, or only while you are in combat.",
     options = function()
         return {
             { value = "always", label = "Always" },
             { value = "combat", label = "Only in combat" },
+            { value = "off",    label = "Off" },
         }
     end,
 })

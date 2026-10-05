@@ -365,7 +365,7 @@ ns.RegisterFeature({
 -- its bottom.
 ns.RegisterPositionSettings({
     prefix = "keybind", label = "Keybind position", section = SECTION, category = "Keybinds",
-    apply = ApplySetting, x = { -30, 30, KEYBIND.x }, y = { -30, 30, KEYBIND.y }, button = { -18, 18, -18, 18 },
+    apply = ApplySetting, x = { -30, 30, KEYBIND.x }, y = { -30, 30, KEYBIND.y }, box = { -18, 18, -18, 18 },
     tooltip = "The dot is the middle of the keybind text. The small square is Blizzard's spot.",
 })
 ns.RegisterFeature({
@@ -397,6 +397,6 @@ ns.RegisterFeature({
 ns.RegisterPositionSettings({
     prefix = "macro", label = "Macro name position", section = SECTION, category = "Macro names",
     apply = ApplySetting, requires = "showMacroText",
-    x = { -30, 30, MACRO.x }, y = { -12, 48, MACRO.y }, button = { -18, 18, 0, 36 },
+    x = { -30, 30, MACRO.x }, y = { -12, 48, MACRO.y }, box = { -18, 18, 0, 36 },
     tooltip = "The dot is the bottom middle of the macro name. The small square is Blizzard's spot.",
 })

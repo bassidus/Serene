@@ -715,40 +715,41 @@ end
 
 -------------------------------------------------------------------------------
 --  Position pad -- for a ns.RegisterPositionSettings pair, in the editor
---  W.Position opens: the button drawn to scale, a dot where the text sits.
+--  W.Position opens: what the offsets count from drawn to scale, a dot
+--  where they put the text.
 --  Click or drag to move it; right-click puts back the defaults.
 -------------------------------------------------------------------------------
-local PAD_SCALE, DOT = 2, 8  -- pixels per offset step; the dot's size
+local DOT = 8  -- the dot's size
 
 local function PositionPad(parent, pos)
-    local fx, fy = pos.x, pos.y
+    local fx, fy, scale = pos.x, pos.y, pos.scale
     local holder = CreateFrame("Frame", nil, parent)
 
     local pad = CreateFrame("Frame", nil, holder)
-    pad:SetSize((fx.max - fx.min) * PAD_SCALE, (fy.max - fy.min) * PAD_SCALE)
+    pad:SetSize((fx.max - fx.min) * scale, (fy.max - fy.min) * scale)
     pad:SetPoint("TOPLEFT", 0, 0)
     W.Solid(pad, "BACKGROUND", FIELD):SetAllPoints()
     local edges = W.Border(pad, EDGE)
     holder:SetHeight(pad:GetHeight())
 
     -- Offset units -> pixels from the pad's bottom left.
-    local function PX(x) return (x - fx.min) * PAD_SCALE end
-    local function PY(y) return (y - fy.min) * PAD_SCALE end
+    local function PX(x) return (x - fx.min) * scale end
+    local function PY(y) return (y - fy.min) * scale end
 
-    local b = pos.button
-    local button = CreateFrame("Frame", nil, pad)
-    button:SetPoint("BOTTOMLEFT", PX(b[1]), PY(b[3]))
-    button:SetSize((b[2] - b[1]) * PAD_SCALE, (b[4] - b[3]) * PAD_SCALE)
-    W.Solid(button, "BACKGROUND", EDGE, 0.5):SetAllPoints()
-    W.Border(button, DIM)
-    local home = W.Solid(button, "ARTWORK", DIM)
+    local b = pos.box
+    local box = CreateFrame("Frame", nil, pad)
+    box:SetPoint("BOTTOMLEFT", PX(b[1]), PY(b[3]))
+    box:SetSize((b[2] - b[1]) * scale, (b[4] - b[3]) * scale)
+    W.Solid(box, "BACKGROUND", EDGE, 0.5):SetAllPoints()
+    W.Border(box, DIM)
+    local home = W.Solid(box, "ARTWORK", DIM)
     home:SetSize(4, 4)
     home:SetPoint("CENTER", pad, "BOTTOMLEFT", PX(fx.default), PY(fy.default))
 
-    -- Its own frame, so it draws over the button.
+    -- Its own frame, so it draws over the box.
     local dot = CreateFrame("Frame", nil, pad)
     dot:SetSize(DOT, DOT)
-    dot:SetFrameLevel(button:GetFrameLevel() + 1)
+    dot:SetFrameLevel(box:GetFrameLevel() + 1)
     W.Solid(dot, "ARTWORK", ACCENT):SetAllPoints()
 
     local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -757,6 +758,8 @@ local function PositionPad(parent, pos)
     local hint = holder:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     hint:SetPoint("TOPLEFT", valueText, "BOTTOMLEFT", 0, -6)
     hint:SetText("Right-click: default")
+    -- Wide pads (e.g. the tooltip's) widen the editor to fit the readout.
+    holder.width = pad:GetWidth() + 12 + math.ceil(hint:GetStringWidth())
 
     local function Set(f, v)
         if v ~= ns.Get(f.key) then ns.SetValue(f.key, v) end
@@ -765,10 +768,10 @@ local function PositionPad(parent, pos)
         return math.min(f.max, math.max(f.min, math.floor(v + 0.5)))
     end
     local function FollowCursor()
-        local scale = pad:GetEffectiveScale()
+        local ui = pad:GetEffectiveScale()
         local cx, cy = GetCursorPosition()
-        Set(fx, Step((cx / scale - pad:GetLeft()) / PAD_SCALE + fx.min, fx))
-        Set(fy, Step((cy / scale - pad:GetBottom()) / PAD_SCALE + fy.min, fy))
+        Set(fx, Step((cx / ui - pad:GetLeft()) / scale + fx.min, fx))
+        Set(fy, Step((cy / ui - pad:GetBottom()) / scale + fy.min, fy))
     end
     local function Stop() pad:SetScript("OnUpdate", nil) end
 
@@ -920,7 +923,7 @@ function W.FontGroup(parent, group)
             local posText, posArrow
             posHolder, posBtn, posText, posArrow = Field(holder, nil, function(self) OpenPosition(self, pos) end)
             posHolder:SetPoint("TOPLEFT", btn, "TOPRIGHT", 8, 0)
-            AsButton(posBtn, posText, posArrow, "Position")
+            AsButton(posBtn, posText, posArrow, pos.button)
             -- A field's holder takes its width from the page; this one has none.
             posHolder:SetWidth(posBtn:GetWidth())
             AttachTooltip(posBtn, pos.x)
@@ -955,23 +958,16 @@ function W.FontGroup(parent, group)
 end
 
 -------------------------------------------------------------------------------
---  Position -- one field for a ns.RegisterPositionSettings pair: the offsets
---  ("Blizzard default" while both are at their defaults); its editor holds
---  the pad.
+--  Position -- a button for a ns.RegisterPositionSettings pair; its editor
+--  holds the pad.
 -------------------------------------------------------------------------------
 function W.Position(parent, pos)
-    local fx, fy = pos.x, pos.y
-    local holder, btn, text = Field(parent, pos.label, function(self) OpenPosition(self, pos) end)
-    AttachTooltip(btn, fx)
+    local holder, btn, text, arrow = Field(parent, nil, function(self) OpenPosition(self, pos) end)
+    AsButton(btn, text, arrow, pos.button)
+    AttachTooltip(btn, pos.x)
 
     function holder.Refresh()
-        local x, y = ns.Get(fx.key), ns.Get(fy.key)
-        if x == fx.default and y == fy.default then
-            text:SetText("Blizzard default")
-        else
-            text:SetText("X " .. x .. ", Y " .. y)
-        end
-        btn:SetEnabled(Available(holder, fx))
+        btn:SetEnabled(Available(holder, pos.x))
         RefreshEditor(pos)
     end
     return holder
@@ -983,7 +979,7 @@ end
 --  f.button just a button reading that, without a label above it.
 -------------------------------------------------------------------------------
 function W.ColorField(parent, f)
-    local holder, btn, text, arrow = Field(parent, not (f.hideLabel or f.button) and f.label, function(self)
+    local holder, btn, text, arrow = Field(parent, not f.button and f.label, function(self)
         OpenEditor(self, f, f.label, function(panel) return { W.Color(panel, f) } end)
     end)
     AttachTooltip(btn, f)

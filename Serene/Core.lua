@@ -28,8 +28,6 @@ ns.featureByKey = {}
 --         blizzard = fn returning Blizzard's own outline as a flag set, shown
 --         while the value is "default" (outline),
 --         note = short text always shown under the control,
---         hideLabel = true to show a color field without its label; the label
---         still titles the palette and the tooltip,
 --         button = text for a plain button in place of a color field, e.g.
 --         "Color"; the label still titles the palette and the tooltip,
 --         requires = key of a boolean setting, or a list of them; the control
@@ -40,7 +38,7 @@ ns.featureByKey = {}
 --         group = set by ns.RegisterFontSettings: shown as one row with its
 --         siblings,
 --         pos = set by ns.RegisterPositionSettings: the X and Y offsets shown
---         as one row }
+--         as one button }
 function ns.RegisterFeature(def)
     def.type = def.type or "boolean"
     if def.default == nil and def.type == "boolean" then def.default = true end
@@ -50,17 +48,18 @@ function ns.RegisterFeature(def)
     if SereneDB and SereneDB[def.key] == nil then SereneDB[def.key] = def.default end
 end
 
--- Registers a text's X and Y offsets ("<prefix>OffsetX", "<prefix>OffsetY",
--- slider settings) as one pair: the options window shows one row that opens
--- a pad with the button drawn to scale and a dot where the text sits, to
--- drag around.
--- def = { prefix =, label = row name, section =, category =, apply =,
+-- Registers X and Y offsets ("<prefix>OffsetX", "<prefix>OffsetY", slider
+-- settings) as one pair: the options window shows a button that opens a pad
+-- with what they count from drawn to scale and a dot to drag around.
+-- def = { prefix =, label = the pad's title, section =, category =, apply =,
 --         tooltip =, requires = see RegisterFeature,
 --         x = { min, max, default }, y = { min, max, default },
---         button = { left, right, bottom, top } the button's edges in the
---         offsets' own units, e.g. { -18, 18, -18, 18 } around its middle }
+--         box = { left, right, bottom, top } what the offsets count from, in
+--         their own units, e.g. a button's { -18, 18, -18, 18 } around its middle,
+--         button = the button's text (default "Position"),
+--         scale = pixels per step on the pad (default 2) }
 function ns.RegisterPositionSettings(def)
-    local pos = { label = def.label, button = def.button }
+    local pos = { label = def.label, box = def.box, button = def.button or "Position", scale = def.scale or 2 }
     for _, axis in ipairs({ "x", "y" }) do
         local range = def[axis]
         pos[axis] = {

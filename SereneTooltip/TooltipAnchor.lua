@@ -47,13 +47,10 @@ ns.RegisterFeature({
         }
     end,
 })
-ns.RegisterFeature({
-    key = "tooltipOffsetX", type = "slider", default = 0, min = -100, max = 100, step = 1,
-    label = "Move left / right from cursor", section = "Tooltip", category = "Position",
-    tooltip = "Only used while tooltips follow the cursor.",
-})
-ns.RegisterFeature({
-    key = "tooltipOffsetY", type = "slider", default = 0, min = -100, max = 100, step = 1,
-    label = "Move up / down from cursor", section = "Tooltip", category = "Position",
-    tooltip = "Only used while tooltips follow the cursor.",
+-- The box is the cursor; the dot moves the tooltip from its usual spot beside it.
+ns.RegisterPositionSettings({
+    prefix = "tooltip", label = "Offset from cursor", button = "Offset from cursor",
+    section = "Tooltip", category = "Position",
+    x = { -100, 100, 0 }, y = { -100, 100, 0 }, box = { -3, 3, -3, 3 }, scale = 1,
+    tooltip = "Moves tooltips that follow the cursor away from their usual spot beside it. The small square is the cursor.",
 })

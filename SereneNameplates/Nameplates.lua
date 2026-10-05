@@ -304,7 +304,7 @@ local function UpdateHealthColor(plate)
     c = ThreatColor(plate, unit)
         or (Clean(UnitIsTapDenied(unit)) and COLORS.tapped)
         or (not fighting and NP.QuestColor and NP.QuestColor(unit))
-    if not c and ns.Enabled("nameplateClassColors") and Clean(UnitIsPlayer(unit)) then
+    if not c and Clean(UnitIsPlayer(unit)) then
         local _, class = UnitClass(unit)
         class = Clean(class)
         local cc = class and (C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class])
@@ -359,7 +359,7 @@ local function UpdateRaidIcon(plate)
 end
 
 local function UpdateTarget(plate)
-    local lit = (Clean(UnitIsUnit(plate.unit, "target")) and ns.Enabled("nameplateTargetHighlight")) and true or false
+    local lit = Clean(UnitIsUnit(plate.unit, "target")) and true or false
     if plate.lit == lit then return end
     plate.lit = lit
     if lit then
@@ -595,13 +595,24 @@ end)
 local function Relayout() if NP.layoutGen then NP.Relayout() end end
 NP.ApplyRelayout = Relayout
 
--- Threat colors, font and sizes are in NameplateLook.lua, after the cast bar
--- and debuff toggles, so the options page lists every toggle first.
-
+-- Threat colors first, so their group heads the options page. Font and
+-- sizes are in NameplateLook.lua, after the cast bar and debuff toggles, so
+-- the options page lists every toggle first.
 ns.RegisterFeature({
-    key = "nameplateClassColors", label = "Class colors for players", section = "Nameplates", category = "Colors",
+    key = "nameplateThreat", label = "Select role", section = "Nameplates", category = "Threat colors",
+    type = "dropdown", default = "auto",
     apply = Relayout,
-    tooltip = "Enemy players' health bars take their class color instead of red.",
+    note = "Tank: green = you have aggro, yellow = close, red = lost, blue = another tank.\n"
+        .. "Damage / healer: the reverse, without blue.\n"
+        .. "Auto: Tank in Defensive Stance, Bear Form or with Righteous Fury.",
+    options = function()
+        return {
+            { value = "auto", label = "Auto" },
+            { value = "tank", label = "Tank" },
+            { value = "dps",  label = "Damage / healer" },
+            { value = "off",  label = "Off" },
+        }
+    end,
 })
 ns.RegisterFeature({
     key = "nameplateLevel", label = "Show level", section = "Nameplates", category = "Text", apply = Relayout,
@@ -610,9 +621,4 @@ ns.RegisterFeature({
     key = "nameplateHealthText", label = "Show health percent", section = "Nameplates", category = "Text",
     apply = Relayout,
     tooltip = "Health left as a percent, on the health bar.",
-})
-ns.RegisterFeature({
-    key = "nameplateTargetHighlight", label = "Highlight your target", section = "Nameplates", category = "Colors",
-    apply = Relayout,
-    tooltip = "Draws a white border around your target's nameplate.",
 })

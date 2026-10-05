@@ -104,7 +104,7 @@ end
 for _, g in ipairs(GROUPS) do
     ns.RegisterFontSettings({
         prefix = g.prefix, label = g.label, section = "Unit frames", category = g.category, apply = Apply,
-        size = { 6, 24, g.base }, outline = "default", color = g.color,
+        size = { 6, 24, g.base }, outline = "default", color = g.color, button = "Font",
         blizzard = function()
             local fs = Strings(PlayerFrame)[g][1]
             if not fs then return {} end

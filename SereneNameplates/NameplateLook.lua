@@ -20,18 +20,9 @@ ns.RegisterFeature({
         }
     end,
 })
-ns.RegisterFeature({
-    key = "nameplateFont", label = "Font", section = "Nameplates", type = "dropdown", default = "default",
-    preview = true, apply = Relayout,
-    options = ns.FontOptions,
-})
-ns.RegisterFeature({
-    key = "nameplateFontSize", label = "Font Size", section = "Nameplates", type = "slider",
-    min = 7, max = 16, step = 1, default = 10, apply = Relayout,
-})
-ns.RegisterFeature({
-    key = "nameplateOutline", label = "Outline", section = "Nameplates", type = "outline", default = "OUTLINE",
-    apply = Relayout,
+ns.RegisterFontSettings({
+    prefix = "nameplate", label = "Font", section = "Nameplates", apply = Relayout,
+    size = { 7, 16, 10 }, outline = "OUTLINE",
 })
 ns.RegisterFeature({
     key = "nameplateWidth", label = "Width", section = "Nameplates", type = "slider",

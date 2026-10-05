@@ -51,18 +51,9 @@ local function Apply()
     end
 end
 
-ns.RegisterFeature({
-    key = "tooltipFont", type = "dropdown", default = "default",
-    label = "Tooltip Font", section = "Tooltip", apply = Apply,
-    options = ns.FontOptions, preview = true,
-})
-ns.RegisterFeature({
-    key = "tooltipFontSize", type = "slider", default = 10, min = 8, max = 20, step = 1,
-    label = "Tooltip Font Size", section = "Tooltip", apply = Apply,
-})
-ns.RegisterFeature({
-    key = "tooltipOutline", type = "outline", default = "default",
-    label = "Tooltip Outline", section = "Tooltip", apply = Apply,
+ns.RegisterFontSettings({
+    prefix = "tooltip", label = "Tooltip Font", section = "Tooltip", apply = Apply,
+    size = { 8, 20, 10 }, outline = "default",
     blizzard = function()
         local orig = original.GameTooltipText
         return orig and ns.OutlineOf(orig[3], orig.sx, orig.sy) or {}

@@ -25,7 +25,9 @@ ns.featureByKey = {}
 --         while the value is "default" (outline),
 --         note = short text always shown under the control,
 --         requires = key of a boolean setting, or a list of them; the control
---         is dimmed and locked while any is off }
+--         is dimmed and locked while any is off,
+--         group = set by ns.RegisterFontSettings: shown as one row with its
+--         siblings }
 function ns.RegisterFeature(def)
     def.type = def.type or "boolean"
     if def.default == nil and def.type == "boolean" then def.default = true end

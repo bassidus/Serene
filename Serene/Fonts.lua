@@ -100,6 +100,32 @@ function ns.FontOptions()
     return list
 end
 
+-- Registers a feature's font, size and outline settings ("<prefix>Font",
+-- "<prefix>FontSize", "<prefix>Outline") as one group: the options window
+-- shows it as a single row that opens an editor for all three.
+-- def = { prefix =, label = row name, section =, apply =,
+--         size = { min, max, default },
+--         outline = default outline value ("default" offers Blizzard's own look),
+--         blizzard = see type "outline" in Core.lua }
+function ns.RegisterFontSettings(def)
+    local group = { label = def.label }
+    group.font = {
+        key = def.prefix .. "Font", label = "Font", section = def.section, type = "dropdown",
+        default = "default", preview = true, apply = def.apply, options = ns.FontOptions, group = group,
+    }
+    group.size = {
+        key = def.prefix .. "FontSize", label = "Size", section = def.section, type = "slider",
+        min = def.size[1], max = def.size[2], step = 1, default = def.size[3], apply = def.apply, group = group,
+    }
+    group.outline = {
+        key = def.prefix .. "Outline", label = "Outline", section = def.section, type = "outline",
+        default = def.outline, blizzard = def.blizzard, apply = def.apply, group = group,
+    }
+    ns.RegisterFeature(group.font)
+    ns.RegisterFeature(group.size)
+    ns.RegisterFeature(group.outline)
+end
+
 -- Sets a font string's (or font object's) font from a setting's value.
 -- "default" is Blizzard's standard font; a missing file (e.g. an uninstalled
 -- LibSharedMedia font) would blank the text, so it falls back to `fallback`

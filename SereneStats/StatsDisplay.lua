@@ -281,18 +281,9 @@ ns.RegisterFeature({
         { value = "class",  label = "By class" },
     },
 })
-ns.RegisterFeature({
-    key = "statsFont", label = "Font", section = SECTION, type = "dropdown", default = "default",
-    preview = true, apply = Apply,
-    options = ns.FontOptions,
-})
-ns.RegisterFeature({
-    key = "statsFontSize", label = "Font Size", section = SECTION, type = "slider",
-    min = 8, max = 28, step = 1, default = 12, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "statsOutline", label = "Outline", section = SECTION, type = "outline", default = "OUTLINE",
-    apply = Apply,
+ns.RegisterFontSettings({
+    prefix = "stats", label = "Font", section = SECTION, apply = Apply,
+    size = { 8, 28, 12 }, outline = "OUTLINE",
 })
 ns.RegisterFeature({
     key = "statsBackground", label = "Background Opacity", section = SECTION, type = "slider",

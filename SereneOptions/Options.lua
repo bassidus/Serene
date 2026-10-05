@@ -64,7 +64,7 @@ local function TabNames()
 end
 
 local function ShowPage(section)
-    W.CloseMenu()
+    W.ClosePopups()
     for s, page in pairs(pages) do page:SetShown(s == section) end
     for s, tab in pairs(tabs) do tab:SetSelected(s == section) end
     SereneDB.optionsPage = section
@@ -286,9 +286,12 @@ local function CreatePage(section)
 
     local y = -36
     for _, f in ipairs(ns.features) do
-        if f.section == section then
+        -- A font group is one row, at its first setting.
+        if f.section == section and (not f.group or f == f.group.font) then
             local w
-            if f.type == "dropdown" then
+            if f.group then
+                w = W.FontGroup(page, f.group)
+            elseif f.type == "dropdown" then
                 w = W.Dropdown(page, f)
             elseif f.type == "slider" then
                 w = W.Slider(page, f)
@@ -403,7 +406,7 @@ local function CreateScaleGrip()
 
     grip:SetScript("OnMouseDown", function(self, button)
         if button ~= "LeftButton" then return end
-        W.CloseMenu()
+        W.ClosePopups()
         local s = frame:GetScale()
         leftUI, topUI = frame:GetLeft() * s, frame:GetTop() * s
         -- Where in the grip the cursor caught it, so the window does not jump.
@@ -518,7 +521,7 @@ local function Build()
         if SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN then PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN) end
     end)
     frame:SetScript("OnHide", function()
-        W.CloseMenu()
+        W.ClosePopups()
         if SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE then PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE) end
     end)
 

@@ -76,6 +76,16 @@ local function SetPreviewFont(fs, path, size)
     end
 end
 
+-- A dropdown setting's label for a value; a saved value no longer offered
+-- (e.g. an uninstalled font) shows as its file name.
+local function OptionLabel(f, value)
+    for _, o in ipairs(f.options()) do
+        if o.value == value then return o.label end
+    end
+    local s = tostring(value)
+    return s:match("([^\\/]+)$") or s
+end
+
 -------------------------------------------------------------------------------
 --  Checkbox -- bound to f.key, or to f.get()/f.set(on) for state that is not
 --  in SereneDB.
@@ -213,7 +223,7 @@ local function GetMenu()
     return menu
 end
 
-function W.CloseMenu()
+local function CloseMenu()
     if menu then menu:Hide() end
 end
 
@@ -279,14 +289,8 @@ function W.Dropdown(parent, f)
 
     function holder.Refresh()
         local value = ns.Get(f.key)
-        local shown = tostring(value)
-        for _, o in ipairs(f.options()) do
-            if o.value == value then shown = o.label; break end
-        end
-        -- A saved value no longer offered (e.g. an uninstalled font): show the file name.
-        if shown == tostring(value) then shown = shown:match("([^\\/]+)$") or shown end
         if f.preview then SetPreviewFont(text, value) end
-        text:SetText(shown)
+        text:SetText(OptionLabel(f, value))
         btn:SetEnabled(Available(holder, f))
     end
     return holder
@@ -433,6 +437,13 @@ function W.Color(parent, f)
     return holder
 end
 
+-- The flags an outline setting stands for, Blizzard's own on "default".
+local function ShownOutline(f)
+    local set = ns.OutlineSet(ns.Get(f.key))
+    if set then return set end
+    return f.blizzard and f.blizzard() or {}
+end
+
 -------------------------------------------------------------------------------
 --  Outline -- a checkbox per font flag (ns.OUTLINE_FLAGS), any number at
 --  once, after a "Default" chip when the feature's default is Blizzard's own
@@ -447,11 +458,7 @@ function W.Outline(parent, f)
     label:SetPoint("TOPLEFT", 0, 0)
     label:SetText(f.label)
 
-    local function Shown()
-        local set = ns.OutlineSet(ns.Get(f.key))
-        if set then return set end
-        return f.blizzard and f.blizzard() or {}
-    end
+    local function Shown() return ShownOutline(f) end
 
     local x = 0
     local controls = {}
@@ -506,6 +513,7 @@ function W.Outline(parent, f)
         boxes[#boxes + 1] = { flag = o.value, check = check }
         controls[#controls + 1] = row
     end
+    holder.width = x - 14  -- the row's own width, for the font editor
 
     function holder.Refresh()
         local set = Shown()
@@ -584,4 +592,140 @@ function W.Slider(parent, f)
         slider:EnableMouseWheel(on)
     end
     return holder
+end
+
+-------------------------------------------------------------------------------
+--  Font group -- one row for a ns.RegisterFontSettings group: font, size and
+--  outline at a glance, drawn in that font. Clicking it opens the font editor
+--  under it with the group's own dropdown, slider and outline controls; the
+--  editor closes on a click outside it or on the row again.
+-------------------------------------------------------------------------------
+local EDITOR_PAD, EDITOR_TITLE_H = 14, 24
+local editor, editorAnchor
+local panels = {}  -- group -> its controls in the editor, built on first open
+
+local function GetEditor()
+    if editor then return editor end
+    editor = CreateFrame("Frame", nil, UIParent)
+    -- Over the options window, under the dropdown list and the color picker.
+    editor:SetFrameStrata("FULLSCREEN")
+    editor:SetClampedToScreen(true)
+    editor:EnableMouse(true)
+    W.Solid(editor, "BACKGROUND", W.PANEL):SetAllPoints()
+    W.Border(editor, EDGE)
+    editor.title = editor:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    editor.title:SetPoint("TOPLEFT", EDITOR_PAD, -EDITOR_PAD)
+    editor.title:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
+    editor:Hide()
+
+    editor:RegisterEvent("GLOBAL_MOUSE_DOWN")
+    editor:SetScript("OnEvent", function(self)
+        -- Its own dropdown list counts as inside; the row toggles it via OpenFontEditor.
+        if self:IsShown() and not self:IsMouseOver()
+           and not (menu and menu:IsShown() and menu:IsMouseOver())
+           and not (editorAnchor and editorAnchor:IsMouseOver()) then
+            self:Hide()
+        end
+    end)
+    editor:SetScript("OnHide", CloseMenu)
+    return editor
+end
+
+local function BuildPanel(group)
+    local panel = CreateFrame("Frame", nil, editor)
+    panel:SetPoint("TOPLEFT", EDITOR_PAD, -(EDITOR_PAD + EDITOR_TITLE_H))
+    local outline = W.Outline(panel, group.outline)
+    panel:SetWidth(math.max(CONTROL_W, outline.width))
+    panel.widgets = { W.Dropdown(panel, group.font), W.Slider(panel, group.size), outline }
+    local y = 0
+    for _, w in ipairs(panel.widgets) do
+        w:SetPoint("TOPLEFT", 0, y)
+        w:SetPoint("TOPRIGHT", 0, y)
+        y = y - w:GetHeight() - 10
+    end
+    panel:SetHeight(-y - 10)
+    panels[group] = panel
+    return panel
+end
+
+local function OpenFontEditor(anchor, group)
+    GetEditor()
+    if editor:IsShown() and editorAnchor == anchor then
+        editor:Hide()
+        return
+    end
+    CloseMenu()
+    editorAnchor = anchor
+    for _, p in pairs(panels) do p:Hide() end
+    local panel = panels[group] or BuildPanel(group)
+    panel:Show()
+    for _, w in ipairs(panel.widgets) do w.Refresh() end
+    editor.title:SetText(group.label)
+    editor:SetSize(panel:GetWidth() + 2 * EDITOR_PAD, panel:GetHeight() + EDITOR_TITLE_H + 2 * EDITOR_PAD)
+    -- Lives on UIParent like the dropdown list; match the options window's scale.
+    editor:SetScale(anchor:GetEffectiveScale() / UIParent:GetEffectiveScale())
+    editor:ClearAllPoints()
+    editor:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
+    editor:Show()
+end
+
+-- "Outline, Shadow"; "No outline" for none.
+local function OutlineLabel(f)
+    local set, words = ShownOutline(f), {}
+    for _, o in ipairs(ns.OUTLINE_FLAGS) do
+        if set[o.value] then words[#words + 1] = o.label end
+    end
+    return #words > 0 and table.concat(words, ", ") or "No outline"
+end
+
+function W.FontGroup(parent, group)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(50)
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("TOPLEFT", 0, 0)
+    label:SetText(group.label)
+
+    local btn = CreateFrame("Button", nil, holder)
+    btn:SetSize(CONTROL_W, 24)
+    btn:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
+    W.Solid(btn, "BACKGROUND", FIELD):SetAllPoints()
+    local edges = W.Border(btn, EDGE)
+
+    local arrow = btn:CreateTexture(nil, "ARTWORK")
+    arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Up")
+    arrow:SetSize(12, 12)
+    arrow:SetPoint("RIGHT", -8, -2)
+    arrow:SetVertexColor(DIM[1], DIM[2], DIM[3])
+
+    local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    text:SetPoint("LEFT", 8, 0)
+    text:SetPoint("RIGHT", arrow, "LEFT", -4, 0)
+    text:SetJustifyH("LEFT")
+    text:SetWordWrap(false)
+
+    btn:SetScript("OnClick", function(self)
+        PlayClick()
+        OpenFontEditor(self, group)
+    end)
+    btn:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
+    btn:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
+
+    function holder.Refresh()
+        local font = ns.Get(group.font.key)
+        SetPreviewFont(text, font)
+        text:SetText(OptionLabel(group.font, font) .. " / " .. ns.Get(group.size.key)
+            .. " / " .. OutlineLabel(group.outline))
+        local panel = panels[group]
+        if panel and panel:IsVisible() then
+            for _, w in ipairs(panel.widgets) do w.Refresh() end
+        end
+    end
+    return holder
+end
+
+-- The dropdown list and the font editor, e.g. when the page changes.
+function W.ClosePopups()
+    CloseMenu()
+    if editor then editor:Hide() end
 end

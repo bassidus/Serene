@@ -331,18 +331,9 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "hideMacroText", label = "Hide Macro Text", section = SECTION, apply = ApplySetting,
 })
-ns.RegisterFeature({
-    key = "keybindFont", label = "Keybind Font", section = SECTION, type = "dropdown", default = "default",
-    preview = true, apply = ApplySetting,
-    options = ns.FontOptions,
-})
-ns.RegisterFeature({
-    key = "keybindFontSize", label = "Keybind Font Size", section = SECTION, type = "slider",
-    min = 6, max = 24, step = 1, default = DEFAULT_SIZE, apply = ApplySetting,
-})
-ns.RegisterFeature({
-    key = "keybindOutline", label = "Keybind Outline", section = SECTION, type = "outline", default = "default",
-    apply = ApplySetting,
+ns.RegisterFontSettings({
+    prefix = "keybind", label = "Keybind Font", section = SECTION, apply = ApplySetting,
+    size = { 6, 24, DEFAULT_SIZE }, outline = "default",
     blizzard = function()
         local hk = _G.ActionButton1HotKey
         if not hk then return {} end

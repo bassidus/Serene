@@ -26,25 +26,19 @@ local DEFAULTS = { cpuW = 35, memW = 49 }
 -- overlayGrow -> the corner that stays put when the size changes.
 local ANCHORS = { downright = "TOPLEFT", downleft = "TOPRIGHT", upright = "BOTTOMLEFT", upleft = "BOTTOMRIGHT" }
 
-local GOOD, OK, BAD, PLAIN = "40ff40", "ffd100", "ff4040", "ffffff"
+local GOOD, OK, HIGH, BAD, PLAIN = "40ff40", "ffd100", "ff991a", "ff4040", "ffffff"
 local HEADER_COLOR = { 1, 0.82, 0 }
-
-local function Blend(a, b, t)
-    local ar, ag, ab = ns.ColorRGB(a)
-    local br, bg, bb = ns.ColorRGB(b)
-    return ns.RGBToHex(ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t)
-end
 
 local STATUS = {
     fps = function(v) if v >= 50 then return GOOD elseif v >= 25 then return OK end return BAD end,
     ms  = function(v) if v < 100 then return GOOD elseif v < 250 then return OK end return BAD end,
     cpu = function(v) if v < 5 then return GOOD elseif v < 15 then return OK end return BAD end,
-    -- v: where an addon's memory falls between the least and the most listed, 0 to 1.
     -- Total addon memory, in KB (1000 to the MB, as shown).
     mem = function(v) if v < 100000 then return GOOD elseif v < 250000 then return OK end return BAD end,
-    memShare = function(v)
-        if v <= 0.5 then return Blend(GOOD, OK, v * 2) end
-        return Blend(OK, BAD, (v - 0.5) * 2)
+    -- One addon's memory, in KB.
+    addonMem = function(v)
+        if v < 2000 then return GOOD elseif v < 5000 then return OK elseif v < 10000 then return HIGH end
+        return BAD
     end,
 }
 
@@ -244,10 +238,6 @@ local function Render()
     end
     for i = shown + 1, #picked do picked[i] = nil end
 
-    local least, most = math.huge, 0
-    for _, e in ipairs(picked) do
-        least, most = math.min(least, e.mem), math.max(most, e.mem)
-    end
     local nameMode = ns.Get("overlayNameColor")
     local nameHex = nameMode == "class" and ns.PlayerClassHex() or ns.ColorHex(nameMode) or PLAIN
     for i, e in ipairs(picked) do
@@ -255,8 +245,7 @@ local function Render()
         PlaceRow(r, y, cpuW, memW)
         r.name:SetText("|cff" .. nameHex .. e.info.plainTitle .. "|r")
         r.cpu:SetText(Colored("cpu", e.cpu, ns.FormatPercent(e.cpu)))
-        local share = most > least and (e.mem - least) / (most - least) or 0
-        r.mem:SetText(Colored("memShare", share, ns.FormatMemory(e.mem)))
+        r.mem:SetText(Colored("addonMem", e.mem, ns.FormatMemory(e.mem)))
         y = y + rowH
     end
     for i = shown + 1, #rows do HideRow(rows[i]) end
@@ -526,7 +515,7 @@ ns.RegisterFeature({
     default = "status", requires = ON, apply = Apply,
     specials = {
         { value = "status", label = "By value", swatch = function() return GOOD, OK, BAD end,
-          tooltip = "Green when good, yellow when so-so, red when poor. Total memory is green under 100 MB and red from 250 MB; each addon's runs from green for the least to red for the most listed." },
+          tooltip = "Green when good, yellow when so-so, red when poor. Total memory is green under 100 MB and red from 250 MB; each addon's is green under 2 MB, yellow under 5, orange under 10 and red from there." },
         { value = "class",  label = "By class", swatch = ns.PlayerClassHex },
     },
 })

@@ -418,7 +418,7 @@ ns.SetPageIntro(SECTION, "With \"Move windows with the mouse\" on:\n"
     .. "- Drag a window by any spot that is not a button or a model to move it.\n"
     .. "- Hold Ctrl and scroll over a window to make it smaller or bigger.\n"
     .. "- Middle-click a window to put it back at Blizzard's spot and size.\n"
-    .. "The sliders below set each window's size, from 50% to 150%.")
+    .. "The sliders below set each window's size, from 50% to 150%. 100% is Blizzard's size.")
 
 ns.RegisterFeature({
     key = "windowMove", label = "Move windows with the mouse", section = SECTION, category = "Mouse",
@@ -443,7 +443,6 @@ for _, window in ipairs(WINDOWS) do
         beside = inCategory[window.category] % 2 == 0, type = "slider", min = MIN, max = MAX, step = STEP, default = 100, suffix = "%",
         -- A slider change wins over a Ctrl + scroll size from this session.
         apply = function() sessionScale[window] = nil; ApplyWindow(window) end,
-        tooltip = (window.tooltip and window.tooltip .. " " or "")
-            .. "100% is Blizzard's size. Lower makes the window smaller, higher makes it bigger.",
+        tooltip = window.tooltip,  -- what all the sliders do is in the page intro
     })
 end

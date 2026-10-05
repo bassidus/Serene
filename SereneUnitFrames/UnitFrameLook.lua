@@ -20,11 +20,14 @@ local DARK = 0.3  -- vertex color of the desaturated frame art in Dark Mode
 -------------------------------------------------------------------------------
 local parts = setmetatable({}, { __mode = "k" })
 
+-- art: darkened in Dark Mode. frame: hidden with the portrait, since the
+-- frame art is drawn around it (with the combat and status glows that share
+-- its shape).
 local function PartsOf(frame)
     local p = parts[frame]
     if p then return p end
     -- UnitFrame_Initialize keeps the name and portrait on the frame.
-    p = { name = frame.name, portrait = frame.portrait, level = {}, art = {} }
+    p = { name = frame.name, portrait = frame.portrait, level = {}, art = {}, frame = {} }
     if frame == PlayerFrame then
         local box = frame.PlayerFrameContainer
         local main = frame.PlayerFrameContent and frame.PlayerFrameContent.PlayerFrameContentMain
@@ -33,18 +36,25 @@ local function PartsOf(frame)
         if box then
             p.art = { box.FrameTexture, box.AlternatePowerFrameTexture, box.VehicleFrameTexture,
                       extra and extra.PlayerPortraitCornerIcon, main and main.LevelBackgroundCircle }
+            p.frame = { box.FrameTexture, box.AlternatePowerFrameTexture, box.VehicleFrameTexture,
+                        box.FrameFlash, main and main.StatusTexture, extra and extra.PlayerPortraitCornerIcon }
         end
     elseif frame.TargetFrameContainer then  -- target and focus
+        local box = frame.TargetFrameContainer
         local main = frame.TargetFrameContent and frame.TargetFrameContent.TargetFrameContentMain
         local extra = frame.TargetFrameContent and frame.TargetFrameContent.TargetFrameContentContextual
         if main then
             p.level = { main.LevelText, main.LevelBackgroundCircle, extra and extra.HighLevelTexture }
         end
-        p.art = { frame.TargetFrameContainer.FrameTexture, main and main.LevelBackgroundCircle }
+        p.art = { box.FrameTexture, main and main.LevelBackgroundCircle }
+        p.frame = { box.FrameTexture, box.Flash, box.BossPortraitFrameTexture }
     elseif frame == PetFrame then
         p.art = { PetFrameTexture }
+        p.frame = { PetFrameTexture, PetFrameFlash, PetAttackModeTexture }
     else  -- target of target, party
-        p.art = { frame.FrameTexture or frame.Texture }
+        p.art = { frame.FrameTexture or frame.Texture, frame.VehicleTexture }
+        p.frame = { frame.FrameTexture or frame.Texture, frame.VehicleTexture, frame.Flash,
+                    frame.PartyMemberOverlay and frame.PartyMemberOverlay.Status }
     end
     parts[frame] = p
     return p
@@ -167,7 +177,9 @@ local function Style(frame)
     local p = PartsOf(frame)
     local dark = ns.Enabled("unitFrameDark")
     for _, tex in pairs(p.art) do SetDark(tex, dark) end
-    SetHidden(p.portrait, ns.Get("unitFramePortrait") == "hidden")
+    local noPortrait = ns.Get("unitFramePortrait") == "hidden"
+    SetHidden(p.portrait, noPortrait)
+    for _, region in pairs(p.frame) do SetHidden(region, noPortrait) end
     SetHidden(p.name, ns.Enabled("unitFrameHideName"))
     ColorName(p.name, frame.unit)
     local hideLevel = ns.Enabled("unitFrameHideLevel")
@@ -236,7 +248,7 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "unitFramePortrait", label = "Portrait", section = SECTION, type = "dropdown",
     default = "portrait", apply = ApplyPortrait,
-    tooltip = "Class Icon shows players' class icon instead of their face.",
+    tooltip = "Class Icon shows players' class icon instead of their face.\nHidden also hides the frame around it.",
     options = function()
         return {
             { value = "portrait", label = "Portrait" },

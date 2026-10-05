@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 --  Overlay -- framerate, latency and the heaviest addons on screen while
---  playing. Its settings sit on the Performance page, under the addon list,
---  which is also where addons are pinned (SereneDB.overlayPinned). Spot,
+--  playing. Its settings are groups on the Performance page, whose addon
+--  list is also where addons are pinned (SereneDB.overlayPinned). Spot,
 --  size, scale and column widths are kept in SereneDB.overlayPos.
 --
 --  Unlocked, the frame drags to move, the corner grip resizes it (Shift:
 --  scales it, text and all) and the lines between the columns drag to
---  change their width. Locked, it is only as tall as what it shows.
+--  change their width. Locking only stops that; what shows stays the same.
 --
 --  Blizzard's "Toggle Framerate" key (Ctrl+R by default) shows and hides
 --  the overlay instead: an override binding on whatever key(s) TOGGLEFPS
@@ -58,7 +58,7 @@ local function Save(key, value)
 end
 
 local frame, bg, line, grip, summary, ticker
-local header = {}    -- name, cpu, mem: column titles, shown while unlocked
+local header = {}    -- name, cpu, mem: column titles
 local dividers = {}  -- cpuW, memW: drag handles at those columns' left edge
 local rows = {}      -- { name, cpu, mem } font strings per line
 local parts = {}     -- the summary line's pieces, reused
@@ -113,8 +113,8 @@ local function Place()
     end
 end
 
--- After a move or resize: kept as the top left corner, so a resize or a
--- locked overlay's height leaves it in place.
+-- After a move or resize: kept as the top left corner, so a resize leaves
+-- it in place.
 local function SavePlace()
     local s = frame:GetScale()
     Save("left", frame:GetLeft() * s)
@@ -173,11 +173,8 @@ local function Render()
     end
 
     local tableTop = y
-    for _, fs in pairs(header) do fs:SetShown(not locked) end
-    if not locked then
-        PlaceRow(header, y, cpuW, memW)
-        y = y + rowH
-    end
+    PlaceRow(header, y, cpuW, memW)
+    y = y + rowH
 
     -- Pinned addons first claim the room; the heaviest of the rest fill
     -- what is left, up to overlayTop. Shown in sort order either way.
@@ -209,7 +206,7 @@ local function Render()
         local r = rows[i]
         r.name:Hide(); r.cpu:Hide(); r.mem:Hide()
     end
-    line:SetShown(n > 0 and (shown > 0 or not locked))
+    line:SetShown(n > 0)
 
     -- The handles sit at the left edge of each shown column; the leftmost
     -- one in the middle of the gap before the names.
@@ -228,7 +225,7 @@ local function Render()
 
     if not sizing then
         frame:SetWidth(width)
-        frame:SetHeight(locked and math.min(height, y + PAD_Y) or height)
+        frame:SetHeight(height)
     end
 end
 
@@ -283,12 +280,13 @@ local function CreateDivider(key)
     d:SetWidth(DIVIDER_W)
     d:SetFrameLevel(frame:GetFrameLevel() + 5)
     local tex = d:CreateTexture(nil, "OVERLAY")
-    tex:SetColorTexture(1, 1, 1, 0.25)
+    tex:SetColorTexture(ns.ACCENT[1], ns.ACCENT[2], ns.ACCENT[3], 1)
+    tex:Hide()  -- shows while hovered, so unlocking changes nothing on screen
     tex:SetPoint("TOP")
     tex:SetPoint("BOTTOM")
     tex:SetWidth(1)
-    d:SetScript("OnEnter", function() tex:SetColorTexture(ns.ACCENT[1], ns.ACCENT[2], ns.ACCENT[3], 1) end)
-    d:SetScript("OnLeave", function() tex:SetColorTexture(1, 1, 1, 0.25) end)
+    d:SetScript("OnEnter", function() tex:Show() end)
+    d:SetScript("OnLeave", function() tex:Hide() end)
 
     -- Dragging left widens the column to the right of the line.
     d:SetScript("OnMouseDown", function(self, button)
@@ -438,12 +436,12 @@ local function Apply()
     end
 end
 
--- Reset Defaults also puts the overlay back in its corner at its default
--- size and unpins every addon.
+-- Reset also puts the overlay back in its corner at its default size and
+-- unpins every addon.
 ns.OnReset(function()
     SereneDB.overlayPos = nil
     SereneDB.overlayPinned = nil
-end)
+end, "Performance")
 
 -------------------------------------------------------------------------------
 --  Toggle key
@@ -484,29 +482,28 @@ bindOwner:SetScript("OnEvent", function(self, event)
 end)
 
 -------------------------------------------------------------------------------
---  Settings -- no section: the Performance page places them itself.
+--  Settings -- the Performance page's groups after Usage.
 -------------------------------------------------------------------------------
+local SECTION = "Performance"
+local ON = "overlayShown"
+
 ns.RegisterFeature({
-    key = "overlayShown", label = "Show overlay", default = false, apply = Apply,
+    key = "overlayShown", label = "Show overlay", section = SECTION, category = "Overlay", default = false,
+    apply = Apply,
     tooltip = "Framerate, latency and your heaviest addons on screen while you play. The game's Toggle Framerate key (Ctrl+R) also shows and hides it.",
 })
 ns.RegisterFeature({
-    key = "overlayLocked", label = "Lock", apply = Apply,
+    key = "overlayLocked", label = "Lock", section = SECTION, category = "Overlay", requires = ON, apply = Apply,
     tooltip = "Unlocked, the overlay drags to move, the corner resizes it (Shift-drag scales it) and the lines between the columns change their width.",
 })
-ns.RegisterFeature({ key = "overlayFps", label = "Framerate", apply = Apply })
-ns.RegisterFeature({ key = "overlayLatency", label = "Latency", apply = Apply })
-ns.RegisterFeature({ key = "overlayCpu", label = "Total addon CPU", default = false, apply = Apply })
-ns.RegisterFeature({ key = "overlayMemory", label = "Total addon memory", default = false, apply = Apply })
-ns.RegisterFeature({ key = "overlayAddonCpu", label = "CPU column", apply = Apply })
-ns.RegisterFeature({ key = "overlayAddonMemory", label = "Memory column", apply = Apply })
 ns.RegisterFeature({
-    key = "overlayTop", label = "Heaviest addons", type = "slider", min = 0, max = 20, step = 1, default = 5,
-    apply = Apply,
-    tooltip = "How many of the heaviest addons to list, besides the pinned ones.",
+    key = "overlayTop", label = "Heaviest addons", section = SECTION, category = "Overlay", type = "slider",
+    min = 0, max = 20, step = 1, default = 5, requires = ON, apply = Apply,
+    tooltip = "How many of the heaviest addons to list. Pinned addons (the box at the left of an addon under Usage) show besides these.",
 })
 ns.RegisterFeature({
-    key = "overlaySort", label = "Sort by", type = "dropdown", default = "cpu", apply = Apply,
+    key = "overlaySort", label = "Sort by", section = SECTION, category = "Overlay", type = "dropdown",
+    default = "mem", requires = ON, apply = Apply,
     options = function()
         return {
             { value = "cpu",  label = "CPU" },
@@ -515,8 +512,25 @@ ns.RegisterFeature({
         }
     end,
 })
+
+local VALUES = {
+    { "overlayFps",         "Framerate" },
+    { "overlayLatency",     "Latency" },
+    { "overlayCpu",         "Total addon CPU" },
+    { "overlayMemory",      "Total addon memory" },
+    { "overlayAddonCpu",    "CPU column" },
+    { "overlayAddonMemory", "Memory column" },
+}
+for i, v in ipairs(VALUES) do
+    ns.RegisterFeature({
+        key = v[1], label = v[2], section = SECTION, category = "Values", requires = ON, apply = Apply,
+        beside = i == 1,  -- the category, to the right of Overlay
+    })
+end
+
 ns.RegisterFeature({
-    key = "overlayColors", label = "Number color", type = "color", default = "status", apply = Apply,
+    key = "overlayColors", label = "Number color", section = SECTION, category = "Look", type = "color",
+    default = "status", requires = ON, apply = Apply,
     specials = {
         { value = "status", label = "By value", swatch = function() return GOOD, OK, BAD end,
           tooltip = "Green when good, yellow when so-so, red when poor." },
@@ -524,10 +538,10 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterFontSettings({
-    prefix = "overlay", label = "Overlay text", apply = Apply,
-    size = { 8, 28, 12 }, outline = "OUTLINE", color = "overlayColors", button = "Font",
+    prefix = "overlay", label = "Overlay text", section = SECTION, category = "Look", requires = ON, apply = Apply,
+    font = "Fonts\\ARIALN.TTF", size = { 8, 28, 12 }, outline = "OUTLINE", color = "overlayColors", button = "Font",
 })
 ns.RegisterFeature({
-    key = "overlayBackground", label = "Background opacity", type = "slider",
-    min = 0, max = 100, step = 5, default = 50, suffix = "%", apply = Apply,
+    key = "overlayBackground", label = "Background opacity", section = SECTION, category = "Look", type = "slider",
+    min = 0, max = 100, step = 5, default = 25, suffix = "%", requires = ON, apply = Apply,
 })

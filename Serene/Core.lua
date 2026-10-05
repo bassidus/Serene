@@ -20,11 +20,14 @@ ns.featureByKey = {}
 --   tooltip    help text under the category's "?" (on hover without a category)
 --   apply      fn run at login and on every change
 --   type       "boolean" (default) | "dropdown" | "slider" | "color" | "outline"
+--              | "custom"
 --   default    initial value
 --   options    dropdown: fn returning { { value =, label = }, ... }
 --   preview    dropdown: draw entries in their own font
 --   hideLabel  dropdown: no label above the button (still named in the help)
 --   min, max, step, suffix   slider
+--   build      custom: fn(parent) returning a frame of fixed height with a
+--              Refresh(), e.g. the Performance page's addon list
 --   specials   color: { { value =, label =, tooltip =, swatch = }, ... } before
 --              the palette; swatch returns the hex(es) the word stands for
 --   blizzard   outline: fn returning Blizzard's own flags, shown on "default"
@@ -67,16 +70,6 @@ function ns.RegisterPositionSettings(def)
         }
         ns.RegisterFeature(pos[axis])
     end
-end
-
--- Options pages that are not a list of settings (e.g. Performance).
--- build(content, page) fills a scrolling content frame on first open and
--- returns the height it wants and a list of widgets (anything with a
--- Refresh()) for the window to refresh with its own; these tabs follow the
--- feature sections in the sidebar.
-ns.pages = {}
-function ns.RegisterPage(name, build)
-    ns.pages[#ns.pages + 1] = { name = name, build = build }
 end
 
 -- A short text at the top of a settings page, above its categories.
@@ -128,9 +121,8 @@ function ns.OnResetAll(fn)
 end
 
 -- Puts every option back to its default, or with a section only the
--- options on that page. Window state, the minimap icon's spot and the
--- Performance sort are not options and stay (see ns.ResetAll). quiet: no
--- message in chat.
+-- options on that page. Window state and the minimap icon's spot are not
+-- options and stay (see ns.ResetAll). quiet: no message in chat.
 function ns.ResetDefaults(section, quiet)
     local function Included(s) return not section or s == section end
     for _, f in ipairs(ns.features) do

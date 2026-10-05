@@ -2,8 +2,8 @@
 --  Options window -- a sidebar tab per feature section, each page stacking
 --  a control per registered feature. At the bottom, with the buttons: the
 --  Modules tab, listing every Serene* addon, loaded or not, with a checkbox
---  to turn it on or off, then the ns.RegisterPage pages. Built on first
---  open; position and scale are saved (SereneDB.optionsWindow).
+--  to turn it on or off. Built on first open; position and scale are saved
+--  (SereneDB.optionsWindow).
 -------------------------------------------------------------------------------
 local ns = Serene
 local W = ns.Widgets
@@ -29,7 +29,6 @@ local RED = { 1, 0.3, 0.45 }
 local GOLD = W.GOLD  -- Reset defaults and Reset page
 local BUTTON_COLORS = {
     [MODULES] = W.ACCENT,
-    Performance = { 0.45, 0.7, 1 },
     ["Reset defaults"] = GOLD,
     ["Reload UI"] = RED,
 }
@@ -39,6 +38,7 @@ local BUTTON_COLORS = {
 local MENU = {
     { "Interface", { "Action bars", "Enemy nameplates", "Unit frames", "Tooltip", "Move & scale" } },
     { "Quality of life", { "General", "Quests", "Social" } },
+    { "Tools", { "Performance" } },
 }
 local OTHER = "Other"
 
@@ -53,33 +53,23 @@ do
     end
 end
 
--- Settings tabs come first, in menu order with the unlisted ones last and
--- alphabetical, then page tabs.
-local function TabOrder(a, aIsPage, b, bIsPage)
-    if aIsPage ~= bIsPage then return bIsPage end
+-- Menu order, with the unlisted ones last and alphabetical.
+local function TabOrder(a, b)
     local pa, pb = menuPlace[a] or math.huge, menuPlace[b] or math.huge
     if pa ~= pb then return pa < pb end
     return a < b
 end
 
--- The Serene* addons with a tab, found by the X-Serene-Section (a settings
--- tab) or X-Serene-Page (an ns.RegisterPage tab) line in their TOC, loaded
--- or not; in tab order.
+-- The Serene* addons with a tab, found by the X-Serene-Section line in
+-- their TOC, loaded or not; in tab order.
 local function Modules()
     local list = {}
     for i = 1, AddOns.GetNumAddOns() do
         local name = AddOns.GetAddOnInfo(i)
         local section = AddOns.GetAddOnMetadata(name, "X-Serene-Section")
-        local page = AddOns.GetAddOnMetadata(name, "X-Serene-Page")
-        if section or page then
-            list[#list + 1] = {
-                name = name,
-                tab = section or page,
-                isPage = not section,
-            }
-        end
+        if section then list[#list + 1] = { name = name, tab = section } end
     end
-    table.sort(list, function(a, b) return TabOrder(a.tab, a.isPage, b.tab, b.isPage) end)
+    table.sort(list, function(a, b) return TabOrder(a.tab, b.tab) end)
     return list
 end
 
@@ -225,28 +215,21 @@ local function CreateReloadButton(sidebar)
     reload:SetPoint("BOTTOMLEFT", 0, 10)
     reload:SetPoint("BOTTOMRIGHT", 0, 10)
 
-    -- Above it, bottom up: Reset Defaults, the ns.RegisterPage tabs and the
-    -- Modules tab; the separator goes above them all.
+    -- Above it, bottom up: Reset Defaults and the Modules tab; the
+    -- separator goes above them.
     local reset = CreateResetButton(sidebar)
     reset:SetPoint("BOTTOMLEFT", reload, "TOPLEFT")
     reset:SetPoint("BOTTOMRIGHT", reload, "TOPRIGHT")
 
-    local names = { MODULES }
-    for _, def in ipairs(ns.pages) do names[#names + 1] = def.name end
-    local below = reset
-    for i = #names, 1, -1 do
-        local name = names[i]
-        local tab = StyleSidebarButton(CreateFrame("Button", nil, sidebar), name)
-        tab:SetPoint("BOTTOMLEFT", below, "TOPLEFT")
-        tab:SetPoint("BOTTOMRIGHT", below, "TOPRIGHT")
-        tab:SetScript("OnClick", function() ShowPage(name) end)
-        tabs[name] = tab
-        below = tab
-    end
+    local modules = StyleSidebarButton(CreateFrame("Button", nil, sidebar), MODULES)
+    modules:SetPoint("BOTTOMLEFT", reset, "TOPLEFT")
+    modules:SetPoint("BOTTOMRIGHT", reset, "TOPRIGHT")
+    modules:SetScript("OnClick", function() ShowPage(MODULES) end)
+    tabs[MODULES] = modules
 
     local line = W.Solid(sidebar, "ARTWORK", W.EDGE)
-    line:SetPoint("BOTTOMLEFT", below, "TOPLEFT", 12, 6)
-    line:SetPoint("BOTTOMRIGHT", below, "TOPRIGHT", -12, 6)
+    line:SetPoint("BOTTOMLEFT", modules, "TOPLEFT", 12, 6)
+    line:SetPoint("BOTTOMRIGHT", modules, "TOPRIGHT", -12, 6)
     line:SetHeight(1)
 end
 
@@ -482,19 +465,6 @@ local function CreateModulesPage()
     return page
 end
 
--- A page registered with ns.RegisterPage builds its own content, in a
--- scroll frame like a settings page; its widgets refresh with the rest.
-local function CreateCustomPage(def)
-    local page = CreatePageFrame(def.name)
-    local content = AddScrolling(page)
-    local height, list = def.build(content, page)
-    for _, w in ipairs(list) do widgets[#widgets + 1] = w end
-    content:SetHeight(height)
-    page.contentHeight = HEADER_H + height
-    page:Hide()
-    return page
-end
-
 -- The section's settings with each category's gathered together, the
 -- categories in the order they first appear. A font group is one row, at
 -- its first setting, and its color and position go with it; a position
@@ -602,6 +572,8 @@ local function CreatePage(section)
             w = W.ColorField(content, f)
         elseif f.type == "outline" then
             w = W.Outline(content, f)
+        elseif f.type == "custom" then
+            w = f.build(content)
         else
             w = W.Checkbox(content, f)
         end
@@ -936,12 +908,11 @@ local function Build()
     CreateReloadButton(sidebar)
 
     -- Pages; the window wants to be as tall as the tallest page, and the
-    -- sidebar needs room for its tabs plus the Modules tab, the page tabs
-    -- and the two buttons at the bottom.
+    -- sidebar needs room for its tabs plus the Modules tab and the two
+    -- buttons at the bottom.
     local first, menuH = CreateMenu(tabList)
-    sidebarH = TITLE_H + 10 + menuH + (#ns.pages + 3) * TAB_H + 40
+    sidebarH = TITLE_H + 10 + menuH + 3 * TAB_H + 40
     pages[MODULES] = CreateModulesPage()
-    for _, def in ipairs(ns.pages) do pages[def.name] = CreateCustomPage(def) end
     local tallest = 0
     for _, page in pairs(pages) do tallest = math.max(tallest, page.contentHeight + PAD) end
     wantedH = math.max(sidebarH, TITLE_H + PAD + tallest + FOOTER_H)

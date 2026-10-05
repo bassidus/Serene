@@ -1,12 +1,11 @@
 -------------------------------------------------------------------------------
---  Performance -- an options page with what the Game Menu button's tooltip
---  shows, but listing every loaded addon instead of the top three. Updates
---  once a second while open; memory is rescanned only every few ticks since
---  that walks every addon. Turns the client's addon profiler back on when
---  something has switched it off (CVar addonProfilerEnabled).
---
---  Under the list, "Show overlay" turns on the overlay (Overlay.lua); while
---  it is on, its settings open below and the list gets a pin column.
+--  Performance -- the Usage group of the Performance page: what the Game
+--  Menu button's tooltip shows, but listing every loaded addon instead of
+--  the top three. Updates once a second while shown; memory is rescanned
+--  only every few ticks since that walks every addon. Turns the client's
+--  addon profiler back on when something has switched it off (CVar
+--  addonProfilerEnabled). While the overlay is on, the list gets a pin
+--  column; the overlay's own groups follow (Overlay.lua).
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -15,10 +14,9 @@ local MEMORY_EVERY = 5  -- ticks between memory rescans
 local ROW_H, HEADER_H = 18, 22
 local CPU_W, MEM_W = 70, 80
 local STAT_ROW_H = 18
-local TOP = -10     -- level with the first row of a settings page
+local ROWS = 12     -- list rows in view; the wheel scrolls the rest
 local PIN_W = 18    -- the pin column, while the overlay is on
-local CHECK_H = 26  -- the Show overlay checkbox
-local GAP = 10
+local SECTION = "Performance"
 
 local Profiler = C_AddOnProfiler
 local Metric = Enum.AddOnProfilerMetric
@@ -27,16 +25,14 @@ local function SortKey()
     return ns.SORTS[SereneDB.perfSort] and SereneDB.perfSort or "mem"
 end
 
--- /serene reset: back to sorting by memory; an open page shows it on its next update.
-ns.OnResetAll(function() SereneDB.perfSort = nil end)
-
 -------------------------------------------------------------------------------
---  Page
+--  Usage
 -------------------------------------------------------------------------------
-local function Build(content, page)
+local function Build(parent)
     local W = ns.Widgets
-    local scroll = content:GetParent()
+    local scroll = parent:GetParent()  -- the page's scroll frame
     local entries = ns.entries
+    local content = CreateFrame("Frame", nil, parent)
 
     -- Summary: two columns of label / value.
     local STATS = {
@@ -49,7 +45,7 @@ local function Build(content, page)
         local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
         local holder = CreateFrame("Frame", nil, content)
         holder:SetHeight(STAT_ROW_H)
-        local y = TOP - row * STAT_ROW_H
+        local y = -row * STAT_ROW_H
         if col == 0 then
             holder:SetPoint("TOPLEFT", content, "TOPLEFT", 0, y)
             holder:SetPoint("TOPRIGHT", content, "TOP", -12, y)
@@ -109,7 +105,7 @@ local function Build(content, page)
         end
         GameTooltip_Hide()
     end)
-    local statsBottom = TOP - math.ceil(#STATS / 2) * STAT_ROW_H - 14
+    local statsBottom = -math.ceil(#STATS / 2) * STAT_ROW_H - 14
 
     -- Table header, clickable to sort.
     local head = CreateFrame("Frame", nil, content)
@@ -174,6 +170,7 @@ local function Build(content, page)
     local list = CreateFrame("Frame", nil, content)
     list:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -2)
     list:SetPoint("TOPRIGHT", head, "BOTTOMRIGHT", 0, -2)
+    list:SetHeight(ROWS * ROW_H)
     list:EnableMouseWheel(true)
     local thumb = W.Solid(list, "ARTWORK", W.ACCENT, 0.6)
     thumb:SetWidth(3)
@@ -244,10 +241,6 @@ local function Build(content, page)
         return r
     end
 
-    local function VisibleRows()
-        return math.max(1, math.floor(list:GetHeight() / ROW_H))
-    end
-
     Render = function()
         local key = SortKey()
         for k, b in pairs(headers) do
@@ -265,7 +258,7 @@ local function Build(content, page)
         pinHead:SetShown(pins)
         headers.name:SetPoint("LEFT", nameX, 0)
 
-        local n = VisibleRows()
+        local n = ROWS
         offset = math.min(offset, math.max(0, #entries - n))
         local shown = math.min(n, #entries)
         for i = 1, shown do
@@ -295,7 +288,7 @@ local function Build(content, page)
 
     -- At either end of the list the wheel scrolls the page instead.
     list:SetScript("OnMouseWheel", function(_, delta)
-        local new = math.max(0, math.min(#entries - VisibleRows(), offset - delta * 3))
+        local new = math.max(0, math.min(#entries - ROWS, offset - delta * 3))
         if new == offset then
             scroll:GetScript("OnMouseWheel")(scroll, delta)
             return
@@ -303,86 +296,6 @@ local function Build(content, page)
         offset = new
         Render()
     end)
-
-    ---------------------------------------------------------------------------
-    --  Overlay: the checkbox, and under it the overlay's settings in two
-    --  columns, shown while it is on.
-    ---------------------------------------------------------------------------
-    local F = ns.featureByKey
-    local showBox = W.Checkbox(content, F.overlayShown)
-    local widgets = { showBox }
-
-    local block = CreateFrame("Frame", nil, content)
-    local function Add(w, col, y)
-        if col == 1 then
-            w:SetPoint("TOPLEFT", block, "TOPLEFT", 0, y)
-            w:SetPoint("TOPRIGHT", block, "TOP", -GAP / 2, y)
-        else
-            w:SetPoint("TOPLEFT", block, "TOP", GAP / 2, y)
-            w:SetPoint("TOPRIGHT", block, "TOPRIGHT", 0, y)
-        end
-        widgets[#widgets + 1] = w
-    end
-    -- Left: the top line; right: the addon rows.
-    local CHECKS = {
-        { "overlayFps",     "overlayLocked" },
-        { "overlayLatency", "overlayAddonCpu" },
-        { "overlayCpu",     "overlayAddonMemory" },
-        { "overlayMemory" },
-    }
-    local by = 0
-    for _, pair in ipairs(CHECKS) do
-        for col, key in ipairs(pair) do Add(W.Checkbox(block, F[key]), col, by) end
-        by = by - 28
-    end
-    by = by - GAP
-    Add(W.Slider(block, F.overlayTop), 1, by)
-    Add(W.Dropdown(block, F.overlaySort), 2, by)
-    by = by - 50 - GAP
-    Add(W.Slider(block, F.overlayBackground), 1, by)
-    -- Level with the slider's bar rather than its label.
-    Add(W.FontGroup(block, F.overlayFont.group), 2, by - 16)
-    by = by - 46 - GAP
-    local note = block:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    note:SetPoint("TOPLEFT", 0, by)
-    note:SetPoint("TOPRIGHT", 0, by)
-    note:SetJustifyH("LEFT")
-    note:SetText("Tick the box at the left of an addon to always show it in the overlay.")
-
-    -- The list takes what the window leaves above the checkbox; the
-    -- settings under it make the page scroll.
-    local listTop = statsBottom - HEADER_H - 2
-    local wasOn
-    local function Layout()
-        local listH = math.max(3 * ROW_H, scroll:GetHeight() + listTop - 6 - CHECK_H - 4)
-        list:SetHeight(listH)
-        local y = listTop - listH - 6
-        showBox:ClearAllPoints()
-        showBox:SetPoint("TOPLEFT", 0, y)
-        showBox:SetPoint("TOPRIGHT", 0, y)
-        y = y - CHECK_H - 4
-
-        local on = ns.Enabled("overlayShown") and true or false
-        block:SetShown(on)
-        if on then
-            -- Indented to line up with the checkbox's label.
-            block:ClearAllPoints()
-            block:SetPoint("TOPLEFT", 26, y - 4)
-            block:SetPoint("TOPRIGHT", 0, y - 4)
-            local blockH = -by + note:GetStringHeight()
-            block:SetHeight(blockH)
-            y = y - 4 - blockH - GAP
-        end
-        content:SetHeight(-y)
-        Render()
-
-        -- Just turned on: bring the settings into view.
-        if on and wasOn == false then
-            C_Timer.After(0, function() scroll:GetScript("OnMouseWheel")(scroll, -1000) end)
-        end
-        wasOn = on
-    end
-    widgets[#widgets + 1] = { Refresh = Layout }
 
     local function UpdateStats()
         for key, a in pairs(AVERAGES) do
@@ -417,19 +330,23 @@ local function Build(content, page)
         Render()
     end
 
-    scroll:HookScript("OnSizeChanged", Layout)
-    page:HookScript("OnShow", function()
+    -- Shown with the page and the group open.
+    content:SetScript("OnShow", function()
         ticks = 0
-        Layout()
         Update()
         if not ticker then ticker = C_Timer.NewTicker(UPDATE_INTERVAL, Update) end
     end)
-    page:HookScript("OnHide", function()
+    content:SetScript("OnHide", function()
         if ticker then ticker:Cancel(); ticker = nil end
     end)
 
-    -- Room for the summary, the header, about a dozen rows and the checkbox.
-    return -listTop + 12 * ROW_H + 6 + CHECK_H + 4, widgets
+    content:SetHeight(-statsBottom + HEADER_H + 2 + ROWS * ROW_H)
+    content.Refresh = Render
+    return content
 end
 
-ns.RegisterPage("Performance", Build)
+ns.RegisterFeature({
+    key = "perfSort", label = "Addons", section = SECTION, category = "Usage", type = "custom",
+    default = "mem", build = Build,
+    tooltip = "Click a column's heading to sort by it. While the overlay is on, the box at the left of an addon pins it there.",
+})

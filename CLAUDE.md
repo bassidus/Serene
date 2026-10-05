@@ -6,16 +6,17 @@ QoL addon suite for WoW Forever (Interface 16001). Unreleased, one user.
 
 - `Serene/` is the core: SavedVariables (`SereneDB`), the feature registry, colors, fonts, the minimap icon and `/serene`. It sets the global `Serene`.
 - Every other `Serene*/` folder is its own addon with `## Dependencies: Serene` and `## Group: Serene`. Its `Init.lua` does `setmetatable(ns, { __index = Serene })`. Values shared between addons go on `Serene`, not on the addon's own `ns`.
-- The TOC line `## X-Serene-Section: <tab>` (or `X-Serene-Page` for a custom page) is how the options window finds a module, whether it is loaded or not.
+- The TOC line `## X-Serene-Section: <tab>` is how the options window finds a module, whether it is loaded or not.
 - `SereneOptions` is load on demand and holds the options window (`Options.lua`, `OptionsWidgets.lua`).
 - The repo lives outside the game. Each `Serene*` folder is symlinked into `/mnt/wd1000/Battle.net/World of Warcraft/_classic_beta_/Interface/AddOns/`. A new module needs a symlink too.
 
 ## Adding a setting
 
-`ns.RegisterFeature{ key, label, section, category, type, default, apply, tooltip, ... }`. The full field list is above the function in `Serene/Core.lua`. Also useful: `ns.RegisterFontSettings`, `ns.RegisterPositionSettings`, `ns.RegisterPage`, `ns.SetPageIntro`, `ns.AddShiftSkip`, `ns.OnReset` and `ns.OnResetAll`.
+`ns.RegisterFeature{ key, label, section, category, type, default, apply, tooltip, ... }`. The full field list is above the function in `Serene/Core.lua`. Also useful: `ns.RegisterFontSettings`, `ns.RegisterPositionSettings`, `ns.SetPageIntro`, `ns.AddShiftSkip`, `ns.OnReset` and `ns.OnResetAll`.
 
 - The options page lists settings in registration order, so TOC file order matters. Some files exist only to register last (`NameplateLook.lua`).
 - `beside = true` puts a category, or a setting, to the right of the previous one.
+- `type = "custom"` with `build(parent)` puts your own frame in a category (the Performance page's addon list).
 - `tooltip` shows under the category's "?". Leave it out when the label already says it.
 - Writes go through `ns.SetValue`, which applies the setting and refreshes the window.
 

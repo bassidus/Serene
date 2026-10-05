@@ -296,7 +296,7 @@ local function CreatePage(section)
             elseif f.type == "slider" then
                 w = W.Slider(page, f)
             elseif f.type == "color" then
-                w = W.Color(page, f)
+                w = W.ColorField(page, f)
             elseif f.type == "outline" then
                 w = W.Outline(page, f)
             else

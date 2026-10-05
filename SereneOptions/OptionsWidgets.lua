@@ -252,15 +252,17 @@ function W.OpenMenu(anchor, options, selected, onSelect, preview)
 end
 
 -------------------------------------------------------------------------------
---  Dropdown
+--  Field -- a label over a button showing the current value, with a down
+--  arrow; clicking it opens a popup. Returns the holder, the button and the
+--  value text (single line, left of the arrow).
 -------------------------------------------------------------------------------
-function W.Dropdown(parent, f)
+local function Field(parent, labelText, onClick)
     local holder = CreateFrame("Frame", nil, parent)
     holder:SetHeight(50)
 
     local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     label:SetPoint("TOPLEFT", 0, 0)
-    label:SetText(f.label)
+    label:SetText(labelText)
 
     local btn = CreateFrame("Button", nil, holder)
     btn:SetSize(CONTROL_W, 24)
@@ -278,13 +280,24 @@ function W.Dropdown(parent, f)
     text:SetPoint("LEFT", 8, 0)
     text:SetPoint("RIGHT", arrow, "LEFT", -4, 0)
     text:SetJustifyH("LEFT")
+    text:SetWordWrap(false)
 
     btn:SetScript("OnClick", function(self)
         PlayClick()
-        W.OpenMenu(self, f.options(), ns.Get(f.key), function(v) ns.SetValue(f.key, v) end, f.preview)
+        onClick(self)
     end)
     btn:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
     btn:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
+    return holder, btn, text
+end
+
+-------------------------------------------------------------------------------
+--  Dropdown
+-------------------------------------------------------------------------------
+function W.Dropdown(parent, f)
+    local holder, btn, text = Field(parent, f.label, function(self)
+        W.OpenMenu(self, f.options(), ns.Get(f.key), function(v) ns.SetValue(f.key, v) end, f.preview)
+    end)
     AttachTooltip(btn, f)
 
     function holder.Refresh()
@@ -299,7 +312,8 @@ end
 -------------------------------------------------------------------------------
 --  Color -- the feature's special choices as text chips, then a swatch per
 --  palette color, then "+" for any other color in Blizzard's color picker
---  (it shows that color once one is picked).
+--  (it shows that color once one is picked). One row with no label, for the
+--  editor that W.ColorField opens.
 -------------------------------------------------------------------------------
 local SWATCH, SWATCH_GAP = 20, 4
 
@@ -332,11 +346,7 @@ end
 
 function W.Color(parent, f)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(50)
-
-    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    label:SetPoint("TOPLEFT", 0, 0)
-    label:SetText(f.label)
+    holder:SetHeight(SWATCH)
 
     local choices = {}  -- { button, edges, value (special word or hex), [fill] }
     -- tip: the choice's own help text (a special's tooltip), else the setting's;
@@ -365,7 +375,7 @@ function W.Color(parent, f)
     local x = 0
     local function Place(button, width)
         button:SetSize(width, SWATCH)
-        button:SetPoint("TOPLEFT", label, "BOTTOMLEFT", x, -6)
+        button:SetPoint("TOPLEFT", x, 0)
         x = x + width + SWATCH_GAP
     end
 
@@ -409,6 +419,7 @@ function W.Color(parent, f)
             OpenColorPicker(ns.Get(f.key), function(hex) ns.SetValue(f.key, hex) end)
         end)
     end
+    holder.width = x - SWATCH_GAP  -- the row's own width, for the editor
 
     function holder.Refresh()
         local value = ns.Get(f.key)
@@ -513,7 +524,7 @@ function W.Outline(parent, f)
         boxes[#boxes + 1] = { flag = o.value, check = check }
         controls[#controls + 1] = row
     end
-    holder.width = x - 14  -- the row's own width, for the font editor
+    holder.width = x - 14  -- the row's own width, for the editor
 
     function holder.Refresh()
         local set = Shown()
@@ -595,14 +606,14 @@ function W.Slider(parent, f)
 end
 
 -------------------------------------------------------------------------------
---  Font group -- one row for a ns.RegisterFontSettings group: font, size and
---  outline at a glance, drawn in that font. Clicking it opens the font editor
---  under it with the group's own dropdown, slider and outline controls; the
---  editor closes on a click outside it or on the row again.
+--  Editor -- a popup under a field holding that field's own controls under
+--  a title; shared by font groups and colors. Closes on a click outside it
+--  (its dropdown list and the color picker count as inside) or on the field
+--  again.
 -------------------------------------------------------------------------------
 local EDITOR_PAD, EDITOR_TITLE_H = 14, 24
 local editor, editorAnchor
-local panels = {}  -- group -> its controls in the editor, built on first open
+local panels = {}  -- font group or color setting -> its controls, built on first open
 
 local function GetEditor()
     if editor then return editor end
@@ -618,11 +629,11 @@ local function GetEditor()
     editor.title:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
     editor:Hide()
 
+    local function Over(frame) return frame and frame:IsShown() and frame:IsMouseOver() end
     editor:RegisterEvent("GLOBAL_MOUSE_DOWN")
     editor:SetScript("OnEvent", function(self)
-        -- Its own dropdown list counts as inside; the row toggles it via OpenFontEditor.
-        if self:IsShown() and not self:IsMouseOver()
-           and not (menu and menu:IsShown() and menu:IsMouseOver())
+        -- The field toggles it via OpenEditor.
+        if self:IsShown() and not self:IsMouseOver() and not Over(menu) and not Over(ColorPickerFrame)
            and not (editorAnchor and editorAnchor:IsMouseOver()) then
             self:Hide()
         end
@@ -631,24 +642,9 @@ local function GetEditor()
     return editor
 end
 
-local function BuildPanel(group)
-    local panel = CreateFrame("Frame", nil, editor)
-    panel:SetPoint("TOPLEFT", EDITOR_PAD, -(EDITOR_PAD + EDITOR_TITLE_H))
-    local outline = W.Outline(panel, group.outline)
-    panel:SetWidth(math.max(CONTROL_W, outline.width))
-    panel.widgets = { W.Dropdown(panel, group.font), W.Slider(panel, group.size), outline }
-    local y = 0
-    for _, w in ipairs(panel.widgets) do
-        w:SetPoint("TOPLEFT", 0, y)
-        w:SetPoint("TOPRIGHT", 0, y)
-        y = y - w:GetHeight() - 10
-    end
-    panel:SetHeight(-y - 10)
-    panels[group] = panel
-    return panel
-end
-
-local function OpenFontEditor(anchor, group)
+-- build(panel) returns the panel's widgets, stacked top to bottom; the
+-- panel is as wide as the widest of them (its .width) or a control.
+local function OpenEditor(anchor, id, title, build)
     GetEditor()
     if editor:IsShown() and editorAnchor == anchor then
         editor:Hide()
@@ -657,10 +653,24 @@ local function OpenFontEditor(anchor, group)
     CloseMenu()
     editorAnchor = anchor
     for _, p in pairs(panels) do p:Hide() end
-    local panel = panels[group] or BuildPanel(group)
+    local panel = panels[id]
+    if not panel then
+        panel = CreateFrame("Frame", nil, editor)
+        panel:SetPoint("TOPLEFT", EDITOR_PAD, -(EDITOR_PAD + EDITOR_TITLE_H))
+        panel.widgets = build(panel)
+        local width, y = CONTROL_W, 0
+        for _, w in ipairs(panel.widgets) do
+            width = math.max(width, w.width or 0)
+            w:SetPoint("TOPLEFT", 0, y)
+            w:SetPoint("TOPRIGHT", 0, y)
+            y = y - w:GetHeight() - 10
+        end
+        panel:SetSize(width, -y - 10)
+        panels[id] = panel
+    end
     panel:Show()
     for _, w in ipairs(panel.widgets) do w.Refresh() end
-    editor.title:SetText(group.label)
+    editor.title:SetText(title)
     editor:SetSize(panel:GetWidth() + 2 * EDITOR_PAD, panel:GetHeight() + EDITOR_TITLE_H + 2 * EDITOR_PAD)
     -- Lives on UIParent like the dropdown list; match the options window's scale.
     editor:SetScale(anchor:GetEffectiveScale() / UIParent:GetEffectiveScale())
@@ -669,6 +679,19 @@ local function OpenFontEditor(anchor, group)
     editor:Show()
 end
 
+-- Keeps an open editor's controls in step with its field.
+local function RefreshEditor(id)
+    local panel = panels[id]
+    if panel and panel:IsVisible() then
+        for _, w in ipairs(panel.widgets) do w.Refresh() end
+    end
+end
+
+-------------------------------------------------------------------------------
+--  Font group -- one field for a ns.RegisterFontSettings group: font, size
+--  and outline at a glance, drawn in that font; its editor holds the group's
+--  own dropdown, slider and outline controls.
+-------------------------------------------------------------------------------
 -- "Outline, Shadow"; "No outline" for none.
 local function OutlineLabel(f)
     local set, words = ShownOutline(f), {}
@@ -679,52 +702,64 @@ local function OutlineLabel(f)
 end
 
 function W.FontGroup(parent, group)
-    local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(50)
-
-    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    label:SetPoint("TOPLEFT", 0, 0)
-    label:SetText(group.label)
-
-    local btn = CreateFrame("Button", nil, holder)
-    btn:SetSize(CONTROL_W, 24)
-    btn:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
-    W.Solid(btn, "BACKGROUND", FIELD):SetAllPoints()
-    local edges = W.Border(btn, EDGE)
-
-    local arrow = btn:CreateTexture(nil, "ARTWORK")
-    arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Up")
-    arrow:SetSize(12, 12)
-    arrow:SetPoint("RIGHT", -8, -2)
-    arrow:SetVertexColor(DIM[1], DIM[2], DIM[3])
-
-    local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    text:SetPoint("LEFT", 8, 0)
-    text:SetPoint("RIGHT", arrow, "LEFT", -4, 0)
-    text:SetJustifyH("LEFT")
-    text:SetWordWrap(false)
-
-    btn:SetScript("OnClick", function(self)
-        PlayClick()
-        OpenFontEditor(self, group)
+    local holder, _, text = Field(parent, group.label, function(self)
+        OpenEditor(self, group, group.label, function(panel)
+            return { W.Dropdown(panel, group.font), W.Slider(panel, group.size), W.Outline(panel, group.outline) }
+        end)
     end)
-    btn:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
-    btn:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
 
     function holder.Refresh()
         local font = ns.Get(group.font.key)
         SetPreviewFont(text, font)
         text:SetText(OptionLabel(group.font, font) .. " / " .. ns.Get(group.size.key)
             .. " / " .. OutlineLabel(group.outline))
-        local panel = panels[group]
-        if panel and panel:IsVisible() then
-            for _, w in ipairs(panel.widgets) do w.Refresh() end
-        end
+        RefreshEditor(group)
     end
     return holder
 end
 
--- The dropdown list and the font editor, e.g. when the page changes.
+-------------------------------------------------------------------------------
+--  Color field -- the color as a swatch and its name (a special such as
+--  "By class" shows as its name only); its editor holds the palette.
+-------------------------------------------------------------------------------
+function W.ColorField(parent, f)
+    local holder, btn, text = Field(parent, f.label, function(self)
+        OpenEditor(self, f, f.label, function(panel) return { W.Color(panel, f) } end)
+    end)
+    AttachTooltip(btn, f)
+
+    local swatch = CreateFrame("Frame", nil, btn)
+    swatch:SetSize(14, 14)
+    swatch:SetPoint("LEFT", 8, 0)
+    W.Border(swatch, EDGE)
+    local fill = swatch:CreateTexture(nil, "ARTWORK")
+    fill:SetPoint("TOPLEFT", 1, -1)
+    fill:SetPoint("BOTTOMRIGHT", -1, 1)
+
+    function holder.Refresh()
+        local value = ns.Get(f.key)
+        local hex = ns.ColorHex(value)
+        local name
+        if hex then
+            for _, p in ipairs(ns.PALETTE) do
+                if p.hex == hex then name = p.label; break end
+            end
+            fill:SetColorTexture(ns.ColorRGB(hex))
+        else
+            for _, s in ipairs(f.specials or {}) do
+                if s.value == value then name = s.label; break end
+            end
+        end
+        swatch:SetShown(hex ~= nil)
+        text:SetPoint("LEFT", hex and 30 or 8, 0)
+        text:SetText(name or (hex and "#" .. hex) or tostring(value))
+        btn:SetEnabled(Available(holder, f))
+        RefreshEditor(f)
+    end
+    return holder
+end
+
+-- The dropdown list and the editor, e.g. when the page changes.
 function W.ClosePopups()
     CloseMenu()
     if editor then editor:Hide() end

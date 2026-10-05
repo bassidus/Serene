@@ -1,6 +1,11 @@
 -------------------------------------------------------------------------------
 --  Window sizes -- a scale in percent for each of Blizzard's windows. A
---  window counts from its anchor, usually its top left corner.
+--  window grows and shrinks from its anchor, usually its top left corner.
+--
+--  A frame's anchor offsets count in its own scale, so a smaller window
+--  would slide toward the edge it is anchored to. Each anchor is kept as
+--  set (by the window's XML or by Blizzard as it opens) and set again with
+--  the offsets divided by the scale, which leaves the corner in place.
 --
 --  Each entry lists the frame names the window may have on this client
 --  (every one that exists is scaled) and the load-on-demand addons that
@@ -65,18 +70,58 @@ local function Key(window) return "windowScale" .. window.key end
 
 local scaled = {}   -- frame -> true while Serene's scale is on it
 local hooked = {}   -- frame -> its window, once its OnShow is hooked
+local anchors = {}  -- frame -> { [point] = { relativeTo, relativePoint, x, y } } at scale 1
 local pending       -- windows waiting for combat to end
+local busy          -- while Reanchor sets points, which the SetPoint hook skips
+
+local function Locked(frame) return InCombatLockdown() and frame:IsProtected() end
+
+local function Reanchor(frame)
+    if Locked(frame) then return end
+    local s = frame:GetScale()
+    busy = true
+    for point, a in pairs(anchors[frame]) do
+        frame:SetPoint(point, a[1], a[2], a[3] / s, a[4] / s)
+    end
+    busy = false
+end
+
+-- The points as they are now, counted at scale 1.
+local function KeepAnchors(frame)
+    anchors[frame] = {}
+    local s = frame:GetScale()
+    for i = 1, frame:GetNumPoints() do
+        local point, relativeTo, relativePoint, x, y = frame:GetPoint(i)
+        anchors[frame][point] = { relativeTo, relativePoint, x * s, y * s }
+    end
+    local function Clear(self)
+        if not busy then anchors[self] = {} end
+    end
+    hooksecurefunc(frame, "ClearAllPoints", Clear)
+    hooksecurefunc(frame, "SetAllPoints", Clear)
+    -- Blizzard places its panels as they open, in offsets meant for scale 1.
+    hooksecurefunc(frame, "SetPoint", function(self, point)
+        if busy then return end
+        point = point:upper()
+        for i = 1, self:GetNumPoints() do
+            local p, relativeTo, relativePoint, x, y = self:GetPoint(i)
+            if p == point then anchors[self][p] = { relativeTo, relativePoint, x, y } end
+        end
+        if scaled[self] then Reanchor(self) end
+    end)
+end
 
 local function Scale(window, frame)
     local pct = ns.Get(Key(window))
     if pct == 100 and not scaled[frame] then return end
-    if InCombatLockdown() and frame:IsProtected() then
+    if Locked(frame) then
         pending = pending or {}
         pending[window] = true
         return
     end
     frame:SetScale(pct / 100)
     scaled[frame] = pct ~= 100 or nil
+    Reanchor(frame)
 end
 
 local function ApplyWindow(window)
@@ -85,6 +130,7 @@ local function ApplyWindow(window)
         if type(frame) == "table" and frame.SetScale then
             if not hooked[frame] then
                 hooked[frame] = window
+                KeepAnchors(frame)
                 -- Blizzard sets some windows' scale again as they open.
                 frame:HookScript("OnShow", function(self) Scale(window, self) end)
             end

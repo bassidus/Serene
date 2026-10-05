@@ -24,5 +24,6 @@ end)
 
 ns.RegisterFeature({
     key = "autoRepair", label = "Repair at vendors", section = "General", category = "Vendors & trainers",
+    beside = true,  -- to the right of Loot & items
     tooltip = "Repairs all your gear with your own gold when you talk to a vendor who can repair. The cost is shown in chat.",
 })

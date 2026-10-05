@@ -24,6 +24,15 @@ local widgets, pages, tabs = {}, {}, {}
 
 local AddOns = C_AddOns
 
+-- Idle text colors of the sidebar buttons that are not settings tabs.
+local RED = { 1, 0.35, 0.35 }
+local BUTTON_COLORS = {
+    [MODULES] = W.ACCENT,
+    Performance = { 0.45, 0.7, 1 },
+    ["Reset defaults"] = { 1, 0.82, 0 },
+    ["Reload UI"] = RED,
+}
+
 -- The sidebar's groups: a heading over its settings tabs, in this order.
 -- Sections not listed here go under Other.
 local MENU = {
@@ -106,12 +115,11 @@ local function ShowPage(section)
     SereneDB.optionsPage = section
 end
 
--- Sidebar look shared by the section tabs and the Reload UI button: dim text,
--- white on hover, accent bar + tint when selected. Decorates an existing
--- button; indent is the text's, 16 by default; color, the text's when idle,
--- W.DIM by default.
-local function StyleSidebarButton(btn, label, indent, color)
-    color = color or W.DIM
+-- Sidebar look shared by the tabs and the buttons: dim text (or the label's
+-- BUTTON_COLORS color), white on hover, accent bar + tint when selected.
+-- Decorates an existing button; indent is the text's, 16 by default.
+local function StyleSidebarButton(btn, label, indent)
+    local color = BUTTON_COLORS[label] or W.DIM
     btn:SetHeight(TAB_H)
 
     local hl = W.Solid(btn, "BACKGROUND", W.ACCENT, 0.12)
@@ -212,10 +220,10 @@ CreateResetButton = function(sidebar)
         end
         armed = true
         btn.label:SetText("Click again to reset")
-        btn.label:SetTextColor(1, 0.35, 0.35)
+        btn.label:SetTextColor(RED[1], RED[2], RED[3])
         timer = C_Timer.NewTimer(CONFIRM_TIME, Disarm)
     end)
-    btn:HookScript("OnLeave", function() if armed then btn.label:SetTextColor(1, 0.35, 0.35) end end)
+    btn:HookScript("OnLeave", function() if armed then btn.label:SetTextColor(RED[1], RED[2], RED[3]) end end)
     btn:HookScript("OnHide", Disarm)
     return btn
 end
@@ -240,8 +248,7 @@ local function CreateReloadButton(sidebar)
     local below = reset
     for i = #names, 1, -1 do
         local name = names[i]
-        local tab = StyleSidebarButton(CreateFrame("Button", nil, sidebar), name, nil,
-            name == MODULES and W.ACCENT or nil)
+        local tab = StyleSidebarButton(CreateFrame("Button", nil, sidebar), name)
         tab:SetPoint("BOTTOMLEFT", below, "TOPLEFT")
         tab:SetPoint("BOTTOMRIGHT", below, "TOPRIGHT")
         tab:SetScript("OnClick", function() ShowPage(name) end)

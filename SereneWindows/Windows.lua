@@ -420,7 +420,7 @@ for _, window in ipairs(WINDOWS) do
     inCategory[window.category] = (inCategory[window.category] or 0) + 1
     ns.RegisterFeature({
         key = Key(window), label = window.label, section = SECTION, category = window.category,
-        beside = inCategory[window.category] % 2 == 0, collapse = true, type = "slider", min = MIN, max = MAX, step = STEP, default = 100, suffix = "%",
+        beside = inCategory[window.category] % 2 == 0, type = "slider", min = MIN, max = MAX, step = STEP, default = 100, suffix = "%",
         -- A slider change wins over a Ctrl + scroll size from this session.
         apply = function() sessionScale[window] = nil; ApplyWindow(window) end,
         tooltip = (window.tooltip and window.tooltip .. " " or "")

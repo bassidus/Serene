@@ -34,8 +34,6 @@ ns.featureByKey = {}
 --         beside = true on a category's first setting: that category's frame
 --         goes to the right of the one before it, the two at half width; on
 --         any other setting: it goes to the right of the setting before it,
---         collapse = true on any setting of a category: its heading opens
---         and closes it; it starts closed and the options window remembers,
 --         button = text for a plain button in place of a color field, e.g.
 --         "Color"; the label still titles the palette and the tooltip,
 --         requires = key of a boolean setting, or a list of them; the control

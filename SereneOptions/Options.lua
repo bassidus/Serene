@@ -388,7 +388,7 @@ local function CreateAddonToggle(page, module, x, y)
 end
 
 -- A category: a thin frame with its heading inside, around the settings
--- that follow. With onToggle, the heading's row is a button with a plus
+-- that follow. The heading's row is a button running onToggle, with a plus
 -- (closed) or minus (open) at its right; group.SetOpen(open) shows which.
 local function CreateGroup(page, text, onToggle)
     local group = CreateFrame("Frame", nil, page)
@@ -399,7 +399,6 @@ local function CreateGroup(page, text, onToggle)
     heading:SetText(text)
     heading:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
     group.headingH = heading:GetStringHeight()
-    if not onToggle then return group end
 
     local btn = CreateFrame("Button", nil, group)
     btn:SetPoint("TOPLEFT")
@@ -515,9 +514,9 @@ local function Columns(list)
     return column
 end
 
--- Categories with collapse = true open and close by their heading; open
--- ones are kept in SereneDB.optionsOpen ("<section>/<category>"), so they
--- start closed. A change lays the page out again.
+-- Each category opens and closes by its heading; open ones are kept in
+-- SereneDB.optionsOpen ("<section>/<category>"), so they start closed. A
+-- change lays the page out again.
 local function CreatePage(section)
     local page = CreatePageFrame(section)
     CreatePageReset(page, section)
@@ -526,19 +525,16 @@ local function CreatePage(section)
     local column = Columns(list)
     local half = (PAGE_W - SPACING) / 2
 
-    local collapsible = {}
-    for _, f in ipairs(list) do
-        if f.collapse and f.category then collapsible[f.category] = true end
-    end
+    local allOpen  -- while measuring the page with every category open
     local function Open(category)
-        return not collapsible[category] or (SereneDB.optionsOpen or {})[section .. "/" .. category]
+        return allOpen or (SereneDB.optionsOpen or {})[section .. "/" .. category]
     end
 
     local Layout
     local groups = {}  -- category -> its frame, made once
     local function Group(category)
         if not groups[category] then
-            groups[category] = CreateGroup(content, category, collapsible[category] and function()
+            groups[category] = CreateGroup(content, category, function()
                 SereneDB.optionsOpen = SereneDB.optionsOpen or {}
                 local key = section .. "/" .. category
                 SereneDB.optionsOpen[key] = not SereneDB.optionsOpen[key] or nil
@@ -620,7 +616,7 @@ local function CreatePage(section)
                     group = Group(f.category)
                     y = PlaceGroup(group, y, col == "right" and half + SPACING or 0, col == "left" and half + SPACING or 0)
                     group.start = start
-                    if group.SetOpen then group.SetOpen(Open(f.category)) end
+                    group.SetOpen(Open(f.category))
                     -- Closed: the frame ends as far under the heading as it starts above it.
                     if not Open(f.category) then y, gap = group.top - GROUP_PAD * 1.5 - group.headingH, 0 end
                 end
@@ -667,7 +663,11 @@ local function CreatePage(section)
         return -y
     end
 
+    -- The window is sized for the page with everything open.
+    allOpen = true
     page.contentHeight = HEADER_H + Layout()
+    allOpen = nil
+    Layout()
     page:Hide()
     return page
 end

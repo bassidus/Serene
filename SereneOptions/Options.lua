@@ -162,6 +162,16 @@ end
 -------------------------------------------------------------------------------
 local CONFIRM_TIME = 4
 
+-- Closes every group, or with a section only that page's, as a reset does.
+local function CloseGroups(section)
+    for key in pairs(SereneDB.optionsOpen or {}) do
+        if not section or key:sub(1, #section + 1) == section .. "/" then SereneDB.optionsOpen[key] = nil end
+    end
+    for name, page in pairs(pages) do
+        if page.Layout and (not section or name == section) then page.Layout() end
+    end
+end
+
 local function CreateResetButton(sidebar)
     local btn = StyleSidebarButton(CreateFrame("Button", nil, sidebar), "Reset defaults")
     local armed, timer
@@ -175,6 +185,7 @@ local function CreateResetButton(sidebar)
         if armed then
             Disarm()
             ns.ResetDefaults()
+            CloseGroups()
             return
         end
         armed = true
@@ -264,6 +275,7 @@ local function CreatePageReset(page, section)
         if armed then
             Disarm()
             ns.ResetDefaults(section)
+            CloseGroups(section)
             return
         end
         armed = true
@@ -680,6 +692,7 @@ local function CreatePage(section)
     page.contentHeight = HEADER_H + Layout()
     allOpen = nil
     Layout()
+    page.Layout = Layout
     page:Hide()
     return page
 end

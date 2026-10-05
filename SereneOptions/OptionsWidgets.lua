@@ -706,6 +706,10 @@ function W.Slider(parent, f)
         end
     end)
     AttachTooltip(slider, f)
+    -- Narrower than CONTROL_W in a half-width row.
+    holder:SetScript("OnSizeChanged", function(_, w)
+        if w > 0 then slider:SetWidth(math.min(CONTROL_W, w)) end
+    end)
 
     function holder.Refresh()
         local v = ns.Get(f.key)

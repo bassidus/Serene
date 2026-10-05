@@ -422,5 +422,5 @@ Content("Information", "tooltipFaction", "Show faction", true, nil,
     "Off hides the Alliance or Horde line.", true)
 Content("Information", "tooltipItemLevel", "Show item level on items", true)
 Content("Information", "tooltipIDs", "Show spell and item IDs", false, nil, nil, true)
-Content("Information", "tooltipPlayerItemLevel", "Show players' item level", true, nil,
+Content("Information", "tooltipPlayerItemLevel", "Show players' item level", false, nil,
     "Adds a player's average item level. Other players are inspected when you hover them, out of combat.")

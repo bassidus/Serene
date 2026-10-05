@@ -410,8 +410,13 @@ local function Apply()
         frame:Show()
         -- overlayGrow changed: keep the spot, anchored by the new corner.
         if (Saved("point") or "BOTTOMRIGHT") ~= ANCHORS[ns.Get("overlayGrow")] then SavePlace() end
-        Update()
-        if not ticker then ticker = C_Timer.NewTicker(UPDATE_INTERVAL, Update) end
+        -- Already running: a setting changed, the data from the last tick will do.
+        if ticker then
+            Render()
+        else
+            Update()
+            ticker = C_Timer.NewTicker(UPDATE_INTERVAL, Update)
+        end
     elseif frame then
         frame:Hide()
         if ticker then ticker:Cancel(); ticker = nil end

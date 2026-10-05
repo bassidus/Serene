@@ -426,8 +426,13 @@ local function OpenColorPicker(value, onChange)
     local picker = ColorPickerFrame
     local r, g, b = ns.ColorRGB(value)
     if not r then r, g, b = 1, 1, 1 end
+    -- The picker calls this every frame while its wheel is held, changed or not.
+    local last = value
     local function Picked()
-        onChange(ns.RGBToHex(picker:GetColorRGB()))
+        local hex = ns.RGBToHex(picker:GetColorRGB())
+        if hex == last then return end
+        last = hex
+        onChange(hex)
     end
     local function Cancelled() onChange(value) end
     picker:SetupColorPickerAndShow({ r = r, g = g, b = b, hasOpacity = false,

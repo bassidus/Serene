@@ -751,7 +751,7 @@ local function PositionPad(parent, pos)
     local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     valueText:SetPoint("TOPLEFT", pad, "TOPRIGHT", 12, 0)
     valueText:SetJustifyH("LEFT")
-    local hint = holder:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    local hint = holder:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     hint:SetPoint("TOPLEFT", valueText, "BOTTOMLEFT", 0, -6)
     hint:SetText("Right-click: default")
     -- Wide pads (e.g. the tooltip's) widen the editor to fit the readout.

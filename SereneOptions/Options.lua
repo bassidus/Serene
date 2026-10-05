@@ -451,11 +451,11 @@ local function CreateModulesPage()
     local page = CreatePageFrame(MODULES)
     local content = AddScrolling(page)
     local y = -(36 - HEADER_H)
-    local intro = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    local intro = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     intro:SetPoint("TOPLEFT", 0, y)
     intro:SetWidth(PAGE_W)
     intro:SetJustifyH("LEFT")
-    intro:SetText("Turns each Serene module on or off for all your characters. A change takes effect after Reload UI.")
+    intro:SetText("Turns each Serene module on or off for all your characters.")
     y = y - intro:GetStringHeight() - SPACING
     for _, module in ipairs(Modules()) do
         y = CreateAddonToggle(content, module, 0, y)
@@ -558,7 +558,7 @@ local function CreatePage(section)
         return groups[category]
     end
 
-    local intro = ns.pageIntros[section] and content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    local intro = ns.pageIntros[section] and content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     if intro then
         intro:SetPoint("TOPLEFT", 0, -(36 - HEADER_H))
         intro:SetWidth(PAGE_W)
@@ -590,7 +590,7 @@ local function CreatePage(section)
         widgets[#widgets + 1] = w
         local note
         if f.note then
-            note = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+            note = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             note:SetJustifyH("LEFT")
             note:SetText(f.note)
         end
@@ -728,7 +728,7 @@ end
 
 -- The footer: the Shift line, then the minimap icon's checkbox after it.
 local function CreateFooter()
-    local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     footer:SetPoint("BOTTOMLEFT", SIDEBAR_W + PAD, 10)
     footer:SetText(FooterText())
 
@@ -900,7 +900,7 @@ local function Build()
     title:SetText("Serene")
     title:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
 
-    local version = titleBar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    local version = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     version:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 6, 1)
     version:SetText("v" .. AddOns.GetAddOnMetadata("Serene", "Version"))
     CreateCloseButton(titleBar)

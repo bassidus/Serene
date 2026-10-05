@@ -26,13 +26,14 @@ local COLORS = {
     tapped    = { 0.50, 0.50, 0.50 },
 }
 
--- Threat colors by level: LOW = someone else has it,
+-- The color setting for each threat level: LOW = someone else has it,
 -- MEDIUM = above the one who has it or tanking insecurely, HIGH = yours.
-local THREAT_COLORS = {
-    dps  = { LOW = { 0, 1, 0 }, MEDIUM = { 1, 1, 0 }, HIGH = { 1, 0, 0 } },
-    tank = { LOW = { 1, 0, 0 }, MEDIUM = { 1, 1, 0 }, HIGH = { 0, 1, 0 },
-             OFFTANK = { 15 / 255, 170 / 255, 200 / 255 } },
+local THREAT_KEYS = {
+    dps  = { LOW = "nameplateThreatDpsLow", MEDIUM = "nameplateThreatDpsMedium", HIGH = "nameplateThreatDpsHigh" },
+    tank = { LOW = "nameplateThreatTankLow", MEDIUM = "nameplateThreatTankMedium", HIGH = "nameplateThreatTankHigh",
+             OFFTANK = "nameplateThreatTankOfftank" },
 }
+local threatRGB = {}  -- hex -> { r, g, b }, so a health update parses no strings
 local THREAT_LEVEL = { [0] = "LOW", [1] = "MEDIUM", [2] = "MEDIUM", [3] = "HIGH" }
 
 local Clean = ns.Clean
@@ -274,7 +275,13 @@ local function ThreatColor(plate, unit)
     elseif role == "tank" then
         level = CheckOfftank(plate, unit, level)
     end
-    return THREAT_COLORS[role][level]
+    local hex = ns.Get(THREAT_KEYS[role][level])
+    local c = threatRGB[hex]
+    if not c then
+        c = { ns.ColorRGB(hex) }
+        threatRGB[hex] = c
+    end
+    return c
 end
 
 local function UpdateHealthColor(plate)
@@ -554,16 +561,14 @@ end)
 local function Relayout() if NP.layoutGen then NP.Relayout() end end
 NP.ApplyRelayout = Relayout
 
--- Threat colors first, so their group heads the options page. Font and
+-- Threat colors first, so their groups head the options page. Font and
 -- sizes are in NameplateLook.lua, after the cast bar and debuff toggles, so
 -- the options page lists every toggle first.
 ns.RegisterFeature({
     key = "nameplateThreat", label = "Select role", section = "Enemy nameplates", category = "Threat colors",
     type = "dropdown", default = "auto",
     apply = Relayout,
-    note = "Tank: green = you have aggro, yellow = close, red = lost, blue = another tank.\n"
-        .. "Damage / healer: the reverse, without blue.\n"
-        .. "Auto: Tank in Defensive Stance, Bear Form or with Righteous Fury.",
+    tooltip = "Auto chooses Tank in Defensive Stance, Bear Form or with Righteous Fury. Otherwise it chooses Damage / healer.",
     options = function()
         return {
             { value = "auto", label = "Auto" },
@@ -573,6 +578,20 @@ ns.RegisterFeature({
         }
     end,
 })
+for _, c in ipairs({
+    { "nameplateThreatTankHigh",    "Tank",            "Your aggro",     "00ff00" },
+    { "nameplateThreatTankMedium",  "Tank",            "Losing aggro",   "ffff00", true },
+    { "nameplateThreatTankLow",     "Tank",            "Lost aggro",     "ff0000" },
+    { "nameplateThreatTankOfftank", "Tank",            "Another tank",   "0faac8", true },
+    { "nameplateThreatDpsHigh",     "Damage / healer", "Your aggro",     "ff0000" },
+    { "nameplateThreatDpsMedium",   "Damage / healer", "Almost pulling", "ffff00", true },
+    { "nameplateThreatDpsLow",      "Damage / healer", "Safe",           "00ff00" },
+}) do
+    ns.RegisterFeature({
+        key = c[1], label = c[3], section = "Enemy nameplates", category = c[2], type = "color",
+        default = c[4], beside = c[5], apply = Relayout,
+    })
+end
 ns.RegisterFeature({
     key = "nameplateLevel", label = "Show level", section = "Enemy nameplates", category = "Text", apply = Relayout,
 })

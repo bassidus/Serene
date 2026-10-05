@@ -1,5 +1,6 @@
 ## Interface: 16001
 ## Title: Serene Core
+## Group: Serene
 ## Notes: Shared settings, fonts and minimap icon for the Serene addons.
 ## Version: 1.2.0
 ## SavedVariables: SereneDB

@@ -79,8 +79,7 @@ end
 ns.RegisterFeature({
     key = "hideErrors", label = "Hide error messages / speech", section = "General", category = "Interface",
     type = "dropdown", default = "never", apply = Apply,
-    tooltip = "Hides the red error text at the top of the screen and its voice line (\"Not enough rage\", \"Out of range\"...). "
-        .. "Errors you need to act on, like full bags or not enough money, still show.",
+    tooltip = "Hides the red error text at the top of the screen and its voice line (\"Not enough rage\", \"Out of range\"...).",
     options = function()
         return {
             { value = "never",       label = "Never" },

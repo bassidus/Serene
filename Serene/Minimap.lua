@@ -5,8 +5,6 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local ICON = "Interface\\Icons\\Spell_Nature_Tranquility"
-
 -------------------------------------------------------------------------------
 --  Right-click reload. The Forever client blocks ReloadUI() from addon code,
 --  so an invisible secure macro button (/reload on right-click) covers the
@@ -79,7 +77,7 @@ local function Register()
     local launcher = LibStub("LibDataBroker-1.1"):NewDataObject("Serene", {
         type = "launcher",
         text = "Serene",
-        icon = ICON,
+        icon = ns.LOGO,
         -- Reached for left-click only while the overlay is attached; in
         -- combat right-click lands here too.
         OnClick = function(_, button)
@@ -97,6 +95,9 @@ local function Register()
         end,
     })
     DBIcon:Register("Serene", launcher, SereneDB.minimap)
+    -- The round logo has its own dark face and fills the border at 20px
+    -- (LibDBIcon uses 17); the offset is checked by eye in game.
+    DBIcon:SetButtonIcon("Serene", nil, 20, "TOPLEFT", 7, -6)
     iconButton = DBIcon:GetMinimapButton("Serene")
     AttachOverlay()
 end

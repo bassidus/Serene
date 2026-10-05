@@ -6,7 +6,7 @@
 ## Dependencies: Serene
 ## OptionalDeps: SereneQuests
 ## X-Serene-Section: Enemy nameplates
-## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+## IconTexture: Interface\AddOns\Serene\Media\Logo
 
 Init.lua
 Nameplates.lua

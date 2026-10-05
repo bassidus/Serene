@@ -905,8 +905,7 @@ local function Build()
     titleLine:SetHeight(1)
 
     local icon = titleBar:CreateTexture(nil, "ARTWORK")
-    icon:SetTexture("Interface\\Icons\\Spell_Nature_Tranquility")
-    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    icon:SetTexture(ns.LOGO)
     icon:SetSize(20, 20)
     icon:SetPoint("LEFT", 14, 0)
 

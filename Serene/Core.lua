@@ -159,6 +159,9 @@ function ns.ResetAll()
     ns.Print("Everything is back to its defaults, the options window and the minimap icon too.")
 end
 
+-- The TOCs name the same file in ## IconTexture (art/logo.svg is the source).
+ns.LOGO = "Interface\\AddOns\\Serene\\Media\\Logo"
+
 -------------------------------------------------------------------------------
 --  Colors -- a color setting holds a 6-digit hex ("ff4d1a") or one of its
 --  feature's special words ("class", "default"...).

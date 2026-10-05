@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<!-- Source for Serene/Media/Logo.tga:
+     rsvg-convert -w 128 -h 128 art/logo.svg | magick - -flip -orient BottomLeft -compress none Serene/Media/Logo.tga -->
+<defs>
+  <linearGradient id="fill" gradientUnits="userSpaceOnUse" x1="0" y1="90" x2="0" y2="422">
+    <stop offset="0" stop-color="#ff7b2e"/><stop offset="1" stop-color="#ee3412"/>
+  </linearGradient>
+  <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"/></filter>
+  <!-- The ring breaks where the moon tips point. -->
+  <path id="ring" d="M443.9 187.6 A200 200 0 0 1 102.8 384.6 M68.1 324.4 A200 200 0 0 1 409.2 127.4"
+        fill="none" stroke-width="14" stroke-linecap="round"/>
+  <mask id="m1"><rect width="512" height="512" fill="#fff"/><circle cx="290" cy="212" r="78" fill="#000"/></mask>
+  <mask id="m2"><rect width="512" height="512" fill="#fff"/><circle cx="222" cy="300" r="78" fill="#000"/></mask>
+  <!-- Two crescents, one opening down-right and one up-left, make the S. -->
+  <g id="moons" transform="translate(256 256) scale(0.74) translate(-256 -256)">
+    <circle cx="256" cy="186" r="92" mask="url(#m1)"/>
+    <circle cx="256" cy="326" r="92" mask="url(#m2)"/>
+  </g>
+</defs>
+<circle cx="256" cy="256" r="200" fill="#100709"/>
+<use href="#ring" stroke="#ff4a1a" opacity="0.85" filter="url(#glow)"/>
+<use href="#ring" stroke="#ff5a24" opacity="0.5" filter="url(#soft)"/>
+<use href="#ring" stroke="url(#fill)"/>
+<use href="#moons" fill="#ff5a24" opacity="0.5" filter="url(#soft)"/>
+<use href="#moons" fill="url(#fill)"/>
+</svg>

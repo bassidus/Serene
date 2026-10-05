@@ -5,7 +5,7 @@
 ## Version: 1.3.0
 ## LoadOnDemand: 1
 ## Dependencies: Serene
-## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+## IconTexture: Interface\AddOns\Serene\Media\Logo
 
 OptionsWidgets.lua
 Options.lua

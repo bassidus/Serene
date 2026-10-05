@@ -5,7 +5,7 @@
 ## Version: 1.3.0
 ## Dependencies: Serene
 ## X-Serene-Section: Unit frames
-## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+## IconTexture: Interface\AddOns\Serene\Media\Logo
 
 Init.lua
 UnitFrameColors.lua

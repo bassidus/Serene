@@ -3,7 +3,7 @@
 ## Notes: Lightweight QoL for WoW Forever. Shared settings, fonts and the minimap icon for the Serene addons; /serene opens the options.
 ## Version: 1.3.0
 ## SavedVariables: SereneDB
-## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+## IconTexture: Interface\AddOns\Serene\Media\Logo
 
 # Libraries (minimap icon)
 Libs\LibStub.lua

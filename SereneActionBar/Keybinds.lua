@@ -95,10 +95,11 @@ end
 -- size. Offsets put the text's `point` relative to the button's `rel`; at
 -- Blizzard's spot (x, y) its exact anchors are put back. The fractions are
 -- where that spot really lands (button 1), so the first step does not jump.
--- The keybind stays right-aligned like Blizzard's, so wide text grows to the
--- left. Current settings are read into each entry once per Apply.
-local KEYBIND = { field = "HotKey", prefix = "keybind", defaultSize = 12, point = "RIGHT", rel = "CENTER",
-                  justify = "RIGHT", x = 18, y = 13, fx = 0.5, fy = -0.5 }  -- Blizzard: 18.5, 12.5
+-- Moved keybinds are centered on their spot; Blizzard right-aligns them,
+-- ending at 18.5, so its spot is about the middle of a short bind like C2.
+-- Current settings are read into each entry once per Apply.
+local KEYBIND = { field = "HotKey", prefix = "keybind", defaultSize = 12, point = "CENTER", rel = "CENTER",
+                  justify = "CENTER", x = 12, y = 13, fx = 0, fy = -0.5 }  -- Blizzard: 12.5 high
 local MACRO = { field = "Name", prefix = "macro", defaultSize = 10, point = "BOTTOM", rel = "BOTTOM",
                 justify = "CENTER", x = 0, y = 2, fx = 0, fy = 0 }
 local TEXTS = { KEYBIND, MACRO }
@@ -358,15 +359,13 @@ ns.RegisterFeature({
         { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
     },
 })
-ns.RegisterFeature({
-    key = "keybindOffsetX", label = "Move keybind left / right", section = SECTION, category = "Button text",
-    type = "slider", min = -25, max = 45, step = 1, default = KEYBIND.x, apply = ApplySetting,
-    tooltip = "Where the keybind text ends, counted from the middle of the button. The default is Blizzard's spot.",
-})
-ns.RegisterFeature({
-    key = "keybindOffsetY", label = "Move keybind up / down", section = SECTION, category = "Button text",
-    type = "slider", min = -30, max = 30, step = 1, default = KEYBIND.y, apply = ApplySetting,
-    tooltip = "0 is the middle of the button. The default is Blizzard's spot.",
+-- Both pads reach 12 past the button on every side, so they look alike:
+-- the keybind counts from the middle of the button, the macro name from
+-- its bottom.
+ns.RegisterPositionSettings({
+    prefix = "keybind", label = "Keybind position", section = SECTION, category = "Button text",
+    apply = ApplySetting, x = { -30, 30, KEYBIND.x }, y = { -30, 30, KEYBIND.y }, button = { -18, 18, -18, 18 },
+    tooltip = "The dot is the middle of the keybind text. The small square is Blizzard's spot.",
 })
 ns.RegisterFeature({
     key = "showMacroText", label = "Show macro names", section = SECTION, category = "Button text",
@@ -393,15 +392,9 @@ ns.RegisterFeature({
         { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
     },
 })
-ns.RegisterFeature({
-    key = "macroOffsetX", label = "Move macro name left / right", section = SECTION, category = "Button text",
-    type = "slider", min = -20, max = 20, step = 1, default = MACRO.x, requires = "showMacroText",
-    apply = ApplySetting,
-    tooltip = "0 is the middle of the button.",
-})
-ns.RegisterFeature({
-    key = "macroOffsetY", label = "Move macro name up / down", section = SECTION, category = "Button text",
-    type = "slider", min = -10, max = 40, step = 1, default = MACRO.y, requires = "showMacroText",
-    apply = ApplySetting,
-    tooltip = "Where the bottom of the macro name sits, counted from the bottom of the button. The default is Blizzard's spot.",
+ns.RegisterPositionSettings({
+    prefix = "macro", label = "Macro name position", section = SECTION, category = "Button text",
+    apply = ApplySetting, requires = "showMacroText",
+    x = { -30, 30, MACRO.x }, y = { -12, 48, MACRO.y }, button = { -18, 18, 0, 36 },
+    tooltip = "The dot is the bottom middle of the macro name. The small square is Blizzard's spot.",
 })

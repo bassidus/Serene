@@ -36,7 +36,9 @@ ns.featureByKey = {}
 --         registers the setting; the control is dimmed and locked, a
 --         checkbox with a "Requires ..." note, while it is not loaded,
 --         group = set by ns.RegisterFontSettings: shown as one row with its
---         siblings }
+--         siblings,
+--         pos = set by ns.RegisterPositionSettings: the X and Y offsets shown
+--         as one row }
 function ns.RegisterFeature(def)
     def.type = def.type or "boolean"
     if def.default == nil and def.type == "boolean" then def.default = true end
@@ -44,6 +46,29 @@ function ns.RegisterFeature(def)
     ns.featureByKey[def.key] = def
     -- Addons loading after this one register once SereneDB exists.
     if SereneDB and SereneDB[def.key] == nil then SereneDB[def.key] = def.default end
+end
+
+-- Registers a text's X and Y offsets ("<prefix>OffsetX", "<prefix>OffsetY",
+-- slider settings) as one pair: the options window shows one row that opens
+-- a pad with the button drawn to scale and a dot where the text sits, to
+-- drag around.
+-- def = { prefix =, label = row name, section =, category =, apply =,
+--         tooltip =, requires = see RegisterFeature,
+--         x = { min, max, default }, y = { min, max, default },
+--         button = { left, right, bottom, top } the button's edges in the
+--         offsets' own units, e.g. { -18, 18, -18, 18 } around its middle }
+function ns.RegisterPositionSettings(def)
+    local pos = { label = def.label, button = def.button }
+    for _, axis in ipairs({ "x", "y" }) do
+        local range = def[axis]
+        pos[axis] = {
+            key = def.prefix .. "Offset" .. axis:upper(), label = def.label, tooltip = def.tooltip,
+            section = def.section, category = def.category, type = "slider",
+            min = range[1], max = range[2], step = 1, default = range[3],
+            requires = def.requires, apply = def.apply, pos = pos,
+        }
+        ns.RegisterFeature(pos[axis])
+    end
 end
 
 -- Options pages that are not a list of settings (e.g. Performance). build(page)

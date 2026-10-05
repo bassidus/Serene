@@ -704,6 +704,92 @@ function W.Slider(parent, f)
 end
 
 -------------------------------------------------------------------------------
+--  Position pad -- for a ns.RegisterPositionSettings pair, in the editor
+--  W.Position opens: the button drawn to scale, a dot where the text sits.
+--  Click or drag to move it; right-click puts back the defaults.
+-------------------------------------------------------------------------------
+local PAD_SCALE, DOT = 2, 8  -- pixels per offset step; the dot's size
+
+local function PositionPad(parent, pos)
+    local fx, fy = pos.x, pos.y
+    local holder = CreateFrame("Frame", nil, parent)
+
+    local pad = CreateFrame("Frame", nil, holder)
+    pad:SetSize((fx.max - fx.min) * PAD_SCALE, (fy.max - fy.min) * PAD_SCALE)
+    pad:SetPoint("TOPLEFT", 0, 0)
+    W.Solid(pad, "BACKGROUND", FIELD):SetAllPoints()
+    local edges = W.Border(pad, EDGE)
+    holder:SetHeight(pad:GetHeight())
+
+    -- Offset units -> pixels from the pad's bottom left.
+    local function PX(x) return (x - fx.min) * PAD_SCALE end
+    local function PY(y) return (y - fy.min) * PAD_SCALE end
+
+    local b = pos.button
+    local button = CreateFrame("Frame", nil, pad)
+    button:SetPoint("BOTTOMLEFT", PX(b[1]), PY(b[3]))
+    button:SetSize((b[2] - b[1]) * PAD_SCALE, (b[4] - b[3]) * PAD_SCALE)
+    W.Solid(button, "BACKGROUND", EDGE, 0.5):SetAllPoints()
+    W.Border(button, DIM)
+    local home = W.Solid(button, "ARTWORK", DIM)
+    home:SetSize(4, 4)
+    home:SetPoint("CENTER", pad, "BOTTOMLEFT", PX(fx.default), PY(fy.default))
+
+    -- Its own frame, so it draws over the button.
+    local dot = CreateFrame("Frame", nil, pad)
+    dot:SetSize(DOT, DOT)
+    dot:SetFrameLevel(button:GetFrameLevel() + 1)
+    W.Solid(dot, "ARTWORK", ACCENT):SetAllPoints()
+
+    local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    valueText:SetPoint("TOPLEFT", pad, "TOPRIGHT", 12, 0)
+    valueText:SetJustifyH("LEFT")
+    local hint = holder:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    hint:SetPoint("TOPLEFT", valueText, "BOTTOMLEFT", 0, -6)
+    hint:SetText("Right-click: default")
+
+    local function Set(f, v)
+        if v ~= ns.Get(f.key) then ns.SetValue(f.key, v) end
+    end
+    local function Step(v, f)
+        return math.min(f.max, math.max(f.min, math.floor(v + 0.5)))
+    end
+    local function FollowCursor()
+        local scale = pad:GetEffectiveScale()
+        local cx, cy = GetCursorPosition()
+        Set(fx, Step((cx / scale - pad:GetLeft()) / PAD_SCALE + fx.min, fx))
+        Set(fy, Step((cy / scale - pad:GetBottom()) / PAD_SCALE + fy.min, fy))
+    end
+    local function Stop() pad:SetScript("OnUpdate", nil) end
+
+    pad:SetScript("OnMouseDown", function(_, mouse)
+        if mouse == "RightButton" then
+            PlayClick()
+            Set(fx, fx.default)
+            Set(fy, fy.default)
+        else
+            FollowCursor()
+            pad:SetScript("OnUpdate", FollowCursor)
+        end
+    end)
+    pad:SetScript("OnMouseUp", Stop)
+    pad:SetScript("OnHide", Stop)
+    pad:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
+    pad:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
+
+    function holder.Refresh()
+        local x, y = ns.Get(fx.key), ns.Get(fy.key)
+        dot:ClearAllPoints()
+        dot:SetPoint("CENTER", pad, "BOTTOMLEFT", PX(x), PY(y))
+        valueText:SetText("X " .. x .. "\nY " .. y)
+        local on = Available(holder, fx)
+        pad:EnableMouse(on)
+        if not on then Stop() end
+    end
+    return holder
+end
+
+-------------------------------------------------------------------------------
 --  Editor -- a popup under a field holding that field's own controls under
 --  a title; shared by font groups and colors. Closes on a click outside it
 --  (its dropdown list and the color picker count as inside) or on the field
@@ -824,6 +910,31 @@ function W.FontGroup(parent, group)
             .. " / " .. OutlineLabel(group.outline))
         btn:SetEnabled(Available(holder, group.font))
         RefreshEditor(group)
+    end
+    return holder
+end
+
+-------------------------------------------------------------------------------
+--  Position -- one field for a ns.RegisterPositionSettings pair: the offsets
+--  ("Blizzard default" while both are at their defaults); its editor holds
+--  the pad.
+-------------------------------------------------------------------------------
+function W.Position(parent, pos)
+    local fx, fy = pos.x, pos.y
+    local holder, btn, text = Field(parent, pos.label, function(self)
+        OpenEditor(self, pos, pos.label, function(panel) return { PositionPad(panel, pos) } end)
+    end)
+    AttachTooltip(btn, fx)
+
+    function holder.Refresh()
+        local x, y = ns.Get(fx.key), ns.Get(fy.key)
+        if x == fx.default and y == fy.default then
+            text:SetText("Blizzard default")
+        else
+            text:SetText("X " .. x .. ", Y " .. y)
+        end
+        btn:SetEnabled(Available(holder, fx))
+        RefreshEditor(pos)
     end
     return holder
 end

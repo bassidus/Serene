@@ -26,7 +26,7 @@ All off by default.
 
 ### Action bars
 - **Color buttons out of range**: Icons are grayed out and turn the chosen color while the target is out of range.
-- **Shorten keybind text** (CTRL-2 → C2, Mouse Button 4 → M4), **Show macro names**, plus font, size, outline, color and X/Y offset for both the keybind and the macro name.
+- **Shorten keybind text** (CTRL-2 → C2, Mouse Button 4 → M4), **Show macro names**, plus font, size, outline, color and position (a popup with a dot to drag) for both the keybind and the macro name.
 
 ### Unit frames
 - **Class-colored health bars**: Class colors on Blizzard's unit frames.

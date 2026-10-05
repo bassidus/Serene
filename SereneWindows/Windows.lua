@@ -400,6 +400,12 @@ ns.OnReset(function()
     wipe(sessionScale)
 end, SECTION)
 
+ns.SetPageIntro(SECTION, "With \"Move windows with the mouse\" on:\n"
+    .. "- Drag a window by any spot that is not a button or a model to move it.\n"
+    .. "- Hold Ctrl and scroll over a window to make it smaller or bigger.\n"
+    .. "- Middle-click a window to put it back at Blizzard's spot and size.\n"
+    .. "The sliders below set each window's size, from 50% to 150%.")
+
 ns.RegisterFeature({
     key = "windowMove", label = "Move windows with the mouse", section = SECTION, category = "Mouse",
     default = false, apply = ApplyAll,

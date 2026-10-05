@@ -570,6 +570,14 @@ local function CreatePage(section)
         return groups[category]
     end
 
+    local intro = ns.pageIntros[section] and content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    if intro then
+        intro:SetPoint("TOPLEFT", 0, -(36 - HEADER_H))
+        intro:SetWidth(PAGE_W)
+        intro:SetJustifyH("LEFT")
+        intro:SetText(ns.pageIntros[section])
+    end
+
     local made = {}  -- feature -> { control, note }, made once
     local function Made(f)
         if made[f] then return made[f] end
@@ -605,6 +613,7 @@ local function CreatePage(section)
         -- gap: the space left under the last setting, which a group's frame
         -- takes back so it closes snugly below it.
         local y, gap, group = -(36 - HEADER_H), 0, nil
+        if intro then y = y - intro:GetStringHeight() - SPACING end
         local left  -- the left group of a pair, while the right one is laid out
 
         -- Returns the y the next group opens at: beside a left group, its top.

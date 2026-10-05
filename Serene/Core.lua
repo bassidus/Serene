@@ -86,6 +86,12 @@ function ns.RegisterPage(name, build)
     ns.pages[#ns.pages + 1] = { name = name, build = build }
 end
 
+-- A short text at the top of a settings page, above its categories.
+ns.pageIntros = {}
+function ns.SetPageIntro(section, text)
+    ns.pageIntros[section] = text
+end
+
 function ns.Get(key)
     local v = SereneDB and SereneDB[key]
     if v ~= nil then return v end

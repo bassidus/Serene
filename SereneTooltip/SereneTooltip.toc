@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene Tooltip
 ## Group: Serene
-## Notes: Tooltip position, font, border, content and hiding the issue and right click hints.
+## Notes: Tooltip position, size, font, border, content and hiding the issue and right click hints.
 ## Version: 1.2.0
 ## Dependencies: Serene
 ## X-Serene-Section: Tooltip
@@ -11,6 +11,7 @@ Init.lua
 TooltipAnchor.lua
 TooltipFont.lua
 TooltipBorder.lua
+TooltipScale.lua
 TooltipUnitBars.lua
 TooltipContent.lua
 TooltipIssueHint.lua

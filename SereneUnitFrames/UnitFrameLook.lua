@@ -170,6 +170,39 @@ local function ColorName(fs, unit)
 end
 
 -------------------------------------------------------------------------------
+--  Level in the name: "14 Hogger", the level colored like
+--  Blizzard's (by difficulty for enemies, "??" when too high)
+-------------------------------------------------------------------------------
+local baseNames, ourNames = {}, {}  -- [font string] = Blizzard's text / the text we set
+
+local function LevelPrefix(unit)
+    if not unit or not Clean(UnitExists(unit)) or Clean(UnitIsCorpse(unit)) then return nil end
+    local level = Clean(UnitEffectiveLevel(unit))
+    if not level then return nil end
+    if level <= 0 then return "|cffff1a1a??|r " end
+    if Clean(UnitCanAttack("player", unit)) and C_PlayerInfo and C_PlayerInfo.GetContentDifficultyCreatureForPlayer
+        and GetDifficultyColor then
+        local difficulty = Clean(C_PlayerInfo.GetContentDifficultyCreatureForPlayer(unit))
+        local c = difficulty and GetDifficultyColor(difficulty)
+        if c then return "|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. "|r " end
+    end
+    return level .. " "
+end
+
+local function NameLevel(fs, unit, on)
+    if not fs then return end
+    local text = fs:GetText()
+    if issecretvalue and issecretvalue(text) then return end
+    -- Blizzard wrote a new name since our last one: that is the base now.
+    if text ~= ourNames[fs] then baseNames[fs] = text end
+    local base = baseNames[fs]
+    local prefix = on and base and base ~= "" and LevelPrefix(unit)
+    local want = prefix and (prefix .. base) or base
+    if want ~= text then fs:SetText(want) end
+    ourNames[fs] = prefix and want or nil
+end
+
+-------------------------------------------------------------------------------
 --  Painting a frame
 -------------------------------------------------------------------------------
 local function Style(frame)
@@ -182,8 +215,9 @@ local function Style(frame)
     for _, region in pairs(p.frame) do SetHidden(region, noPortrait) end
     SetHidden(p.name, ns.Enabled("unitFrameHideName"))
     ColorName(p.name, frame.unit)
-    local hideLevel = ns.Enabled("unitFrameHideLevel")
-    for _, region in pairs(p.level) do SetHidden(region, hideLevel) end
+    local level = ns.Get("unitFrameLevel")
+    for _, region in pairs(p.level) do SetHidden(region, level ~= "default") end
+    NameLevel(p.name, frame.unit, level == "name")
 end
 
 local function StyleAll()
@@ -269,8 +303,32 @@ ns.RegisterFeature({
           tooltip = "Players' class color; everyone else keeps the default." },
     },
 })
+-- The level in the name follows level ups.
+local levelWatch = CreateFrame("Frame")
+levelWatch:SetScript("OnEvent", function(_, _, unit)
+    for _, frame in ipairs(Frames()) do
+        if frame.unit and Clean(UnitIsUnit(frame.unit, unit)) then Style(frame) end
+    end
+end)
+
 ns.RegisterFeature({
-    key = "unitFrameHideLevel", label = "Hide Level", section = SECTION, default = false, apply = StyleAll,
+    key = "unitFrameLevel", label = "Level", section = SECTION, type = "dropdown", default = "default",
+    apply = function()
+        if ns.Get("unitFrameLevel") == "name" then
+            levelWatch:RegisterEvent("UNIT_LEVEL")
+        else
+            levelWatch:UnregisterAllEvents()
+        end
+        StyleAll()
+    end,
+    tooltip = "In Name shows it before the name, e.g. \"14 Hogger\", also on frames without a level.",
+    options = function()
+        return {
+            { value = "default", label = "Circle" },
+            { value = "name",    label = "In Name" },
+            { value = "hidden",  label = "Hidden" },
+        }
+    end,
 })
 ns.RegisterFeature({
     key = "unitFrameText", label = "Health/Mana Text", section = SECTION, type = "dropdown",

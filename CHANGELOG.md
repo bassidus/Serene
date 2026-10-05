@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Unit Frames: Dark Mode, Portrait (class icon or hidden), Hide Name, Name Color, Hide Level and Health/Mana Text
+- Unit Frames: Dark Mode, Portrait (class icon or hidden), Hide Name, Name Color, Level (circle, in the name or hidden) and Health/Mana Text
 - Tooltip: unit frame health and mana bars keep the unit tooltip on hover
 - Tooltip: Hide Right Click Hint removes "<Right click for Frame Settings>" from unit frame tooltips
 - Tooltip: Hide Border also flattens the "Equipped" tab on comparison tooltips

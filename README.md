@@ -31,7 +31,8 @@ All off by default.
 ### Unit Frames
 - **Class Colored Healthbars**: Class colors on Blizzard's unit frames.
 - **Dark Mode**: dark frame art.
-- Portrait (portrait, class icon, or hidden together with the frame), hide name or level, name color (class or any color).
+- Portrait (portrait, class icon, or hidden together with the frame), hide name, name color (class or any color).
+- Level in its circle, before the name ("14 Hogger") or hidden.
 - Health/mana text as value, percent or both.
 
 ### Tooltip Customization

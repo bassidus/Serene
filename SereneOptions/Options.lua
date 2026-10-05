@@ -475,12 +475,15 @@ end
 
 -- The section's settings with each category's gathered together, the
 -- categories in the order they first appear. A font group is one row, at
--- its first setting, and its color goes with it; a position pair is one
--- row, at its X.
+-- its first setting, and its color and position go with it; a position
+-- pair is one row, at its X.
 local function SectionFeatures(section)
     local inGroup = {}
     for _, f in ipairs(ns.features) do
-        if f.group and f.group.color then inGroup[f.group.color] = true end
+        if f.group then
+            if f.group.color then inGroup[f.group.color] = true end
+            if f.group.position then inGroup[f.group.position] = true end
+        end
     end
     local order, byCategory = {}, {}
     for _, f in ipairs(ns.features) do

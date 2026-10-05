@@ -30,6 +30,8 @@ ns.featureByKey = {}
 --         note = short text always shown under the control,
 --         hideLabel = true to show a color field without its label; the label
 --         still titles the palette and the tooltip,
+--         button = text for a plain button in place of a color field, e.g.
+--         "Color"; the label still titles the palette and the tooltip,
 --         requires = key of a boolean setting, or a list of them; the control
 --         is dimmed and locked while any is off,
 --         addon = the Serene* addon that does the work, when another addon

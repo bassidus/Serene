@@ -155,6 +155,6 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "rangeColor", label = "Out-of-range color", section = SECTION, category = "Range",
-    type = "color", default = "ff4d1a",
+    type = "color", default = "ff4d1a", button = "Color",
     requires = "rangeColors", apply = Apply,
 })

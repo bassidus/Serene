@@ -335,20 +335,21 @@ end)
 local SECTION = "Action bars"
 
 ns.RegisterFeature({
-    key = "shortKeybinds", label = "Shorten keybind text", section = SECTION, category = "Button text",
+    key = "shortKeybinds", label = "Shorten keybind text", section = SECTION, category = "Keybinds",
     apply = ApplySetting,
     tooltip = "Shortens the keybind shown on each button: CTRL-2 becomes C2, Mouse Button 4 M4, NUMPAD5 N5.",
 })
 ns.RegisterFontSettings({
-    prefix = "keybind", label = "Keybind text", section = SECTION, category = "Button text", apply = ApplySetting,
-    size = { 6, 24, KEYBIND.defaultSize }, outline = "default", color = "keybindColor",
+    prefix = "keybind", label = "Keybind text", section = SECTION, category = "Keybinds", apply = ApplySetting,
+    size = { 6, 24, KEYBIND.defaultSize }, outline = "default", color = "keybindColor", button = "Font",
+    position = "keybindOffsetX",
     blizzard = function()
         local o = Button1(KEYBIND)
         return o and ns.OutlineOf(o.flags, o.sx, o.sy) or {}
     end,
 })
 ns.RegisterFeature({
-    key = "keybindColor", label = "Keybind color", section = SECTION, category = "Button text",
+    key = "keybindColor", label = "Keybind color", section = SECTION, category = "Keybinds",
     type = "color", default = "default",
     apply = ApplySetting,
     specials = {
@@ -363,25 +364,26 @@ ns.RegisterFeature({
 -- the keybind counts from the middle of the button, the macro name from
 -- its bottom.
 ns.RegisterPositionSettings({
-    prefix = "keybind", label = "Keybind position", section = SECTION, category = "Button text",
+    prefix = "keybind", label = "Keybind position", section = SECTION, category = "Keybinds",
     apply = ApplySetting, x = { -30, 30, KEYBIND.x }, y = { -30, 30, KEYBIND.y }, button = { -18, 18, -18, 18 },
     tooltip = "The dot is the middle of the keybind text. The small square is Blizzard's spot.",
 })
 ns.RegisterFeature({
-    key = "showMacroText", label = "Show macro names", section = SECTION, category = "Button text",
+    key = "showMacroText", label = "Show macro names", section = SECTION, category = "Macro names",
     default = false, apply = ApplySetting,
     tooltip = "Shows the name written on buttons that hold a macro.",
 })
 ns.RegisterFontSettings({
-    prefix = "macro", label = "Macro name text", section = SECTION, category = "Button text", apply = ApplySetting,
+    prefix = "macro", label = "Macro name text", section = SECTION, category = "Macro names", apply = ApplySetting,
     size = { 6, 24, MACRO.defaultSize }, outline = "default", color = "macroColor", requires = "showMacroText",
+    button = "Font", position = "macroOffsetX",
     blizzard = function()
         local o = Button1(MACRO)
         return o and ns.OutlineOf(o.flags, o.sx, o.sy) or {}
     end,
 })
 ns.RegisterFeature({
-    key = "macroColor", label = "Macro name color", section = SECTION, category = "Button text",
+    key = "macroColor", label = "Macro name color", section = SECTION, category = "Macro names",
     type = "color", default = "default", requires = "showMacroText",
     apply = ApplySetting,
     specials = {
@@ -393,7 +395,7 @@ ns.RegisterFeature({
     },
 })
 ns.RegisterPositionSettings({
-    prefix = "macro", label = "Macro name position", section = SECTION, category = "Button text",
+    prefix = "macro", label = "Macro name position", section = SECTION, category = "Macro names",
     apply = ApplySetting, requires = "showMacroText",
     x = { -30, 30, MACRO.x }, y = { -12, 48, MACRO.y }, button = { -18, 18, 0, 36 },
     tooltip = "The dot is the bottom middle of the macro name. The small square is Blizzard's spot.",

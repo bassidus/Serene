@@ -275,8 +275,8 @@ end
 
 -------------------------------------------------------------------------------
 --  Field -- a label over a button showing the current value, with a down
---  arrow; clicking it opens a popup. Returns the holder, the button and the
---  value text (single line, left of the arrow).
+--  arrow; clicking it opens a popup. Returns the holder, the button, the
+--  value text (single line, left of the arrow) and the arrow.
 -------------------------------------------------------------------------------
 -- Without labelText the button sits at the top, e.g. right under the
 -- checkbox it belongs to.
@@ -315,7 +315,17 @@ local function Field(parent, labelText, onClick)
     end)
     btn:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
     btn:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
-    return holder, btn, text
+    return holder, btn, text, arrow
+end
+
+-- A field turned into a plain button reading `label`, sized to it.
+local function AsButton(btn, text, arrow, label)
+    arrow:Hide()
+    text:ClearAllPoints()
+    text:SetPoint("CENTER")
+    text:SetJustifyH("CENTER")
+    text:SetText(label)
+    btn:SetWidth(math.ceil(text:GetStringWidth()) + 32)
 end
 
 -------------------------------------------------------------------------------
@@ -871,11 +881,17 @@ local function RefreshEditor(id)
     end
 end
 
+local function OpenPosition(anchor, pos)
+    OpenEditor(anchor, pos, pos.label, function(panel) return { PositionPad(panel, pos) } end)
+end
+
 -------------------------------------------------------------------------------
 --  Font group -- one field for a ns.RegisterFontSettings group: font, size
 --  and outline at a glance, drawn in that font, after a swatch of its color
 --  if it has one; its editor holds the group's own dropdown, slider and
---  outline controls, and the palette.
+--  outline controls, and the palette. With group.button the row is just a
+--  button reading that, without a label above it, and a "Position" button
+--  beside it for the group's position pair.
 -------------------------------------------------------------------------------
 -- "Outline, Shadow"; "No outline" for none.
 local function OutlineLabel(f)
@@ -888,13 +904,37 @@ end
 
 function W.FontGroup(parent, group)
     local color = group.color and ns.featureByKey[group.color]
-    local holder, btn, text = Field(parent, group.label, function(self)
+    local holder, btn, text, arrow = Field(parent, not group.button and group.label, function(self)
         OpenEditor(self, group, group.label, function(panel)
             local list = { W.Dropdown(panel, group.font), W.Slider(panel, group.size), W.Outline(panel, group.outline) }
             if color then list[#list + 1] = W.Color(panel, color, true) end
             return list
         end)
     end)
+
+    if group.button then
+        AsButton(btn, text, arrow, group.button)
+        local pos = group.position and ns.featureByKey[group.position].pos
+        local posHolder, posBtn
+        if pos then
+            local posText, posArrow
+            posHolder, posBtn, posText, posArrow = Field(holder, nil, function(self) OpenPosition(self, pos) end)
+            posHolder:SetPoint("TOPLEFT", btn, "TOPRIGHT", 8, 0)
+            AsButton(posBtn, posText, posArrow, "Position")
+            -- A field's holder takes its width from the page; this one has none.
+            posHolder:SetWidth(posBtn:GetWidth())
+            AttachTooltip(posBtn, pos.x)
+        end
+        function holder.Refresh()
+            btn:SetEnabled(Available(holder, group.font))
+            RefreshEditor(group)
+            if pos then
+                posBtn:SetEnabled(Available(posHolder, pos.x))
+                RefreshEditor(pos)
+            end
+        end
+        return holder
+    end
 
     local swatch = color and Swatch(btn, 14)
     if swatch then swatch:SetPoint("LEFT", 8, 0) end
@@ -921,9 +961,7 @@ end
 -------------------------------------------------------------------------------
 function W.Position(parent, pos)
     local fx, fy = pos.x, pos.y
-    local holder, btn, text = Field(parent, pos.label, function(self)
-        OpenEditor(self, pos, pos.label, function(panel) return { PositionPad(panel, pos) } end)
-    end)
+    local holder, btn, text = Field(parent, pos.label, function(self) OpenPosition(self, pos) end)
     AttachTooltip(btn, fx)
 
     function holder.Refresh()
@@ -941,13 +979,23 @@ end
 
 -------------------------------------------------------------------------------
 --  Color field -- the color as a swatch and its name (a special such as
---  "By class" shows as its name only); its editor holds the palette.
+--  "By class" shows as its name only); its editor holds the palette. With
+--  f.button just a button reading that, without a label above it.
 -------------------------------------------------------------------------------
 function W.ColorField(parent, f)
-    local holder, btn, text = Field(parent, not f.hideLabel and f.label, function(self)
+    local holder, btn, text, arrow = Field(parent, not (f.hideLabel or f.button) and f.label, function(self)
         OpenEditor(self, f, f.label, function(panel) return { W.Color(panel, f) } end)
     end)
     AttachTooltip(btn, f)
+
+    if f.button then
+        AsButton(btn, text, arrow, f.button)
+        function holder.Refresh()
+            btn:SetEnabled(Available(holder, f))
+            RefreshEditor(f)
+        end
+        return holder
+    end
 
     local swatch = Swatch(btn, 14)
     swatch:SetPoint("LEFT", 8, 0)

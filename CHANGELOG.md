@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Unit Frames: Name, Level and Health/Mana fonts
 - Unit Frames: Hide Name Background removes the colored bar behind the target and focus names
 - Unit Frames: Hide Resting Glow and Hide Resting Zzz
 - Unit Frames: Dark Mode, Portrait (class icon or hidden), Hide Name, Name Color, Hide Level (before the name while the portrait is hidden), Level Color and Health/Mana Text

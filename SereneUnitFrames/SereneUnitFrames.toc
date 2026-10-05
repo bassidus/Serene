@@ -10,4 +10,5 @@
 Init.lua
 UnitFrameColors.lua
 UnitFrameLook.lua
+UnitFrameFonts.lua
 UnitFrameRest.lua

@@ -276,6 +276,9 @@ local function StyleAll()
     for _, frame in ipairs(Frames()) do Style(frame) end
 end
 
+-- For the unit frame fonts.
+ns.UnitFrames, ns.IsUnitFrame, ns.UnitFrameParts = Frames, IsOurs, PartsOf
+
 -- Every Blizzard unit frame passes through here when its unit changes.
 if UnitFrame_Update then
     hooksecurefunc("UnitFrame_Update", function(frame)

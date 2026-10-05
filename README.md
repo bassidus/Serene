@@ -34,6 +34,7 @@ All off by default.
 - Portrait (portrait, class icon, or hidden together with the frame), hide name, name color (class or any color), hide the colored bar behind the target's name.
 - Level color (gold by default) and hide level; while the portrait is hidden, the level moves before the name ("14 Hogger").
 - Health/mana text as value, percent or both.
+- Font, size and outline for the names, the level and the health/mana text.
 - Hide the resting glow and Zzz animation on the player frame.
 
 ### Tooltip Customization

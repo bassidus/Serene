@@ -4,6 +4,7 @@
 ## Notes: Flat enemy nameplates with cast bars, debuffs and quest mob progress.
 ## Version: 1.2.0
 ## Dependencies: Serene
+## OptionalDeps: SereneQuests
 ## X-Serene-Section: Nameplates
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 

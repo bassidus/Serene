@@ -164,15 +164,15 @@ local function Refresh()
 end
 
 ns.RegisterFeature({
-    key = "nameplateQuest", label = "Quest Mobs", section = "Nameplates", apply = Refresh,
+    key = "nameplateQuest", label = "Quest Mobs", section = "Quests", apply = Refresh,
     tooltip = "Marks enemies your quests still need with a quest icon and your progress (e.g. 3/8).",
 })
 ns.RegisterFeature({
-    key = "nameplateQuestColor", label = "Color Quest Mobs", section = "Nameplates", requires = "nameplateQuest",
+    key = "nameplateQuestColor", label = "Color Quest Mobs", section = "Quests", requires = "nameplateQuest",
     apply = Refresh,
 })
 ns.RegisterFeature({
-    key = "nameplateQuestBarColor", label = "Quest Mob Color", section = "Nameplates", type = "color",
+    key = "nameplateQuestBarColor", label = "Quest Mob Color", section = "Quests", type = "color",
     default = "default", requires = { "nameplateQuest", "nameplateQuestColor" }, apply = Refresh,
     specials = {
         { value = "default", label = "Default" },

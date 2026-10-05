@@ -364,7 +364,7 @@ local SECTION = "Unit frames"
 
 ns.RegisterFeature({
     key = "unitFrameDark", label = "Dark frames", section = SECTION, category = "Appearance",
-    default = false, apply = StyleAll,
+    default = true, apply = StyleAll,
     tooltip = "Darkens the art around the player, target, party and pet frames.",
 })
 ns.RegisterFeature({

@@ -34,7 +34,7 @@ end
 ns.RegisterFeature({
     key = "unitFrameHideRestGlow", label = "Hide resting glow", section = "Unit frames", category = "Resting",
     beside = true,  -- to the right of Appearance; loaded before the other categories for that
-    default = false,
+    default = true,
     apply = Apply, tooltip = "Stops the player frame from pulsing yellow in inns and cities.",
 })
 ns.RegisterFeature({

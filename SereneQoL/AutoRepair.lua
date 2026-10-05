@@ -23,5 +23,5 @@ f:SetScript("OnEvent", function()
 end)
 
 ns.RegisterFeature({
-    key = "autoRepair", label = "Auto Repair", section = "General",
+    key = "autoRepair", label = "Auto Repair", section = "QoL",
 })

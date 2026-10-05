@@ -124,10 +124,10 @@ f:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "autoAcceptQuests", label = "Auto Accept Quests", section = "General",
+    key = "autoAcceptQuests", label = "Auto Accept Quests", section = "QoL",
     tooltip = "Accepts quests automatically. Hold Shift to skip.",
 })
 ns.RegisterFeature({
-    key = "autoTurnInQuests", label = "Auto Turn-In Quests", section = "General",
+    key = "autoTurnInQuests", label = "Auto Turn-In Quests", section = "QoL",
     tooltip = "Turns in quests automatically. Hold Shift to skip.",
 })

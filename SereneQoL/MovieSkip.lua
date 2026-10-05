@@ -36,7 +36,7 @@ local function Hook()
 end
 
 ns.RegisterFeature({
-    key = "fasterMovieSkip", label = "Faster Movie Skip", section = "General",
+    key = "fasterMovieSkip", label = "Faster Movie Skip", section = "QoL",
     apply = function() if On() then Hook() end end,
     tooltip = "Escape, Space or Enter skips a cinematic without confirmation.",
 })

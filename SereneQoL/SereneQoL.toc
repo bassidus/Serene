@@ -4,7 +4,7 @@
 ## Notes: Quick loot, auto repair, sell junk, delete auto-fill, train all, auto accept/turn-in quests, hide tutorials, skip movies, camera zoom, class colored unit frames, hide errors, /rl.
 ## Version: 1.2.0
 ## Dependencies: Serene
-## X-Serene-Section: General
+## X-Serene-Section: QoL
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

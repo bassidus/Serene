@@ -22,7 +22,7 @@ f:SetScript("OnEvent", function(_, event, id, rollType)
 end)
 
 ns.RegisterFeature({
-    key = "skipLootWarnings", label = "Skip Loot Warnings", section = "General",
+    key = "skipLootWarnings", label = "Skip Loot Warnings", section = "QoL",
     apply = function()
         for _, event in ipairs(EVENTS) do
             if ns.Enabled("skipLootWarnings") then

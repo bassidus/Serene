@@ -48,6 +48,7 @@ local function PartsOf(frame)
         end
         p.art = { box.FrameTexture, main and main.LevelBackgroundCircle }
         p.frame = { box.FrameTexture, box.Flash, box.BossPortraitFrameTexture }
+        p.nameBackground = main and main.ReputationColor
     elseif frame == PetFrame then
         p.art = { PetFrameTexture }
         p.frame = { PetFrameTexture, PetFrameFlash, PetAttackModeTexture }
@@ -214,6 +215,7 @@ local function Style(frame)
     SetHidden(p.portrait, noPortrait)
     for _, region in pairs(p.frame) do SetHidden(region, noPortrait) end
     SetHidden(p.name, ns.Enabled("unitFrameHideName"))
+    SetHidden(p.nameBackground, ns.Enabled("unitFrameHideNameBackground"))
     ColorName(p.name, frame.unit)
     local level = ns.Get("unitFrameLevel")
     for _, region in pairs(p.level) do SetHidden(region, level ~= "default") end
@@ -293,6 +295,11 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "unitFrameHideName", label = "Hide Name", section = SECTION, default = false, apply = StyleAll,
+})
+ns.RegisterFeature({
+    key = "unitFrameHideNameBackground", label = "Hide Name Background", section = SECTION,
+    apply = StyleAll,
+    tooltip = "Removes the colored bar (blue, red, yellow...) behind the name on the target and focus frames, like the player frame.",
 })
 ns.RegisterFeature({
     key = "unitFrameNameColor", label = "Name Color", section = SECTION, type = "color",

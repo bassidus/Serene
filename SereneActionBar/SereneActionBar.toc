@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: Serene Action Bar
+## Group: Serene
+## Notes: Short keybind text and action bar range coloring.
+## Version: 1.2.0
+## Dependencies: SereneCore
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+ActionBarRange.lua
+Keybinds.lua

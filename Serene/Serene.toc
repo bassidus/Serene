@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: Serene
-## Notes: Lightweight QoL: quick loot, auto repair, sell junk, delete auto-fill, hide tutorials, short keybind text, action bar range coloring, social filters, thank for buffs, train all, camera zoom, auto accept/turn-in quests, tooltip position/font/content, class colored unit frames, nameplates, /rl.
+## Notes: Lightweight QoL: quick loot, auto repair, sell junk, delete auto-fill, hide tutorials, social filters, thank for buffs, train all, camera zoom, auto accept/turn-in quests, tooltip position/font/content, class colored unit frames, nameplates, /rl.
 ## Version: 1.2.0
 ## Dependencies: SereneCore
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
@@ -18,8 +18,6 @@ Modules\TrainAll.lua
 Modules\Quests.lua
 Modules\Social.lua
 Modules\ThankBuffs.lua
-Modules\ActionBarRange.lua
-Modules\Keybinds.lua
 Modules\HideTutorials.lua
 Modules\MovieSkip.lua
 Modules\CameraZoom.lua

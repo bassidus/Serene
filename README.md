@@ -33,7 +33,7 @@ All off by default.
 - Position (follows the cursor, with offsets), font, size and outline.
 - Hide the border and set background opacity.
 - Hide the beta "Press F6 to submit an issue" line.
-- Content: class, level and faction colors, player titles, guild rank, the unit's target, health bar, item level, spell/item IDs.
+- Content: class, level and faction colors, player titles, guild rank, the unit's target, health bar, item level of items and players, spell/item IDs.
 
 ### Nameplates
 Flat enemy nameplates: threat / class / reaction colors, level, health percent, target highlight, cast bar, debuffs (everyone's, or only yours) and quest mob markers with progress and an optional bar color. You can set font, size, outline, width and height.

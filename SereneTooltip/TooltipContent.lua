@@ -205,6 +205,113 @@ local function ColorBodyLines(tt, unit)
     end
 end
 
+-------------------------------------------------------------------------------
+--  Player item level -- yours from GetAverageItemLevel; anyone else is
+--  inspected once when hovered (out of combat, never while the Inspect
+--  window is open) and the result is kept per GUID for a while. The row is
+--  added when INSPECT_READY arrives if the tooltip still shows that player.
+-------------------------------------------------------------------------------
+local ILVL_LABEL = "Item Level:"
+local ILVL_CACHE_TIME = 600  -- seconds a player's item level is reused
+local INSPECT_GAP = 1.5      -- seconds between our inspect requests
+local INSPECT_TIMEOUT = 5    -- an unanswered request (out of range) is dropped
+
+local ilvlCache = {}         -- guid -> { ilvl =, time = }
+local pending                -- { guid =, unit =, time = } of our open request
+local lastInspect, retryQueued = 0, false
+
+local function ItemLevelLine(tt, ilvl)
+    local text = tostring(floor(ilvl))
+    local i = FindLine(tt, ILVL_LABEL)
+    if i then
+        local right = LineText(tt, "Right", i)
+        if right then right:SetText(text) end
+        return false
+    end
+    tt:AddDoubleLine(ILVL_LABEL, text, 1, 0.82, 0, 1, 1, 1)
+    return true
+end
+
+-- The GUID and unit token of the unit GameTooltip shows, or nil.
+local function TooltipUnitGUID()
+    if GameTooltip:IsForbidden() or not GameTooltip:IsShown() then return end
+    local _, unit = GameTooltip:GetUnit()
+    if not Clean(unit) or not unit then
+        unit = UnitExists("mouseover") and "mouseover" or nil
+    end
+    if not unit then return end
+    local guid = UnitGUID(unit)
+    if Clean(guid) and guid then return guid, unit end
+end
+
+local function CachedItemLevel(guid)
+    local entry = ilvlCache[guid]
+    if entry and GetTime() - entry.time < ILVL_CACHE_TIME then return entry.ilvl end
+end
+
+local function InFlight(guid)
+    return pending and pending.guid == guid and GetTime() - pending.time < INSPECT_TIMEOUT
+end
+
+local function RequestInspect(unit, guid)
+    if InCombatLockdown() or (InspectFrame and InspectFrame:IsShown()) then return end
+    if not (NotifyInspect and C_PaperDollInfo and C_PaperDollInfo.GetInspectItemLevel) then return end
+    if not CanInspect(unit) then return end
+    local wait = lastInspect + INSPECT_GAP - GetTime()
+    if wait > 0 then
+        -- Ask again once the gap has passed, for whoever is hovered then.
+        if not retryQueued then
+            retryQueued = true
+            C_Timer.After(wait, function()
+                retryQueued = false
+                local g, u = TooltipUnitGUID()
+                if g and ns.Enabled("tooltipPlayerItemLevel") and UnitIsPlayer(u)
+                    and not UnitIsUnit(u, "player") and not CachedItemLevel(g) and not InFlight(g) then
+                    RequestInspect(u, g)
+                end
+            end)
+        end
+        return
+    end
+    lastInspect = GetTime()
+    pending = { guid = guid, unit = unit, time = lastInspect }
+    NotifyInspect(unit)
+end
+
+-- Returns true when a row was added.
+local function PlayerItemLevel(tt, unit)
+    if UnitIsUnit(unit, "player") then
+        local _, equipped
+        if GetAverageItemLevel then _, equipped = GetAverageItemLevel() end
+        return equipped and equipped > 0 and ItemLevelLine(tt, equipped) or false
+    end
+    local guid = UnitGUID(unit)
+    if not Clean(guid) or not guid then return false end
+    local ilvl = CachedItemLevel(guid)
+    if ilvl then return ItemLevelLine(tt, ilvl) end
+    if not InFlight(guid) then RequestInspect(unit, guid) end
+    return false
+end
+
+local inspectEvents = CreateFrame("Frame")
+inspectEvents:RegisterEvent("INSPECT_READY")
+inspectEvents:SetScript("OnEvent", function(_, _, guid)
+    if not pending or not Clean(guid) or guid ~= pending.guid then return end
+    local unit = pending.unit
+    pending = nil
+    local now = UnitGUID(unit)
+    if not Clean(now) or now ~= guid then return end  -- the token points elsewhere now
+    local ilvl = C_PaperDollInfo.GetInspectItemLevel(unit)
+    -- Leave Blizzard's inspect alone if its window took over meanwhile.
+    if not (InspectFrame and InspectFrame:IsShown()) then ClearInspectPlayer() end
+    if not ilvl or ilvl <= 0 then return end
+    ilvlCache[guid] = { ilvl = ilvl, time = GetTime() }
+    if ns.Enabled("tooltipPlayerItemLevel") and TooltipUnitGUID() == guid
+        and ItemLevelLine(GameTooltip, ilvl) then
+        GameTooltip:Show()
+    end
+end)
+
 local function OnUnit(tt)
     if tt ~= GameTooltip or tt:IsForbidden() then return end
     local _, unit = tt:GetUnit()
@@ -213,11 +320,14 @@ local function OnUnit(tt)
     end
     if not unit then return end
 
-    if UnitIsPlayer(unit) then PlayerLines(tt, unit) end
-    ColorBodyLines(tt, unit)
-    if ns.Enabled("tooltipTarget") and TargetLine(tt, unit) then
-        tt:Show()  -- resize for the added row
+    local added = false
+    if UnitIsPlayer(unit) then
+        PlayerLines(tt, unit)
+        if ns.Enabled("tooltipPlayerItemLevel") then added = PlayerItemLevel(tt, unit) end
     end
+    ColorBodyLines(tt, unit)
+    if ns.Enabled("tooltipTarget") and TargetLine(tt, unit) then added = true end
+    if added then tt:Show() end  -- resize for the added rows
 end
 
 -------------------------------------------------------------------------------
@@ -305,4 +415,6 @@ Content("tooltipGuildRank", "Guild Rank", true)
 Content("tooltipTarget", "Target", true, nil, "Adds a line with who the unit is targeting.")
 Content("tooltipHealthBar", "Health Bar", true, ApplyHealthBar)
 Content("tooltipItemLevel", "Item Level", true)
+Content("tooltipPlayerItemLevel", "Player Item Level", true, nil,
+    "Adds a player's average item level. Other players are inspected when you hover them, out of combat.")
 Content("tooltipIDs", "Spell and Item IDs", false)

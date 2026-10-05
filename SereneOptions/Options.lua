@@ -36,7 +36,7 @@ local BUTTON_COLORS = {
 -- The sidebar's groups: a heading over its settings tabs, in this order.
 -- Sections not listed here go under Other.
 local MENU = {
-    { "Interface", { "Action bars", "Enemy nameplates", "Unit frames", "Tooltip", "Windows", "FPS & latency" } },
+    { "Interface", { "Action bars", "Enemy nameplates", "Unit frames", "Tooltip", "Move & scale", "FPS & latency" } },
     { "Quality of life", { "General", "Quests", "Social" } },
 }
 local OTHER = "Other"

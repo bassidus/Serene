@@ -35,7 +35,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "Windows"
+local SECTION = "Move & scale"
 
 local WINDOWS = {
     { key = "Character", label = "Character", category = "Your character",

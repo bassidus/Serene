@@ -4,7 +4,7 @@
 ## Notes: Move Blizzard's windows (spellbook, character, professions...) with the mouse and make them smaller or bigger.
 ## Version: 1.2.0
 ## Dependencies: Serene
-## X-Serene-Section: Windows
+## X-Serene-Section: Move & scale
 ## IconTexture: Interface\Icons\Spell_Nature_Tranquility
 
 Init.lua

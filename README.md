@@ -48,7 +48,7 @@ All off by default.
 ### Enemy nameplates
 Flat enemy nameplates: threat / class / reaction colors, level, health percent, target highlight, cast bar, debuffs (everyone's, or only yours) and quest mob markers with progress and an optional bar color. You can set font, size, outline, width and height.
 
-### Windows
+### Move & scale
 - **Move windows with the mouse**: drag a window by any spot that is not a button or a model. Hold Ctrl and scroll over a window to make it smaller or bigger, middle-click it to put it back at Blizzard's spot and size.
 - **Remember positions and sizes**: keeps moved windows and Ctrl + scroll sizes after a reload or logout; off, each session starts with Blizzard's spots.
 - A size for each window (50–150 %, never taller than the screen): character, spellbook, talents, professions, quest log, social, achievements, macros, quest givers, vendors, trainers, bank, mailbox, auction house, flight master, stable master, world map, group finder & PvP, dressing room, inspect, trade, and the game menu & settings.

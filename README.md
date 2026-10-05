@@ -51,7 +51,7 @@ Flat enemy nameplates: threat / class / reaction colors, level, health percent, 
 ### Move & scale
 - **Move windows with the mouse**: drag a window by any spot that is not a button or a model. Hold Ctrl and scroll over a window to make it smaller or bigger, middle-click it to put it back at Blizzard's spot and size.
 - **Remember positions and sizes**: keeps moved windows and Ctrl + scroll sizes after a reload or logout; off, each session starts with Blizzard's spots.
-- A size for each window (50–150 %, never taller than the screen): character, spellbook, talents, professions, quest log, social, achievements, macros, quest givers, vendors, trainers, bank, mailbox, auction house, flight master, stable master, world map, group finder & PvP, dressing room, inspect, trade, and the game menu & settings.
+- A size for each window (50–150 %, never taller than the screen): character, spellbook, talents, professions, quest log, social, achievements, macros, quest givers, vendors, trainers, bank, mailbox, auction house, flight master, stable master, world map, group finder & PvP, dressing room, inspect, trade, the game menu & settings, and the objective tracker (size only).
 
 ### Performance
 A page listing every loaded addon's CPU and memory use (sortable), plus average framerate and latency over the last 5 minutes (loading screens are left out).

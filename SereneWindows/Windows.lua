@@ -30,7 +30,9 @@
 --  (classic and modern names; every one that exists on UIParent is used,
 --  so a panel inside another window is left alone) and the load-on-demand
 --  addons that create them. At 100 % a window Serene never scaled is left
---  to Blizzard.
+--  to Blizzard. A scaleOnly entry (the objective tracker, which Edit Mode
+--  places) only gets its scale: its anchors, the screen height limit and
+--  the mouse are left out, and it need not sit on UIParent.
 --  Changes to a protected window wait for the end of combat.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -95,6 +97,11 @@ local WINDOWS = {
       frames = { "GameMenuFrame", "SettingsPanel", "InterfaceOptionsFrame", "VideoOptionsFrame", "KeyBindingFrame", "AddonList" },
       addons = { "Blizzard_BindingUI" },
       tooltip = "The Escape menu, Blizzard's settings, key bindings and the addon list." },
+    { key = "Tracker", label = "Objective tracker", category = "Other", scaleOnly = true,
+      frames = { "ObjectiveTrackerFrame", "WatchFrame", "QuestWatchFrame" },
+      addons = { "Blizzard_ObjectiveTracker" },
+      tooltip = "The quest list at the side of the screen. It grows and shrinks from where Blizzard "
+          .. "(or Edit Mode) puts it, and is not moved with the mouse." },
 }
 
 local function Key(window) return "windowScale" .. window.key end
@@ -126,6 +133,7 @@ end
 -- Puts the frame at its moved spot, or back on Blizzard's anchors with the
 -- offsets divided by the scale.
 local function Anchor(frame)
+    if not anchors[frame] then return end  -- scaleOnly
     if not (scaled[frame] or placed[frame] or Spot(frame)) or Locked(frame) then return end
     local spot = Spot(frame)
     busy = true
@@ -156,7 +164,7 @@ local function Scale(window, frame)
         local scale = pct / 100
         -- No taller than the screen (a maximized world map is the screen).
         local height = frame:GetHeight()
-        if scale > 1 and height and height > 0 then
+        if scale > 1 and height and height > 0 and not window.scaleOnly then
             scale = math.max(1, math.min(scale, UIParent:GetHeight() / height))
         end
         busy = true
@@ -171,6 +179,10 @@ end
 -- new ones; and Serene's scale back on whenever Blizzard sets its own.
 local function Hook(frame, window)
     hooked[frame] = window
+    hooksecurefunc(frame, "SetScale", function(self)
+        if not busy and scaled[self] then Scale(window, self) end
+    end)
+    if window.scaleOnly then return end
     anchors[frame] = {}
     local s = frame:GetScale()
     for i = 1, frame:GetNumPoints() do
@@ -191,9 +203,6 @@ local function Hook(frame, window)
             if p == point then anchors[self][p] = { relativeTo, relativePoint, x, y } end
         end
         Anchor(self)
-    end)
-    hooksecurefunc(frame, "SetScale", function(self)
-        if not busy and scaled[self] then Scale(window, self) end
     end)
 end
 
@@ -343,9 +352,9 @@ end
 function ApplyWindow(window)
     for _, name in ipairs(window.frames) do
         local frame = _G[name]
-        if type(frame) == "table" and frame.SetScale and frame:GetParent() == UIParent then
+        if type(frame) == "table" and frame.SetScale and (window.scaleOnly or frame:GetParent() == UIParent) then
             if not hooked[frame] then Hook(frame, window) end
-            if ns.Enabled("windowMove") then EnableMouse(frame) end
+            if ns.Enabled("windowMove") and not window.scaleOnly then EnableMouse(frame) end
             Scale(window, frame)
         end
     end

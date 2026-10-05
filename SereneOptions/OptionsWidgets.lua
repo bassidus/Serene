@@ -692,10 +692,10 @@ function W.Slider(parent, f)
     valueText:SetPoint("BOTTOMRIGHT", slider, "TOPRIGHT", 0, 8)
     valueText:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
 
-    local step = f.step or 1
+    local step, suffix = f.step or 1, f.suffix or ""
     slider:SetScript("OnValueChanged", function(_, v, userInput)
         v = math.floor(v / step + 0.5) * step
-        valueText:SetText(v)
+        valueText:SetText(v .. suffix)
         if userInput and v ~= ns.Get(f.key) then ns.SetValue(f.key, v) end
     end)
     slider:SetScript("OnMouseWheel", function(self, delta)
@@ -710,7 +710,7 @@ function W.Slider(parent, f)
     function holder.Refresh()
         local v = ns.Get(f.key)
         slider:SetValue(v)
-        valueText:SetText(v)
+        valueText:SetText(v .. suffix)
         local on = Available(holder, f)
         slider:EnableMouse(on)
         slider:EnableMouseWheel(on)

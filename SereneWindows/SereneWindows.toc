@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: Serene Windows
+## Group: Serene
+## Notes: Makes Blizzard's windows (spellbook, character, professions...) smaller or bigger.
+## Version: 1.2.0
+## Dependencies: Serene
+## X-Serene-Section: Windows
+## IconTexture: Interface\Icons\Spell_Nature_Tranquility
+
+Init.lua
+WindowScale.lua

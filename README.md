@@ -48,6 +48,9 @@ All off by default.
 ### Enemy nameplates
 Flat enemy nameplates: threat / class / reaction colors, level, health percent, target highlight, cast bar, debuffs (everyone's, or only yours) and quest mob markers with progress and an optional bar color. You can set font, size, outline, width and height.
 
+### Windows
+Make Blizzard's windows smaller or bigger, each on its own (50–150 %): character, spellbook, talents, professions, quest log, social, macros, quest givers, vendors, trainers, bank, mailbox, auction house, flight master, world map, dressing room, inspect and trade.
+
 ### Performance
 A page listing every loaded addon's CPU and memory use (sortable), plus average framerate and latency over the last 5 minutes (loading screens are left out).
 

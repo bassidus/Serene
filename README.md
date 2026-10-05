@@ -13,7 +13,6 @@ Lightweight QoL addon for World of Warcraft Forever. Each feature is small and c
 - **Hide Tutorials**: Hides tutorial pop-ups.
 - **Faster Movie Skip**: Escape, Space or Enter skips a movie right away, without confirmation.
 - **Max Camera Zoom**: Lets the camera zoom out further.
-- **Class Colored Healthbars**: Class colors on Blizzard's unit frames.
 - **Hide Error Messages**: Hides the "Not enough rage" / "Out of range" warnings.
 - **FPS & Latency**: A small on-screen readout you can drag anywhere.
 
@@ -28,6 +27,12 @@ All off by default.
 ### Action Bars
 - **Range Coloring**: Icons are grayed out and turn the chosen color while the target is out of range.
 - **Short Keybind Text** (CTRL-2 → C2, Mouse Button 4 → M4), **Hide Macro Text**, plus keybind font, size, outline, color and X/Y offset.
+
+### Unit Frames
+- **Class Colored Healthbars**: Class colors on Blizzard's unit frames.
+- **Dark Mode**: dark frame art.
+- Portrait (portrait, class icon or hidden), hide name or level, name color (class or any color).
+- Health/mana text as value, percent or both.
 
 ### Tooltip Customization
 - Position (follows the cursor, with offsets), font, size and outline.

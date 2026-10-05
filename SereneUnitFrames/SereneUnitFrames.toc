@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene Unit Frames
 ## Group: Serene
-## Notes: Class colored health bars on the player, target, focus and party frames.
+## Notes: Class colors, dark mode, portrait, name, level and health/mana text on the unit frames.
 ## Version: 1.2.0
 ## Dependencies: Serene
 ## X-Serene-Section: Unit Frames
@@ -9,3 +9,4 @@
 
 Init.lua
 UnitFrameColors.lua
+UnitFrameLook.lua

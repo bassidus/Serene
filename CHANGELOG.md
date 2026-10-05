@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1 (2026-10-05)
+
+### Changed
+- A new Serene logo on the minimap icon and in the addon list, and the options window in its colors.
+
+### Fixed
+- Short freezes in combat: the unit frames no longer use more and more memory while the target of target is shown.
+
 ## 1.3.0 (2026-10-05)
 
 Serene is now split into separate addons: Serene itself, which is required, plus one addon per module. If you install by hand, delete the old Serene folder and copy in all the new ones. Modules can be turned off on the Modules page in the options or in the addon list. A few settings may be back at their defaults.

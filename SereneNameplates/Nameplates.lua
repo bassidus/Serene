@@ -653,9 +653,9 @@ for _, c in ipairs({
     })
 end
 ns.RegisterFeature({
-    key = "nameplateLevel", label = "Show level", section = "Nameplates", category = "Settings", apply = Relayout,
+    key = "nameplateLevel", label = "Show target level", section = "Nameplates", category = "Settings", apply = Relayout,
 })
 ns.RegisterFeature({
-    key = "nameplateHealthText", label = "Show health percent", section = "Nameplates", category = "Settings",
+    key = "nameplateHealthText", label = "Show target health", section = "Nameplates", category = "Settings",
     beside = true, apply = Relayout,
 })

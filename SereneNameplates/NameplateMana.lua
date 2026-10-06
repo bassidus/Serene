@@ -103,7 +103,7 @@ NP.RegisterModule({
 })
 
 ns.RegisterFeature({
-    key = "nameplateMana", label = "Show target's mana", section = "Nameplates",
+    key = "nameplateMana", label = "Show target mana bar", section = "Nameplates",
     category = "Settings",
     apply = Sync,
 })

@@ -153,21 +153,17 @@ NP.RegisterModule({
 })
 
 ns.RegisterFeature({
-    key = "nameplateDebuffs", label = "Show debuffs", section = "Nameplates", category = "Settings",
+    key = "nameplateDebuffs", label = "Show target debuffs", section = "Nameplates", category = "Settings",
+    beside = true,  -- to the right of the mana bar
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
 })
-ns.RegisterFeature({
-    key = "nameplateDebuffsMine", label = "Only your own debuffs", section = "Nameplates",
-    category = "Settings", beside = true,
-    default = false,
-    requires = "nameplateDebuffs",
-    apply = function()
-        for _, plate in pairs(NP.plates) do
-            local c = plate.debuffs
-            if c.bound then
-                SetGroupCounts(c)
-                c:UpdateAllAuras()
-            end
+-- nameplateDebuffsMine registers in NameplateLook.lua, beside the fading.
+function NP.ApplyDebuffsMine()
+    for _, plate in pairs(NP.plates) do
+        local c = plate.debuffs
+        if c.bound then
+            SetGroupCounts(c)
+            c:UpdateAllAuras()
         end
-    end,
-})
+    end
+end

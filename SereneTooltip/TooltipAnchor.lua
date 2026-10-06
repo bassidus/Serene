@@ -33,7 +33,7 @@ hooksecurefunc(GameTooltip, "FadeOut", function(self)
 end)
 
 ns.RegisterFeature({
-    key = "tooltipCursor", type = "dropdown", default = true,
+    key = "tooltipCursor", type = "dropdown", default = true, space = true,
     tooltip = "A button's tooltip always stays by its button",
     label = "Where tooltips appear", section = "Tooltip", category = "Position",
     options = function()

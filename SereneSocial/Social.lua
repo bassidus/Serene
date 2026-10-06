@@ -194,7 +194,6 @@ end
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
--- Count your guild as friends is at the end of ThankBuffs.lua, last on the page.
 ns.RegisterFeature({
     key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION,
     category = "Automation",
@@ -240,4 +239,11 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "blockSharedQuests", label = "Block quests shared by strangers", section = SECTION, category = "Automation",
     default = false, apply = Apply,
+})
+-- Decides who is a friend for the whole page, Thanks for buffs too. Read by
+-- IsFriend, so it needs no apply.
+ns.RegisterFeature({
+    key = "socialGuildFriends", label = "Count your guild as friends", section = SECTION, category = "Automation",
+    space = true,
+    tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every setting on this page.",
 })

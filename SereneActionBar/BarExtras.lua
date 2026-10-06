@@ -115,7 +115,7 @@ end
 ns.RegisterFeature({
     key = "barArt", label = "Bar art", section = SECTION, category = "Look",
     tooltip = "How the bars look",
-    type = "dropdown", inline = true, default = "bronze", apply = ApplyArt,
+    type = "dropdown", inline = true, default = "dark", apply = ApplyArt,
     options = function()
         return {
             { value = "bronze", label = "Bronze" },
@@ -126,7 +126,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "zoomActionIcons", label = "Zoom button icons", section = SECTION, category = "Look",
-    default = false, apply = ApplyZoom,
+    default = true, apply = ApplyZoom,
 })
 ns.RegisterFeature({
     key = "bagsBarMouseover", label = "Bags bar on mouseover", section = SECTION, category = "Look",

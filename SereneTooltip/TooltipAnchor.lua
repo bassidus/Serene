@@ -38,8 +38,8 @@ ns.RegisterFeature({
     label = "Anchor", section = "Tooltip", category = "Position",
     options = function()
         return {
-            { value = true,  label = "Anchored to cursor" },
-            { value = false, label = "Blizzard default" },
+            { value = true,  label = "Cursor" },
+            { value = false, label = "Default" },
         }
     end,
 })

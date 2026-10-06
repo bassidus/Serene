@@ -8,6 +8,6 @@
 ## IconTexture: Interface\AddOns\Serene\Media\Logo
 
 Init.lua
-ActionBarRange.lua
 Keybinds.lua
+ActionBarRange.lua
 Bars.lua

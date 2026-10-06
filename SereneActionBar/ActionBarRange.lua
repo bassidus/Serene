@@ -148,12 +148,12 @@ end
 
 local SECTION = "Action Bars"
 
+-- Loads after Keybinds.lua, so these come last under Settings.
 ns.RegisterFeature({
-    key = "rangeColors", label = "Enable", section = SECTION, category = "Out Of Range Control", apply = Apply,
-    tooltip = "Colors out of range action buttons",
+    key = "rangeColors", label = "Out of range color", section = SECTION, category = "Settings", apply = Apply,
 })
 ns.RegisterFeature({
-    key = "rangeColor", label = "Out-of-range color", section = SECTION, category = "Out Of Range Control",
+    key = "rangeColor", label = "Range color", section = SECTION, category = "Settings",
     type = "color", default = "ff4d1a", button = "Color",
     requires = "rangeColors", apply = Apply,
 })

@@ -618,7 +618,7 @@ NP.ApplyRelayout = Relayout
 -- sizes are in NameplateLook.lua, after the cast bar and debuff toggles, so
 -- the options page lists every toggle first.
 ns.RegisterFeature({
-    key = "nameplateThreat", label = "Select role", section = "Serene Nameplates", category = "Threat colors",
+    key = "nameplateThreat", label = "Select role", section = "Nameplates", category = "Threat colors",
     tooltip = "Colors health bars by threat; Auto picks Tank in Defensive Stance, Bear Form or with Righteous Fury",
     space = true,
     type = "dropdown", default = "auto",
@@ -646,18 +646,18 @@ for _, c in ipairs({
     { "nameplateThreatDpsLow",      "Damage / healer", "Safe",           "00ff00" },
 }) do
     ns.RegisterFeature({
-        key = c[1], label = c[3], section = "Serene Nameplates", category = c[2], type = "color",
+        key = c[1], label = c[3], section = "Nameplates", category = c[2], type = "color",
         default = c[4], beside = c[5], apply = Relayout,
         closed = c[3] == "Your aggro",  -- each role's first color
         tooltip = c[3] == "Your aggro" and ROLE_HELP[c[2]] or nil,
     })
 end
 ns.RegisterFeature({
-    key = "nameplateLevel", label = "Show level", section = "Serene Nameplates", category = "Text", apply = Relayout,
+    key = "nameplateLevel", label = "Show level", section = "Nameplates", category = "Text", apply = Relayout,
     tooltip = "Text on enemy nameplates",
     closed = true,
 })
 ns.RegisterFeature({
-    key = "nameplateHealthText", label = "Show health percent", section = "Serene Nameplates", category = "Text",
+    key = "nameplateHealthText", label = "Show health percent", section = "Nameplates", category = "Text",
     apply = Relayout,
 })

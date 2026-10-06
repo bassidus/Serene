@@ -38,7 +38,7 @@ local GOLD, TAN = W.GOLD, W.TAN
 -- The sidebar's groups: a heading over its settings tabs, in this order.
 -- Sections not listed here go under Other.
 local MENU = {
-    { "Interface", { "Action Bars", "Serene Nameplates", "Unit frames", "Tooltip", "Move & Scale" } },
+    { "Interface", { "Action Bars", "Nameplates", "Unit frames", "Tooltip", "Move & Scale" } },
     { "Quality of life", { "General", "Quests", "Social" } },
     { "Tools", { "Performance" } },
 }

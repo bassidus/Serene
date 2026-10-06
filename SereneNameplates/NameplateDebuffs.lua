@@ -153,11 +153,11 @@ NP.RegisterModule({
 })
 
 ns.RegisterFeature({
-    key = "nameplateDebuffs", label = "Show debuffs", section = "Serene Nameplates", category = "Cast bar & debuffs",
+    key = "nameplateDebuffs", label = "Show debuffs", section = "Nameplates", category = "Cast bar & debuffs",
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
 })
 ns.RegisterFeature({
-    key = "nameplateDebuffsMine", label = "Only your own debuffs", section = "Serene Nameplates",
+    key = "nameplateDebuffsMine", label = "Only your own debuffs", section = "Nameplates",
     category = "Cast bar & debuffs",
     default = false,
     requires = "nameplateDebuffs",

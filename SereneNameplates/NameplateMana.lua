@@ -103,7 +103,7 @@ NP.RegisterModule({
 })
 
 ns.RegisterFeature({
-    key = "nameplateMana", label = "Show target's mana", section = "Serene Nameplates",
+    key = "nameplateMana", label = "Show target's mana", section = "Nameplates",
     tooltip = "Your target's mana under its health bar",
     category = "Mana",
     beside = true,  -- to the right of Combo points

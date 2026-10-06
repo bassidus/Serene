@@ -1,13 +1,14 @@
 -------------------------------------------------------------------------------
---  Always Shown Bars -- bars 2-8 shown on every character as ticked, set
---  again at every login. Off, the bars are left as each character has them.
+--  Always Shown Bars -- the ticked bars (2-8) are turned on for every
+--  character at every login. Unticked bars are the character's own and are
+--  never hidden, so one character can show more bars than the rest.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
 local SECTION = "Action bars"
 
 -- Runs from PLAYER_LOGIN on, when the character's bar toggles are in.
--- Showing or hiding a protected bar waits for combat to end.
+-- Showing a protected bar waits for combat to end.
 local Sync
 local waiter = CreateFrame("Frame")
 waiter:SetScript("OnEvent", function(self, event)
@@ -23,20 +24,19 @@ function Sync()
     end
     local toggles, changed = { GetActionBarToggles() }, false  -- bars 2-8
     for bar = 2, 8 do
-        local ticked = ns.Enabled("showBar" .. bar)
-        if toggles[bar - 1] ~= ticked then toggles[bar - 1], changed = ticked, true end
+        if ns.Enabled("showBar" .. bar) and not toggles[bar - 1] then toggles[bar - 1], changed = true, true end
     end
     if changed then SetActionBarToggles(unpack(toggles)) end
 end
 
 ns.RegisterFeature({
-    key = "barSync", label = "Same bars on every character", section = SECTION, category = "Always shown bars",
-    default = false, apply = Sync,
+    key = "barSync", label = "Show the checked bars on every character", section = SECTION,
+    category = "Always shown bars", default = false, apply = Sync,
 })
 for bar = 2, 8 do
     ns.RegisterFeature({
         key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION, category = "Always shown bars",
         default = false, beside = bar % 2 == 1 or nil, requires = "barSync", apply = Sync,
-        note = bar == 8 and "Every character shows the ticked bars from its next login." or nil,
+        note = bar == 8 and "Unchecked bars are left to each character." or nil,
     })
 end

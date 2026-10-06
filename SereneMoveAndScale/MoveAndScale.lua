@@ -15,14 +15,14 @@ local SECTION = "Move & scale"
 local WINDOWS = {
     { key = "Character", label = "Character", category = "Your character",
       frames = { "CharacterFrame" } },
-    -- The title is a button that opens the bag's menu on press; it drags the bag too.
     { key = "Bags", label = "Bags", category = "Your character", titleMenu = true,
       frames = { "ContainerFrameCombinedBags", "ContainerFrame1", "ContainerFrame2", "ContainerFrame3",
                  "ContainerFrame4", "ContainerFrame5", "ContainerFrame6", "ContainerFrame7" } },
     { key = "Spellbook", label = "Spellbook & talents", category = "Your character",
-      frames = { "PlayerSpellsFrame" } },
+      frames = { "PlayerSpellsFrame" }, handles = { "TalentsFrame.ButtonsParent" } },
     { key = "Professions", label = "Professions", category = "Your character",
-      frames = { "ProfessionsFrame" } },
+      frames = { "ProfessionsFrame", "InspectRecipeFrame" },
+      tooltip = "Also the recipe that opens from a recipe link in chat." },
     { key = "Social", label = "Social", category = "Your character",
       frames = { "FriendsFrame", "CommunitiesFrame", "GuildControlUI" } },
     { key = "Achievements", label = "Achievements", category = "Your character",
@@ -53,9 +53,16 @@ local WINDOWS = {
       frames = { "GuildRegistrarFrame", "PetitionFrame", "TabardFrame" } },
 
     { key = "WorldMap", label = "World map", category = "Other",
-      frames = { "WorldMapFrame" } },
+      frames = { "WorldMapFrame", "QuestLogPopupDetailFrame" },
+      tooltip = "Also a quest's details when they open in a window of their own." },
     { key = "Loot", label = "Loot", category = "Other",
-      frames = { "LootFrame" } },
+      frames = { "LootFrame", "GroupLootHistoryFrame" },
+      tooltip = "The loot window and the history of loot rolls." },
+    { key = "ItemRef", label = "Item links", category = "Other",
+      frames = { "ItemRefTooltip" },
+      tooltip = "The tooltip that opens when you click an item link in chat." },
+    { key = "ReadyCheck", label = "Ready & role checks", category = "Other",
+      frames = { "ReadyCheckFrame", "RolePollPopup" } },
     { key = "Groups", label = "Group finder", category = "Other",
       frames = { "LFGParentFrame" } },
     { key = "DressUp", label = "Dressing room", category = "Other",
@@ -70,6 +77,10 @@ local WINDOWS = {
       frames = { "TimeManagerFrame", "CalendarFrame" } },
     { key = "Scoreboard", label = "Battleground scores", category = "Other",
       frames = { "PVPMatchScoreboard", "PVPMatchResults" } },
+    { key = "DeathRecap", label = "Death recap", category = "Other",
+      frames = { "DeathRecapFrame" } },
+    { key = "LuaErrors", label = "Lua errors", category = "Other",
+      frames = { "ScriptErrorsFrame" } },
     { key = "GameMenu", label = "Game menu & settings", category = "Other",
       frames = { "GameMenuFrame", "SettingsPanel", "AddonList", "HelpFrame", "QuickKeybindFrame" },
       tooltip = "The Escape menu, Blizzard's settings, the addon list, customer support and quick keybinds." },
@@ -88,7 +99,6 @@ local placed = {}   -- frame -> true while it sits at its moved spot
 local hooked = {}   -- frame -> its window, once its hooks are in
 local anchors = {}  -- frame -> { [point] = { relativeTo, relativePoint, x, y } } at scale 1
 local mouse = {}    -- frame -> true once it can be moved and resized with the mouse
-local ownWheel = {} -- frame -> true when Blizzard already takes its mouse wheel
 local moved = {}    -- frame name -> { left, top }; SereneDB.windowPositions while remembered
 local sessionScale = {}  -- window -> percent set by Ctrl + scroll, while not remembered
 local pending       -- windows waiting for combat to end
@@ -184,10 +194,15 @@ end
 local ApplyWindow
 
 -- Only frames on the screen itself, so a panel inside another window is left
--- alone. The separate bags sit in ContainerFrameContainer, which covers UIParent.
+-- alone. The separate bags sit in ContainerFrameContainer, which covers
+-- UIParent; the Lua error window has no parent, so it shows with the UI hidden.
 local function OnScreen(window, frame)
     local parent = frame:GetParent()
-    return window.scaleOnly or parent == UIParent or parent == ContainerFrameContainer
+    return window.scaleOnly or parent == UIParent or parent == ContainerFrameContainer or parent == nil
+end
+
+local function Script(region, script)
+    return region:HasScript(script) and region:GetScript(script) ~= nil
 end
 
 -- The cursor in UIParent units.
@@ -197,14 +212,16 @@ local function Cursor()
     return x / s, y / s
 end
 
-local drag  -- { frame =, name =, left =, top =, x =, y = } while a window follows the cursor
+local drag  -- { frame =, name =, left =, top =, x =, y =, own = } while a window follows the cursor
 
 -- From the press, so the window does not jump by the distance moved
--- before the drag began.
+-- before the drag began. A window Blizzard drags itself (item links, loot
+-- history) is left to that, and only its spot is kept.
 local function StartDrag(frame, x, y)
     if not ns.Enabled("windowMove") or Locked(frame) or not frame:GetLeft() then return end
     local r = Ratio(frame)
-    drag = { frame = frame, name = frame:GetName(), left = frame:GetLeft() * r, top = frame:GetTop() * r, x = x, y = y }
+    drag = { frame = frame, name = frame:GetName(), left = frame:GetLeft() * r, top = frame:GetTop() * r, x = x, y = y,
+             own = Script(frame, "OnDragStart") }
     Menu.GetManager():CloseMenus()  -- a bag's title opened its menu on the press
 end
 
@@ -254,40 +271,52 @@ local function ResetWindow(frame)
     ns.SetValue(Key(hooked[frame]), 100)  -- its apply drops the session size and places the window
 end
 
--- The mouse wheel is only taken while Ctrl is down, so scrolling over a
--- window still zooms the camera.
+-- A window that lets the mouse through (the character window, ready
+-- check) takes it, or its title and border could not be dragged.
 local function EnableMouse(frame)
     if mouse[frame] or Locked(frame) then return end
     mouse[frame] = true
-    ownWheel[frame] = frame:IsMouseWheelEnabled()
+    frame:EnableMouse(true)
     frame:SetClampedToScreen(true)
     frame:HookScript("OnHide", function(self)
         if drag and drag.frame == self then StopDrag() end
     end)
-    frame:HookScript("OnMouseWheel", Wheel)
 end
 
-local CLICKABLE = { "Button", "EditBox", "Slider", "Model", "ModelScene" }
+local CLICKABLE = { "EditBox", "Slider", "Model", "ModelScene" }
 
+-- A button with nothing to do on a click is a label or an overlay.
 local function TakesPress(region)
     for _, kind in ipairs(CLICKABLE) do
         if region:IsObjectType(kind) then return true end
     end
-    return region:HasScript("OnMouseDown") and region:GetScript("OnMouseDown") ~= nil
+    if Script(region, "OnMouseDown") then return true end
+    return region:IsObjectType("Button") and (Script(region, "OnClick") or Script(region, "OnMouseUp"))
 end
 
-local function TitleMenu(region)
-    local window = hooked[region:GetParent()]
-    return window and window.titleMenu and region:IsObjectType("Button") and not region:GetScript("OnClick")
+-- Parts that take the press and still drag the window: its handles, and a
+-- bag's title, which opens the bag's menu on the press.
+local function Handle(region, frame)
+    local window = hooked[frame]
+    if window.titleMenu and region:GetParent() == frame and region:IsObjectType("Button")
+        and not Script(region, "OnClick") then
+        return true
+    end
+    for _, path in ipairs(window.handles or {}) do
+        local part = frame
+        for key in path:gmatch("[^.]+") do part = part and part[key] end
+        if part == region then return true end
+    end
 end
 
 -- The window under the cursor, unless what is on top there takes the press.
 local function WindowAtCursor()
     local focus = GetMouseFoci()[1]
     if not focus or not focus.IsObjectType or focus:IsForbidden() then return end
-    if not mouse[focus] and TakesPress(focus) and not TitleMenu(focus) then return end
-    while focus and not mouse[focus] do focus = focus:GetParent() end
-    return focus
+    local frame = focus
+    while frame and not mouse[frame] do frame = frame:GetParent() end
+    if not frame or (focus ~= frame and TakesPress(focus) and not Handle(focus, frame)) then return end
+    return frame
 end
 
 -- A left press on a window becomes a drag once the cursor moves a little;
@@ -303,7 +332,7 @@ watcher:SetScript("OnUpdate", function(self)
         StartDrag(press.frame, press.x, press.y)
         press = nil
     end
-    if drag and not Locked(drag.frame) then
+    if drag and not drag.own and not Locked(drag.frame) then
         moved[drag.name] = { drag.left + x - drag.x, drag.top + y - drag.y }
         Anchor(drag.frame)
     end
@@ -329,10 +358,43 @@ local function MouseUp(button)
     end
 end
 
+-- While Ctrl is down, a frame that takes only the mouse wheel lies over the
+-- window under the cursor: the panels and lists inside a window would keep
+-- the wheel from it. Without Ctrl, scrolling over a window zooms the camera.
+local wheelCatcher = CreateFrame("Frame", nil, UIParent)
+wheelCatcher:SetFrameStrata("FULLSCREEN_DIALOG")
+wheelCatcher:EnableMouseWheel(true)
+wheelCatcher:Hide()
+local wheelWindow
+
+wheelCatcher:SetScript("OnMouseWheel", function(_, delta) Wheel(wheelWindow, delta) end)
+
+local function WindowUnderCursor()
+    for _, focus in ipairs(GetMouseFoci()) do
+        if focus ~= wheelCatcher and focus.IsObjectType and not focus:IsForbidden() then
+            while focus and not mouse[focus] do focus = focus:GetParent() end
+            return focus
+        end
+    end
+end
+
+local ctrlWatcher = CreateFrame("Frame")
+ctrlWatcher:Hide()
+ctrlWatcher:SetScript("OnUpdate", function()
+    local window = WindowUnderCursor()
+    if window == wheelWindow then return end
+    wheelWindow = window
+    wheelCatcher:ClearAllPoints()
+    if window then wheelCatcher:SetAllPoints(window) end
+    wheelCatcher:SetShown(window ~= nil)
+end)
+
 local function WheelOn()
     local on = ns.Enabled("windowMove") and IsControlKeyDown()
-    for frame in pairs(mouse) do
-        if not ownWheel[frame] and not Locked(frame) then frame:EnableMouseWheel(on) end
+    ctrlWatcher:SetShown(on)
+    if not on then
+        wheelWindow = nil
+        wheelCatcher:Hide()
     end
 end
 

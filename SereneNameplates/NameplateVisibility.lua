@@ -15,7 +15,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "nameplateOtherAlpha", label = "Other enemies' opacity", section = "Enemy nameplates",
-    category = "Visibility", type = "slider", min = 20, max = 100, step = 5, default = 20, suffix = "%",
+    category = "Visibility", type = "slider", min = 0, max = 100, step = 5, default = 20, suffix = "%",
     requires = "nameplateFadeOthers", apply = UpdateAll,
     tooltip = "With an enemy targeted, the other enemies' plates fade to this opacity.\n"
         .. "The one under the mouse and any that is casting stay fully visible.",

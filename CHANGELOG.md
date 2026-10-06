@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.4.0 (2026-10-06)
+
+The FPS & latency display is now part of Serene Performance, and the Serene Stats addon is gone. If you install by hand, delete the SereneStats folder.
+
+### New
+- Performance overlay: framerate, latency and total addon CPU and memory, plus the heaviest addons and any you pin, kept on screen while you play. Turn it on under the addon list on the Performance page. It has settings for size, columns, colors and font, and when unlocked you can drag it and its column lines.
+- Nameplates: combo points under the health bar of the enemy that holds them.
+- Nameplates: the threat colors are settings, grouped by role.
+- Action bars: a switch that turns the checked bars 2-8 on for every character. It is off by default, and bars you leave unchecked are up to each character.
+
+### Changed
+- The Performance page is grouped like the other pages, under a new Tools heading.
+- Tiny CPU shares read "<0.01%" instead of "0.00%".
+- The help text in the options window is gold.
+
+### Fixed
+- Holding the color picker's wheel no longer applies the setting every frame.
+
 ## 1.3.1 (2026-10-05)
 
 ### Changed

@@ -32,11 +32,12 @@ end
 ns.RegisterFeature({
     key = "barSync", label = "Check the bars you want enabled on all characters", section = SECTION,
     category = "Always shown bars", default = false, apply = Sync,
+    tooltip = "The checked bars are turned on for every character when it logs in. Unchecked bars are "
+        .. "left alone, so each character can still show more bars through Blizzard's own settings.",
 })
 for bar = 2, 8 do
     ns.RegisterFeature({
         key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION, category = "Always shown bars",
         default = false, beside = bar % 2 == 1 or nil, requires = "barSync", apply = Sync,
-        note = bar == 8 and "Unchecked bars are left to each character." or nil,
     })
 end

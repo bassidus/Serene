@@ -389,7 +389,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "unitFrameTextAlign", label = "Alignment", section = SECTION, category = "Health & mana",
-    type = "dropdown",
+    type = "dropdown", beside = true,
     default = "center", apply = AlignAll,
     options = function()
         return {

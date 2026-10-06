@@ -13,6 +13,7 @@ ns.RegisterFontSettings({
 })
 ns.RegisterFeature({
     key = "nameplateWidth", label = "Width", section = "Enemy nameplates", category = "Size", type = "slider",
+    closed = true,
     min = 60, max = 220, step = 2, default = 130, apply = Relayout,
 })
 ns.RegisterFeature({

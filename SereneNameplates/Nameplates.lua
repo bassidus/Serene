@@ -643,10 +643,12 @@ for _, c in ipairs({
     ns.RegisterFeature({
         key = c[1], label = c[3], section = "Enemy nameplates", category = c[2], type = "color",
         default = c[4], beside = c[5], apply = Relayout,
+        closed = c[3] == "Your aggro",  -- each role's first color
     })
 end
 ns.RegisterFeature({
     key = "nameplateLevel", label = "Show level", section = "Enemy nameplates", category = "Text", apply = Relayout,
+    closed = true,
 })
 ns.RegisterFeature({
     key = "nameplateHealthText", label = "Show health percent", section = "Enemy nameplates", category = "Text",

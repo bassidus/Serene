@@ -33,7 +33,7 @@ ns.featureByKey = {}
 --   blizzard   outline: fn returning Blizzard's own flags, shown on "default"
 --   note       text always shown under the control
 --   space      an empty row above the control
---   open       on a category's first setting: the category starts open
+--   closed     on a category's first setting: the category starts closed
 --   beside     on a category's first setting: that category goes right of the
 --              previous one at half width; otherwise: right of the previous setting
 --   button     a plain button with this text in place of the field

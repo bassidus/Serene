@@ -106,5 +106,6 @@ ns.RegisterFeature({
     key = "nameplateMana", label = "Show target's mana", section = "Enemy nameplates",
     category = "Mana",
     beside = true,  -- to the right of Combo points
+    closed = true,
     apply = Sync,
 })

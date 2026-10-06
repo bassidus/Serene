@@ -8,6 +8,7 @@ local NP = ns.NP
 ns.RegisterFeature({
     key = "nameplateOtherAlpha", label = "Other enemies' opacity", section = "Enemy nameplates",
     category = "Visibility", type = "slider", min = 20, max = 100, step = 5, default = 50, suffix = "%",
+    closed = true,
     apply = function()
         for _, plate in pairs(NP.plates) do NP.UpdateAlpha(plate) end
     end,

@@ -398,7 +398,7 @@ for _, window in ipairs(WINDOWS) do
     inCategory[window.category] = (inCategory[window.category] or 0) + 1
     ns.RegisterFeature({
         key = Key(window), label = window.label, section = SECTION, category = window.category,
-        beside = inCategory[window.category] % 2 == 0, type = "slider", min = MIN, max = MAX, step = STEP, default = 100, suffix = "%",
+        beside = inCategory[window.category] % 2 == 0, closed = inCategory[window.category] == 1, type = "slider", min = MIN, max = MAX, step = STEP, default = 100, suffix = "%",
         -- A slider change wins over a Ctrl + scroll size from this session.
         apply = function() sessionScale[window] = nil; ApplyWindow(window) end,
         tooltip = window.tooltip,  -- what all the sliders do is in the page intro

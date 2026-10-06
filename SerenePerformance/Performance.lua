@@ -5,7 +5,7 @@
 --  only every few ticks since that walks every addon. Turns the client's
 --  addon profiler back on when something has switched it off (CVar
 --  addonProfilerEnabled). While the overlay is on, the list gets a pin
---  column; the overlay's own groups follow (Overlay.lua).
+--  column; the overlay's group comes before it (Overlay.lua).
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -342,6 +342,6 @@ end
 
 ns.RegisterFeature({
     key = "perfSort", label = "Addons", section = SECTION, category = "Usage", type = "custom",
-    default = "mem", build = Build, open = true,
+    default = "mem", build = Build,
     tooltip = "Click a column's heading to sort by it. While the overlay is on, the box at the left of an addon pins it there.",
 })

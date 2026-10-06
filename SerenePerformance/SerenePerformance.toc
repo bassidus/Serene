@@ -9,5 +9,5 @@
 
 Init.lua
 Data.lua
-Performance.lua
 Overlay.lua
+Performance.lua

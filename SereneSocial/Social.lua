@@ -233,7 +233,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "whisperInviteFrom", label = "Who gets invited", section = SECTION, category = "Invites",
-    type = "dropdown",
+    type = "dropdown", beside = true,
     default = "anyone", requires = "whisperInvite",
     options = function()
         return {

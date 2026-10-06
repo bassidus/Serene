@@ -132,6 +132,7 @@ ns.RegisterFeature({
 local QUEST_GREEN = "28da79"  -- the nameplates' own quest color
 ns.RegisterFeature({
     key = "nameplateQuest", label = "Mark quest enemies", section = "Quests", category = "Nameplates",
+    beside = true,  -- to the right of Automation
     addon = "SereneNameplates",
     tooltip = "Shows a quest icon and your progress (e.g. 3/8) on the nameplates of enemies your quests still need.",
 })

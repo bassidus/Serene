@@ -138,8 +138,8 @@ end
 -------------------------------------------------------------------------------
 local CONFIRM_TIME = 4
 
--- Puts every group back as it starts (closed unless its first setting has
--- open = true), or with a section only that page's, as a reset does.
+-- Puts every group back as it starts (open unless its first setting has
+-- closed = true), or with a section only that page's, as a reset does.
 local function CloseGroups(section)
     for key in pairs(SereneDB.optionsOpen or {}) do
         if not section or key:sub(1, #section + 1) == section .. "/" then SereneDB.optionsOpen[key] = nil end
@@ -497,7 +497,7 @@ end
 
 -- Each category opens and closes by its heading; the choice is kept in
 -- SereneDB.optionsOpen ("<section>/<category>" = true or false). Until
--- then a category is closed, unless its first setting has open = true. A
+-- then a category is open, unless its first setting has closed = true. A
 -- change lays the page out again.
 local function CreatePage(section)
     local page = CreatePageFrame(section)
@@ -508,9 +508,13 @@ local function CreatePage(section)
     local column, partner = Columns(list)
     local half = (PAGE_W - SPACING) / 2
 
+    -- From the first registered setting, which list may leave out (a font
+    -- group's color shows in its editor).
     local startsOpen = {}
-    for _, f in ipairs(list) do
-        if f.category and startsOpen[f.category] == nil then startsOpen[f.category] = f.open or false end
+    for _, f in ipairs(ns.features) do
+        if f.section == section and f.category and startsOpen[f.category] == nil then
+            startsOpen[f.category] = not f.closed
+        end
     end
 
     local allOpen  -- while measuring the page with every category open

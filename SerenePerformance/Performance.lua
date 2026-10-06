@@ -2,7 +2,7 @@
 --  Performance -- the Usage group of the Performance page: what the Game
 --  Menu button's tooltip shows, but listing every loaded addon instead of
 --  the top three. Updates once a second while shown; memory is rescanned
---  only every few ticks since that walks every addon. Turns the client's
+--  only as often as the setting under the list says (Data.lua). Turns the client's
 --  addon profiler back on when something has switched it off (CVar
 --  addonProfilerEnabled). While the overlay is on, the list gets a pin
 --  column; the overlay's group comes before it (Overlay.lua).
@@ -10,7 +10,6 @@
 local _, ns = ...
 
 local UPDATE_INTERVAL = 1
-local MEMORY_EVERY = 5  -- ticks between memory rescans
 local ROW_H, HEADER_H = 18, 22
 local CPU_W, MEM_W = 70, 80
 local STAT_ROW_H = 18
@@ -317,17 +316,15 @@ local function Build(parent)
         end
     end
 
-    local ticks, ticker = 0, nil
+    local ticker
     local function Update()
-        ns.Collect(ticks % MEMORY_EVERY == 0)
-        ticks = ticks + 1
+        ns.Collect()
         UpdateStats()
         Render()
     end
 
     -- Shown with the page and the group open.
     content:SetScript("OnShow", function()
-        ticks = 0
         Update()
         if not ticker then ticker = C_Timer.NewTicker(UPDATE_INTERVAL, Update) end
     end)
@@ -344,4 +341,11 @@ ns.RegisterFeature({
     key = "perfSort", label = "Addons", section = SECTION, category = "Usage", type = "custom",
     tooltip = "What each addon uses; checked addons stay on the overlay",
     default = "mem", build = Build,
+})
+
+-- Also sets the overlay's pace, since the two share one scan (Data.lua).
+ns.RegisterFeature({
+    key = "memoryScanEvery", label = "Scan memory every", section = SECTION, category = "Usage",
+    type = "slider", min = 1, max = 60, step = 1, default = 15, suffix = " s",
+    note = "Each scan costs performance, and with many addons loaded it can make the game stutter briefly.",
 })

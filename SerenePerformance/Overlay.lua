@@ -71,7 +71,6 @@ local rows = {}      -- { name, cpu, mem } font strings per line
 local totals = {}    -- name, cpu, mem: the totals row (name holds framerate and latency)
 local parts = {}     -- the totals row's left side, reused
 local picked = {}    -- the addons listed, reused
-local ticks = 0
 local fontFlags, fontShadow = ns.FontFlags("OUTLINE")
 
 local function NewText(justify)
@@ -237,9 +236,7 @@ local function Render()
 end
 
 local function Update()
-    -- A tick a second, so the setting's seconds are ticks.
-    ns.Collect(ticks % ns.Get("overlayMemoryEvery") == 0)
-    ticks = ticks + 1
+    ns.Collect()
     Render()
 end
 
@@ -458,9 +455,4 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "overlayTop", label = "Number of addons", section = SECTION, category = "Overlay", type = "slider",
     min = 1, max = 20, step = 1, default = 5, requires = LIST, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "overlayMemoryEvery", label = "Scan memory every", section = SECTION, category = "Overlay",
-    type = "slider", min = 1, max = 60, step = 1, default = 15, suffix = " s", requires = ON, apply = Apply,
-    note = "Each scan costs performance, and with many addons loaded it can make the game stutter briefly.",
 })

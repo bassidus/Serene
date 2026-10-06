@@ -122,8 +122,16 @@ local entries = {}
 ns.entries = entries
 local entryByName = {}  -- reused every tick
 
-function ns.Collect(rescanMemory)
-    if rescanMemory then UpdateAddOnMemoryUsage() end
+-- The page and the overlay share one memory scan, so with both open it
+-- still runs only as often as the setting says. Half a second of slack
+-- keeps the 1 s tickers' jitter from skipping a scan.
+local lastScan
+function ns.Collect()
+    local now = GetTime()
+    if not lastScan or now - lastScan >= ns.Get("memoryScanEvery") - 0.5 then
+        lastScan = now
+        UpdateAddOnMemoryUsage()
+    end
     local cpuOn = Profiler.IsEnabled()
     wipe(entries)
     for i = 1, C_AddOns.GetNumAddOns() do

@@ -632,24 +632,20 @@ ns.RegisterFeature({
         }
     end,
 })
-local ROLE_HELP = {
-    ["Tank"] = "Health bar colors while you tank",
-    ["Damage / healer"] = "Health bar colors while you deal damage or heal",
-}
+local TANK, DPS = "Threat colors while tanking", "Colors while healing or dealing damage"
 for _, c in ipairs({
-    { "nameplateThreatTankHigh",    "Tank",            "Your aggro",     "00ff00" },
-    { "nameplateThreatTankMedium",  "Tank",            "Losing aggro",   "ffff00", true },
-    { "nameplateThreatTankLow",     "Tank",            "Lost aggro",     "ff0000" },
-    { "nameplateThreatTankOfftank", "Tank",            "Another tank",   "0faac8", true },
-    { "nameplateThreatDpsHigh",     "Damage / healer", "Your aggro",     "ff0000" },
-    { "nameplateThreatDpsMedium",   "Damage / healer", "Almost pulling", "ffff00", true },
-    { "nameplateThreatDpsLow",      "Damage / healer", "Safe",           "00ff00" },
+    { "nameplateThreatTankHigh",    TANK, "Your aggro",     "00ff00" },
+    { "nameplateThreatTankMedium",  TANK, "Losing aggro",   "ffff00", true },
+    { "nameplateThreatTankLow",     TANK, "Lost aggro",     "ff0000" },
+    { "nameplateThreatTankOfftank", TANK, "Another tank",   "0faac8", true },
+    { "nameplateThreatDpsHigh",     DPS,  "Your aggro",     "ff0000" },
+    { "nameplateThreatDpsMedium",   DPS,  "Almost pulling", "ffff00", true },
+    { "nameplateThreatDpsLow",      DPS,  "Safe",           "00ff00" },
 }) do
     ns.RegisterFeature({
         key = c[1], label = c[3], section = "Nameplates", category = "Threat colors", sub = c[2], type = "color",
         default = c[4], beside = c[5], apply = Relayout,
         closed = c[3] == "Your aggro",  -- each role's first color
-        tooltip = c[3] == "Your aggro" and ROLE_HELP[c[2]] or nil,
     })
 end
 ns.RegisterFeature({

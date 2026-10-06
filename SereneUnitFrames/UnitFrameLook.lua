@@ -336,7 +336,7 @@ local hasLevel = { player = true, target = true, focus = true }
 -- Targets of targets have no numbers on their bars. Blizzard has one
 -- Status Text setting for every frame, so the format shows in each view
 -- that has numbers.
-local textViews = {}
+local textViews = { ns.ALL_VIEW }
 for _, page in ipairs(ns.FramePages()) do
     if page.frames[1].healthbar.TextString then textViews[#textViews + 1] = page.view end
 end

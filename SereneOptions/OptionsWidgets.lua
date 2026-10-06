@@ -346,7 +346,7 @@ end
 function W.Checkbox(parent, f)
     local function Checked()
         if f.get then return f.get() end
-        return SereneDB[f.key]
+        return ns.Get(f.key)
     end
 
     local row = CreateFrame("Button", nil, parent)
@@ -364,7 +364,7 @@ function W.Checkbox(parent, f)
 
     row:SetScript("OnClick", function()
         PlayClick()
-        if f.set then f.set(not Checked()) else ns.SetValue(f.key, not SereneDB[f.key]) end
+        if f.set then f.set(not Checked()) else ns.SetValue(f.key, not Checked()) end
     end)
     AttachTooltip(row, f)
 

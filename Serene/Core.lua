@@ -48,6 +48,12 @@ ns.featureByKey = {}
 --   requires   key (or list) of booleans; dimmed and locked while any is off
 --              ("!key": while it is on)
 --   addon      the Serene* addon that does the work; locked while not loaded
+--   links      keys of settings this one stands for (e.g. one for every unit
+--              frame): it has no value or apply of its own, a change goes to
+--              each of them, and it reads as theirs while they agree; when
+--              they don't, a checkbox reads off and the rest as the first's.
+--              A slider moves each from its own default, so different
+--              sizes keep their difference
 --   group, pos set by RegisterFontSettings / RegisterPositionSettings
 function ns.RegisterFeature(def)
     def.type = def.type or "boolean"
@@ -55,7 +61,7 @@ function ns.RegisterFeature(def)
     ns.features[#ns.features + 1] = def
     ns.featureByKey[def.key] = def
     -- Addons loading after this one register once SereneDB exists.
-    if SereneDB and SereneDB[def.key] == nil then SereneDB[def.key] = def.default end
+    if SereneDB and not def.links and SereneDB[def.key] == nil then SereneDB[def.key] = def.default end
 end
 
 -- Registers X and Y offsets ("<prefix>OffsetX", "<prefix>OffsetY", slider
@@ -104,10 +110,29 @@ function ns.SetCategoryOrder(section, categories)
     ns.categoryOrders[section] = categories
 end
 
+-- A slider link's value as the linking setting counts it.
+local function LinkValue(f, key)
+    local v = ns.Get(key)
+    if f.type == "slider" then v = v - ns.featureByKey[key].default + f.default end
+    return v
+end
+
+local function LinkedValue(f)
+    local first = LinkValue(f, f.links[1])
+    for i = 2, #f.links do
+        if LinkValue(f, f.links[i]) ~= first then
+            if f.type == "boolean" then return false end
+            return first
+        end
+    end
+    return first
+end
+
 function ns.Get(key)
     local v = SereneDB[key]
     if v ~= nil then return v end
     local f = ns.featureByKey[key]
+    if f and f.links then return LinkedValue(f) end
     return f and f.default
 end
 
@@ -118,9 +143,28 @@ end
 -- The one write path: stores the value, applies the feature and refreshes
 -- the options window.
 function ns.SetValue(key, value)
-    SereneDB[key] = value
     local f = ns.featureByKey[key]
-    if f and f.apply then f.apply() end
+    if f and f.links then
+        for _, link in ipairs(f.links) do
+            local l = ns.featureByKey[link]
+            local v = value
+            if f.type == "slider" then v = math.min(l.max, math.max(l.min, v - f.default + l.default)) end
+            SereneDB[link] = v
+        end
+        -- Links often share one apply that redraws them all, so it runs
+        -- once, after every value is in.
+        local applied = {}
+        for _, link in ipairs(f.links) do
+            local l = ns.featureByKey[link]
+            if l.apply and not applied[l.apply] then
+                applied[l.apply] = true
+                l.apply()
+            end
+        end
+    else
+        SereneDB[key] = value
+        if f and f.apply then f.apply() end
+    end
     if ns.RefreshOptions then ns.RefreshOptions() end
 end
 
@@ -152,7 +196,7 @@ end
 function ns.ResetDefaults(section, quiet)
     local function Included(s) return not section or s == section end
     for _, f in ipairs(ns.features) do
-        if Included(f.section) then SereneDB[f.key] = f.default end
+        if Included(f.section) and not f.links then SereneDB[f.key] = f.default end
     end
     for _, hook in ipairs(ns.resetHooks) do
         if Included(hook.section) then hook.fn() end
@@ -308,7 +352,7 @@ end
 -------------------------------------------------------------------------------
 local function FillDefaults()
     for _, f in ipairs(ns.features) do
-        if SereneDB[f.key] == nil then SereneDB[f.key] = f.default end
+        if not f.links and SereneDB[f.key] == nil then SereneDB[f.key] = f.default end
     end
 end
 

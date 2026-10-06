@@ -4,6 +4,7 @@ setmetatable(ns, { __index = Serene })
 -------------------------------------------------------------------------------
 --  Pages -- each frame has settings of its own, a view of the Unit frames
 --  page picked in its dropdown; the target's and focus's targets share one.
+--  The first view, All, holds what several frames share (UnitFrameAll.lua).
 --  A page's keys start with its prefix: page.key.Dark is "playerFrameDark".
 --  They are built once, since target of target styles itself every frame.
 -------------------------------------------------------------------------------
@@ -19,11 +20,14 @@ local PAGES = {
                                                  PartyFrame.MemberFrame3, PartyFrame.MemberFrame4 } },
 }
 
-local byId, byFrame, all, views = {}, {}, {}, {}
-for i, page in ipairs(PAGES) do
+ns.ALL_VIEW = "All"
+
+local byId, byFrame, all, views = {}, {}, {}, { ns.ALL_VIEW }
+for _, page in ipairs(PAGES) do
     page.section = SECTION
-    views[i] = page.view
+    views[#views + 1] = page.view
     local prefix = page.id .. "Frame"
+    page.prefix = prefix
     page.key = setmetatable({}, { __index = function(keys, name)
         keys[name] = prefix .. name
         return keys[name]

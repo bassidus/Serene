@@ -1,4 +1,4 @@
-![Serene banner](https://keep.mine.nu/Zi1Zt0MxFlyL.png)
+![Serene banner](https://media.forgecdn.net/attachments/2015/9/serene-banner-curseforge-png.png)
 
 **Serene** is a lightweight quality-of-life suite for WoW Forever. It cleans up the default interface and handles the small chores, without replacing Blizzard's UI.
 

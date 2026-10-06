@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Tooltip Content -- class, level, faction and guild colors, titles, guild rank,
---  target, item level and IDs. Every value read from a unit goes through
+--  target, AFK, item level and IDs. Every value read from a unit goes through
 --  ns.Clean (secret values). Lines are added, recolored or hidden, and
 --  tooltip refreshes update them in place instead of adding twice.
 -------------------------------------------------------------------------------
@@ -119,6 +119,20 @@ local function PlayerLines(tt, unit)
             end
         end
     end
+end
+
+-- " <AFK>" after the name. Refresh passes keep line 1, so the tag is only
+-- added or removed when the player's AFK state no longer matches it.
+local AFK_TAG = " |cffff9900<AFK>|r"
+
+local function AFKTag(tt, unit)
+    local fs, cur = LineText(tt, "Left", 1)
+    if not cur then return false end
+    local tagged = cur:sub(-#AFK_TAG) == AFK_TAG
+    local afk = Clean(UnitIsAFK(unit)) and true or false
+    if afk == tagged then return false end
+    fs:SetText(afk and cur .. AFK_TAG or cur:sub(1, -#AFK_TAG - 1))
+    return true
 end
 
 -- "Level 6", "Level ??" at the start of the level line (localized via LEVEL).
@@ -333,6 +347,7 @@ local function OnUnit(tt)
     local added = false
     if UnitIsPlayer(unit) then
         added = PlayerLines(tt, unit)
+        if ns.Enabled("tooltipAFK") and AFKTag(tt, unit) then added = true end
         if ns.Enabled("tooltipPlayerItemLevel") and PlayerItemLevel(tt, unit) then added = true end
     end
     if ColorBodyLines(tt, unit) then added = true end  -- a hidden line resizes too
@@ -405,6 +420,7 @@ for _, def in ipairs({
     { key = "tooltipPlayerItemLevel", label = "Show player item level", beside = true },
     { key = "tooltipTarget",          label = "Show target" },
     { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
+    { key = "tooltipAFK",             label = "Show AFK" },
 }) do
     def.section, def.category = "Tooltip", "Settings"
     ns.RegisterFeature(def)

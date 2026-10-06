@@ -160,20 +160,48 @@ end
 --  stopping short of it (the player frame's cuts off at 96 of ~130 pixels).
 --  Both sit in the same frame, so the difference holds at any scale or
 --  position; it is measured once, as soon as the frame is laid out.
+--  A name that still does not fit shows only its first word, rather than
+--  a first name with half a surname.
 -------------------------------------------------------------------------------
 local nameWidths = {}  -- [font string] = Blizzard's width
+local fullNames = {}   -- [font string] = Blizzard's latest text
+local nameHooked = {}
+local naming  -- set while we change a name, so our own call is not taken for Blizzard's
+
+local function FitName(fs)
+    local full = fullNames[fs]
+    if not full then return end
+    naming = true
+    fs:SetText(full)
+    if ns.Enabled("unitFrameLongNames") and Clean(fs:IsTruncated()) then
+        local first = full:match("^(%S+)%s")
+        if first then fs:SetText(first) end
+    end
+    naming = nil
+end
 
 local function WidenName(fs, bar)
     if not fs then return end
+    if not nameHooked[fs] then
+        nameHooked[fs] = true
+        fullNames[fs] = Clean(fs:GetText())
+        hooksecurefunc(fs, "SetText", function(self, text)
+            if naming then return end
+            fullNames[self] = Clean(text)
+            FitName(self)
+        end)
+    end
     if ns.Enabled("unitFrameLongNames") then
         if nameWidths[fs] then return end
         local left, right = Clean(fs:GetLeft()), Clean(bar:GetRight())
         if not (left and right) then return end
         nameWidths[fs] = fs:GetWidth()
         fs:SetWidth(right - left - 2)
+        FitName(fs)
     elseif nameWidths[fs] then
         fs:SetWidth(nameWidths[fs])
         nameWidths[fs] = nil
+        FitName(fs)
     end
 end
 

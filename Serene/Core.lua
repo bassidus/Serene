@@ -17,6 +17,8 @@ ns.featureByKey = {}
 --   label      display name
 --   section    options page; none for a setting the window places itself
 --   category   heading on its page; categories keep their first-seen order
+--   sub        a subgroup heading inside the category, a frame of its own
+--              that opens and closes; keep a subgroup's settings together
 --   tooltip    help text under the category's "?" (on hover without a category)
 --   apply      fn run at login and on every change
 --   type       "boolean" (default) | "dropdown" | "slider" | "color" | "outline"
@@ -33,7 +35,7 @@ ns.featureByKey = {}
 --   blizzard   outline: fn returning Blizzard's own flags, shown on "default"
 --   note       text always shown under the control
 --   space      an empty row above the control
---   closed     on a category's first setting: the category starts closed
+--   closed     on a category's (or subgroup's) first setting: it starts closed
 --   beside     on a category's first setting: that category goes right of the
 --              previous one at half width; otherwise: right of the previous setting
 --   button     a plain button with this text in place of the field

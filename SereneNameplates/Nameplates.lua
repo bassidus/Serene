@@ -646,7 +646,7 @@ for _, c in ipairs({
     { "nameplateThreatDpsLow",      "Damage / healer", "Safe",           "00ff00" },
 }) do
     ns.RegisterFeature({
-        key = c[1], label = c[3], section = "Nameplates", category = c[2], type = "color",
+        key = c[1], label = c[3], section = "Nameplates", category = "Threat colors", sub = c[2], type = "color",
         default = c[4], beside = c[5], apply = Relayout,
         closed = c[3] == "Your aggro",  -- each role's first color
         tooltip = c[3] == "Your aggro" and ROLE_HELP[c[2]] or nil,

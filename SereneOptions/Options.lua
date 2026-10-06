@@ -351,10 +351,11 @@ end
 -- The help texts of a category's settings, for its "?", in registration
 -- order, a color's specials as "Name: text" under its own. Each reads on its
 -- own: the settings' labels are not repeated there. A position pair counts once.
-local function CategoryHelp(section, category)
+-- With sub, the help of that subgroup; without, the category's own settings.
+local function CategoryHelp(section, category, sub)
     local help = {}
     for _, f in ipairs(ns.features) do
-        if f.section == section and f.category == category and (not f.pos or f == f.pos.x) then
+        if f.section == section and f.category == category and f.sub == sub and (not f.pos or f == f.pos.x) then
             local lines = {}
             if f.tooltip then lines[1] = f.tooltip end
             for _, s in ipairs(f.specials or {}) do
@@ -539,7 +540,9 @@ end
 -- Each category opens and closes by its heading; the choice is kept in
 -- SereneDB.optionsOpen ("<section>/<category>" = true or false). Until
 -- then a category is open, unless its first setting has closed = true. A
--- change lays the page out again.
+-- subgroup (settings with sub) is a smaller frame inside its category that
+-- opens and closes the same way ("<section>/<category>/<sub>"). A change
+-- lays the page out again.
 local function CreatePage(section)
     local page = CreatePageFrame(section)
     CreatePageReset(page, section)
@@ -553,35 +556,41 @@ local function CreatePage(section)
     -- group's color shows in its editor).
     local startsOpen = {}
     for _, f in ipairs(ns.features) do
-        if f.section == section and f.category and startsOpen[f.category] == nil then
-            startsOpen[f.category] = not f.closed
+        if f.section == section and f.category then
+            if startsOpen[f.category] == nil then startsOpen[f.category] = f.sub ~= nil or not f.closed end
+            local key = f.sub and f.category .. "/" .. f.sub
+            if key and startsOpen[key] == nil then startsOpen[key] = not f.closed end
         end
     end
 
     local allOpen  -- while measuring the page with every category open
-    local function Open(category)
+    -- key: a category, or "<category>/<sub>" for a subgroup.
+    local function Open(key)
         if allOpen then return true end
-        local saved = (SereneDB.optionsOpen or {})[section .. "/" .. category]
-        if saved == nil then return startsOpen[category] end
+        local saved = (SereneDB.optionsOpen or {})[section .. "/" .. key]
+        if saved == nil then return startsOpen[key] end
         return saved
     end
 
     local Layout
-    local groups = {}  -- category -> its frame, made once
+    local groups = {}  -- key -> its frame, made once
 
-    local function Group(category)
-        if not groups[category] then
-            groups[category] = CreateGroup(content, category, function()
+    local function Group(category, sub)
+        local key = sub and category .. "/" .. sub or category
+        if not groups[key] then
+            groups[key] = CreateGroup(content, sub or category, function()
                 SereneDB.optionsOpen = SereneDB.optionsOpen or {}
-                local open = not Open(category)
-                SereneDB.optionsOpen[section .. "/" .. category] = open
-                if partner[category] then SereneDB.optionsOpen[section .. "/" .. partner[category]] = open end
+                local open = not Open(key)
+                SereneDB.optionsOpen[section .. "/" .. key] = open
+                if not sub and partner[category] then
+                    SereneDB.optionsOpen[section .. "/" .. partner[category]] = open
+                end
                 W.ClosePopups()
                 Layout()
-            end, CategoryHelp(section, category))
-            groups[category].category = category
+            end, CategoryHelp(section, category, sub))
+            groups[key].category, groups[key].sub, groups[key].key = category, sub, key
         end
-        return groups[category]
+        return groups[key]
     end
 
     local intro = ns.pageIntros[section] and content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -628,7 +637,7 @@ local function CreatePage(section)
     function Layout()
         -- gap: the space left under the last setting, which a group's frame
         -- takes back so it closes snugly below it.
-        local y, gap, group = -(36 - HEADER_H), 0, nil
+        local y, gap, group, sub = -(36 - HEADER_H), 0, nil, nil
         if intro then y = y - intro:GetStringHeight() - SPACING end
         local left  -- the left group of a pair, while the right one is laid out
 
@@ -650,13 +659,25 @@ local function CreatePage(section)
             return bottom
         end
 
+        -- The parent's frame ends GROUP_PAD under its last subgroup, as far
+        -- as the subgroup is in from its sides.
+        local function CloseSub()
+            y, gap, sub = CloseGroup(sub, y + gap), -GROUP_PAD / 2, nil
+        end
+
         -- A setting with beside (not a category's first) sits to the right of the
         -- one before it: row is that pair's top and the left one's bottom.
         local row
-        local function Beside(f) return f and f.beside and group and f.category == group.category end
+        local function Beside(f)
+            return f and f.beside and group and f.category == group.category and f.sub == (sub and sub.sub)
+        end
 
         for i, f in ipairs(list) do
             local right = row and Beside(f)
+            if f.category ~= (group and group.category) or f.sub ~= (sub and sub.sub) then
+                if sub then CloseSub() end
+                right = false
+            end
             if f.category ~= (group and group.category) then
                 if group then y = Close() end
                 group, right = nil, false
@@ -670,14 +691,25 @@ local function CreatePage(section)
                     if not Open(f.category) then y, gap = group.top - GROUP_PAD * 1.5 - group.headingH, 0 end
                 end
             end
+            if f.sub and not sub then
+                local s = Group(f.category, f.sub)
+                s:SetShown(Open(f.category))
+                if Open(f.category) then
+                    sub = s
+                    y = PlaceGroup(sub, y + math.max(gap, 0), group.left + GROUP_PAD, group.right + GROUP_PAD)
+                    sub.SetOpen(Open(sub.key))
+                    if not Open(sub.key) then y, gap = sub.top - GROUP_PAD * 1.5 - sub.headingH, 0 end
+                end
+            end
             local w, note = unpack(Made(f))
-            local shown = not group or Open(group.category)
+            local shown = not group or Open(group.category) and (not f.sub or Open(f.category .. "/" .. f.sub))
             w:SetShown(shown)
             if note then note:SetShown(shown) end
             if shown then
                 if f.space and not right then y = y - BLANK_ROW end
-                local x = group and group.left + GROUP_PAD or 0
-                local xr = group and group.right + GROUP_PAD or 0
+                local box = sub or group
+                local x = box and box.left + GROUP_PAD or 0
+                local xr = box and box.right + GROUP_PAD or 0
                 local halfRow = (PAGE_W - x - xr + SPACING) / 2
                 if right then
                     x, y = x + halfRow, row.top
@@ -707,6 +739,7 @@ local function CreatePage(section)
                 end
             end
         end
+        if sub then CloseSub() end
         if group then y = Close() end
         content:SetHeight(-y)
         return -y

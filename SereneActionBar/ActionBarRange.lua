@@ -150,7 +150,7 @@ local SECTION = "Action Bars"
 
 -- Loads after Keybinds.lua, so these come last under Settings.
 ns.RegisterFeature({
-    key = "rangeColors", label = "Out of range color", section = SECTION, category = "Settings", apply = Apply,
+    key = "rangeColors", label = "Enable out of range color", section = SECTION, category = "Settings", apply = Apply,
 })
 ns.RegisterFeature({
     key = "rangeColor", label = "Range color", section = SECTION, category = "Settings",

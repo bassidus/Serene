@@ -219,12 +219,25 @@ local ilvlCache = {}         -- guid -> { ilvl =, time = }
 local pending                -- { guid =, unit =, time = } of our open request
 local lastInspect, retryQueued = 0, false
 
--- ilvl nil shows "-" while the inspect is pending. The value takes the
--- unit's level difficulty color, like the level on the line above.
-local function ItemLevelLine(tt, unit, ilvl)
+-- How far above or below your own equipped item level, the way a level
+-- is colored against yours: red 10+ above, orange 5+, yellow within 4,
+-- green 5+ below, gray 10+ below.
+local function ItemLevelColor(ilvl)
+    local _, mine = GetAverageItemLevel()
+    local diff, c = floor(ilvl) - floor(mine), QuestDifficultyColors
+    if diff >= 10 then c = c.impossible
+    elseif diff >= 5 then c = c.verydifficult
+    elseif diff > -5 then c = c.difficult
+    elseif diff > -10 then c = c.standard
+    else c = c.trivial end
+    return c.r, c.g, c.b
+end
+
+-- ilvl nil shows "-" while the inspect is pending.
+local function ItemLevelLine(tt, ilvl)
     local text = ilvl and tostring(floor(ilvl)) or "-"
-    local r, g, b = LevelColor(unit)
-    if not r then r, g, b = 1, 1, 1 end
+    local r, g, b = 1, 1, 1
+    if ilvl then r, g, b = ItemLevelColor(ilvl) end
     local i = FindLine(tt, ILVL_LABEL)
     if i then
         local right = LineText(tt, "Right", i)
@@ -284,13 +297,13 @@ end
 local function PlayerItemLevel(tt, unit)
     if UnitIsUnit(unit, "player") then
         local _, equipped = GetAverageItemLevel()
-        return equipped > 0 and ItemLevelLine(tt, unit, equipped)
+        return equipped > 0 and ItemLevelLine(tt, equipped)
     end
     local guid = Clean(UnitGUID(unit))
     if not guid then return false end
     local ilvl = CachedItemLevel(guid)
     if not ilvl and not InFlight(guid) then RequestInspect(unit, guid) end
-    return ItemLevelLine(tt, unit, ilvl)
+    return ItemLevelLine(tt, ilvl)
 end
 
 local inspectEvents = CreateFrame("Frame")
@@ -306,7 +319,7 @@ inspectEvents:SetScript("OnEvent", function(_, _, guid)
     if not ilvl or ilvl <= 0 then return end
     ilvlCache[guid] = { ilvl = ilvl, time = GetTime() }
     if ns.Enabled("tooltipPlayerItemLevel") and TooltipUnitGUID() == guid then
-        ItemLevelLine(GameTooltip, unit, ilvl)
+        ItemLevelLine(GameTooltip, ilvl)
         GameTooltip:Show()  -- the value can be wider than the - it replaces
     end
 end)

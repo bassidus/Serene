@@ -436,10 +436,10 @@ for _, def in ipairs({
     { key = "tooltipItemLevel",       label = "Show item level" },
     { key = "tooltipPlayerItemLevel", label = "Show player item level", beside = true },
     { key = "tooltipTarget",          label = "Show target" },
-    { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
-    { key = "tooltipAFK",             label = "Show AFK" },
     { key = "tooltipHealthBar",       label = "Show health bar", beside = true,
       apply = function() GameTooltipStatusBar:SetAlpha(ns.Enabled("tooltipHealthBar") and 1 or 0) end },
+    { key = "tooltipAFK",             label = "Show AFK" },
+    { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
     { key = "tooltipDND",             label = "Show DND" },
 }) do
     def.section, def.category = "Tooltip", "Settings"

@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
---  Always Shown Bars -- turns the ticked bars (2-8) on for every character.
---  Each character remembers which ticks it has already followed and only
---  follows a change: a bar is turned on once, so a character that turns it
---  off again keeps it off, and unticking turns it off once. A bar that was
---  never ticked is the character's own and is left alone.
+--  Always Shown Bars -- bars 2-8 shown on every character as ticked.
+--  A character's first sync matches the ticks exactly. After that it
+--  remembers which ticks it has followed and only follows a change, so a
+--  bar the character turns on or off itself stays that way until its tick
+--  changes.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -33,8 +33,8 @@ function Sync()
     local toggles = { GetActionBarToggles() }  -- bars 2-8
     for bar = 2, 8 do
         local ticked, shown = ns.Enabled("showBar" .. bar), toggles[bar - 1]
-        if ticked ~= (SereneBarsSeen[bar] or false) and ticked ~= shown then SetShown(bar, ticked) end
-        SereneBarsSeen[bar] = ticked or nil
+        if ticked ~= SereneBarsSeen[bar] and ticked ~= shown then SetShown(bar, ticked) end
+        SereneBarsSeen[bar] = ticked
     end
 end
 
@@ -42,7 +42,7 @@ for bar = 2, 8 do
     ns.RegisterFeature({
         key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION, category = "Always shown bars",
         default = false, beside = bar % 2 == 1 or nil, apply = Sync,
-        note = bar == 8 and "Ticking or unticking reaches every character at its next login. "
+        note = bar == 8 and "Every character shows the ticked bars from its next login. "
             .. "A character can still turn a bar on or off itself." or nil,
     })
 end

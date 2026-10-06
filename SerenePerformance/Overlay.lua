@@ -142,7 +142,7 @@ local function Render()
     local fps = math.floor(GetFramerate() + 0.5)
     local ms = ns.Latency()
     parts[1] = Colored("fps", fps, fps .. " fps")
-    parts[2] = Colored("ms", ms, ms .. " ms")
+    parts[2] = ms and Colored("ms", ms, ms .. " ms") or "-- ms"
     local n, cpuText, memText = 2, nil, nil
     local cpu = ns.TotalCpu()
     local mem = 0

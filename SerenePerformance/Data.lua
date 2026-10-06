@@ -17,7 +17,7 @@ local slot = 0
 local paused = true  -- until the first loading screen is over
 
 -- World latency only: home (realm, chat) shares its connection on this
--- client and reads the same.
+-- client and reads the same. nil at login, before the client has measured it.
 function ns.Latency()
     local _, _, _, world = GetNetStats()
     return world
@@ -43,7 +43,7 @@ function ns.Average(key)
     local now, values = GetTime(), history[key]
     local n, sum = 0, 0
     for i, t in pairs(history.time) do
-        if now - t <= WINDOW then
+        if now - t <= WINDOW and values[i] then
             n, sum = n + 1, sum + values[i]
         end
     end

@@ -106,16 +106,6 @@ local function Apply()
     for _, name in ipairs(TOOLTIPS) do Style(_G[name]) end
 end
 
--- The health bar under unit tooltips is hidden with alpha only (never
--- Hide/Show on the bar), re-asserted each time Blizzard shows it.
-hooksecurefunc(GameTooltipStatusBar, "Show", function(bar)
-    if not ns.Enabled("tooltipHealthBar") then bar:SetAlpha(0) end
-end)
-
-ns.RegisterFeature({
-    key = "tooltipHealthBar", label = "Show health bar", section = "Tooltip", category = "Settings",
-    apply = function() GameTooltipStatusBar:SetAlpha(ns.Enabled("tooltipHealthBar") and 1 or 0) end,
-})
 ns.RegisterFeature({
     key = "tooltipBorder", label = "Show border", section = "Tooltip", category = "Settings", default = false,
     beside = true, apply = Apply,

@@ -1,8 +1,9 @@
 -------------------------------------------------------------------------------
 --  Tooltip Content -- class, level, faction and guild colors, titles, guild rank,
---  target, AFK/DND, item level and IDs. Every value read from a unit goes through
---  ns.Clean (secret values). Lines are added, recolored or hidden, and
---  tooltip refreshes update them in place instead of adding twice.
+--  target, AFK/DND, item level, IDs and the health bar. Every value read from
+--  a unit goes through ns.Clean (secret values). Lines are added, recolored
+--  or hidden, and tooltip refreshes update them in place instead of adding
+--  twice.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -417,8 +418,15 @@ TooltipDataProcessor.AddTooltipPostCall(T.Spell, OnSpell)
 TooltipDataProcessor.AddTooltipPostCall(T.UnitAura, OnSpell)
 TooltipDataProcessor.AddTooltipPostCall(T.PetAction, OnSpell)
 
+-- The health bar under unit tooltips is hidden with alpha only (never
+-- Hide/Show on the bar), re-asserted each time Blizzard shows it.
+hooksecurefunc(GameTooltipStatusBar, "Show", function(bar)
+    if not ns.Enabled("tooltipHealthBar") then bar:SetAlpha(0) end
+end)
+
 -------------------------------------------------------------------------------
--- In pairs, the second beside the first.
+-- In pairs, the second beside the first. Show DND pairs with Show border
+-- from TooltipBorder.lua.
 for _, def in ipairs({
     { key = "tooltipTitles",          label = "Show title",
       tooltip = "The lines, look and size of tooltips; players' item level is read out of combat" },
@@ -430,7 +438,9 @@ for _, def in ipairs({
     { key = "tooltipTarget",          label = "Show target" },
     { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
     { key = "tooltipAFK",             label = "Show AFK" },
-    { key = "tooltipDND",             label = "Show DND", beside = true },
+    { key = "tooltipHealthBar",       label = "Show health bar", beside = true,
+      apply = function() GameTooltipStatusBar:SetAlpha(ns.Enabled("tooltipHealthBar") and 1 or 0) end },
+    { key = "tooltipDND",             label = "Show DND" },
 }) do
     def.section, def.category = "Tooltip", "Settings"
     ns.RegisterFeature(def)

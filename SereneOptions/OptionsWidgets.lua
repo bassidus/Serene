@@ -1,29 +1,265 @@
 -------------------------------------------------------------------------------
 --  Options widgets -- every widget is bound to one registered feature, writes
---  through ns.SetValue and has a Refresh() that re-reads SereneDB. Plain
---  textures, no Blizzard templates, so nothing depends on the client's UI kit.
+--  through ns.SetValue and has a Refresh() that re-reads SereneDB. The
+--  surfaces are the CurseForge banner's browns, in rounded panels drawn from
+--  Serene's own textures (Media: Corner, CornerFill, Glow); the controls
+--  wear Blizzard's classic art. No Blizzard templates beyond
+--  BackdropTemplate for the slider's bar.
 -------------------------------------------------------------------------------
 local ns = Serene
 
 local W = {}
 ns.Widgets = W
 
--- Warm darks, like the logo's face.
-W.ACCENT = ns.ACCENT
-W.BG     = { 0.07, 0.055, 0.055, 0.97 }
-W.PANEL  = { 0.1, 0.08, 0.078, 1 }
-W.FIELD  = { 0.125, 0.1, 0.097, 1 }
-W.EDGE   = { 0.28, 0.22, 0.21, 1 }
-W.GOLD   = { 1, 0.82, 0 }
-W.DIM    = W.GOLD
+W.GOLD      = { 1, 0.82, 0 }
+W.TAN       = { 0.69, 0.6, 0.47 }
+W.EDGE      = { 0.4, 0.27, 0.19 }     -- 1px borders of swatches and chips
+W.HIGHLIGHT = { 0.196, 0.388, 0.8 }   -- the quest log's selection blue
 
-local ACCENT, FIELD, EDGE, DIM = W.ACCENT, W.FIELD, W.EDGE, W.DIM
+local GOLD, TAN, EDGE = W.GOLD, W.TAN, W.EDGE
+local WHITE = { 1, 1, 1 }
+local DARK = { 0, 0, 0, 0.6 }  -- behind chips, swatches and the position pad
 local CONTROL_W = 260
+
+local MEDIA = "Interface\\AddOns\\Serene\\Media\\"
+local ART = {
+    check     = "Interface\\Buttons\\UI-CheckBox-Up",
+    checkDown = "Interface\\Buttons\\UI-CheckBox-Down",
+    checkHl   = "Interface\\Buttons\\UI-CheckBox-Highlight",
+    checkMark = "Interface\\Buttons\\UI-CheckBox-Check",
+    button    = "Interface\\Buttons\\UI-Panel-Button-Up",
+    buttonDown = "Interface\\Buttons\\UI-Panel-Button-Down",
+    buttonOff = "Interface\\Buttons\\UI-Panel-Button-Disabled",
+    buttonHl  = "Interface\\Buttons\\UI-Panel-Button-Highlight",
+    arrow     = "Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up",
+    arrowDown = "Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Down",
+    titleHl   = "Interface\\QuestFrame\\UI-QuestLogTitleHighlight",
+    rowHl     = "Interface\\QuestFrame\\UI-QuestTitleHighlight",
+}
 
 function W.Solid(parent, layer, c, a)
     local t = parent:CreateTexture(nil, layer)
     t:SetColorTexture(c[1], c[2], c[3], a or c[4] or 1)
     return t
+end
+
+-------------------------------------------------------------------------------
+--  Panels -- a fill and a 1px line around it, both with rounded corners: the
+--  corners are quarter pieces (Media\Corner, Media\CornerFill) flipped into
+--  place, the rest plain textures, so they stay round at any size. A fill is
+--  flat (fill) or a top-to-bottom fade (top, bottom); glow lays Media\Glow,
+--  in that color, over it.
+-------------------------------------------------------------------------------
+local RADIUS = 8
+local STYLES = {
+    -- The banner: a reddish glow fading out to near black.
+    WINDOW = { fill = { 0.09, 0.059, 0.043, 0.97 }, glow = { 0.227, 0.106, 0.063 }, line = { 0.42, 0.24, 0.14, 1 } },
+    PANEL  = { top = { 0, 0, 0, 0.18 }, bottom = { 0, 0, 0, 0.28 }, line = { 0.59, 0.35, 0.22, 0.45 } },
+    GROUP  = { top = { 1, 0.55, 0.35, 0.045 }, bottom = { 1, 0.55, 0.35, 0.015 }, line = { 0.59, 0.35, 0.22, 0.35 } },
+    POPUP  = { fill = { 0.09, 0.059, 0.043, 0.98 }, glow = { 0.227, 0.106, 0.063 }, line = { 0.42, 0.24, 0.14, 1 } },
+    FIELD  = { fill = { 0, 0, 0, 0.55 }, line = { 0.63, 0.39, 0.24, 0.6 } },
+}
+W.LINE = STYLES.GROUP.line
+
+-- Texcoords turning the top-left quarter into each corner.
+local CORNERS = {
+    TOPLEFT = { 0, 1, 0, 1 }, TOPRIGHT = { 1, 0, 0, 1 },
+    BOTTOMLEFT = { 0, 1, 1, 0 }, BOTTOMRIGHT = { 1, 0, 1, 0 },
+}
+
+-- Returns the panel: SetLineColor(c) (e.g. on hover; nil puts the style's
+-- back) and SetShown(on).
+function W.Panel(frame, style)
+    local s = STYLES[style]
+    local top, bottom = s.top or s.fill, s.bottom or s.fill
+    local fills, lines = {}, {}
+
+    local function Piece(list, layer, sub, file)
+        local t = frame:CreateTexture(nil, layer, nil, sub)
+        if file then t:SetTexture(file) else t:SetColorTexture(1, 1, 1, 1) end
+        list[#list + 1] = t
+        return t
+    end
+    local function Shade(t)
+        if s.fill then
+            t:SetVertexColor(s.fill[1], s.fill[2], s.fill[3], s.fill[4])
+        else
+            t:SetGradient("VERTICAL", CreateColor(unpack(bottom)), CreateColor(unpack(top)))
+        end
+    end
+
+    -- Fill: a full-height middle, the sides between the corners, the corners.
+    local mid = Piece(fills, "BACKGROUND", -8)
+    mid:SetPoint("TOPLEFT", RADIUS, 0)
+    mid:SetPoint("BOTTOMRIGHT", -RADIUS, 0)
+    Shade(mid)
+    for _, side in ipairs({ "LEFT", "RIGHT" }) do
+        local t = Piece(fills, "BACKGROUND", -8)
+        local x = side == "LEFT" and RADIUS or -RADIUS
+        t:SetPoint("TOP" .. side, 0, -RADIUS)
+        t:SetPoint("BOTTOM" .. (side == "LEFT" and "RIGHT" or "LEFT"), frame, "BOTTOM" .. side, x, RADIUS)
+        Shade(t)
+    end
+    for point, coords in pairs(CORNERS) do
+        local t = Piece(fills, "BACKGROUND", -8, MEDIA .. "CornerFill")
+        t:SetSize(RADIUS, RADIUS)
+        t:SetPoint(point)
+        t:SetTexCoord(unpack(coords))
+        local c = point:find("TOP") and top or bottom
+        t:SetVertexColor(c[1], c[2], c[3], c[4])
+    end
+    if s.glow then
+        local glow = Piece(fills, "BACKGROUND", -7, MEDIA .. "Glow")
+        glow:SetAllPoints()
+        glow:SetVertexColor(s.glow[1], s.glow[2], s.glow[3])
+    end
+
+    -- Line: the corners, then the four straight runs between them.
+    for point, coords in pairs(CORNERS) do
+        local t = Piece(lines, "BORDER", 0, MEDIA .. "Corner")
+        t:SetSize(RADIUS, RADIUS)
+        t:SetPoint(point)
+        t:SetTexCoord(unpack(coords))
+    end
+    for _, edge in ipairs({ "TOP", "BOTTOM" }) do
+        local t = Piece(lines, "BORDER", 0)
+        t:SetPoint(edge .. "LEFT", RADIUS, 0)
+        t:SetPoint(edge .. "RIGHT", -RADIUS, 0)
+        t:SetHeight(1)
+    end
+    for _, edge in ipairs({ "LEFT", "RIGHT" }) do
+        local t = Piece(lines, "BORDER", 0)
+        t:SetPoint("TOP" .. edge, 0, -RADIUS)
+        t:SetPoint("BOTTOM" .. edge, 0, RADIUS)
+        t:SetWidth(1)
+    end
+
+    local panel = {}
+    function panel.SetLineColor(c)
+        c = c or s.line
+        for _, t in ipairs(lines) do t:SetVertexColor(c[1], c[2], c[3], c[4] or 1) end
+    end
+    function panel.SetShown(on)
+        for _, t in ipairs(fills) do t:SetShown(on) end
+        for _, t in ipairs(lines) do t:SetShown(on) end
+    end
+    panel.SetLineColor()
+    return panel
+end
+
+-------------------------------------------------------------------------------
+--  Blizzard's control art
+-------------------------------------------------------------------------------
+-- The quest log's blue selection bar over a button, hidden; the caller shows
+-- it on hover or while selected.
+function W.Highlight(btn, file)
+    local t = btn:CreateTexture(nil, "BORDER")
+    t:SetTexture(file or ART.titleHl)
+    t:SetBlendMode("ADD")
+    t:SetVertexColor(W.HIGHLIGHT[1], W.HIGHLIGHT[2], W.HIGHLIGHT[3])
+    t:SetAllPoints()
+    t:Hide()
+    return t
+end
+
+-- A checkbox's box drawn on parent, size across (the art has a margin
+-- around the box it shows). Returns it with SetChecked(on), SetHover(on)
+-- and SetPushed(on).
+function W.CheckArt(parent, size)
+    local box = CreateFrame("Frame", nil, parent)
+    box:SetSize(size, size)
+    local up = box:CreateTexture(nil, "ARTWORK")
+    up:SetAllPoints()
+    up:SetTexture(ART.check)
+    local hl = box:CreateTexture(nil, "ARTWORK", nil, 1)
+    hl:SetAllPoints()
+    hl:SetTexture(ART.checkHl)
+    hl:SetBlendMode("ADD")
+    hl:Hide()
+    local mark = box:CreateTexture(nil, "OVERLAY")
+    mark:SetAllPoints()
+    mark:SetTexture(ART.checkMark)
+
+    function box.SetChecked(on) mark:SetShown(on and true or false) end
+    function box.SetHover(on) hl:SetShown(on) end
+    function box.SetPushed(on) up:SetTexture(on and ART.checkDown or ART.check) end
+    return box
+end
+
+-- Wires a button's hover and press to its CheckArt.
+local function CheckRow(row, art)
+    row:HookScript("OnEnter", function() art.SetHover(true) end)
+    row:HookScript("OnLeave", function() art.SetHover(false) end)
+    row:HookScript("OnMouseDown", function() art.SetPushed(true) end)
+    row:HookScript("OnMouseUp", function() art.SetPushed(false) end)
+end
+
+-- The red panel button's art, left cap, middle and right cap of its file.
+local BUTTON_SLICES = { { 0, 0.09375 }, { 0.09375, 0.53125 }, { 0.53125, 0.625 } }
+local BUTTON_V, BUTTON_CAP = 0.6875, 12
+
+-- Dresses btn (any button, the secure Reload one too) as Blizzard's red
+-- panel button reading label: gold text, white while hovered or locked.
+-- opts.small: the small font; opts.fit: as wide as its text. Adds
+-- btn.SetLabel(text) and btn.SetLocked(on), which keeps it lit (e.g. armed).
+function W.RedButton(btn, label, opts)
+    opts = opts or {}
+    local slices, lit = {}, {}
+    local function Slices(list, layer, file)
+        for i, sl in ipairs(BUTTON_SLICES) do
+            local t = btn:CreateTexture(nil, layer)
+            t:SetTexture(file)
+            t:SetTexCoord(sl[1], sl[2], 0, BUTTON_V)
+            if i == 1 then
+                t:SetPoint("TOPLEFT"); t:SetPoint("BOTTOMLEFT"); t:SetWidth(BUTTON_CAP)
+            elseif i == 3 then
+                t:SetPoint("TOPRIGHT"); t:SetPoint("BOTTOMRIGHT"); t:SetWidth(BUTTON_CAP)
+            else
+                t:SetPoint("TOPLEFT", BUTTON_CAP, 0); t:SetPoint("BOTTOMRIGHT", -BUTTON_CAP, 0)
+            end
+            list[i] = t
+        end
+    end
+    Slices(slices, "BACKGROUND", ART.button)
+    Slices(lit, "HIGHLIGHT", ART.buttonHl)
+    for _, t in ipairs(lit) do t:SetBlendMode("ADD") end
+
+    local function Art(file)
+        for i, t in ipairs(slices) do
+            t:SetTexture(file)
+            t:SetTexCoord(BUTTON_SLICES[i][1], BUTTON_SLICES[i][2], 0, BUTTON_V)
+        end
+    end
+
+    local text = btn:CreateFontString(nil, "OVERLAY", opts.small and "GameFontNormalSmall" or "GameFontNormal")
+    -- Centered on the art's face, which sits a little lower than the middle.
+    text:SetPoint("CENTER", 0, -1)
+    btn.label = text
+
+    local locked = false
+    local function Paint()
+        local c = not btn:IsEnabled() and { 0.5, 0.5, 0.5 } or (locked or btn:IsMouseOver()) and WHITE or GOLD
+        text:SetTextColor(c[1], c[2], c[3])
+    end
+    function btn.SetLabel(s)
+        text:SetText(s)
+        if opts.fit then btn:SetWidth(math.ceil(text:GetStringWidth()) + 2 * BUTTON_CAP + 12) end
+    end
+    function btn.SetLocked(on)
+        locked = on
+        if on then btn:LockHighlight() else btn:UnlockHighlight() end
+        Paint()
+    end
+    btn:HookScript("OnEnter", Paint)
+    btn:HookScript("OnLeave", Paint)
+    btn:HookScript("OnMouseDown", function(self) if self:IsEnabled() then Art(ART.buttonDown) end end)
+    btn:HookScript("OnMouseUp", function() Art(ART.button) end)
+    btn:HookScript("OnEnable", function() Art(ART.button); Paint() end)
+    btn:HookScript("OnDisable", function() Art(ART.buttonOff); Paint() end)
+    btn:SetHeight(opts.small and 20 or 22)
+    btn.SetLabel(label)
+    Paint()
+    return btn
 end
 
 -- 1px border; returns the four edges so the color can change on hover.
@@ -117,17 +353,13 @@ function W.Checkbox(parent, f)
     local row = CreateFrame("Button", nil, parent)
     row:SetHeight(26)
 
-    local box = CreateFrame("Frame", nil, row)
-    box:SetSize(16, 16)
-    box:SetPoint("LEFT", 0, 0)
-    W.Solid(box, "BACKGROUND", FIELD):SetAllPoints()
-    local edges = W.Border(box, EDGE)
-    local check = W.Solid(box, "ARTWORK", ACCENT)
-    check:SetPoint("TOPLEFT", 3, -3)
-    check:SetPoint("BOTTOMRIGHT", -3, 3)
+    -- The art's box shows about 16 across in the middle, at the row's left.
+    local box = W.CheckArt(row, 26)
+    box:SetPoint("LEFT", -5, 0)
+    CheckRow(row, box)
 
     local label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    label:SetPoint("LEFT", box, "RIGHT", 10, 0)
+    label:SetPoint("LEFT", 26, 0)
     label:SetText(f.label)
     row.label = label
 
@@ -135,8 +367,6 @@ function W.Checkbox(parent, f)
         PlayClick()
         if f.set then f.set(not Checked()) else ns.SetValue(f.key, not SereneDB[f.key]) end
     end)
-    row:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
-    row:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
     AttachTooltip(row, f)
 
     -- "Requires Enemy nameplates" beside the label; on the parent, so the row's
@@ -145,11 +375,10 @@ function W.Checkbox(parent, f)
     if f.addon then
         note = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         note:SetPoint("LEFT", label, "RIGHT", 12, 0)
-        note:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
     end
 
     function row.Refresh()
-        check:SetShown(Checked() and true or false)
+        box.SetChecked(Checked())
         row:SetEnabled(Available(row, f))
         if note then
             local missing = MissingAddon(f)
@@ -165,19 +394,23 @@ end
 --  holds more than MAX_ROWS entries. Closes on any click outside it.
 -------------------------------------------------------------------------------
 local MAX_ROWS, ROW_H = 12, 20
+local MENU_PAD = 5  -- inside the list's rounded line
 local menu, menuRows, state = nil, {}, {}
 
 local function MenuRow(i)
     if menuRows[i] then return menuRows[i] end
     local r = CreateFrame("Button", nil, menu)
     r:SetHeight(ROW_H)
-    r:SetPoint("TOPLEFT", 1, -1 - (i - 1) * ROW_H)
-    r:SetPoint("TOPRIGHT", -6, -1 - (i - 1) * ROW_H)
-    r.hl = W.Solid(r, "BACKGROUND", ACCENT, 0.18)
-    r.hl:SetAllPoints()
-    r.hl:Hide()
+    r:SetPoint("TOPLEFT", MENU_PAD, -MENU_PAD - (i - 1) * ROW_H)
+    r:SetPoint("TOPRIGHT", -MENU_PAD - 5, -MENU_PAD - (i - 1) * ROW_H)
+    r.hl = W.Highlight(r, ART.rowHl)
+    -- The current choice is ticked.
+    r.mark = r:CreateTexture(nil, "OVERLAY")
+    r.mark:SetTexture(ART.checkMark)
+    r.mark:SetSize(16, 16)
+    r.mark:SetPoint("LEFT", 2, 0)
     r.text = r:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    r.text:SetPoint("LEFT", 8, 0)
+    r.text:SetPoint("LEFT", 20, 0)
     r.text:SetPoint("RIGHT", -4, 0)
     r.text:SetJustifyH("LEFT")
     r:SetScript("OnEnter", function(self) self.hl:Show() end)
@@ -201,15 +434,11 @@ local function Render()
         r.value = o.value
         if state.preview then SetPreviewFont(r.text, o.value) else r.text:SetFontObject(GameFontHighlight) end
         r.text:SetText(o.label)
-        if o.value == state.selected then
-            r.text:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
-        else
-            r.text:SetTextColor(1, 1, 1)
-        end
+        r.mark:SetShown(o.value == state.selected)
         r:Show()
     end
     for i = n + 1, #menuRows do menuRows[i]:Hide() end
-    menu:SetHeight(n * ROW_H + 2)
+    menu:SetHeight(n * ROW_H + 2 * MENU_PAD)
 
     -- Scroll position marker along the right edge.
     if #opts > MAX_ROWS then
@@ -217,7 +446,7 @@ local function Render()
         local thumbH = math.max(12, trackH * MAX_ROWS / #opts)
         local y = (trackH - thumbH) * state.offset / (#opts - MAX_ROWS)
         menu.thumb:SetHeight(thumbH)
-        menu.thumb:SetPoint("TOPRIGHT", -2, -1 - y)
+        menu.thumb:SetPoint("TOPRIGHT", -MENU_PAD, -MENU_PAD - y)
         menu.thumb:Show()
     else
         menu.thumb:Hide()
@@ -231,9 +460,8 @@ local function GetMenu()
     menu:SetClampedToScreen(true)
     menu:EnableMouse(true)
     menu:EnableMouseWheel(true)
-    W.Solid(menu, "BACKGROUND", W.PANEL):SetAllPoints()
-    W.Border(menu, EDGE)
-    menu.thumb = W.Solid(menu, "ARTWORK", ACCENT, 0.6)
+    W.Panel(menu, "POPUP")
+    menu.thumb = W.Solid(menu, "ARTWORK", GOLD, 0.5)
     menu.thumb:SetWidth(3)
     menu:Hide()
 
@@ -302,18 +530,17 @@ local function Field(parent, labelText, onClick)
     else
         btn:SetPoint("TOPLEFT", 0, 0)
     end
-    W.Solid(btn, "BACKGROUND", FIELD):SetAllPoints()
-    local edges = W.Border(btn, EDGE)
+    btn.panel = W.Panel(btn, "FIELD")
 
+    -- Blizzard's round scroll-down button, pressed while the field is.
     local arrow = btn:CreateTexture(nil, "ARTWORK")
-    arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Up")
-    arrow:SetSize(12, 12)
-    arrow:SetPoint("RIGHT", -8, -2)
-    arrow:SetVertexColor(DIM[1], DIM[2], DIM[3])
+    arrow:SetTexture(ART.arrow)
+    arrow:SetSize(24, 24)
+    arrow:SetPoint("RIGHT", 0, 0)
 
     local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    text:SetPoint("LEFT", 8, 0)
-    text:SetPoint("RIGHT", arrow, "LEFT", -4, 0)
+    text:SetPoint("LEFT", 10, 0)
+    text:SetPoint("RIGHT", arrow, "LEFT", -2, 0)
     text:SetJustifyH("LEFT")
     text:SetWordWrap(false)
 
@@ -321,8 +548,10 @@ local function Field(parent, labelText, onClick)
         PlayClick()
         onClick(self)
     end)
-    btn:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
-    btn:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
+    btn:SetScript("OnEnter", function() btn.panel.SetLineColor(GOLD) end)
+    btn:SetScript("OnLeave", function() btn.panel.SetLineColor() end)
+    btn:SetScript("OnMouseDown", function() arrow:SetTexture(ART.arrowDown) end)
+    btn:SetScript("OnMouseUp", function() arrow:SetTexture(ART.arrow) end)
     -- Narrower than CONTROL_W in a half-width category; a plain button keeps its own width.
     holder:SetScript("OnSizeChanged", function(_, w)
         if not btn.plain and w > 0 then btn:SetWidth(math.min(CONTROL_W, w)) end
@@ -330,14 +559,13 @@ local function Field(parent, labelText, onClick)
     return holder, btn, text, arrow
 end
 
--- A field turned into a plain button reading `label`, sized to it.
+-- A field turned into a red button reading `label`, sized to it. The field's
+-- hover scripts stay (tooltips hook them) and only touch hidden parts.
 local function AsButton(btn, text, arrow, label)
+    btn.panel.SetShown(false)
     arrow:Hide()
-    text:ClearAllPoints()
-    text:SetPoint("CENTER")
-    text:SetJustifyH("CENTER")
-    text:SetText(label)
-    btn:SetWidth(math.ceil(text:GetStringWidth()) + 32)
+    text:Hide()
+    W.RedButton(btn, label, { fit = true })
     btn.plain = true
 end
 
@@ -460,9 +688,9 @@ function W.Color(parent, f, labeled)
     local choices = {}  -- { button, edges, value (special word or hex), [fill] }
     local function Choice(button, value)
         local c = { button = button, value = value }
-        W.Solid(button, "BACKGROUND", FIELD):SetAllPoints()
+        W.Solid(button, "BACKGROUND", DARK):SetAllPoints()
         c.edges = W.Border(button, EDGE)
-        button:SetScript("OnEnter", function() W.SetBorderColor(c.edges, ACCENT) end)
+        button:SetScript("OnEnter", function() W.SetBorderColor(c.edges, WHITE) end)
         button:SetScript("OnLeave", function() holder.Refresh() end)
         choices[#choices + 1] = c
         return c
@@ -530,9 +758,9 @@ function W.Color(parent, f, labeled)
         for _, c in ipairs(choices) do
             local on = c.value ~= nil and c.value == selected
             matched = matched or on
-            W.SetBorderColor(c.edges, on and ACCENT or EDGE)
+            W.SetBorderColor(c.edges, on and GOLD or EDGE)
             if c.text then
-                if on then c.text:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3]) else c.text:SetTextColor(1, 1, 1) end
+                if on then c.text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) else c.text:SetTextColor(1, 1, 1) end
             end
         end
         -- A color off the palette lives on the "+" swatch.
@@ -541,7 +769,7 @@ function W.Color(parent, f, labeled)
         custom.fill:SetShown(own)
         custom.plus:SetShown(not own)
         if own then custom.fill:SetColorTexture(r, g, b, 1) end
-        W.SetBorderColor(custom.edges, own and ACCENT or EDGE)
+        W.SetBorderColor(custom.edges, own and GOLD or EDGE)
         local on = Available(holder, f)
         for _, c in ipairs(choices) do c.button:SetEnabled(on) end
     end
@@ -577,7 +805,7 @@ function W.Outline(parent, f)
     local chip
     if f.default == "default" then
         local button = CreateFrame("Button", nil, holder)
-        W.Solid(button, "BACKGROUND", FIELD):SetAllPoints()
+        W.Solid(button, "BACKGROUND", DARK):SetAllPoints()
         local edges = W.Border(button, EDGE)
         local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         text:SetPoint("CENTER")
@@ -587,7 +815,7 @@ function W.Outline(parent, f)
         button:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
         x = width + 16
         button:SetScript("OnClick", function() PlayClick(); ns.SetValue(f.key, "default") end)
-        button:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
+        button:SetScript("OnEnter", function() W.SetBorderColor(edges, WHITE) end)
         button:SetScript("OnLeave", function() holder.Refresh() end)
         AttachTooltip(button, f)
         chip = { button = button, edges = edges, text = text }
@@ -597,16 +825,11 @@ function W.Outline(parent, f)
     local boxes = {}
     for _, o in ipairs(ns.OUTLINE_FLAGS) do
         local row = CreateFrame("Button", nil, holder)
-        local box = CreateFrame("Frame", nil, row)
-        box:SetSize(16, 16)
-        box:SetPoint("LEFT", 0, 0)
-        W.Solid(box, "BACKGROUND", FIELD):SetAllPoints()
-        local edges = W.Border(box, EDGE)
-        local check = W.Solid(box, "ARTWORK", ACCENT)
-        check:SetPoint("TOPLEFT", 3, -3)
-        check:SetPoint("BOTTOMRIGHT", -3, 3)
+        local box = W.CheckArt(row, 24)
+        box:SetPoint("LEFT", -4, 0)
+        CheckRow(row, box)
         local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        text:SetPoint("LEFT", box, "RIGHT", 6, 0)
+        text:SetPoint("LEFT", 22, 0)
         text:SetText(o.label)
         local width = 22 + math.ceil(text:GetStringWidth())
         row:SetSize(width, 20)
@@ -618,21 +841,19 @@ function W.Outline(parent, f)
             set[o.value] = not set[o.value] or nil
             ns.SetValue(f.key, ns.OutlineValue(set))
         end)
-        row:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
-        row:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
         AttachTooltip(row, f)
-        boxes[#boxes + 1] = { flag = o.value, check = check }
+        boxes[#boxes + 1] = { flag = o.value, box = box }
         controls[#controls + 1] = row
     end
     holder.width = x - 14  -- the row's own width, for the editor
 
     function holder.Refresh()
         local set = Shown()
-        for _, b in ipairs(boxes) do b.check:SetShown(set[b.flag] and true or false) end
+        for _, b in ipairs(boxes) do b.box.SetChecked(set[b.flag]) end
         if chip then
             local on = ns.Get(f.key) == "default"
-            W.SetBorderColor(chip.edges, on and ACCENT or EDGE)
-            if on then chip.text:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3]) else chip.text:SetTextColor(1, 1, 1) end
+            W.SetBorderColor(chip.edges, on and GOLD or EDGE)
+            if on then chip.text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) else chip.text:SetTextColor(1, 1, 1) end
         end
         local on = Available(holder, f)
         for _, c in ipairs(controls) do c:SetEnabled(on) end
@@ -651,33 +872,27 @@ function W.Slider(parent, f)
     label:SetPoint("TOPLEFT", 0, 0)
     label:SetText(f.label)
 
-    local slider = CreateFrame("Slider", nil, holder)
+    -- Blizzard's options slider: its bar is a backdrop, the knob its own art.
+    local slider = CreateFrame("Slider", nil, holder, "BackdropTemplate")
     slider:SetOrientation("HORIZONTAL")
-    slider:SetSize(CONTROL_W, 16)
-    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -8)
+    slider:SetSize(CONTROL_W, 17)
+    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
     slider:SetMinMaxValues(f.min, f.max)
     slider:SetValueStep(f.step or 1)
     slider:SetObeyStepOnDrag(true)
     slider:EnableMouseWheel(true)
-
-    local track = W.Solid(slider, "BACKGROUND", FIELD)
-    track:SetPoint("LEFT")
-    track:SetPoint("RIGHT")
-    track:SetHeight(4)
-
-    local thumb = slider:CreateTexture(nil, "OVERLAY")
-    thumb:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-    thumb:SetSize(8, 16)
-    slider:SetThumbTexture(thumb)
-
-    local fill = W.Solid(slider, "ARTWORK", ACCENT, 0.5)
-    fill:SetPoint("LEFT", track, "LEFT")
-    fill:SetPoint("RIGHT", thumb, "CENTER")
-    fill:SetHeight(4)
+    slider:SetBackdrop({
+        bgFile = "Interface\\Buttons\\UI-SliderBar-Background",
+        edgeFile = "Interface\\Buttons\\UI-SliderBar-Border",
+        tile = true, tileSize = 8, edgeSize = 8,
+        insets = { left = 3, right = 3, top = 6, bottom = 6 },
+    })
+    slider:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
+    slider:GetThumbTexture():SetSize(32, 32)
 
     local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    valueText:SetPoint("BOTTOMRIGHT", slider, "TOPRIGHT", 0, 8)
-    valueText:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
+    valueText:SetPoint("BOTTOMRIGHT", slider, "TOPRIGHT", 0, 6)
+    valueText:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
     local step, suffix = f.step or 1, f.suffix or ""
     slider:SetScript("OnValueChanged", function(_, v, userInput)
@@ -724,7 +939,7 @@ local function PositionPad(parent, pos)
     local pad = CreateFrame("Frame", nil, holder)
     pad:SetSize((fx.max - fx.min) * scale, (fy.max - fy.min) * scale)
     pad:SetPoint("TOPLEFT", 0, 0)
-    W.Solid(pad, "BACKGROUND", FIELD):SetAllPoints()
+    W.Solid(pad, "BACKGROUND", DARK):SetAllPoints()
     local edges = W.Border(pad, EDGE)
     holder:SetHeight(pad:GetHeight())
 
@@ -736,9 +951,9 @@ local function PositionPad(parent, pos)
     local box = CreateFrame("Frame", nil, pad)
     box:SetPoint("BOTTOMLEFT", PX(b[1]), PY(b[3]))
     box:SetSize((b[2] - b[1]) * scale, (b[4] - b[3]) * scale)
-    W.Solid(box, "BACKGROUND", EDGE, 0.5):SetAllPoints()
-    W.Border(box, DIM)
-    local home = W.Solid(box, "ARTWORK", DIM)
+    W.Solid(box, "BACKGROUND", W.LINE, 0.3):SetAllPoints()
+    W.Border(box, TAN)
+    local home = W.Solid(box, "ARTWORK", TAN)
     home:SetSize(4, 4)
     home:SetPoint("CENTER", pad, "BOTTOMLEFT", PX(fx.default), PY(fy.default))
 
@@ -746,7 +961,7 @@ local function PositionPad(parent, pos)
     local dot = CreateFrame("Frame", nil, pad)
     dot:SetSize(DOT, DOT)
     dot:SetFrameLevel(box:GetFrameLevel() + 1)
-    W.Solid(dot, "ARTWORK", ACCENT):SetAllPoints()
+    W.Solid(dot, "ARTWORK", GOLD):SetAllPoints()
 
     local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     valueText:SetPoint("TOPLEFT", pad, "TOPRIGHT", 12, 0)
@@ -783,7 +998,7 @@ local function PositionPad(parent, pos)
     end)
     pad:SetScript("OnMouseUp", Stop)
     pad:SetScript("OnHide", Stop)
-    pad:SetScript("OnEnter", function() W.SetBorderColor(edges, ACCENT) end)
+    pad:SetScript("OnEnter", function() W.SetBorderColor(edges, GOLD) end)
     pad:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
 
     function holder.Refresh()
@@ -815,11 +1030,10 @@ local function GetEditor()
     editor:SetFrameStrata("FULLSCREEN")
     editor:SetClampedToScreen(true)
     editor:EnableMouse(true)
-    W.Solid(editor, "BACKGROUND", W.PANEL):SetAllPoints()
-    W.Border(editor, EDGE)
+    W.Panel(editor, "POPUP")
     editor.title = editor:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     editor.title:SetPoint("TOPLEFT", EDITOR_PAD, -EDITOR_PAD)
-    editor.title:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
+    editor.title:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
     editor:Hide()
 
     local function Over(frame) return frame and frame:IsShown() and frame:IsMouseOver() end
@@ -1052,7 +1266,7 @@ function W.Help(parent, title, help)
         GameTooltip:SetText(title, 1, 1, 1)
         for _, h in ipairs(help) do
             GameTooltip:AddLine(" ")
-            GameTooltip:AddLine(h.label, ACCENT[1], ACCENT[2], ACCENT[3])
+            GameTooltip:AddLine(h.label, GOLD[1], GOLD[2], GOLD[3])
             GameTooltip:AddLine(h.text, nil, nil, nil, true)
         end
         GameTooltip:Show()

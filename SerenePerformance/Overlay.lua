@@ -19,7 +19,9 @@ local _, ns = ...
 
 local UPDATE_INTERVAL = 1
 local MEMORY_EVERY = 5  -- ticks between memory rescans
-local PAD_X, PAD_Y, COL_GAP = 6, 4, 6
+local COL_GAP = 6
+-- Padding around the text: plain, and inside the tooltip border.
+local PAD = { plain = { 6, 4 }, border = { 10, 8 } }
 local DIVIDER_W = 8
 local MIN_COL, MIN_NAME = 30, 40
 local DEFAULTS = { cpuW = 40, memW = 50 }
@@ -67,7 +69,8 @@ local function Save(key, value)
     SereneDB.overlayPos[key] = value
 end
 
-local frame, bg, line, ticker
+local frame, line, ticker
+local PAD_X, PAD_Y  -- the current PAD, set by Style
 local header = {}    -- name, cpu, mem: column titles
 local dividers = {}  -- cpuW, memW: drag handles at those columns' left edge
 local rows = {}      -- { name, cpu, mem } font strings per line
@@ -304,7 +307,26 @@ local function Style()
     for _, r in ipairs(rows) do
         SetFont(r.name); SetFont(r.cpu); SetFont(r.mem)
     end
-    bg:SetColorTexture(0, 0, 0, ns.Get("overlayBackground") / 100)
+    -- One backdrop either way: the game's tooltip look, or a plain box.
+    local alpha = ns.Get("overlayBackground") / 100
+    if ns.Enabled("overlayBorder") then
+        PAD_X, PAD_Y = unpack(PAD.border)
+        frame:SetBackdrop({
+            bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            tile = true, tileSize = 16, edgeSize = 16,
+            insets = { left = 4, right = 4, top = 4, bottom = 4 },
+        })
+        local bgc, edge = TOOLTIP_DEFAULT_BACKGROUND_COLOR, TOOLTIP_DEFAULT_COLOR
+        frame:SetBackdropColor(bgc.r, bgc.g, bgc.b, alpha)
+        frame:SetBackdropBorderColor(edge.r, edge.g, edge.b)
+        line:SetColorTexture(HEADER_COLOR[1], HEADER_COLOR[2], HEADER_COLOR[3], 0.35)
+    else
+        PAD_X, PAD_Y = unpack(PAD.plain)
+        frame:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8" })
+        frame:SetBackdropColor(0, 0, 0, alpha)
+        line:SetColorTexture(1, 1, 1, 0.2)
+    end
 end
 
 local function CursorX(region)
@@ -323,7 +345,7 @@ local function CreateDivider(key)
     d:SetWidth(DIVIDER_W)
     d:SetFrameLevel(frame:GetFrameLevel() + 5)
     local tex = d:CreateTexture(nil, "OVERLAY")
-    tex:SetColorTexture(ns.ACCENT[1], ns.ACCENT[2], ns.ACCENT[3], 1)
+    tex:SetColorTexture(HEADER_COLOR[1], HEADER_COLOR[2], HEADER_COLOR[3], 1)
     tex:Hide()  -- shows while hovered, so unlocking changes nothing on screen
     tex:SetPoint("TOP")
     tex:SetPoint("BOTTOM")
@@ -353,7 +375,7 @@ local function CreateDivider(key)
 end
 
 local function Build()
-    frame = CreateFrame("Frame", "SereneOverlayFrame", UIParent)
+    frame = CreateFrame("Frame", "SereneOverlayFrame", UIParent, "BackdropTemplate")
     -- Something to glance at; any window or bar opened over it wins.
     frame:SetFrameStrata("BACKGROUND")
     frame:SetClampedToScreen(true)
@@ -361,10 +383,7 @@ local function Build()
     frame:RegisterForDrag("LeftButton")
     frame:SetDontSavePosition(true)
 
-    bg = frame:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
     line = frame:CreateTexture(nil, "ARTWORK")
-    line:SetColorTexture(1, 1, 1, 0.2)
     line:SetHeight(1)
     totals.name, totals.cpu, totals.mem = NewText("LEFT"), NewText("RIGHT"), NewText("RIGHT")
     header.name, header.cpu, header.mem = NewText("LEFT"), NewText("RIGHT"), NewText("RIGHT")
@@ -530,6 +549,11 @@ ns.RegisterFeature({
     specials = {
         { value = "class", label = "By class", swatch = ns.PlayerClassHex },
     },
+})
+ns.RegisterFeature({
+    key = "overlayBorder", label = "Tooltip border", section = SECTION, category = "Look", default = false,
+    requires = ON, apply = Apply,
+    tooltip = "A border like the game's tooltips around the overlay, on their dark blue.",
 })
 ns.RegisterFeature({
     key = "overlayBackground", label = "Background opacity", section = SECTION, category = "Look", type = "slider",

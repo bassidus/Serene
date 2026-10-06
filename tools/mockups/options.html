@@ -91,7 +91,7 @@ MENU.forEach(([head, tabs], i)=>{
 });
 const reloadTop = sbH - 10 - TAB_H;
 sidebarButton(reloadTop, 'Reload UI', 'red');
-sidebarButton(reloadTop - TAB_H, 'Reset defaults', 'gold');
+sidebarButton(reloadTop - TAB_H, 'Restore defaults', 'gold');
 sidebarButton(reloadTop - 2*TAB_H, 'Modules', 'acc');
 rect(sb, 12, reloadTop - 2*TAB_H - 6 - 1, SIDEBAR_W-1-24, 1, 'var(--edge)');
 
@@ -107,7 +107,7 @@ el(win, 'abs', {right:'3px', bottom:'3px', width:'16px', height:'16px'},
 // ---------------------------------------------------------------- page
 const page = el(win, 'abs', {left:px(SIDEBAR_W+PAD), top:px(TITLE_H+PAD), width:px(PAGE_W), height:px(H-TITLE_H-PAD-FOOTER_H)});
 el(page, 't l acc', {left:0, top:0}, 'Performance');
-textMid(page, 0, 2+8, 's gold', 'Reset page', {right:0});
+textMid(page, 0, 2+8, 's gold', 'Restore page', {right:0});
 const content = el(page, 'abs', {left:0, top:px(HEADER_H), width:px(PAGE_W), height:'2000px'});
 
 // ----- widgets: each returns its height; drawn at content x,y (y positive down)

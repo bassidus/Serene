@@ -8,30 +8,29 @@
 local ns = Serene
 local W = ns.Widgets
 
-local WIDTH, SIDEBAR_W, TITLE_H, PAD, FOOTER_H = 700, 180, 40, 20, 26
-local TAB_H, SPACING = 30, 10
-local MENU_HEADING_H, MENU_GAP, MENU_INDENT = 22, 8, 26  -- the sidebar's group headings
-local GROUP_PAD = 10  -- inside a category's frame, around its heading and settings
+-- The window: a title row, then the sidebar panel and the page panel side by
+-- side, INSET in from its line; the footer row runs under the page panel.
+local WIDTH, TITLE_H, INSET, FOOTER_H = 720, 40, 12, 30
+local SIDEBAR_W, GAP = 172, 8                  -- the sidebar panel, and the gap after it
+local PAGE_PAD, PAGE_TOP, PAGE_BOTTOM = 14, 12, 10  -- the page inside its panel
+local PAGE_X = INSET + SIDEBAR_W + GAP         -- the page panel's left edge
+local TAB_H, SPACING = 26, 10
+local MENU_HEADING_H, MENU_GAP, MENU_INDENT = 22, 8, 22  -- the sidebar's group headings
+local BUTTON_H, BUTTON_GAP = 22, 6             -- Restore defaults and Reload UI
+local GROUP_PAD = 12  -- inside a category's frame, around its heading and settings
 local BLANK_ROW = 16  -- the empty row above a setting with space = true
-local PAGE_W = WIDTH - SIDEBAR_W - 2 * PAD
-local HEADER_H = 26   -- a settings page's title, which stays put while the rest scrolls
+local PAGE_W = WIDTH - PAGE_X - INSET - 2 * PAGE_PAD
+local HEADER_H = 30   -- a settings page's title, which stays put while the rest scrolls
 local SCROLL_STEP = 40
 local MODULES = "Modules"  -- the page and tab of the addon list
 local MAX_SCREEN = 0.45 -- the window's height at most, as a share of the screen's
 
-local frame
+local frame, pagePanel
 local widgets, pages, tabs = {}, {}, {}
 
 local AddOns = C_AddOns
 
--- Idle text colors of the sidebar buttons that are not settings tabs.
-local RED = { 1, 0.3, 0.45 }
-local GOLD = W.GOLD  -- Reset defaults and Reset page
-local BUTTON_COLORS = {
-    [MODULES] = W.ACCENT,
-    ["Reset defaults"] = GOLD,
-    ["Reload UI"] = RED,
-}
+local GOLD, TAN = W.GOLD, W.TAN
 
 -- The sidebar's groups: a heading over its settings tabs, in this order.
 -- Sections not listed here go under Other.
@@ -105,50 +104,37 @@ local function ShowPage(section)
     SereneDB.optionsPage = section
 end
 
--- Sidebar look shared by the tabs and the buttons: dim text (or the label's
--- BUTTON_COLORS color), white on hover, accent bar + tint when selected.
--- Decorates an existing button; indent is the text's, 16 by default.
-local function StyleSidebarButton(btn, label, indent)
-    local color = BUTTON_COLORS[label] or W.DIM
-    btn:SetHeight(TAB_H)
-
-    local hl = W.Solid(btn, "BACKGROUND", W.ACCENT, 0.12)
-    hl:SetAllPoints()
-    local bar = W.Solid(btn, "ARTWORK", W.ACCENT)
-    bar:SetPoint("TOPLEFT")
-    bar:SetPoint("BOTTOMLEFT")
-    bar:SetWidth(3)
-
-    local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    text:SetPoint("LEFT", indent or 16, 0)
-    text:SetText(label)
-    btn.label = text
+-- A sidebar tab: gold text, white with the quest log's blue bar behind it
+-- while hovered or selected.
+local function CreateTab(parent, section)
+    local tab = CreateFrame("Button", nil, parent)
+    tab:SetHeight(TAB_H)
+    local hl = W.Highlight(tab)
+    local text = tab:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    text:SetPoint("LEFT", MENU_INDENT, 0)
+    text:SetText(section)
 
     local selected = false
-    function btn:SetSelected(on)
-        selected = on
-        hl:SetShown(on)
-        bar:SetShown(on)
-        if on then text:SetTextColor(1, 1, 1) else text:SetTextColor(color[1], color[2], color[3]) end
+    local function Paint(hover)
+        local lit = selected or hover
+        hl:SetShown(lit)
+        local c = lit and { 1, 1, 1 } or GOLD
+        text:SetTextColor(c[1], c[2], c[3])
     end
-    btn:SetScript("OnEnter", function() if not selected then text:SetTextColor(1, 1, 1) end end)
-    btn:SetScript("OnLeave", function() btn:SetSelected(selected) end)
-    btn:SetSelected(false)
-    return btn
-end
-
--- A settings tab under its group's heading, its top at y.
-local function CreateTab(parent, section, y)
-    local tab = StyleSidebarButton(CreateFrame("Button", nil, parent), section, MENU_INDENT)
-    tab:SetPoint("TOPLEFT", 0, y)
-    tab:SetPoint("TOPRIGHT", 0, y)
+    function tab:SetSelected(on)
+        selected = on
+        Paint(false)
+    end
+    tab:SetScript("OnEnter", function() Paint(true) end)
+    tab:SetScript("OnLeave", function() Paint(false) end)
     tab:SetScript("OnClick", function() ShowPage(section) end)
+    Paint(false)
     return tab
 end
 
 -------------------------------------------------------------------------------
---  Reset Defaults. Two clicks: the first turns the label into a red
---  "Click again to reset", which reverts after a few seconds.
+--  Restore defaults. Two clicks: the first turns the label into
+--  "Click again to restore", which reverts after a few seconds.
 -------------------------------------------------------------------------------
 local CONFIRM_TIME = 4
 
@@ -187,16 +173,20 @@ local function TwoClick(btn, setArmed, onConfirm)
     return function() return armed end
 end
 
+local ResetScale  -- set with the scale grip, below
+
+-- Armed, it reads "Click again to restore", white and lit. Puts the window's
+-- size back too; it stays where it is.
 local function CreateResetButton(sidebar)
-    local btn = StyleSidebarButton(CreateFrame("Button", nil, sidebar), "Reset defaults")
-    local IsArmed = TwoClick(btn, function(on)
-        btn.label:SetText(on and "Click again to reset" or "Reset defaults")
-        if on then btn.label:SetTextColor(RED[1], RED[2], RED[3]) else btn:SetSelected(false) end
+    local btn = W.RedButton(CreateFrame("Button", nil, sidebar), "Restore defaults")
+    TwoClick(btn, function(on)
+        btn.SetLabel(on and "Click again to restore" or "Restore defaults")
+        btn.SetLocked(on)
     end, function()
         ns.ResetDefaults()
         CloseGroups()
+        ResetScale()
     end)
-    btn:HookScript("OnLeave", function() if IsArmed() then btn.label:SetTextColor(RED[1], RED[2], RED[3]) end end)
     return btn
 end
 
@@ -208,64 +198,53 @@ end
 -------------------------------------------------------------------------------
 local function CreateReloadButton(sidebar)
     local reload = CreateFrame("Button", nil, sidebar, "InsecureActionButtonTemplate")
-    StyleSidebarButton(reload, "Reload UI")
+    W.RedButton(reload, "Reload UI")
     reload:RegisterForClicks("AnyUp")
     reload:SetAttribute("useOnKeyDown", false)
     reload:SetAttribute("type", "macro")
     reload:SetAttribute("macrotext", "/reload")
-    reload:SetPoint("BOTTOMLEFT", 0, 10)
-    reload:SetPoint("BOTTOMRIGHT", 0, 10)
+    reload:SetPoint("BOTTOMLEFT", 10, 10)
+    reload:SetPoint("BOTTOMRIGHT", -10, 10)
 
-    -- Above it, bottom up: Reset Defaults and the Modules tab; the
-    -- separator goes above them.
+    -- Above it, bottom up: Restore defaults, a line, and the Modules tab.
     local reset = CreateResetButton(sidebar)
-    reset:SetPoint("BOTTOMLEFT", reload, "TOPLEFT")
-    reset:SetPoint("BOTTOMRIGHT", reload, "TOPRIGHT")
+    reset:SetPoint("BOTTOMLEFT", reload, "TOPLEFT", 0, BUTTON_GAP)
+    reset:SetPoint("BOTTOMRIGHT", reload, "TOPRIGHT", 0, BUTTON_GAP)
 
-    local modules = StyleSidebarButton(CreateFrame("Button", nil, sidebar), MODULES)
-    modules:SetPoint("BOTTOMLEFT", reset, "TOPLEFT")
-    modules:SetPoint("BOTTOMRIGHT", reset, "TOPRIGHT")
-    modules:SetScript("OnClick", function() ShowPage(MODULES) end)
-    tabs[MODULES] = modules
-
-    local line = W.Solid(sidebar, "ARTWORK", W.EDGE)
-    line:SetPoint("BOTTOMLEFT", modules, "TOPLEFT", 12, 6)
-    line:SetPoint("BOTTOMRIGHT", modules, "TOPRIGHT", -12, 6)
+    local line = W.Solid(sidebar, "ARTWORK", TAN, 0.35)
+    line:SetPoint("BOTTOMLEFT", reset, "TOPLEFT", 2, 10)
+    line:SetPoint("BOTTOMRIGHT", reset, "TOPRIGHT", -2, 10)
     line:SetHeight(1)
+
+    local modules = CreateTab(sidebar, MODULES)
+    modules:SetPoint("BOTTOMLEFT", 3, 10 + 2 * BUTTON_H + BUTTON_GAP + 10 + 1 + 6)
+    modules:SetPoint("BOTTOMRIGHT", -3, 10 + 2 * BUTTON_H + BUTTON_GAP + 10 + 1 + 6)
+    tabs[MODULES] = modules
 end
 
 local function CreatePageFrame(name)
-    local page = CreateFrame("Frame", nil, frame)
-    page:SetPoint("TOPLEFT", frame, "TOPLEFT", SIDEBAR_W + PAD, -(TITLE_H + PAD))
-    page:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -PAD, FOOTER_H)
+    local page = CreateFrame("Frame", nil, pagePanel)
+    page:SetPoint("TOPLEFT", PAGE_PAD, -PAGE_TOP)
+    page:SetPoint("BOTTOMRIGHT", -PAGE_PAD, PAGE_BOTTOM)
 
     local header = page:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    header:SetPoint("TOPLEFT")
+    header:SetPoint("TOPLEFT", 0, -3)
     header:SetText(name)
-    header:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
     return page
 end
 
--- "Reset page" at a settings page's top right: like Reset defaults, the
+-- "Restore page" at a settings page's top right: like Restore defaults, the
 -- first click asks for a second, and only the page's own options go back.
 local function CreatePageReset(page, section)
-    local btn = CreateFrame("Button", nil, page)
-    btn:SetPoint("TOPRIGHT", 0, -2)
-    btn:SetHeight(16)
-    local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    text:SetPoint("RIGHT")
-
-    local IsArmed = TwoClick(btn, function(on)
-        local c = on and RED or GOLD
-        text:SetText(on and "Click again to reset" or "Reset page")
-        text:SetTextColor(c[1], c[2], c[3])
-        btn:SetWidth(math.ceil(text:GetStringWidth()))
+    local btn = W.RedButton(CreateFrame("Button", nil, page), "Restore page", { small = true, fit = true })
+    btn:SetPoint("TOPRIGHT")
+    TwoClick(btn, function(on)
+        btn.SetLabel(on and "Click again to restore" or "Restore page")
+        btn.SetLocked(on)
     end, function()
         ns.ResetDefaults(section)
         CloseGroups(section)
     end)
-    btn:SetScript("OnEnter", function() if not IsArmed() then text:SetTextColor(1, 1, 1) end end)
-    btn:SetScript("OnLeave", function() if not IsArmed() then text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) end end)
 end
 
 -- Puts a settings page's content in a scroll frame under its title, with a
@@ -283,11 +262,11 @@ local function AddScrolling(page)
     local bar = CreateFrame("Button", nil, page)
     bar:SetWidth(9)
     bar:Hide()
-    local thumb = W.Solid(bar, "ARTWORK", W.ACCENT)
+    local thumb = W.Solid(bar, "ARTWORK", GOLD)
     thumb:SetPoint("TOP")
     thumb:SetPoint("BOTTOM")
     thumb:SetWidth(3)
-    thumb:SetAlpha(0.6)
+    thumb:SetAlpha(0.5)
 
     local function Range() return scroll:GetVerticalScrollRange() end
     local function PlaceBar()
@@ -297,8 +276,8 @@ local function AddScrolling(page)
         local barH = math.max(20, viewH * viewH / (viewH + range))
         bar:SetHeight(barH)
         bar:ClearAllPoints()
-        -- Centered in the right margin (PAD).
-        bar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", PAD / 2 - 4, -(viewH - barH) * scroll:GetVerticalScroll() / range)
+        -- Centered in the right margin (PAGE_PAD).
+        bar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", PAGE_PAD / 2 - 4, -(viewH - barH) * scroll:GetVerticalScroll() / range)
     end
     local function ScrollTo(v)
         scroll:SetVerticalScroll(math.max(0, math.min(Range(), v)))
@@ -330,7 +309,7 @@ local function AddScrolling(page)
     bar:SetScript("OnMouseUp", function(self) self:SetScript("OnUpdate", nil) end)
     bar:SetScript("OnHide", function(self) self:SetScript("OnUpdate", nil) end)
     bar:SetScript("OnEnter", function() thumb:SetAlpha(1) end)
-    bar:SetScript("OnLeave", function() thumb:SetAlpha(0.6) end)
+    bar:SetScript("OnLeave", function() thumb:SetAlpha(0.5) end)
     return content
 end
 
@@ -358,7 +337,6 @@ local function CreateAddonToggle(page, module, x, y)
 
     local note = box:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     note:SetPoint("LEFT", box.label, "RIGHT", 12, 0)
-    note:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
     note:SetText("Reload UI to apply")
     local refresh = box.Refresh
     function box.Refresh()
@@ -392,37 +370,40 @@ end
 -- With help (see CategoryHelp) a "?" sits left of the plus/minus.
 local function CreateGroup(page, text, onToggle, help)
     local group = CreateFrame("Frame", nil, page)
-    W.Border(group, W.EDGE)
+    W.Panel(group, "GROUP")
 
     local heading = group:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     heading:SetPoint("TOPLEFT", GROUP_PAD, -GROUP_PAD)
     heading:SetText(text)
-    heading:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
     group.headingH = heading:GetStringHeight()
 
+    -- The quest log's plus/minus button at the right of the heading's row.
     local btn = CreateFrame("Button", nil, group)
     btn:SetPoint("TOPLEFT")
     btn:SetPoint("TOPRIGHT")
     btn:SetHeight(2 * GROUP_PAD + group.headingH)
-    local across = W.Solid(btn, "ARTWORK", W.ACCENT)
-    across:SetSize(9, 2)
-    across:SetPoint("RIGHT", -GROUP_PAD, 0)
-    local down = W.Solid(btn, "ARTWORK", W.ACCENT)
-    down:SetSize(2, 9)
-    down:SetPoint("CENTER", across)
-    local function Paint(c)
+    local sign = btn:CreateTexture(nil, "ARTWORK")
+    sign:SetSize(16, 16)
+    sign:SetPoint("RIGHT", -GROUP_PAD + 3, 0)
+    local lit = btn:CreateTexture(nil, "HIGHLIGHT")
+    lit:SetAllPoints(sign)
+    lit:SetTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
+    lit:SetBlendMode("ADD")
+    local function Paint(hover)
+        local c = hover and { 1, 1, 1 } or GOLD
         heading:SetTextColor(c[1], c[2], c[3])
-        across:SetColorTexture(c[1], c[2], c[3])
-        down:SetColorTexture(c[1], c[2], c[3])
     end
     btn:SetScript("OnClick", function() W.PlayClick(); onToggle() end)
-    btn:SetScript("OnEnter", function() Paint({ 1, 1, 1 }) end)
-    btn:SetScript("OnLeave", function() Paint(W.ACCENT) end)
-    function group.SetOpen(open) down:SetShown(not open) end
+    btn:SetScript("OnEnter", function() Paint(true) end)
+    btn:SetScript("OnLeave", function() Paint(false) end)
+    Paint(false)
+    function group.SetOpen(open)
+        sign:SetTexture(open and "Interface\\Buttons\\UI-MinusButton-Up" or "Interface\\Buttons\\UI-PlusButton-Up")
+    end
     if help and #help > 0 then
         local q = W.Help(group, text, help)
         q:SetFrameLevel(btn:GetFrameLevel() + 1)  -- over the heading's row button
-        q:SetPoint("RIGHT", across, "LEFT", -6, 0)
+        q:SetPoint("RIGHT", sign, "LEFT", -4, 0)
     end
     return group
 end
@@ -703,12 +684,15 @@ local function CreateMenu(parent)
     for i, group in ipairs(MenuGroups()) do
         if i > 1 then y = y - MENU_GAP end
         local heading = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        heading:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 16, y - MENU_HEADING_H + 4)
+        heading:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 12, y - MENU_HEADING_H + 5)
         heading:SetText(group.heading)
-        heading:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
+        heading:SetTextColor(TAN[1], TAN[2], TAN[3])
         y = y - MENU_HEADING_H
         for _, name in ipairs(group.names) do
-            tabs[name] = CreateTab(parent, name, y)
+            local tab = CreateTab(parent, name)
+            tab:SetPoint("TOPLEFT", 3, y)
+            tab:SetPoint("TOPRIGHT", -3, y)
+            tabs[name] = tab
             pages[name] = CreatePage(name)
             first = first or name
             y = y - TAB_H
@@ -729,7 +713,7 @@ end
 -- The footer: the Shift line, then the minimap icon's checkbox after it.
 local function CreateFooter()
     local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    footer:SetPoint("BOTTOMLEFT", SIDEBAR_W + PAD, 10)
+    footer:SetPoint("LEFT", frame, "BOTTOMLEFT", PAGE_X + 6, INSET + FOOTER_H / 2)
     footer:SetText(FooterText())
 
     local box = W.Checkbox(frame, ns.featureByKey.minimapIcon)
@@ -738,7 +722,7 @@ local function CreateFooter()
     if footer:GetText() ~= "" then
         box:SetPoint("LEFT", footer, "RIGHT", 24, 0)
     else
-        box:SetPoint("BOTTOMLEFT", SIDEBAR_W + PAD, 6)
+        box:SetPoint("LEFT", frame, "BOTTOMLEFT", PAGE_X + 6, INSET + FOOTER_H / 2)
     end
     widgets[#widgets + 1] = box
 end
@@ -749,20 +733,11 @@ local function CreateCloseButton(titleBar)
     local close = CreateFrame("Button", nil, titleBar)
     close:SetFrameLevel(titleBar:GetFrameLevel() + 2)
     close:RegisterForClicks("LeftButtonUp")
-    close:SetSize(24, 24)
-    close:SetPoint("TOPRIGHT", -8, -8)
-    local lines = {}
-    for i, angle in ipairs({ 45, -45 }) do
-        local t = close:CreateTexture(nil, "ARTWORK")
-        t:SetColorTexture(1, 1, 1, 1)
-        t:SetSize(14, 2)
-        t:SetPoint("CENTER")
-        t:SetRotation(math.rad(angle))
-        t:SetVertexColor(W.DIM[1], W.DIM[2], W.DIM[3])
-        lines[i] = t
-    end
-    close:SetScript("OnEnter", function() for _, t in ipairs(lines) do t:SetVertexColor(1, 0.4, 0.4) end end)
-    close:SetScript("OnLeave", function() for _, t in ipairs(lines) do t:SetVertexColor(W.DIM[1], W.DIM[2], W.DIM[3]) end end)
+    close:SetSize(32, 32)
+    close:SetPoint("TOPRIGHT", -4, -4)
+    close:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up")
+    close:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down")
+    close:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight", "ADD")
     close:SetScript("OnClick", function() frame:Hide() end)
 end
 
@@ -785,9 +760,9 @@ end
 --  Scale grip (bottom-right corner). Dragging scales the whole window -- the
 --  pages have a fixed layout, so scaling keeps every control in place where
 --  a free resize would clip them. The top-left corner stays put while
---  dragging; right-click resets size (75%) and position (centered).
+--  dragging; right-click resets size (100%) and position (centered).
 -------------------------------------------------------------------------------
-local DEFAULT_SCALE, MIN_SCALE, MAX_SCALE = 0.75, 0.5, 1.6
+local DEFAULT_SCALE, MIN_SCALE, MAX_SCALE = 1, 0.5, 1.6
 
 -- leftUI/topUI are UIParent units; SetPoint offsets are in the frame's own
 -- (scaled) units, so they are divided by the scale being applied.
@@ -814,10 +789,20 @@ local function PlaceWindow()
     if saved then PinTopLeft(saved.left, saved.top, saved.scale) else Center() end
 end
 
+-- The default size, the top-left corner kept where it is.
+function ResetScale()
+    local s = frame:GetScale()
+    local left, top = frame:GetLeft() * s, frame:GetTop() * s
+    frame:SetScale(DEFAULT_SCALE)
+    FitHeight()
+    PinTopLeft(left, top, DEFAULT_SCALE)
+    SaveWindow()
+end
+
 local function CreateScaleGrip()
     local grip = CreateFrame("Button", nil, frame)
     grip:SetSize(16, 16)
-    grip:SetPoint("BOTTOMRIGHT", -3, 3)
+    grip:SetPoint("BOTTOMRIGHT", -5, 5)
     grip:SetFrameLevel(frame:GetFrameLevel() + 10)
     grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
     grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
@@ -870,8 +855,7 @@ local function Build()
     frame:SetMovable(true)
     tinsert(UISpecialFrames, "SereneOptionsFrame")  -- Escape closes it
 
-    W.Solid(frame, "BACKGROUND", W.BG):SetAllPoints()
-    W.Border(frame, W.EDGE)
+    W.Panel(frame, "WINDOW")
 
     local titleBar = CreateFrame("Frame", nil, frame)
     titleBar:SetPoint("TOPLEFT")
@@ -885,47 +869,49 @@ local function Build()
         frame:SetUserPlaced(false)  -- keep it out of the client's layout cache
         SaveWindow()
     end)
-    local titleLine = W.Solid(titleBar, "ARTWORK", W.EDGE)
-    titleLine:SetPoint("BOTTOMLEFT", 1, 0)
-    titleLine:SetPoint("BOTTOMRIGHT", -1, 0)
-    titleLine:SetHeight(1)
-
+    -- The banner's look: the logo, Serene in its orange, the version in tan.
     local icon = titleBar:CreateTexture(nil, "ARTWORK")
     icon:SetTexture(ns.LOGO)
     icon:SetSize(20, 20)
-    icon:SetPoint("LEFT", 14, 0)
+    icon:SetPoint("LEFT", INSET + 4, 0)
 
     local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("LEFT", icon, "RIGHT", 8, 0)
     title:SetText("Serene")
-    title:SetTextColor(W.ACCENT[1], W.ACCENT[2], W.ACCENT[3])
+    title:SetTextColor(ns.ACCENT[1], ns.ACCENT[2], ns.ACCENT[3])
 
     local version = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     version:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 6, 1)
     version:SetText("v" .. AddOns.GetAddOnMetadata("Serene", "Version"))
+    version:SetTextColor(TAN[1], TAN[2], TAN[3])
     CreateCloseButton(titleBar)
 
     local sidebar = CreateFrame("Frame", nil, frame)
-    sidebar:SetPoint("TOPLEFT", 1, -(TITLE_H + 1))
-    sidebar:SetPoint("BOTTOMLEFT", 1, 1)
-    sidebar:SetWidth(SIDEBAR_W - 1)
-    W.Solid(sidebar, "BACKGROUND", W.PANEL):SetAllPoints()
+    sidebar:SetPoint("TOPLEFT", INSET, -TITLE_H)
+    sidebar:SetPoint("BOTTOMLEFT", INSET, INSET)
+    sidebar:SetWidth(SIDEBAR_W)
+    W.Panel(sidebar, "PANEL")
     local tabList = CreateFrame("Frame", nil, sidebar)
-    tabList:SetPoint("TOPLEFT", 0, -10)
-    tabList:SetPoint("TOPRIGHT", 0, -10)
+    tabList:SetPoint("TOPLEFT", 0, -8)
+    tabList:SetPoint("TOPRIGHT", 0, -8)
     tabList:SetHeight(1)
+
+    pagePanel = CreateFrame("Frame", nil, frame)
+    pagePanel:SetPoint("TOPLEFT", PAGE_X, -TITLE_H)
+    pagePanel:SetPoint("BOTTOMRIGHT", -INSET, INSET + FOOTER_H)
+    W.Panel(pagePanel, "PANEL")
 
     CreateReloadButton(sidebar)
 
     -- Pages; the window wants to be as tall as the tallest page, and the
-    -- sidebar needs room for its tabs plus the Modules tab and the two
-    -- buttons at the bottom.
+    -- sidebar needs room for its tabs, the Modules tab, the line and the
+    -- two buttons at the bottom.
     local first, menuH = CreateMenu(tabList)
-    sidebarH = TITLE_H + 10 + menuH + 3 * TAB_H + 40
+    sidebarH = TITLE_H + 8 + menuH + 8 + TAB_H + 6 + 1 + 10 + 2 * BUTTON_H + BUTTON_GAP + 10 + INSET
     pages[MODULES] = CreateModulesPage()
     local tallest = 0
-    for _, page in pairs(pages) do tallest = math.max(tallest, page.contentHeight + PAD) end
-    wantedH = math.max(sidebarH, TITLE_H + PAD + tallest + FOOTER_H)
+    for _, page in pairs(pages) do tallest = math.max(tallest, page.contentHeight) end
+    wantedH = math.max(sidebarH, TITLE_H + PAGE_TOP + tallest + PAGE_BOTTOM + FOOTER_H + INSET)
     frame:SetWidth(WIDTH)
 
     CreateFooter()

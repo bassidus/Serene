@@ -107,7 +107,7 @@ function ns.AddShiftSkip(what)
     ns.shiftSkips[#ns.shiftSkips + 1] = what
 end
 
--- Extra state a feature wants cleared by Reset Defaults (e.g. a moved
+-- Extra state a feature wants cleared by Restore defaults (e.g. a moved
 -- frame's spot); fn runs before the features re-apply. section: the
 -- options page whose own reset also runs it.
 ns.resetHooks = {}
@@ -145,9 +145,9 @@ function ns.ResetDefaults(section, quiet)
     end
 end
 
--- /serene reset: every option, and what Reset defaults leaves: the options
--- window's spot, size, page and open categories (SereneOptions, which is
--- load on demand, so cleared here) and the ns.OnResetAll state.
+-- /serene reset: every option, the options window's spot, size, page and
+-- open categories (SereneOptions, which is load on demand, so cleared here)
+-- and the ns.OnResetAll state.
 function ns.ResetAll()
     ns.ResetDefaults(nil, true)
     SereneDB.optionsWindow, SereneDB.optionsPage, SereneDB.optionsOpen = nil, nil, nil

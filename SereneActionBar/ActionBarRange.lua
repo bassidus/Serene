@@ -23,7 +23,7 @@ end
 local function Restore(btn, icon)
     tinted[btn] = nil
     icon:SetDesaturated(false)
-    local usable, noMana = IsUsableAction(btn.action)
+    local usable, noMana = C_ActionBar.IsUsableAction(btn.action)
     if Clean(usable) then
         icon:SetVertexColor(1, 1, 1)
     elseif Clean(noMana) then
@@ -37,7 +37,7 @@ end
 local function Color(btn, oor, repainted)
     local icon = btn.icon
     if not (icon and btn.action) then return end
-    if enabled and oor and Clean(IsUsableAction(btn.action)) then
+    if enabled and oor and Clean(C_ActionBar.IsUsableAction(btn.action)) then
         Tint(icon)
         tinted[btn] = true
     elseif tinted[btn] then
@@ -51,7 +51,7 @@ local function Color(btn, oor, repainted)
 end
 
 local function OutOfRange(btn)
-    return Clean(IsActionInRange(btn.action)) == false
+    return Clean(C_ActionBar.IsActionInRange(btn.action)) == false
 end
 
 -- After Blizzard's usability repaint (which resets the icon color).
@@ -70,34 +70,11 @@ end
 local function Register(btn)
     if buttons[btn] or not btn.icon then return end
     buttons[btn] = true
-    if type(btn.UpdateUsable) == "function" then
-        hooksecurefunc(btn, "UpdateUsable", OnUsable)
-    end
+    hooksecurefunc(btn, "UpdateUsable", OnUsable)
 end
 
--- Blizzard's list of action buttons; the bars by name if it is missing.
-local BARS = { "ActionButton", "MultiBarBottomLeftButton", "MultiBarBottomRightButton", "MultiBarRightButton",
-               "MultiBarLeftButton", "MultiBar5Button", "MultiBar6Button", "MultiBar7Button" }
-
-local function CollectButtons()
-    if ActionBarButtonEventsFrame and ActionBarButtonEventsFrame.ForEachFrame then
-        ActionBarButtonEventsFrame:ForEachFrame(Register)
-    else
-        for _, prefix in ipairs(BARS) do
-            for i = 1, 12 do
-                local btn = _G[prefix .. i]
-                if btn then Register(btn) end
-            end
-        end
-    end
-end
-
-if ActionBarButtonEventsFrame and ActionBarButtonEventsFrame.RegisterFrame then
-    hooksecurefunc(ActionBarButtonEventsFrame, "RegisterFrame", function(_, btn) Register(btn) end)
-end
-if ActionButton_UpdateRangeIndicator then
-    hooksecurefunc("ActionButton_UpdateRangeIndicator", OnRange)
-end
+hooksecurefunc(ActionBarButtonEventsFrame, "RegisterFrame", function(_, btn) Register(btn) end)
+hooksecurefunc("ActionButton_UpdateRangeIndicator", OnRange)
 
 -------------------------------------------------------------------------------
 --  Pet bar -- Blizzard repaints every pet icon on its own range timer, so the
@@ -107,9 +84,7 @@ local petTinted = {}  -- [index] = true
 
 local function PetUpdate(bar)
     if not enabled and not next(petTinted) then return end
-    local list = bar and bar.actionButtons
-    if not list then return end
-    for index, btn in pairs(list) do
+    for index, btn in pairs(bar.actionButtons) do
         local icon = btn.icon
         if icon then
             local _, _, _, _, _, _, _, checksRange, inRange = GetPetActionInfo(index)
@@ -127,21 +102,17 @@ local function PetUpdate(bar)
     end
 end
 
-if PetActionBar and type(PetActionBar.Update) == "function" then
-    hooksecurefunc(PetActionBar, "Update", PetUpdate)
-end
+hooksecurefunc(PetActionBar, "Update", PetUpdate)
 
 -------------------------------------------------------------------------------
 local function Apply()
     enabled = ns.Enabled("rangeColors")
     color = { ns.ColorRGB(ns.Get("rangeColor")) }
-    CollectButtons()
+    ActionBarButtonEventsFrame:ForEachFrame(Register)
     for btn in pairs(buttons) do
         if enabled or tinted[btn] then Color(btn, enabled and OutOfRange(btn)) end
     end
-    if PetActionBar and PetActionBar.actionButtons and PetHasActionBar and PetHasActionBar() then
-        PetUpdate(PetActionBar)
-    end
+    if PetHasActionBar() then PetUpdate(PetActionBar) end
     -- The keybind text stops turning red while the icon shows range.
     ns.RefreshKeybinds()
 end

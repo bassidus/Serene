@@ -297,7 +297,7 @@ local function CreateDivider(key)
 end
 
 local function Build()
-    frame = CreateFrame("Frame", "SereneOverlayFrame", UIParent)
+    frame = CreateFrame("Frame", nil, UIParent)
     -- Something to glance at; any window or bar opened over it wins.
     frame:SetFrameStrata("BACKGROUND")
     frame:SetClampedToScreen(true)

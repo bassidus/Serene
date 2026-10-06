@@ -20,7 +20,7 @@ local f = CreateFrame("Frame")
 f:RegisterEvent("PLAYER_LOGIN")
 f:SetScript("OnEvent", function(self)
     self:UnregisterAllEvents()
-    for i = 1, NUM_CHAT_WINDOWS do HookEditBox(_G["ChatFrame" .. i .. "EditBox"]) end
+    for i = 1, Constants.ChatFrameConstants.MaxChatWindows do HookEditBox(_G["ChatFrame" .. i .. "EditBox"]) end
     -- Whisper/temporary chat windows bring their own edit box.
     hooksecurefunc("FCF_OpenTemporaryWindow", function()
         for _, name in ipairs(CHAT_FRAMES) do HookEditBox(_G[name .. "EditBox"]) end

@@ -40,6 +40,10 @@
 
 Install with the CurseForge app, or extract every `Serene` folder into `Interface/AddOns`. **Serene** is the core and is required. All other modules are optional.
 
+## AI Disclaimer
+
+**AI Disclaimer:** Serene is made with AI. The code and the texts, this README included, were written with Claude (Anthropic), and the art and the logo were made with AI as well. I direct the work, test every change in game and am responsible for the code.
+
 ## Feedback
 
 Bug reports and suggestions are welcome as GitHub issues or in the CurseForge comments.

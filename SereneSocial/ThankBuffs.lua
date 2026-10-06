@@ -166,7 +166,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "thankBuffMessage", label = "Message", section = SECTION, category = "Thanks for buffs",
-    type = "dropdown", default = "random", beside = true,
+    type = "dropdown", default = "random", beside = true, hideLabel = true,
     requires = "thankBuffs",
     options = function()
         local list = { { value = "random", label = "Random" } }

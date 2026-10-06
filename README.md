@@ -12,7 +12,7 @@
 
 ## Interface
 
-- **Action Bars:** out-of-range coloring, shorter keybind text, macro names and fonts
+- **Action Bars:** bars 2-8 shown on every character, out-of-range coloring, shorter keybind text, macro names and fonts
 - **Nameplates:** flat enemy plates with threat colors, cast bars, debuffs and quest progress
 - **Move & Scale:** drag Blizzard's windows anywhere, Ctrl + scroll to resize them
 - **Tooltip:** follows the cursor, has a cleaner look and adds the target, item level and guild rank

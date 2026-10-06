@@ -14,4 +14,5 @@ NameplateCast.lua
 NameplateDebuffs.lua
 NameplateQuest.lua
 NameplateCombo.lua
+NameplateVisibility.lua
 NameplateLook.lua

@@ -30,7 +30,7 @@ function Sync()
 end
 
 ns.RegisterFeature({
-    key = "barSync", label = "Show the checked bars on every character", section = SECTION,
+    key = "barSync", label = "Check the bars you want enabled on all characters", section = SECTION,
     category = "Always shown bars", default = false, apply = Sync,
 })
 for bar = 2, 8 do

@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 --  Overlay -- framerate, latency and the heaviest addons on screen while
---  playing. Its settings are groups on the Performance page, whose addon
+--  playing. Its settings are a group on the Performance page, whose addon
 --  list is also where addons are pinned (SereneDB.overlayPinned). Width
---  and height are settings; spot and column widths are kept in
---  SereneDB.overlayPos.
+--  is a setting and the height fits what it lists; spot and column widths
+--  are kept in SereneDB.overlayPos.
 --
 --  Unlocked, the frame drags to move and the lines between the columns
 --  drag to change their width. Locking only stops that; what shows stays
@@ -20,16 +20,18 @@ local _, ns = ...
 local UPDATE_INTERVAL = 1
 local MEMORY_EVERY = 5  -- ticks between memory rescans
 local COL_GAP = 6
--- Padding around the text: plain, and inside the tooltip border.
-local PAD = { plain = { 6, 4 }, border = { 10, 8 } }
+local PAD_X, PAD_Y = 6, 4  -- around the text
 local DIVIDER_W = 8
 local MIN_COL, MIN_NAME = 30, 40
 local DEFAULTS = { cpuW = 40, memW = 50 }
 -- overlayGrow -> the corner that stays put when the size changes.
 local ANCHORS = { downright = "TOPLEFT", downleft = "TOPRIGHT", upright = "BOTTOMLEFT", upleft = "BOTTOMRIGHT" }
 
-local GOOD, OK, HIGH, BAD, PLAIN = "40ff40", "ffd100", "ff991a", "ff4040", "ffffff"
+local GOOD, OK, HIGH, BAD = "40ff40", "ffd100", "ff991a", "ff4040"
 local HEADER_COLOR = { 1, 0.82, 0 }
+local NAME_COLOR = "d6d6d6"
+local FONT, FONT_SIZE = "Fonts\\ARIALN.TTF", 12
+local ROW_H = math.ceil(FONT_SIZE * 1.3)
 
 local STATUS = {
     fps = function(v) if v >= 50 then return GOOD elseif v >= 25 then return OK end return BAD end,
@@ -44,20 +46,14 @@ local STATUS = {
     end,
 }
 
--- "By value" colors framerate, latency, CPU and memory.
+-- Framerate, latency, CPU and memory colored by how good they are.
 local function Colored(kind, v, text)
-    local mode, hex = ns.Get("overlayColors"), nil
-    if mode == "class" then
-        hex = ns.PlayerClassHex()
-    else
-        hex = ns.ColorHex(mode) or (STATUS[kind] and v and STATUS[kind](v)) or PLAIN
-    end
-    return "|cff" .. hex .. text .. "|r"
+    return "|cff" .. STATUS[kind](v) .. text .. "|r"
 end
 
 -- Spot (point: the corner that stays put, x/y: where it is in UIParent
--- units; nil = the screen's bottom right corner) and column widths.
--- Width and height are settings.
+-- units; nil = the screen's bottom right corner) and column widths. Width
+-- is a setting; the height fits what is listed.
 local function Saved(key)
     local p = SereneDB.overlayPos
     if p and p[key] ~= nil then return p[key] end
@@ -69,8 +65,7 @@ local function Save(key, value)
     SereneDB.overlayPos[key] = value
 end
 
-local frame, line, ticker
-local PAD_X, PAD_Y  -- the current PAD, set by Style
+local frame, bg, line, ticker
 local header = {}    -- name, cpu, mem: column titles
 local dividers = {}  -- cpuW, memW: drag handles at those columns' left edge
 local rows = {}      -- { name, cpu, mem } font strings per line
@@ -78,19 +73,15 @@ local totals = {}    -- name, cpu, mem: the totals row (name holds framerate and
 local parts = {}     -- the totals row's left side, reused
 local picked = {}    -- the addons listed, reused
 local ticks = 0
-local fontPath, fontSize, fontFlags, fontShadow
-
-local function SetFont(fs)
-    ns.SetFont(fs, fontPath, fontSize, fontFlags)
-    ns.SetShadow(fs, fontShadow)
-end
+local fontFlags, fontShadow = ns.FontFlags("OUTLINE")
 
 local function NewText(justify)
     local fs = frame:CreateFontString(nil, "OVERLAY")
+    ns.SetFont(fs, FONT, FONT_SIZE, fontFlags)
+    ns.SetShadow(fs, fontShadow)
     fs:SetJustifyH(justify)
     fs:SetWordWrap(false)
     fs:SetTextColor(1, 1, 1)
-    if fontSize then SetFont(fs) end
     return fs
 end
 
@@ -104,40 +95,35 @@ end
 local function PlaceRow(r, y, cpuW, memW)
     r.mem:ClearAllPoints()
     r.mem:SetPoint("TOPRIGHT", -PAD_X, -y)
-    r.mem:SetWidth(math.max(1, memW))
-    r.mem:SetShown(memW > 0)
+    r.mem:SetWidth(memW)
+    r.mem:Show()
     r.cpu:ClearAllPoints()
     r.cpu:SetPoint("TOPRIGHT", -(PAD_X + memW), -y)
-    r.cpu:SetWidth(math.max(1, cpuW))
-    r.cpu:SetShown(cpuW > 0)
+    r.cpu:SetWidth(cpuW)
+    r.cpu:Show()
     r.name:ClearAllPoints()
     r.name:SetPoint("TOPLEFT", PAD_X, -y)
     r.name:SetPoint("TOPRIGHT", -(PAD_X + memW + cpuW + COL_GAP), -y)
     r.name:Show()
 end
 
--- x/y are UIParent units and SetPoint offsets the frame's own (scaled)
--- ones, so a new scale also leaves the corner in place.
 local function Place()
-    local s = ns.Get("overlayScale") / 100
-    frame:SetScale(s)
     frame:ClearAllPoints()
     local point = Saved("point")
     if point then
-        frame:SetPoint(point, UIParent, "BOTTOMLEFT", Saved("x") / s, Saved("y") / s)
+        frame:SetPoint(point, UIParent, "BOTTOMLEFT", Saved("x"), Saved("y"))
     else
-        frame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -6 / s, 6 / s)
+        frame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -6, 6)
     end
 end
 
 -- After a move, or when overlayGrow changes: kept as the corner that
 -- overlayGrow leaves in place.
 local function SavePlace()
-    local s = frame:GetScale()
     local point = ANCHORS[ns.Get("overlayGrow")]
     Save("point", point)
-    Save("x", (point:find("LEFT") and frame:GetLeft() or frame:GetRight()) * s)
-    Save("y", (point:find("TOP") and frame:GetTop() or frame:GetBottom()) * s)
+    Save("x", point:find("LEFT") and frame:GetLeft() or frame:GetRight())
+    Save("y", point:find("TOP") and frame:GetTop() or frame:GetBottom())
     Place()
 end
 
@@ -147,46 +133,29 @@ end
 
 local function Render()
     local locked = ns.Enabled("overlayLocked")
-    local list = ns.Enabled("overlayAddons")
-    local rowH = math.ceil(fontSize * 1.3)
-    local cpuW = list and ns.Enabled("overlayAddonCpu") and Saved("cpuW") or 0
-    local memW = list and ns.Enabled("overlayAddonMemory") and Saved("memW") or 0
+    local list = not ns.Enabled("overlaySummaryOnly")
+    local rowH = ROW_H
+    local cpuW, memW = Saved("cpuW"), Saved("memW")
 
     -- The totals row: framerate and latency on the left, the totals in
-    -- their columns; a total whose column is off joins the left side.
-    local n, cpuText, memText = 0, nil, nil
-    if ns.Enabled("overlayFps") then
-        local fps = math.floor(GetFramerate() + 0.5)
-        n = n + 1
-        parts[n] = Colored("fps", fps, fps .. " fps")
-    end
-    if ns.Enabled("overlayLatency") then
-        local ms = ns.Latency()
-        n = n + 1
-        parts[n] = Colored("ms", ms, ms .. " ms")
-    end
-    if ns.Enabled("overlayCpu") then
-        local p = ns.TotalCpu()
-        if cpuW > 0 then
-            cpuText = Colored("cpu", p, ns.FormatPercent(p))
-        else
-            n = n + 1
-            parts[n] = Colored("cpu", p, ns.FormatPercent(p) .. " cpu")
-        end
-    end
-    if ns.Enabled("overlayMemory") then
-        local total = 0
-        for _, e in ipairs(ns.entries) do total = total + e.mem end
-        local text = Colored("mem", total, ns.FormatMemory(total))
-        if memW > 0 then
-            memText = text
-        else
-            n = n + 1
-            parts[n] = text
-        end
+    -- their columns; without the list they join the left side.
+    local fps = math.floor(GetFramerate() + 0.5)
+    local ms = ns.Latency()
+    parts[1] = Colored("fps", fps, fps .. " fps")
+    parts[2] = Colored("ms", ms, ms .. " ms")
+    local n, cpuText, memText = 2, nil, nil
+    local cpu = ns.TotalCpu()
+    local mem = 0
+    for _, e in ipairs(ns.entries) do mem = mem + e.mem end
+    if list then
+        cpuText = Colored("cpu", cpu, ns.FormatPercent(cpu))
+        memText = Colored("mem", mem, ns.FormatMemory(mem))
+    else
+        parts[n + 1] = Colored("cpu", cpu, ns.FormatPercent(cpu) .. " cpu")
+        parts[n + 2] = Colored("mem", mem, ns.FormatMemory(mem))
+        n = n + 2
     end
     for i = n + 1, #parts do parts[i] = nil end
-    local hasTotals = n > 0 or cpuText ~= nil or memText ~= nil
     totals.name:SetText(table.concat(parts, "  "))
 
     -- Without the addon list the overlay is just that line, sized to fit it.
@@ -197,41 +166,31 @@ local function Render()
         line:Hide()
         totals.cpu:Hide()
         totals.mem:Hide()
-        totals.name:SetShown(n > 0)
+        totals.name:Show()
         totals.name:ClearAllPoints()
         totals.name:SetPoint("TOPLEFT", PAD_X, -PAD_Y)
         totals.name:SetPoint("TOPRIGHT", -PAD_X, -PAD_Y)
-        local textW = n > 0 and math.ceil(totals.name:GetStringWidth()) or 0
-        frame:SetSize(textW + 2 * PAD_X, 2 * PAD_Y + (n > 0 and rowH or 0))
+        frame:SetSize(math.ceil(totals.name:GetStringWidth()) + 2 * PAD_X, 2 * PAD_Y + rowH)
         return
     end
 
-    local colsW = cpuW + memW + (cpuW + memW > 0 and COL_GAP or 0)
+    local colsW = cpuW + memW + COL_GAP
     -- Never narrower than the columns plus the least name room.
     local minW = 2 * PAD_X + MIN_NAME + colsW
     local width = math.max(minW, ns.Get("overlayWidth"))
-    local auto = ns.Enabled("overlayAutoHeight")
-    local height = ns.Get("overlayHeight")
 
     local y = PAD_Y
     PlaceRow(header, y, cpuW, memW)
     y = y + rowH
 
-    -- Pinned addons first claim the room; the heaviest of the rest fill
-    -- what is left, up to overlayTop. Shown in sort order either way.
-    local bottomH = hasTotals and rowH + 6 or 0  -- the totals row and the line above it
+    -- Pinned addons, and the heaviest overlayTop of the rest, in sort order.
+    local bottomH = rowH + 6  -- the totals row and the line above it
     local entries = ns.entries
     table.sort(entries, ns.SORTS[ns.Get("overlaySort")])
     local pinned = SereneDB.overlayPinned or {}
-    local fit = auto and math.huge or math.max(0, math.floor((height - y - bottomH - PAD_Y) / rowH))
-    local nPinned = 0
-    for _, e in ipairs(entries) do
-        if pinned[e.name] then nPinned = nPinned + 1 end
-    end
-    local extras = math.max(0, math.min(ns.Get("overlayTop"), fit - nPinned))
+    local extras = ns.Get("overlayTop")
     local shown = 0
     for _, e in ipairs(entries) do
-        if shown >= fit then break end
         local pin = pinned[e.name]
         if pin or extras > 0 then
             if not pin then extras = extras - 1 end
@@ -241,42 +200,34 @@ local function Render()
     end
     for i = shown + 1, #picked do picked[i] = nil end
 
-    local nameMode = ns.Get("overlayNameColor")
-    local nameHex = nameMode == "class" and ns.PlayerClassHex() or ns.ColorHex(nameMode) or PLAIN
     for i, e in ipairs(picked) do
         local r = Row(i)
         PlaceRow(r, y, cpuW, memW)
-        r.name:SetText("|cff" .. nameHex .. e.info.plainTitle .. "|r")
+        r.name:SetText("|cff" .. NAME_COLOR .. e.info.plainTitle .. "|r")
         r.cpu:SetText(Colored("cpu", e.cpu, ns.FormatPercent(e.cpu)))
         r.mem:SetText(Colored("addonMem", e.mem, ns.FormatMemory(e.mem)))
         y = y + rowH
     end
     for i = shown + 1, #rows do HideRow(rows[i]) end
-    if auto then height = y + bottomH + PAD_Y end
+    local height = y + bottomH + PAD_Y
 
     -- The totals keep to the bottom edge, under a line.
-    line:SetShown(hasTotals)
-    if hasTotals then
-        local ty = height - PAD_Y - rowH
-        PlaceRow(totals, ty, cpuW, memW)
-        totals.cpu:SetText(cpuText or "")
-        totals.mem:SetText(memText or "")
-        line:ClearAllPoints()
-        line:SetPoint("TOPLEFT", PAD_X, -(ty - 4))
-        line:SetPoint("TOPRIGHT", -PAD_X, -(ty - 4))
-    else
-        HideRow(totals)
-    end
+    local ty = height - PAD_Y - rowH
+    PlaceRow(totals, ty, cpuW, memW)
+    totals.cpu:SetText(cpuText)
+    totals.mem:SetText(memText)
+    line:ClearAllPoints()
+    line:SetPoint("TOPLEFT", PAD_X, -(ty - 4))
+    line:SetPoint("TOPRIGHT", -PAD_X, -(ty - 4))
+    line:Show()
 
-    -- The handles sit at the left edge of each shown column; the leftmost
-    -- one in the middle of the gap before the names.
+    -- The handles sit at the left edge of each column; CPU's in the middle
+    -- of the gap before the names.
     local edge = { cpuW = PAD_X + memW + cpuW, memW = PAD_X + memW }
-    local leftmost = cpuW > 0 and "cpuW" or "memW"
     for key, d in pairs(dividers) do
-        local on = not locked and (key == "cpuW" and cpuW or memW) > 0
-        d:SetShown(on)
-        if on then
-            local x = -edge[key] + DIVIDER_W / 2 - (key == leftmost and COL_GAP / 2 or 0)
+        d:SetShown(not locked)
+        if not locked then
+            local x = -edge[key] + DIVIDER_W / 2 - (key == "cpuW" and COL_GAP / 2 or 0)
             d:ClearAllPoints()
             d:SetPoint("TOPRIGHT", frame, "TOPRIGHT", x, -PAD_Y)
             d:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", x, PAD_Y)
@@ -287,9 +238,7 @@ local function Render()
 end
 
 local function Update()
-    local memory = ns.Enabled("overlayMemory")
-        or (ns.Enabled("overlayAddons") and ns.Enabled("overlayAddonMemory"))
-    ns.Collect(memory and ticks % MEMORY_EVERY == 0)
+    ns.Collect(ticks % MEMORY_EVERY == 0)
     ticks = ticks + 1
     Render()
 end
@@ -300,33 +249,7 @@ function ns.UpdateOverlay()
 end
 
 local function Style()
-    fontPath, fontSize = ns.Get("overlayFont"), ns.Get("overlayFontSize")
-    fontFlags, fontShadow = ns.FontFlags(ns.Get("overlayOutline"))
-    for _, fs in pairs(header) do SetFont(fs) end
-    for _, fs in pairs(totals) do SetFont(fs) end
-    for _, r in ipairs(rows) do
-        SetFont(r.name); SetFont(r.cpu); SetFont(r.mem)
-    end
-    -- One backdrop either way: the game's tooltip look, or a plain box.
-    local alpha = ns.Get("overlayBackground") / 100
-    if ns.Enabled("overlayBorder") then
-        PAD_X, PAD_Y = unpack(PAD.border)
-        frame:SetBackdrop({
-            bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true, tileSize = 16, edgeSize = 16,
-            insets = { left = 4, right = 4, top = 4, bottom = 4 },
-        })
-        local bgc, edge = TOOLTIP_DEFAULT_BACKGROUND_COLOR, TOOLTIP_DEFAULT_COLOR
-        frame:SetBackdropColor(bgc.r, bgc.g, bgc.b, alpha)
-        frame:SetBackdropBorderColor(edge.r, edge.g, edge.b)
-        line:SetColorTexture(HEADER_COLOR[1], HEADER_COLOR[2], HEADER_COLOR[3], 0.35)
-    else
-        PAD_X, PAD_Y = unpack(PAD.plain)
-        frame:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8" })
-        frame:SetBackdropColor(0, 0, 0, alpha)
-        line:SetColorTexture(1, 1, 1, 0.2)
-    end
+    bg:SetColorTexture(0, 0, 0, ns.Get("overlayBackground") / 100)
 end
 
 local function CursorX(region)
@@ -359,8 +282,7 @@ local function CreateDivider(key)
         GameTooltip_Hide()
         local startX, startW = CursorX(frame), Saved(key)
         self:SetScript("OnUpdate", function()
-            local other = key == "cpuW" and (ns.Enabled("overlayAddonMemory") and Saved("memW") or 0)
-                or (ns.Enabled("overlayAddonCpu") and Saved("cpuW") or 0)
+            local other = Saved(key == "cpuW" and "memW" or "cpuW")
             local max = frame:GetWidth() - 2 * PAD_X - MIN_NAME - COL_GAP - other
             local w = math.floor(math.max(MIN_COL, math.min(max, startW + startX - CursorX(frame))) + 0.5)
             if w ~= Saved(key) then
@@ -375,7 +297,7 @@ local function CreateDivider(key)
 end
 
 local function Build()
-    frame = CreateFrame("Frame", "SereneOverlayFrame", UIParent, "BackdropTemplate")
+    frame = CreateFrame("Frame", "SereneOverlayFrame", UIParent)
     -- Something to glance at; any window or bar opened over it wins.
     frame:SetFrameStrata("BACKGROUND")
     frame:SetClampedToScreen(true)
@@ -383,11 +305,13 @@ local function Build()
     frame:RegisterForDrag("LeftButton")
     frame:SetDontSavePosition(true)
 
+    bg = frame:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
     line = frame:CreateTexture(nil, "ARTWORK")
     line:SetHeight(1)
+    line:SetColorTexture(1, 1, 1, 0.2)
     totals.name, totals.cpu, totals.mem = NewText("LEFT"), NewText("RIGHT"), NewText("RIGHT")
     header.name, header.cpu, header.mem = NewText("LEFT"), NewText("RIGHT"), NewText("RIGHT")
-    Style()  -- a font string takes no text before it has a font
     header.name:SetText("AddOn")
     header.cpu:SetText("CPU")
     header.mem:SetText("Memory")
@@ -477,34 +401,47 @@ bindOwner:SetScript("OnEvent", function(self, event)
 end)
 
 -------------------------------------------------------------------------------
---  Settings -- the Performance page's groups after Usage.
+--  Settings -- the Overlay group of the Performance page, before Usage and
+--  closed at first.
 -------------------------------------------------------------------------------
 local SECTION = "Performance"
 local ON = "overlayShown"
 
+-- One group, two settings to a row.
 ns.RegisterFeature({
     key = "overlayShown", label = "Show overlay", section = SECTION, category = "Overlay", default = false,
+    closed = true,
     apply = Apply,
     tooltip = "Framerate, latency and your heaviest addons on screen while you play. The game's Toggle Framerate key (Ctrl+R) also shows and hides it.",
 })
 ns.RegisterFeature({
-    key = "overlayLocked", label = "Lock", section = SECTION, category = "Overlay", requires = ON, apply = Apply,
+    key = "overlayLocked", label = "Lock position", section = SECTION, category = "Overlay", requires = ON,
+    apply = Apply, beside = true,
     tooltip = "Unlocked, the overlay drags to move and the lines between the columns change their width.",
 })
+
 ns.RegisterFeature({
-    key = "overlayAddons", label = "Addon list", section = SECTION, category = "Overlay", requires = ON,
-    apply = Apply,
-    tooltip = "Off, the overlay shows only the line with framerate, latency and the totals.",
+    key = "overlaySummaryOnly", label = "Show summary only", section = SECTION, category = "Overlay", default = false,
+    requires = ON, apply = Apply,
+    tooltip = "Only the summary line, without the addon list.",
 })
-local LIST = { ON, "overlayAddons" }
+local LIST = { ON, "!overlaySummaryOnly" }
 ns.RegisterFeature({
-    key = "overlayTop", label = "Heaviest addons", section = SECTION, category = "Overlay", type = "slider",
-    min = 1, max = 20, step = 1, default = 5, requires = LIST, apply = Apply,
-    tooltip = "How many of the heaviest addons to list. Pinned addons (the box at the left of an addon under Usage) show besides these.",
+    key = "overlayGrow", label = "Grows from", section = SECTION, category = "Overlay", type = "dropdown",
+    default = "upleft", requires = ON, apply = Apply, space = true,
+    tooltip = "Which corner stays put when the overlay's size changes; it grows away from it.",
+    options = function()
+        return {
+            { value = "upleft",    label = "Bottom right corner" },
+            { value = "upright",   label = "Bottom left corner" },
+            { value = "downleft",  label = "Top right corner" },
+            { value = "downright", label = "Top left corner" },
+        }
+    end,
 })
 ns.RegisterFeature({
     key = "overlaySort", label = "Sort by", section = SECTION, category = "Overlay", type = "dropdown",
-    default = "mem", requires = LIST, apply = Apply,
+    default = "mem", requires = LIST, apply = Apply, beside = true,
     options = function()
         return {
             { value = "cpu",  label = "CPU" },
@@ -513,83 +450,17 @@ ns.RegisterFeature({
         }
     end,
 })
-
--- The columns only matter with the addon list.
-local VALUES = {
-    { "overlayFps",         "Framerate",          ON },
-    { "overlayLatency",     "Latency",            ON },
-    { "overlayCpu",         "Total addon CPU",    ON },
-    { "overlayMemory",      "Total addon memory", ON },
-    { "overlayAddonCpu",    "CPU column",         LIST },
-    { "overlayAddonMemory", "Memory column",      LIST },
-}
-for i, v in ipairs(VALUES) do
-    ns.RegisterFeature({
-        key = v[1], label = v[2], section = SECTION, category = "Values", requires = v[3], apply = Apply,
-        beside = i == 1,  -- the category, to the right of Overlay
-    })
-end
-
 ns.RegisterFeature({
-    key = "overlayColors", label = "Number color", section = SECTION, category = "Look", type = "color",
-    default = "status", requires = ON, apply = Apply,
-    specials = {
-        { value = "status", label = "By value", swatch = function() return GOOD, OK, BAD end,
-          tooltip = "Green when good, yellow when so-so, red when poor. Total memory is green under 100 MB and red from 250 MB; each addon's is green under 2 MB, yellow under 5, orange under 10 and red from there." },
-        { value = "class",  label = "By class", swatch = ns.PlayerClassHex },
-    },
-})
-ns.RegisterFontSettings({
-    prefix = "overlay", label = "Overlay text", section = SECTION, category = "Look", requires = ON, apply = Apply,
-    font = "Fonts\\ARIALN.TTF", size = { 8, 28, 12 }, outline = "OUTLINE", color = "overlayColors", button = "Font",
-})
-ns.RegisterFeature({
-    key = "overlayNameColor", label = "Addon names", section = SECTION, category = "Look", type = "color",
-    default = "d6d6d6", requires = LIST, apply = Apply,
-    specials = {
-        { value = "class", label = "By class", swatch = ns.PlayerClassHex },
-    },
-})
-ns.RegisterFeature({
-    key = "overlayBorder", label = "Tooltip border", section = SECTION, category = "Look", default = false,
-    requires = ON, apply = Apply,
-    tooltip = "A border like the game's tooltips around the overlay, on their dark blue.",
-})
-ns.RegisterFeature({
-    key = "overlayBackground", label = "Background opacity", section = SECTION, category = "Look", type = "slider",
-    min = 0, max = 100, step = 5, default = 25, suffix = "%", requires = ON, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "overlayWidth", label = "Width", section = SECTION, category = "Size", type = "slider",
+    key = "overlayWidth", label = "Width", section = SECTION, category = "Overlay", type = "slider",
     min = 100, max = 800, step = 1, default = 260, requires = LIST, apply = Apply,
-    beside = true,  -- the category, to the right of Look
-    tooltip = "Without the addon list the overlay fits its text.",
+    tooltip = "Without the addon list the overlay fits its text. The height always fits what it lists.",
 })
 ns.RegisterFeature({
-    key = "overlayHeight", label = "Height", section = SECTION, category = "Size", type = "slider",
-    min = 40, max = 800, step = 1, default = 130, requires = { ON, "overlayAddons", "!overlayAutoHeight" },
-    apply = Apply,
+    key = "overlayBackground", label = "Opacity", section = SECTION, category = "Overlay", type = "slider",
+    min = 0, max = 100, step = 5, default = 25, suffix = "%", requires = ON, apply = Apply, beside = true,
 })
 ns.RegisterFeature({
-    key = "overlayAutoHeight", label = "Automatic height", section = SECTION, category = "Size",
-    requires = LIST, apply = Apply,
-    tooltip = "Just tall enough for the addons it lists; Height is then not used.",
-})
-ns.RegisterFeature({
-    key = "overlayScale", label = "Scale", section = SECTION, category = "Size", type = "slider",
-    min = 50, max = 200, step = 5, default = 100, suffix = "%", requires = ON, apply = Apply,
-    tooltip = "Everything at once, text included.",
-})
-ns.RegisterFeature({
-    key = "overlayGrow", label = "Grows toward", section = SECTION, category = "Size", type = "dropdown",
-    default = "upleft", requires = ON, apply = Apply,
-    tooltip = "Which way the overlay grows when its size or scale changes; the opposite corner stays put.",
-    options = function()
-        return {
-            { value = "downright", label = "Down and right" },
-            { value = "downleft",  label = "Down and left" },
-            { value = "upright",   label = "Up and right" },
-            { value = "upleft",    label = "Up and left" },
-        }
-    end,
+    key = "overlayTop", label = "Number of addons", section = SECTION, category = "Overlay", type = "slider",
+    min = 1, max = 20, step = 1, default = 5, requires = LIST, apply = Apply,
+    tooltip = "How many of the heaviest addons to list. Pinned addons (the box at the left of an addon under Usage) show besides these.",
 })

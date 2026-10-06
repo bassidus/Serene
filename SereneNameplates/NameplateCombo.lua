@@ -115,6 +115,6 @@ NP.RegisterModule({
 ns.RegisterFeature({
     key = "nameplateComboPoints", label = "Show combo points", section = "Nameplates",
     tooltip = "Combo points stay on their enemy when you switch targets",
-    category = "Combo points", closed = true,
+    category = "Settings", beside = true,  -- to the right of Show cast bar
     apply = Sync,
 })

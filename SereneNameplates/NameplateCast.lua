@@ -198,9 +198,7 @@ NP.RegisterModule({
 })
 
 ns.RegisterFeature({
-    key = "nameplateCastBar", label = "Show cast bar", section = "Nameplates", category = "Cast bar & debuffs",
+    key = "nameplateCastBar", label = "Show cast bar", section = "Nameplates", category = "Settings",
     tooltip = "Purple cast bars can be interrupted, gray cannot",
-    beside = true,  -- to the right of Text
-    closed = true,
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
 })

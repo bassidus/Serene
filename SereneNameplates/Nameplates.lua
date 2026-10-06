@@ -653,11 +653,9 @@ for _, c in ipairs({
     })
 end
 ns.RegisterFeature({
-    key = "nameplateLevel", label = "Show level", section = "Nameplates", category = "Text", apply = Relayout,
-    tooltip = "Text on enemy nameplates",
-    closed = true,
+    key = "nameplateLevel", label = "Show level", section = "Nameplates", category = "Settings", apply = Relayout,
 })
 ns.RegisterFeature({
-    key = "nameplateHealthText", label = "Show health percent", section = "Nameplates", category = "Text",
-    apply = Relayout,
+    key = "nameplateHealthText", label = "Show health percent", section = "Nameplates", category = "Settings",
+    beside = true, apply = Relayout,
 })

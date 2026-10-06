@@ -11,9 +11,9 @@
 Init.lua
 Nameplates.lua
 NameplateCast.lua
+NameplateCombo.lua
 NameplateDebuffs.lua
 NameplateQuest.lua
-NameplateCombo.lua
 NameplateMana.lua
 NameplateVisibility.lua
 NameplateLook.lua

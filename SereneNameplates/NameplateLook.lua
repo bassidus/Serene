@@ -8,16 +8,15 @@ local _, ns = ...
 local Relayout = ns.NP.ApplyRelayout
 
 ns.RegisterFontSettings({
-    prefix = "nameplate", label = "Font", section = "Nameplates", category = "Text", apply = Relayout,
+    prefix = "nameplate", label = "Font", section = "Nameplates", category = "Settings", apply = Relayout,
     size = { 7, 16, 10 }, outline = "OUTLINE", button = "Font",
 })
 ns.RegisterFeature({
-    key = "nameplateWidth", label = "Width", section = "Nameplates", category = "Size", type = "slider",
-    tooltip = "Size of enemy nameplates",
-    closed = true,
+    key = "nameplateWidth", label = "Width", section = "Nameplates", category = "Settings", type = "slider",
     min = 60, max = 220, step = 2, default = 130, apply = Relayout,
 })
 ns.RegisterFeature({
-    key = "nameplateHeight", label = "Health bar height", section = "Nameplates", category = "Size", type = "slider",
+    key = "nameplateHeight", label = "Health bar height", section = "Nameplates", category = "Settings",
+    type = "slider", beside = true,
     min = 4, max = 24, step = 1, default = 12, apply = Relayout,
 })

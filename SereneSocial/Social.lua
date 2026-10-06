@@ -196,29 +196,17 @@ end
 -------------------------------------------------------------------------------
 -- Count your guild as friends is at the end of ThankBuffs.lua, last on the page.
 ns.RegisterFeature({
-    key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION, category = "Invites",
-    tooltip = "Group invites from friends and by whispered keyword",
+    key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION,
+    category = "Automation",
+    tooltip = "Handles group invites, duels and shared quests for you",
     apply = Apply,
 })
 ns.RegisterFeature({
-    key = "blockPartyInvites", label = "Block group invites from strangers", section = SECTION, category = "Blocking",
-    tooltip = "Declines group invites, duels and shared quests from strangers",
+    key = "whisperInvite", label = "Invite players who whisper a keyword", section = SECTION, category = "Automation",
     default = false, apply = Apply,
 })
 ns.RegisterFeature({
-    key = "blockDuels", label = "Block duels from strangers", section = SECTION, category = "Blocking",
-    default = false, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "blockSharedQuests", label = "Block quests shared by strangers", section = SECTION, category = "Blocking",
-    default = false, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "whisperInvite", label = "Invite players who whisper a keyword", section = SECTION, category = "Invites",
-    default = false, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "whisperInviteKeyword", label = "Keyword", section = SECTION, category = "Invites",
+    key = "whisperInviteKeyword", label = "Keyword", section = SECTION, category = "Automation",
     type = "dropdown", default = "both",
     requires = "whisperInvite",
     options = function()
@@ -230,7 +218,7 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "whisperInviteFrom", label = "Who gets invited", section = SECTION, category = "Invites",
+    key = "whisperInviteFrom", label = "Who gets invited", section = SECTION, category = "Automation",
     type = "dropdown", beside = true,
     default = "anyone", requires = "whisperInvite",
     options = function()
@@ -239,4 +227,17 @@ ns.RegisterFeature({
             { value = "friends", label = "Friends only" },
         }
     end,
+})
+ns.RegisterFeature({
+    key = "blockPartyInvites", label = "Block group invites from strangers", section = SECTION,
+    category = "Automation", space = true,
+    default = false, apply = Apply,
+})
+ns.RegisterFeature({
+    key = "blockDuels", label = "Block duels from strangers", section = SECTION, category = "Automation",
+    default = false, apply = Apply,
+})
+ns.RegisterFeature({
+    key = "blockSharedQuests", label = "Block quests shared by strangers", section = SECTION, category = "Automation",
+    default = false, apply = Apply,
 })

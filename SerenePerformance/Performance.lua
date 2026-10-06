@@ -27,6 +27,17 @@ end
 -------------------------------------------------------------------------------
 --  Usage
 -------------------------------------------------------------------------------
+-- Drawn under Peak CPU by Build rather than as a row of its own, so it has
+-- no section; the page's reset puts it back below. It also sets the
+-- overlay's pace, since the two share one scan (Data.lua).
+local SCAN = {
+    key = "memoryScanEvery", label = "Scan memory every",
+    type = "slider", min = 1, max = 60, step = 1, default = 15, suffix = " s",
+    tooltip = "Each scan costs performance, and with many addons loaded it can make the game stutter briefly. The overlay scans at the same pace.",
+}
+ns.RegisterFeature(SCAN)
+ns.OnReset(function() SereneDB[SCAN.key] = SCAN.default end, SECTION)
+
 local function Build(parent)
     local W = ns.Widgets
     local scroll = parent:GetParent()  -- the page's scroll frame
@@ -104,7 +115,13 @@ local function Build(parent)
         end
         GameTooltip_Hide()
     end)
-    local statsBottom = -math.ceil(#STATS / 2) * STAT_ROW_H - 14
+    -- In the free cell under Peak CPU; taller than a stat row, so the
+    -- table starts below it.
+    local scan = W.Slider(content, SCAN)
+    local scanTop = -math.floor(#STATS / 2) * STAT_ROW_H
+    scan:SetPoint("TOPLEFT", content, "TOP", 12, scanTop)
+    scan:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, scanTop)
+    local statsBottom = scanTop - scan:GetHeight() - 6
 
     -- Table header, clickable to sort.
     local head = CreateFrame("Frame", nil, content)
@@ -333,7 +350,11 @@ local function Build(parent)
     end)
 
     content:SetHeight(-statsBottom + HEADER_H + 2 + ROWS * ROW_H)
-    content.Refresh = Render
+    function content.Refresh()
+        Render()
+        scan.Refresh()
+    end
+    scan.Refresh()
     return content
 end
 
@@ -341,11 +362,4 @@ ns.RegisterFeature({
     key = "perfSort", label = "Addons", section = SECTION, category = "Usage", type = "custom",
     tooltip = "What each addon uses; checked addons stay on the overlay",
     default = "mem", build = Build,
-})
-
--- Also sets the overlay's pace, since the two share one scan (Data.lua).
-ns.RegisterFeature({
-    key = "memoryScanEvery", label = "Scan memory every", section = SECTION, category = "Usage",
-    type = "slider", min = 1, max = 60, step = 1, default = 15, suffix = " s",
-    note = "Each scan costs performance, and with many addons loaded it can make the game stutter briefly.",
 })

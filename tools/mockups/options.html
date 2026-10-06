@@ -1,0 +1,296 @@
+<!doctype html>
+<!--
+  The options window on the Performance page, rebuilt from SereneOptions/Options.lua,
+  OptionsWidgets.lua and SerenePerformance (same constants, same Layout() logic).
+  ?state=usage: Usage open. ?state=overlay: the overlay's four categories open.
+  The page's settings are listed by hand in LIST; when Overlay.lua or Performance.lua
+  change their settings, change LIST to match. The numbers in ADDONS are made up.
+  Friz Quadrata (friz.ttf, unpacked by render.sh) has old-style digits only, so the
+  digits come from Belleza to look like the game's FRIZQT.
+-->
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Friz;src:url(friz.ttf) format('truetype');}
+@font-face{font-family:Friz;src:url(belleza.woff2) format('woff2');unicode-range:U+0030-0039;}
+:root{
+  --bg: rgba(18,14,14,.97); --panel: rgb(26,20,20); --field: rgb(32,26,25); --edge: rgb(71,56,54);
+  --accent: rgb(255,107,41); --gold: rgb(255,209,0); --red: rgb(255,77,115);
+}
+html,body{margin:0;background:transparent}
+body{padding:0}
+*{box-sizing:border-box}
+.abs{position:absolute}
+.t{position:absolute;white-space:nowrap;font-family:Friz,serif;
+   text-shadow:1px 1px 0 #000;-webkit-text-stroke:.25px currentColor;line-height:1}
+.n{font-size:12px}.l{font-size:16px}.s{font-size:10px}
+.white{color:#fff}.gold{color:var(--gold)}.acc{color:var(--accent)}.red{color:var(--red)}
+.box{position:absolute;border:1px solid var(--edge)}
+.solid{position:absolute}
+</style></head>
+<body>
+<div id="win" class="abs" style="left:0;top:0"></div>
+<script>
+Promise.all([document.fonts.load('12px Friz','abc'),document.fonts.load('12px Friz','123')]).then(()=>{
+const P = new URLSearchParams(location.search);
+const STATE = P.get('state') || 'usage';   // usage | overlay
+const H = +(P.get('h') || 686);
+const VERSION = P.get('version') || '';
+const WIDTH=700, SIDEBAR_W=180, TITLE_H=40, PAD=20, FOOTER_H=26, TAB_H=30, SPACING=10;
+const MENU_HEADING_H=22, MENU_GAP=8, MENU_INDENT=26, GROUP_PAD=10, PAGE_W=WIDTH-SIDEBAR_W-2*PAD, HEADER_H=26;
+const HEADING_H=12, CONTROL_W=260;
+
+const win = document.getElementById('win');
+win.style.width = WIDTH+'px'; win.style.height = H+'px';
+document.body.style.width = WIDTH+'px'; document.body.style.height = H+'px';
+
+function el(parent, cls, css, html){
+  const d=document.createElement('div'); d.className=cls||''; Object.assign(d.style, css||{});
+  if(html!==undefined) d.innerHTML=html; parent.appendChild(d); return d;
+}
+const px = v => v+'px';
+// Text whose vertical middle is at cy (a LEFT/RIGHT/CENTER anchor).
+function textMid(parent, x, cy, cls, str, opts={}){
+  const d = el(parent, 't '+cls, {left:px(x), top:px(cy), transform:'translateY(-50%)'}, str);
+  if(opts.right!==undefined){ d.style.left=''; d.style.right=px(opts.right); }
+  if(opts.width!==undefined){ d.style.width=px(opts.width); d.style.textAlign=opts.align||'left'; d.style.overflow='hidden'; }
+  return d;
+}
+// Text whose top is at y (a TOPLEFT anchor).
+function textTop(parent, x, y, cls, str){ return el(parent, 't '+cls, {left:px(x), top:px(y)}, str); }
+function rect(parent, x, y, w, h, bg, extra){ return el(parent, 'solid', Object.assign({left:px(x), top:px(y), width:px(w), height:px(h), background:bg}, extra||{})); }
+function bordered(parent, x, y, w, h, bg, border){
+  return el(parent, 'box', {left:px(x), top:px(y), width:px(w), height:px(h), background:bg||'transparent', borderColor:border||'var(--edge)'});
+}
+
+// ---------------------------------------------------------------- frame
+el(win, 'abs', {inset:0, background:'var(--bg)', border:'1px solid var(--edge)'});
+rect(win, 1, TITLE_H-1, WIDTH-2, 1, 'var(--edge)');
+el(win, 'abs', {left:'14px', top:px(TITLE_H/2-10), width:'20px', height:'20px',
+  background:'url(logo.png) center/contain no-repeat'});
+const title = textMid(win, 42, TITLE_H/2, 'l acc', 'Serene');
+// close button: two 14x2 lines, DIM (gold)
+for(const a of [45,-45]) rect(win, WIDTH-8-12-7, 8+12-1, 14, 2, 'var(--gold)', {transform:`rotate(${a}deg)`});
+
+// sidebar
+const sb = el(win, 'abs', {left:'1px', top:px(TITLE_H+1), width:px(SIDEBAR_W-1), bottom:'1px', background:'var(--panel)'});
+const sbH = H - TITLE_H - 2;
+function sidebarButton(y, label, color, indent, selected){
+  const b = el(sb, 'abs', {left:0, right:0, top:px(y), height:px(TAB_H)});
+  if(selected){ rect(b,0,0,SIDEBAR_W-1,TAB_H,'rgba(255,107,41,.12)'); rect(b,0,0,3,TAB_H,'var(--accent)'); }
+  textMid(b, indent||16, TAB_H/2, 'n '+(selected?'white':color), label);
+}
+const MENU = [["Interface",["Action bars","Enemy nameplates","Unit frames","Tooltip","Move & scale"]],
+              ["Quality of life",["General","Quests","Social"]],["Tools",["Performance"]]];
+let my = 10;
+MENU.forEach(([head, tabs], i)=>{
+  if(i>0) my += MENU_GAP;
+  // heading BOTTOMLEFT at (16, y - 22 + 4)
+  const hd = el(sb, 't s acc', {left:'16px', top:px(my+MENU_HEADING_H-4), transform:'translateY(-100%)'}, head);
+  my += MENU_HEADING_H;
+  for(const t of tabs){ sidebarButton(my, t, 'gold', MENU_INDENT, t==='Performance'); my += TAB_H; }
+});
+const reloadTop = sbH - 10 - TAB_H;
+sidebarButton(reloadTop, 'Reload UI', 'red');
+sidebarButton(reloadTop - TAB_H, 'Reset defaults', 'gold');
+sidebarButton(reloadTop - 2*TAB_H, 'Modules', 'acc');
+rect(sb, 12, reloadTop - 2*TAB_H - 6 - 1, SIDEBAR_W-1-24, 1, 'var(--edge)');
+
+// footer
+const footY = H - 10;
+const foot = el(win, 't s gold', {left:px(SIDEBAR_W+PAD), top:px(footY), transform:'translateY(-100%)'}, 'Hold Shift to skip auto loot and auto quests.');
+
+// scale grip
+el(win, 'abs', {right:'3px', bottom:'3px', width:'16px', height:'16px'},
+  `<svg width="16" height="16" viewBox="0 0 16 16"><g stroke="#8a8a8a" stroke-width="1.3">
+   <line x1="15" y1="4" x2="4" y2="15"/><line x1="15" y1="8" x2="8" y2="15"/><line x1="15" y1="12" x2="12" y2="15"/></g></svg>`);
+
+// ---------------------------------------------------------------- page
+const page = el(win, 'abs', {left:px(SIDEBAR_W+PAD), top:px(TITLE_H+PAD), width:px(PAGE_W), height:px(H-TITLE_H-PAD-FOOTER_H)});
+el(page, 't l acc', {left:0, top:0}, 'Performance');
+textMid(page, 0, 2+8, 's gold', 'Reset page', {right:0});
+const content = el(page, 'abs', {left:0, top:px(HEADER_H), width:px(PAGE_W), height:'2000px'});
+
+// ----- widgets: each returns its height; drawn at content x,y (y positive down)
+function checkbox(x, y, w, label, on, alpha){
+  const r = el(content, 'abs', {left:px(x), top:px(y), width:px(w), height:'26px', opacity:alpha});
+  bordered(r, 0, 5, 16, 16, 'var(--field)');
+  if(on) rect(r, 3, 8, 10, 10, 'var(--accent)');
+  textMid(r, 26, 13, 'n white', label);
+  return 26;
+}
+function sliderW(x, y, w, label, value, min, max, suffix, alpha){
+  const r = el(content, 'abs', {left:px(x), top:px(y), width:px(w), height:'46px', opacity:alpha});
+  textTop(r, 0, 0, 'n white', label);
+  const sw = Math.min(CONTROL_W, w);
+  const t = (value-min)/(max-min), tx = 4 + (sw-8)*t;
+  rect(r, 0, 20+6, sw, 4, 'var(--field)');
+  rect(r, 0, 20+6, tx, 4, 'rgba(255,107,41,.5)');
+  rect(r, tx-4, 20, 8, 16, 'var(--accent)');
+  el(r, 't n acc', {left:px(sw), top:'12px', transform:'translate(-100%,-100%)'}, value+(suffix||''));
+  return 46;
+}
+function arrow(parent, x, cy){
+  el(parent, 'abs', {left:px(x), top:px(cy-2), width:0, height:0,
+    borderLeft:'5px solid transparent', borderRight:'5px solid transparent', borderTop:'5px solid var(--gold)',
+    filter:'drop-shadow(1px 1px 0 #000)'});
+}
+function field(x, y, w, label, inner, alpha){
+  const r = el(content, 'abs', {left:px(x), top:px(y), width:px(w), height:px(label?50:30), opacity:alpha});
+  let by = 0;
+  if(label){ textTop(r, 0, 0, 'n white', label); by = 12 + 6; }
+  const b = bordered(r, 0, by, Math.min(CONTROL_W, w), 24, 'var(--field)');
+  inner(b);
+  return label?50:30;
+}
+function dropdown(x, y, w, label, value, alpha){
+  return field(x, y, w, label, b => { textMid(b, 7, 11, 'n white', value); arrow(b, Math.min(CONTROL_W,w)-8-12-1, 11); }, alpha);
+}
+function colorField(x, y, w, label, hex, name, alpha){
+  return field(x, y, w, label, b => {
+    bordered(b, 7, 4, 14, 14, '#'+hex);
+    textMid(b, 29, 11, 'n white', name); arrow(b, Math.min(CONTROL_W,w)-8-12-1, 11);
+  }, alpha);
+}
+function plainButton(x, y, w, text, alpha){
+  const r = el(content, 'abs', {left:px(x), top:px(y), width:px(w), height:'30px', opacity:alpha});
+  const b = bordered(r, 0, 0, 10, 24, 'var(--field)');
+  const tx = textMid(b, 16, 11, 'n white', text);
+  b.style.width = px(Math.ceil(tx.getBoundingClientRect().width) + 32);
+  return 30;
+}
+
+// ----- the Usage list (Performance.lua Build)
+const ADDONS = [
+  ['Serene Options',      0.05, 431, true],
+  ['Serene',              0.01, 247, true],
+  ['Serene Action Bar',   0.12, 201, true],
+  ['Serene Performance',  0.06, 122, true],
+  ['Serene Unit Frames',  0.08, 106, true],
+  ['Serene Move & Scale', 0.004, 95, true],
+  ['Serene Nameplates',   0.31,  93, true],
+  ['Serene Tooltip',      0.03,  75, true],
+  ['Serene QoL',          0.003, 52, true],
+  ['Serene Social',       0,     37, true],
+  ['BugGrabber',          0,     25, false],
+  ['Serene Quests',       0,     13, true],
+];
+const PINNED = {'Serene Nameplates': true};
+const pct = p => p<=0 ? '0%' : p<0.005 ? '&lt;0.01%' : p>=10 ? p.toFixed(0)+'%' : p>=1 ? p.toFixed(1)+'%' : p.toFixed(2)+'%';
+const mem = kb => kb>=1000 ? (kb/1000).toFixed(2)+' MB' : kb.toFixed(0)+' KB';
+
+function usage(x, y, w){
+  const c = el(content, 'abs', {left:px(x), top:px(y), width:px(w), height:'308px'});
+  const total = ADDONS.reduce((s,a)=>s+a[2],0);
+  const STATS = [['Average framerate','118 fps'],['Average CPU','0.67%'],['Average latency','42 ms'],['Peak CPU','8.2%'],['Addon memory',mem(total)]];
+  STATS.forEach(([l,v],i)=>{
+    const col=i%2, row=Math.floor(i/2), cy=row*18+9;
+    const lx = col===0 ? 0 : w/2+12, rx = col===0 ? w/2+12 : 0;
+    textMid(c, lx, cy, 's gold', l);
+    textMid(c, 0, cy, 's white', v, {right: rx});
+  });
+  const headY = 68;
+  rect(c, 0, headY, w, 22, 'var(--panel)');
+  rect(c, 0, headY+21, w, 1, 'var(--edge)');
+  textMid(c, 2, headY+11, 's gold', 'Pin', {width:18, align:'center'});
+  textMid(c, 24, headY+11, 's gold', 'AddOn');
+  textMid(c, 0, headY+11, 's gold', 'CPU', {right:16+80});
+  textMid(c, 0, headY+11, 's acc', 'Memory', {right:10});
+  const listY = headY+22+2;
+  ADDONS.forEach(([name,cpu,kb,icon],i)=>{
+    const ry = listY + i*18;
+    if(i%2===1) rect(c, 0, ry, w, 18, 'rgba(32,26,25,.6)');
+    bordered(c, 5, ry+3, 12, 12, 'var(--field)');
+    if(PINNED[name]) rect(c, 7, ry+5, 8, 8, 'var(--accent)');
+    const ic = icon ? '<img src="logo.png" style="width:14px;height:14px;vertical-align:-3px;margin-right:4px">' : '';
+    textMid(c, 24, ry+9, 's white', ic+name);
+    textMid(c, 0, ry+9, 's white', pct(cpu), {right:16+80});
+    textMid(c, 0, ry+9, 's white', mem(kb), {right:10});
+  });
+  return 308;
+}
+
+// ----- the Performance page's settings, in registration order
+const ON=1, DIM=0.4;
+const LIST = [
+  {cat:'Usage', type:'custom', h:308, open:true, draw:(x,y,w)=>usage(x,y,w)},
+  {cat:'Overlay', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Show overlay',true)},
+  {cat:'Overlay', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Lock',true)},
+  {cat:'Overlay', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Addon list',true)},
+  {cat:'Overlay', type:'slider', draw:(x,y,w)=>sliderW(x,y,w,'Heaviest addons',5,1,20)},
+  {cat:'Overlay', type:'dropdown', draw:(x,y,w)=>dropdown(x,y,w,'Sort by','Memory')},
+  {cat:'Values', beside:true, type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Framerate',true)},
+  {cat:'Values', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Latency',true)},
+  {cat:'Values', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Total addon CPU',true)},
+  {cat:'Values', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Total addon memory',true)},
+  {cat:'Values', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'CPU column',true)},
+  {cat:'Values', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Memory column',true)},
+  {cat:'Look', type:'dropdown', draw:(x,y,w)=>plainButton(x,y,w,'Font')},
+  {cat:'Look', type:'color', draw:(x,y,w)=>colorField(x,y,w,'Addon names','d6d6d6','#d6d6d6')},
+  {cat:'Look', type:'slider', draw:(x,y,w)=>sliderW(x,y,w,'Background opacity',25,0,100,'%')},
+  {cat:'Size', beside:true, type:'slider', draw:(x,y,w)=>sliderW(x,y,w,'Width',260,100,800)},
+  {cat:'Size', type:'slider', draw:(x,y,w)=>sliderW(x,y,w,'Height',130,40,800,'',DIM)},
+  {cat:'Size', type:'boolean', draw:(x,y,w)=>checkbox(x,y,w,'Automatic height',true)},
+  {cat:'Size', type:'slider', draw:(x,y,w)=>sliderW(x,y,w,'Scale',100,50,200,'%')},
+  {cat:'Size', type:'dropdown', draw:(x,y,w)=>dropdown(x,y,w,'Grows toward','Up and left')},
+];
+const HELP = {Usage:true, Overlay:true, Look:true, Size:true};
+const OPEN = STATE==='usage' ? {Usage:true} : {Overlay:true, Values:true, Look:true, Size:true};
+
+// Columns(): a category whose first setting has beside goes right of the previous one.
+const column={}, partner={};
+{ let prev; for(const f of LIST){ if(f.cat!==prev){ if(f.beside&&prev){ column[prev]='left'; column[f.cat]='right'; } prev=f.cat; } } }
+const half = (PAGE_W - SPACING)/2;
+
+function drawGroup(g){
+  const w = PAGE_W - g.left - g.right;
+  const d = bordered(content, g.left, -g.top, w, g.top - g.bottom);
+  textTop(d, GROUP_PAD-1, GROUP_PAD-1, 'n acc', g.cat);
+  rect(d, w-1-GROUP_PAD-9, 15, 9, 2, 'var(--accent)');
+  if(!OPEN[g.cat]) rect(d, w-1-GROUP_PAD-5.5, 11.5, 2, 9, 'var(--accent)');
+  if(HELP[g.cat]) el(d, 't l gold', {left:px(w-1-GROUP_PAD-9-6-8), top:'16px', transform:'translate(-50%,-50%)',
+      webkitTextStroke:'1px #000', paintOrder:'stroke fill', fontSize:'18px'}, '?');
+}
+
+// Layout() from Options.lua; y is negative downward.
+let y = -(36 - HEADER_H), gap = 0, group = null, left = null, row = null;
+const groups = [];
+function PlaceGroup(g, y0, l, r){ g.top = y0 - SPACING; g.left=l; g.right=r; return g.top - GROUP_PAD - HEADING_H - 6; }
+function Close(){
+  const bottom0 = y + gap - GROUP_PAD/2;
+  group.bottom = bottom0;
+  const col = column[group.cat];
+  if(col==='left'){ left = group; return group.start; }
+  if(col==='right' && left){ const b = Math.min(bottom0, left.bottom); left.bottom=b; group.bottom=b; left=null; return b; }
+  return bottom0;
+}
+for(const f of LIST){
+  if(!group || f.cat!==group.cat){
+    if(group) y = Close();
+    const col = column[f.cat], start = y;
+    group = {cat:f.cat};
+    groups.push(group);
+    y = PlaceGroup(group, y, col==='right' ? half+SPACING : 0, col==='left' ? half+SPACING : 0);
+    group.start = start;
+    if(!OPEN[f.cat]){ y = group.top - GROUP_PAD*1.5 - HEADING_H; gap = 0; }
+  }
+  if(!OPEN[group.cat]) continue;
+  const x = group.left + GROUP_PAD, xr = group.right + GROUP_PAD;
+  const h = f.draw(x, -y, PAGE_W - x - xr);
+  gap = f.type==='boolean' ? 2 : SPACING;
+  y = y - h - gap;
+}
+if(group) y = Close();
+groups.forEach(drawGroup);
+
+// footer checkbox, beside the Shift line
+requestAnimationFrame(()=>{
+  const fr = foot.getBoundingClientRect();
+  const r = el(win, 'abs', {left:px(fr.right + 24), top:px(fr.top + fr.height/2 - 10), height:'20px'});
+  bordered(r, 0, 2, 16, 16, 'var(--field)'); rect(r, 3, 5, 10, 10, 'var(--accent)');
+  textMid(r, 26, 10, 's white', 'Show minimap icon');
+  const tr = title.getBoundingClientRect();
+  el(win, 't s gold', {left:px(tr.right + 6), top:px(tr.bottom - 1 - 1), transform:'translateY(-100%)'}, 'v' + VERSION);
+});
+});
+</script>
+</body></html>

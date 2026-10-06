@@ -18,7 +18,6 @@
 local _, ns = ...
 
 local UPDATE_INTERVAL = 1
-local MEMORY_EVERY = 5  -- ticks between memory rescans
 local COL_GAP = 6
 local PAD_X, PAD_Y = 6, 4  -- around the text
 local DIVIDER_W = 8
@@ -238,7 +237,8 @@ local function Render()
 end
 
 local function Update()
-    ns.Collect(ticks % MEMORY_EVERY == 0)
+    -- A tick a second, so the setting's seconds are ticks.
+    ns.Collect(ticks % ns.Get("overlayMemoryEvery") == 0)
     ticks = ticks + 1
     Render()
 end
@@ -458,4 +458,9 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "overlayTop", label = "Number of addons", section = SECTION, category = "Overlay", type = "slider",
     min = 1, max = 20, step = 1, default = 5, requires = LIST, apply = Apply,
+})
+ns.RegisterFeature({
+    key = "overlayMemoryEvery", label = "Scan memory every", section = SECTION, category = "Overlay",
+    type = "slider", min = 1, max = 60, step = 1, default = 15, suffix = " s", requires = ON, apply = Apply,
+    note = "Each scan costs performance, and with many addons loaded it can make the game stutter briefly.",
 })

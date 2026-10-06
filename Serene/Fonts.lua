@@ -50,13 +50,14 @@ end
 --         button = text for a plain button in place of the row, e.g. "Font"
 --         where the category already names the text; label titles its editor,
 --         position = with button: the X key of a ns.RegisterPositionSettings
---         pair, shown as a "Position" button beside it instead of a row }
+--         pair, shown as a "Position" button beside it instead of a row,
+--         beside = the row goes right of the previous setting (see Core.lua) }
 function ns.RegisterFontSettings(def)
     local group = { label = def.label, color = def.color, button = def.button, position = def.position }
     group.font = {
         key = def.prefix .. "Font", label = "Font", section = def.section, category = def.category, type = "dropdown",
         default = def.font or "default", preview = true, apply = def.apply, options = ns.FontOptions, group = group,
-        requires = def.requires,
+        requires = def.requires, beside = def.beside,
     }
     group.size = {
         key = def.prefix .. "FontSize", label = "Size", section = def.section, category = def.category, type = "slider",

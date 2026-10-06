@@ -38,7 +38,7 @@ local GOLD, TAN = W.GOLD, W.TAN
 -- The sidebar's groups: a heading over its settings tabs, in this order.
 -- Sections not listed here go under Other.
 local MENU = {
-    { "Interface", { "Action bars", "Enemy nameplates", "Unit frames", "Tooltip", "Move & scale" } },
+    { "Interface", { "Action Bars", "Serene Nameplates", "Unit frames", "Tooltip", "Move & Scale" } },
     { "Quality of life", { "General", "Quests", "Social" } },
     { "Tools", { "Performance" } },
 }
@@ -348,9 +348,9 @@ local function CreateAddonToggle(page, module)
     return box
 end
 
--- The help text of a category's settings, for its "?": { { label =, text = }, ... }
--- in registration order, a color's specials as "Name: text" under it. A
--- position pair counts once.
+-- The help texts of a category's settings, for its "?", in registration
+-- order, a color's specials as "Name: text" under its own. Each reads on its
+-- own: the settings' labels are not repeated there. A position pair counts once.
 local function CategoryHelp(section, category)
     local help = {}
     for _, f in ipairs(ns.features) do
@@ -360,7 +360,7 @@ local function CategoryHelp(section, category)
             for _, s in ipairs(f.specials or {}) do
                 if s.tooltip then lines[#lines + 1] = s.label .. ": " .. s.tooltip end
             end
-            if #lines > 0 then help[#help + 1] = { label = f.label, text = table.concat(lines, "\n") } end
+            if #lines > 0 then help[#help + 1] = table.concat(lines, "\n") end
         end
     end
     return help
@@ -804,7 +804,7 @@ local function Center()
 end
 
 -------------------------------------------------------------------------------
---  Scaling: Ctrl + scroll anywhere on the window, in the steps Move & scale
+--  Scaling: Ctrl + scroll anywhere on the window, in the steps Move & Scale
 --  uses. The pages have a fixed layout, so scaling keeps every control in
 --  place where a free resize would clip them. The top-left corner stays put.
 -------------------------------------------------------------------------------

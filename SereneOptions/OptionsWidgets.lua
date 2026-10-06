@@ -368,7 +368,7 @@ function W.Checkbox(parent, f)
     end)
     AttachTooltip(row, f)
 
-    -- "Requires Enemy nameplates" beside the label; on the parent, so the row's
+    -- "Requires Serene Nameplates" beside the label; on the parent, so the row's
     -- dimming leaves it readable.
     local note
     if f.addon then
@@ -869,18 +869,19 @@ local BAR = { top = { 0.82, 0.53, 0.16, 0.9 }, bottom = { 0.5, 0.27, 0.08, 0.9 }
 
 function W.Slider(parent, f)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(46)
+    holder:SetHeight(48)
 
     local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     label:SetPoint("TOPLEFT", 0, 0)
     label:SetText(f.label)
 
     -- The track is a field's capsule (twice RADIUS high, so its ends are
-    -- round), filled up to the knob.
+    -- round), filled up to the knob. Its middle is level with a field's
+    -- beside it (6 under the label, 24 high).
     local slider = CreateFrame("Slider", nil, holder)
     slider:SetOrientation("HORIZONTAL")
     slider:SetSize(W.CONTROL_W, 2 * RADIUS)
-    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -8)
+    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -(6 + 12 - RADIUS))
     slider:SetMinMaxValues(f.min, f.max)
     slider:SetValueStep(f.step or 1)
     slider:SetObeyStepOnDrag(true)
@@ -912,7 +913,8 @@ function W.Slider(parent, f)
     slider:SetScript("OnLeave", function() track.SetLineColor() end)
 
     local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    valueText:SetPoint("BOTTOMRIGHT", slider, "TOPRIGHT", 0, 6)
+    -- On the label's line.
+    valueText:SetPoint("BOTTOMRIGHT", slider, "TOPRIGHT", 0, 6 + 12 - RADIUS)
     valueText:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
     local step, suffix = f.step or 1, f.suffix or ""
@@ -1241,7 +1243,7 @@ end
 -------------------------------------------------------------------------------
 --  Help -- a gold "?" whose click shows help in the tooltip until it is
 --  clicked again, a click lands anywhere else or the popups close.
---  help = { { label =, text = }, ... }, under title.
+--  help = { text, ... }, under title.
 -------------------------------------------------------------------------------
 local helpOpen  -- the "?" whose help shows
 local helpWatch = CreateFrame("Frame")
@@ -1286,10 +1288,9 @@ function W.Help(parent, title, help)
         if shown then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(title, 1, 1, 1)
-        for _, h in ipairs(help) do
+        for _, text in ipairs(help) do
             GameTooltip:AddLine(" ")
-            GameTooltip:AddLine(h.label, GOLD[1], GOLD[2], GOLD[3])
-            GameTooltip:AddLine(h.text, nil, nil, nil, true)
+            GameTooltip:AddLine(text, nil, nil, nil, true)
         end
         GameTooltip:Show()
         helpOpen = self

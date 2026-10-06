@@ -34,7 +34,7 @@ end)
 
 ns.RegisterFeature({
     key = "tooltipCursor", type = "dropdown", default = true, space = true,
-    tooltip = "Select tooltip position",
+    tooltip = "Where tooltips appear",
     label = "Anchor", section = "Tooltip", category = "Position",
     options = function()
         return {

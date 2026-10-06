@@ -14,7 +14,6 @@ end
 
 ns.RegisterFeature({
     key = "nameplateFadeOthers", label = "Fade non-targeted", section = "Nameplates", category = "Settings",
-    tooltip = "Casters and the enemy under the mouse never fade",
     apply = UpdateAlphas,
 })
 ns.RegisterFeature({

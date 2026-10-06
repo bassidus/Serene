@@ -304,7 +304,7 @@ local SECTION = "Action Bars"
 
 ns.RegisterFeature({
     key = "shortKeybinds", label = "Shorten keybind text", section = SECTION, category = "Settings",
-    tooltip = "Keybind and macro name text on the action buttons",
+    tooltip = "Text and range color on the action buttons",
     apply = ApplySetting,
 })
 ns.RegisterFeature({

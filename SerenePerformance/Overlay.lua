@@ -410,7 +410,7 @@ local ON = "overlayShown"
 -- One group, two settings to a row.
 ns.RegisterFeature({
     key = "overlayShown", label = "Show overlay", section = SECTION, category = "Overlay", default = false,
-    tooltip = "Framerate, latency and your heaviest addons on screen; Ctrl+R toggles it",
+    tooltip = "Performance numbers on screen while you play; Ctrl+R toggles it",
     closed = true,
     apply = Apply,
 })

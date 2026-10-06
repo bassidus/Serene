@@ -199,6 +199,5 @@ NP.RegisterModule({
 
 ns.RegisterFeature({
     key = "nameplateCastBar", label = "Show target cast bar", section = "Nameplates", category = "Settings",
-    tooltip = "Purple cast bars can be interrupted, gray cannot",
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
 })

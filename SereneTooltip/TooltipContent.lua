@@ -429,7 +429,7 @@ end)
 -- from TooltipBorder.lua.
 for _, def in ipairs({
     { key = "tooltipTitles",          label = "Show title",
-      tooltip = "The lines, look and size of tooltips; players' item level is read out of combat" },
+      tooltip = "What tooltips show and how they look" },
     { key = "tooltipFaction",         label = "Show faction", beside = true },
     { key = "tooltipGuild",           label = "Show guild" },
     { key = "tooltipGuildRank",       label = "Show guild rank", beside = true, requires = "tooltipGuild" },

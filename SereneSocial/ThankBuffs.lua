@@ -152,7 +152,7 @@ end)
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
     key = "thankBuffs", label = "Thank players who buff you", section = SECTION, category = "Thanks for buffs",
-    tooltip = "An /emote at most once a minute, not for group members or buffs in combat",
+    tooltip = "A short thank-you when a stranger buffs you",
     apply = function()
         local on = ns.Enabled("thankBuffs")
         if on then

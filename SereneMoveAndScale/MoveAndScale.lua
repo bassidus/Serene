@@ -485,7 +485,7 @@ end, SECTION)
 ns.RegisterFeature({
     key = "windowMove", label = "Drag windows to move them", section = SECTION, category = "Settings",
     default = false, apply = ApplyAll,
-    tooltip = "Middle-click on a window restores default size and position",
+    tooltip = "Moving and resizing the game's windows; middle-click resets one",
 })
 ns.RegisterFeature({
     key = "windowWheel", label = "Ctrl + mouse wheel resizes windows", section = SECTION, category = "Settings",
@@ -516,7 +516,7 @@ end
 ns.RegisterFeature({
     key = "windowSizeWindow", label = "Window", section = SECTION, category = "Scale Windows", space = true,
     type = "dropdown", default = WINDOWS[1].key, options = SizeOptions,
-    tooltip = "Manually scale windows",
+    tooltip = "A set size for each window",
     apply = function() SereneDB.windowSize = Saved(Picked()) end,
 })
 ns.RegisterFeature({

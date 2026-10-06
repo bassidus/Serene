@@ -342,7 +342,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "unitFrameText", label = "Format", section = SECTION, category = "Health & mana",
-    tooltip = "Numbers on the health and mana bars; None shows them on mouseover",
+    tooltip = "Numbers on the health and mana bars",
     type = "dropdown",
     default = "both", apply = ApplyText,
     options = function()

@@ -33,6 +33,6 @@ for bar = 2, 8 do
     ns.RegisterFeature({
         key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION,
         category = "Bars enabled on all characters", default = false, beside = bar % 2 == 1 or nil, apply = Sync,
-        tooltip = bar == 2 and "Checked bars are turned on for every character at login" or nil,
+        tooltip = bar == 2 and "No setting up bars on each new character" or nil,
     })
 end

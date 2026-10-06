@@ -342,6 +342,6 @@ end
 
 ns.RegisterFeature({
     key = "perfSort", label = "Addons", section = SECTION, category = "Usage", type = "custom",
-    tooltip = "Click a heading to sort; the box pins an addon to the overlay",
+    tooltip = "What each addon uses; checked addons stay on the overlay",
     default = "mem", build = Build,
 })

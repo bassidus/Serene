@@ -191,7 +191,7 @@ end
 
 ns.RegisterFeature({
     key = "partyInviteFrom", label = "Accept group invites from", section = SECTION, category = "Automation",
-    tooltip = "Guild means your friends and your guild. Invites while you are in a group are left to you.",
+    tooltip = "Handles invites and duels for you",
     type = "dropdown", inline = true, default = "friends", options = Who, apply = Apply,
 })
 ns.RegisterFeature({
@@ -205,5 +205,4 @@ ns.RegisterFeature({
 -- Read by IsFriend, so it needs no apply.
 ns.RegisterFeature({
     key = "socialGuildFriends", label = "Count guild mates as friends", section = SECTION, category = "Automation",
-    tooltip = "Friends are your friends list and Battle.net friends; with this on, your guild too",
 })

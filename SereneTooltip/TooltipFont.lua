@@ -32,7 +32,7 @@ local function Apply()
 end
 
 ns.RegisterFontSettings({
-    prefix = "tooltip", label = "Font", section = "Tooltip", category = "Appearance & information", apply = Apply,
+    prefix = "tooltip", label = "Font", section = "Tooltip", category = "Settings", apply = Apply,
     size = { 8, 20, 10 }, outline = "default", button = "Font",
     blizzard = function()
         local orig = original.GameTooltipText

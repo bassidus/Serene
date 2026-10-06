@@ -94,15 +94,20 @@ local function PlayerLines(tt, unit)
     if c then nameLine:SetTextColor(c.r, c.g, c.b) end
 
     -- The guild line becomes "Initiate of Die Laughing" (rank in white, guild
-    -- in green), or just the green guild name without tooltipGuildRank.
-    -- Returns true when the line got wider. With the rank added the text no
-    -- longer matches, so refresh passes leave it alone.
+    -- in green), or just the green guild name without tooltipGuildRank, or is
+    -- hidden without tooltipGuild. Returns true when the line changed width.
+    -- Rewritten text no longer matches, so refresh passes leave it alone.
     local guild, rank = GetGuildInfo(unit)
     guild, rank = Clean(guild), Clean(rank)
     if guild then
         for i = 2, tt:NumLines() do
             local fs, txt = LineText(tt, "Left", i)
             if txt == guild or txt == "<" .. guild .. ">" then
+                if not ns.Enabled("tooltipGuild") then
+                    fs:SetText("")
+                    fs:Hide()
+                    return true
+                end
                 if ns.Enabled("tooltipGuildRank") and rank then
                     fs:SetText(rank .. " of |cff40ff40" .. guild .. "|r")
                     fs:SetTextColor(1, 1, 1)
@@ -378,14 +383,16 @@ TooltipDataProcessor.AddTooltipPostCall(T.PetAction, OnSpell)
 -------------------------------------------------------------------------------
 -- In pairs, the second beside the first.
 for _, def in ipairs({
-    { key = "tooltipTitles",          label = "Show player titles", space = true },
-    { key = "tooltipGuildRank",       label = "Show guild rank", beside = true },
-    { key = "tooltipTarget",          label = "Show what the unit targets" },
+    { key = "tooltipTitles",          label = "Show title",
+      tooltip = "The lines, look and size of tooltips; players' item level is read out of combat" },
     { key = "tooltipFaction",         label = "Show faction", beside = true },
-    { key = "tooltipItemLevel",       label = "Show item level on items" },
-    { key = "tooltipIDs",             label = "Show spell and item IDs", default = false, beside = true },
-    { key = "tooltipPlayerItemLevel", label = "Show players' item level", default = false },
+    { key = "tooltipGuild",           label = "Show guild" },
+    { key = "tooltipGuildRank",       label = "Show guild rank", beside = true, requires = "tooltipGuild" },
+    { key = "tooltipItemLevel",       label = "Show item level" },
+    { key = "tooltipPlayerItemLevel", label = "Show player item level", default = false, beside = true },
+    { key = "tooltipTarget",          label = "Show target" },
+    { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
 }) do
-    def.section, def.category = "Tooltip", "Appearance & information"
+    def.section, def.category = "Tooltip", "Settings"
     ns.RegisterFeature(def)
 end

@@ -9,10 +9,10 @@
 
 Init.lua
 TooltipAnchor.lua
-TooltipFont.lua
+TooltipContent.lua
 TooltipBorder.lua
 TooltipScale.lua
+TooltipFont.lua
 TooltipUnitBars.lua
-TooltipContent.lua
 TooltipIssueHint.lua
 TooltipClickHint.lua

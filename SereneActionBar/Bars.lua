@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Always Shown Bars -- bars 2-8 shown on every character as ticked, set
---  again at every login.
+--  again at every login. Off, the bars are left as each character has them.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -16,6 +16,7 @@ waiter:SetScript("OnEvent", function(self, event)
 end)
 
 function Sync()
+    if not ns.Enabled("barSync") then return end
     if InCombatLockdown() then
         waiter:RegisterEvent("PLAYER_REGEN_ENABLED")
         return
@@ -28,10 +29,14 @@ function Sync()
     if changed then SetActionBarToggles(unpack(toggles)) end
 end
 
+ns.RegisterFeature({
+    key = "barSync", label = "Same bars on every character", section = SECTION, category = "Always shown bars",
+    default = false, apply = Sync,
+})
 for bar = 2, 8 do
     ns.RegisterFeature({
         key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION, category = "Always shown bars",
-        default = false, beside = bar % 2 == 1 or nil, apply = Sync,
+        default = false, beside = bar % 2 == 1 or nil, requires = "barSync", apply = Sync,
         note = bar == 8 and "Every character shows the ticked bars from its next login." or nil,
     })
 end

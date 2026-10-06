@@ -16,6 +16,8 @@ ns.featureByKey = {}
 --   key        SereneDB key
 --   label      display name
 --   section    options page; none for a setting the window places itself
+--   view       on a page with views (ns.SetPageViews): the view it shows in, or
+--              a list of them; without, it shows in every view
 --   category   heading on its page; categories keep their first-seen order
 --   sub        a subgroup heading inside the category, a frame of its own
 --              that opens and closes; keep a subgroup's settings together
@@ -83,6 +85,14 @@ function ns.SetPageIntro(section, text)
     ns.pageIntros[section] = text
 end
 
+-- A page that shows one view at a time (e.g. one unit frame's settings),
+-- picked in a dropdown beside its title: views = { "Player", ... } in the
+-- dropdown's order, the first shown until another is picked.
+ns.pageViews = {}
+function ns.SetPageViews(section, views)
+    ns.pageViews[section] = views
+end
+
 function ns.Get(key)
     local v = SereneDB[key]
     if v ~= nil then return v end
@@ -148,12 +158,13 @@ function ns.ResetDefaults(section, quiet)
     end
 end
 
--- /serene reset: every option, the options window's spot, size, page and
--- open categories (SereneOptions, which is load on demand, so cleared here)
--- and the ns.OnResetAll state.
+-- /serene reset: every option, the options window's spot, size, page, views
+-- and open categories (SereneOptions, which is load on demand, so cleared
+-- here) and the ns.OnResetAll state.
 function ns.ResetAll()
     ns.ResetDefaults(nil, true)
     SereneDB.optionsWindow, SereneDB.optionsPage, SereneDB.optionsOpen = nil, nil, nil
+    SereneDB.optionsView = nil
     for _, fn in ipairs(ns.resetAllHooks) do fn() end
     ns.Print("Everything is back to its defaults, the options window and the minimap icon too.")
 end

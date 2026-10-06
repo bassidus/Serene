@@ -6,7 +6,6 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "Unit frames"
 local SetHidden = ns.SetHidden
 
 local playerMain = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain
@@ -15,61 +14,59 @@ local targetExtra = TargetFrame.TargetFrameContent.TargetFrameContentContextual
 local focusExtra = FocusFrame.TargetFrameContent.TargetFrameContentContextual
 local manaBar = playerMain.ManaBarArea.ManaBar
 
--- [setting] = what it hides
-local REGIONS = {
-    unitFrameHideHits = { playerMain.HitIndicator, PetHitIndicator },
-    unitFrameHideThreat = { PlayerFrame.PlayerFrameContainer.FrameFlash, TargetFrame.TargetFrameContainer.Flash,
-                            FocusFrame.TargetFrameContainer.Flash, PetFrameFlash, PetAttackModeTexture },
-    unitFrameHideManaFlash = { manaBar.FullPowerFrame, manaBar.FeedbackFrame },
-    unitFrameHidePvP = { playerExtra.PVPIcon, playerExtra.PrestigePortrait, targetExtra.PvpIcon,
-                         targetExtra.PrestigePortrait, focusExtra.PvpIcon, focusExtra.PrestigePortrait },
-    unitFrameHideLeader = { playerExtra.LeaderIcon, targetExtra.LeaderIcon, focusExtra.LeaderIcon },
-    unitFrameHideGroup = { playerExtra.GroupIndicator },
+-- What each page can hide: { setting, regions }, in the page's order.
+local LABELS = {
+    HideHits = "Hide portrait damage numbers", HideThreat = "Hide combat & threat glow",
+    HideManaFlash = "Hide mana bar flashes", HidePvP = "Hide PvP icons",
+    HideLeader = "Hide leader crown", HideGroup = "Hide group number",
 }
-
-local function Apply(key)
-    return function()
-        local on = ns.Enabled(key)
-        for _, region in ipairs(REGIONS[key]) do SetHidden(region, on) end
-    end
-end
+local REGIONS = {
+    player = {
+        { "HideHits", { playerMain.HitIndicator } },
+        { "HideThreat", { PlayerFrame.PlayerFrameContainer.FrameFlash } },
+        { "HideManaFlash", { manaBar.FullPowerFrame, manaBar.FeedbackFrame } },
+        { "HidePvP", { playerExtra.PVPIcon, playerExtra.PrestigePortrait } },
+        { "HideLeader", { playerExtra.LeaderIcon } },
+        { "HideGroup", { playerExtra.GroupIndicator } },
+    },
+    target = {
+        { "HideThreat", { TargetFrame.TargetFrameContainer.Flash } },
+        { "HidePvP", { targetExtra.PvpIcon, targetExtra.PrestigePortrait } },
+        { "HideLeader", { targetExtra.LeaderIcon } },
+    },
+    focus = {
+        { "HideThreat", { FocusFrame.TargetFrameContainer.Flash } },
+        { "HidePvP", { focusExtra.PvpIcon, focusExtra.PrestigePortrait } },
+        { "HideLeader", { focusExtra.LeaderIcon } },
+    },
+    pet = {
+        { "HideHits", { PetHitIndicator } },
+        { "HideThreat", { PetFrameFlash, PetAttackModeTexture } },
+    },
+}
 
 -- The player frame's red combat glow is the same texture as the yellow one
 -- while resting (UnitFrameRest.lua), so it is only hidden outside an inn.
 local GLOW = playerMain.StatusTexture
+local PLAYER_THREAT = ns.FramePages("player")[1].key.HideThreat
 
 hooksecurefunc("PlayerFrame_UpdateStatus", function()
-    if ns.Enabled("unitFrameHideThreat") and not IsResting() then GLOW:Hide() end
+    if ns.Enabled(PLAYER_THREAT) and not IsResting() then GLOW:Hide() end
 end)
 
-local applyThreat = Apply("unitFrameHideThreat")
-
-ns.RegisterFeature({
-    key = "unitFrameHideHits", label = "Hide portrait damage numbers", section = SECTION, category = "Hide",
-    tooltip = "Clutter on the unit frames",
-    default = false, apply = Apply("unitFrameHideHits"),
-})
-ns.RegisterFeature({
-    key = "unitFrameHideThreat", label = "Hide combat & threat glow", section = SECTION, category = "Hide",
-    default = false,
-    apply = function()
-        applyThreat()
-        PlayerFrame_UpdateStatus()
-    end,
-})
-ns.RegisterFeature({
-    key = "unitFrameHideManaFlash", label = "Hide mana bar flashes", section = SECTION, category = "Hide",
-    default = false, apply = Apply("unitFrameHideManaFlash"),
-})
-ns.RegisterFeature({
-    key = "unitFrameHidePvP", label = "Hide PvP icons", section = SECTION, category = "Hide",
-    default = false, apply = Apply("unitFrameHidePvP"),
-})
-ns.RegisterFeature({
-    key = "unitFrameHideLeader", label = "Hide leader crown", section = SECTION, category = "Hide",
-    default = false, apply = Apply("unitFrameHideLeader"),
-})
-ns.RegisterFeature({
-    key = "unitFrameHideGroup", label = "Hide group number", section = SECTION, category = "Hide",
-    default = false, apply = Apply("unitFrameHideGroup"),
-})
+for _, page in ipairs(ns.FramePages("player", "target", "focus", "pet")) do
+    for i, entry in ipairs(REGIONS[page.id]) do
+        local name, regions = entry[1], entry[2]
+        local key = page.key[name]
+        ns.RegisterFeature({
+            key = key, label = LABELS[name], section = page.section, view = page.view, category = "Hide",
+            tooltip = i == 1 and "Clutter on the frame" or nil,
+            default = false,
+            apply = function()
+                local on = ns.Enabled(key)
+                for _, region in ipairs(regions) do SetHidden(region, on) end
+                if key == PLAYER_THREAT then PlayerFrame_UpdateStatus() end
+            end,
+        })
+    end
+end

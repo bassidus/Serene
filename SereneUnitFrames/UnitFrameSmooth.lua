@@ -1,6 +1,8 @@
 -------------------------------------------------------------------------------
---  Smooth Bars -- health and mana on the player, target and focus frames
---  glide to a new value instead of jumping.
+--  Smooth Bars -- health and mana on the player, target, focus, pet and
+--  party frames glide to a new value instead of jumping, each frame by its
+--  own page's setting. Targets of targets update every frame, so their
+--  bars would only ever snap; they are left out.
 --
 --  Blizzard's bar can't be animated itself (it is set straight to each new
 --  value), so a bar of ours lies on top and follows it: same texture, color,
@@ -12,11 +14,16 @@
 local _, ns = ...
 
 local SMOOTH = Enum.StatusBarInterpolation.ExponentialEaseOut
-local FRAMES = { PlayerFrame, TargetFrame, FocusFrame }
+local PAGES = ns.FramePages("player", "target", "focus", "pet", "party")
+
+local keyOf = {}  -- [frame] = its page's setting
+for _, page in ipairs(PAGES) do
+    for _, frame in ipairs(page.frames) do keyOf[frame] = page.key.SmoothBars end
+end
 
 local overlays = {}  -- [Blizzard's bar] = our bar
 local masked = {}    -- [our bar] = { [mask] = true }
-local enabled
+local enabled = {}   -- [Blizzard's bar] = true while ours lies on top
 
 local function Mirror(stock)
     local ov = overlays[stock]
@@ -35,7 +42,7 @@ local function Mirror(stock)
     end
     ov:SetStatusBarDesaturated(stock:IsStatusBarDesaturated())
     ov:SetStatusBarColor(stock:GetStatusBarColor())
-    ns.SetHidden(src, enabled)
+    ns.SetHidden(src, enabled[stock])
 end
 
 -- Straight to Blizzard's current value, without gliding.
@@ -54,50 +61,51 @@ local function Setup(stock)
     overlays[stock], masked[ov] = ov, {}
 
     hooksecurefunc(stock, "SetValue", function(_, value)
-        if enabled then ov:SetValue(value, SMOOTH) end
+        if enabled[stock] then ov:SetValue(value, SMOOTH) end
     end)
     hooksecurefunc(stock, "SetMinMaxValues", function(_, lo, hi)
-        if enabled then ov:SetMinMaxValues(lo, hi) end
+        if enabled[stock] then ov:SetMinMaxValues(lo, hi) end
     end)
     hooksecurefunc(stock, "SetStatusBarColor", function(_, r, g, b, a)
-        if enabled then ov:SetStatusBarColor(r, g, b, a) end
+        if enabled[stock] then ov:SetStatusBarColor(r, g, b, a) end
     end)
     hooksecurefunc(stock, "SetStatusBarDesaturated", function(_, desat)
-        if enabled then ov:SetStatusBarDesaturated(desat) end
+        if enabled[stock] then ov:SetStatusBarDesaturated(desat) end
     end)
     -- New art (vehicle, Edit Mode) comes as a new texture.
     hooksecurefunc(stock, "SetStatusBarTexture", function()
-        if enabled then Mirror(stock) end
+        if enabled[stock] then Mirror(stock) end
     end)
 end
 
-local ours = {}
-for _, frame in ipairs(FRAMES) do ours[frame] = true end
-
 hooksecurefunc("UnitFrame_Update", function(frame)
-    if not (enabled and ours[frame]) then return end
+    if not enabled[frame.healthbar] then return end
     Snap(frame.healthbar)
     Snap(frame.manabar)
 end)
 
 local function Apply()
-    enabled = ns.Enabled("unitFrameSmoothBars")
-    for _, frame in ipairs(FRAMES) do
+    for frame, key in pairs(keyOf) do
+        local on = ns.Enabled(key) or nil
         for _, stock in ipairs({ frame.healthbar, frame.manabar }) do
-            if enabled then
+            enabled[stock] = on
+            if on then
                 Setup(stock)
                 Mirror(stock)
                 Snap(stock)
             end
             if overlays[stock] then
-                overlays[stock]:SetShown(enabled)
-                ns.SetHidden(stock:GetStatusBarTexture(), enabled)
+                overlays[stock]:SetShown(on == true)
+                ns.SetHidden(stock:GetStatusBarTexture(), on)
             end
         end
     end
 end
 
-ns.RegisterFeature({
-    key = "unitFrameSmoothBars", label = "Smooth bars", section = "Unit frames", category = "Health & mana",
-    default = false, apply = Apply,
-})
+for _, page in ipairs(PAGES) do
+    ns.RegisterFeature({
+        key = page.key.SmoothBars, label = "Smooth bars", section = page.section, view = page.view,
+        category = "Health & mana",
+        default = false, apply = Apply,
+    })
+end

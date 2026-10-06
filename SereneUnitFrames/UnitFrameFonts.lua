@@ -1,8 +1,9 @@
 -------------------------------------------------------------------------------
 --  Unit Frame Fonts -- font, size and outline of the names, the level and
---  the health/mana text on the unit frames, each its own group. Sizes are
---  relative to each text's own size, so smaller party/pet text stays
---  smaller; the size setting's default is the player frame's size.
+--  the health/mana text on the unit frames, each its own group on each
+--  frame's page. Sizes are relative to each text's own size, so the two
+--  targets of targets keep theirs apart; the size setting's default is the
+--  page's own frame's size.
 --  Blizzard's look is captured on first touch and put back exactly once a
 --  group is on its defaults again.
 -------------------------------------------------------------------------------
@@ -13,15 +14,26 @@ local function SizeOf(fs)
     return math.floor(size + 0.5)
 end
 
-local GROUPS = {
-    { prefix = "unitFrameName",  label = "Name text",        category = "Name",
-      base = SizeOf(PlayerName), color = "unitFrameNameColor" },
-    { prefix = "unitFrameLevel", label = "Level text",       category = "Level",
-      base = SizeOf(PlayerLevelText), color = "unitFrameLevelColor" },
-    { prefix = "unitFrameBar",   label = "Health/mana font", category = "Health & mana",
-      base = SizeOf(PlayerFrame.healthbar.TextString) },
-}
-local NAME, LEVEL, BAR = GROUPS[1], GROUPS[2], GROUPS[3]
+-- [page] = its groups, for the texts its frames have. A size counts from
+-- the page's own frame.
+local groupsOf = {}
+for _, page in ipairs(ns.FramePages()) do
+    local frame = page.frames[1]
+    local p = ns.UnitFrameParts(frame)
+    local list = {
+        { kind = "name", prefix = page.key.Name, label = "Name text", category = "Name",
+          base = SizeOf(p.name), color = page.key.NameColor },
+    }
+    if p.levelText then
+        list[#list + 1] = { kind = "level", prefix = page.key.Level, label = "Level text", category = "Level",
+                            base = SizeOf(p.levelText), color = page.key.LevelColor }
+    end
+    if frame.healthbar.TextString then
+        list[#list + 1] = { kind = "bar", prefix = page.key.Bar, label = "Health/mana font",
+                            category = "Health & mana", base = SizeOf(frame.healthbar.TextString) }
+    end
+    groupsOf[page] = list
+end
 
 -- The font strings of a frame, per group; built once, since target of
 -- target styles itself every frame.
@@ -36,7 +48,9 @@ local function Strings(frame)
         bars[#bars + 1] = bar.LeftText
         bars[#bars + 1] = bar.RightText
     end
-    strings[frame] = { [NAME] = { p.name }, [LEVEL] = { p.levelText }, [BAR] = bars }
+    local of = { name = { p.name }, level = { p.levelText }, bar = bars }
+    strings[frame] = {}
+    for _, g in ipairs(groupsOf[ns.FramePage(frame)]) do strings[frame][g] = of[g.kind] end
     return strings[frame]
 end
 
@@ -74,17 +88,20 @@ local function Apply()
 end
 
 hooksecurefunc("UnitFrame_Update", function(frame)
-    if ns.IsUnitFrame(frame) then Style(frame) end
+    if ns.FramePage(frame) then Style(frame) end
 end)
 
-for _, g in ipairs(GROUPS) do
-    ns.RegisterFontSettings({
-        prefix = g.prefix, label = g.label, section = "Unit frames", category = g.category, apply = Apply,
-        size = { 6, 24, g.base }, outline = "default", color = g.color, button = "Font",
-        blizzard = function()
-            local fs = Strings(PlayerFrame)[g][1]
-            local o = orig[fs] or ns.FontState(fs)
-            return ns.OutlineOf(o.flags, o.sx, o.sy)
-        end,
-    })
+for _, page in ipairs(ns.FramePages()) do
+    for _, g in ipairs(groupsOf[page]) do
+        ns.RegisterFontSettings({
+            prefix = g.prefix, label = g.label, section = page.section, view = page.view,
+            category = g.category, apply = Apply,
+            size = { 6, 24, g.base }, outline = "default", color = g.color, button = "Font",
+            blizzard = function()
+                local fs = Strings(page.frames[1])[g][1]
+                local o = orig[fs] or ns.FontState(fs)
+                return ns.OutlineOf(o.flags, o.sx, o.sy)
+            end,
+        })
+    end
 end

@@ -577,16 +577,23 @@ local function AsButton(btn, text, arrow, label)
 end
 
 -------------------------------------------------------------------------------
---  Dropdown
+--  Dropdown -- bound to f.key, or to f.get()/f.set(value) for state that is
+--  not in SereneDB.
 -------------------------------------------------------------------------------
 function W.Dropdown(parent, f)
+    local function Value()
+        if f.get then return f.get() end
+        return ns.Get(f.key)
+    end
     local holder, btn, text = Field(parent, not f.hideLabel and f.label, function(self)
-        W.OpenMenu(self, f.options(), ns.Get(f.key), function(v) ns.SetValue(f.key, v) end, f.preview)
+        W.OpenMenu(self, f.options(), Value(), function(v)
+            if f.set then f.set(v) else ns.SetValue(f.key, v) end
+        end, f.preview)
     end, f.inline)
     AttachTooltip(btn, f)
 
     function holder.Refresh()
-        local value = ns.Get(f.key)
+        local value = Value()
         if f.preview then SetPreviewFont(text, value) end
         text:SetText(OptionLabel(f, value))
         btn:SetEnabled(Available(holder, f))

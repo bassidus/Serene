@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
 --  Class Colored Health -- players' health bars on Blizzard's unit frames
---  (player, target, target of target, focus, party) take the class color.
---  Everyone else keeps Blizzard's own color.
+--  (player, target, focus and their targets, party) take the class color,
+--  each frame by its own page's setting. Everyone else keeps Blizzard's
+--  own color.
 --
 --  Blizzard's bars are painted from outside: no fields are written to its
 --  frames (that would taint them), our bookkeeping lives in a local table.
@@ -13,11 +14,18 @@ local _, ns = ...
 
 local Clean = ns.Clean
 
+local PAGES = ns.FramePages("player", "target", "tot", "focus", "party")
+
+local keyOf = {}  -- [bar] = its page's setting
+for _, page in ipairs(PAGES) do
+    for _, frame in ipairs(page.frames) do keyOf[frame.healthbar] = page.key.ClassColors end
+end
+
 local state = setmetatable({}, { __mode = "k" })  -- [bar] = Blizzard's look + ours
 local painting  -- set while we color, so our own calls are not taken for Blizzard's
 
-local function ClassColor(unit)
-    if not (unit and ns.Enabled("unitFrameClassColors")) then return nil end
+local function ClassColor(key, unit)
+    if not (unit and ns.Enabled(key)) then return nil end
     if not Clean(UnitIsPlayer(unit)) or not Clean(UnitIsConnected(unit)) then return nil end
     local _, class = UnitClass(unit)
     return RAID_CLASS_COLORS[Clean(class)]
@@ -28,7 +36,7 @@ local function Paint(bar, unit, c)
     local s = state[bar]
     if not s then return end
     if unit then s.unit = unit end
-    c = c or ClassColor(s.unit)
+    c = c or ClassColor(s.key, s.unit)
     painting = true
     if c then
         bar:SetStatusBarDesaturated(true)
@@ -44,13 +52,14 @@ end
 
 -- First sight of a bar: remember Blizzard's look and follow its repaints.
 local function Track(bar, unit)
+    if not keyOf[bar] then return end
     if not state[bar] then
         local r, g, b = bar:GetStatusBarColor()
-        state[bar] = { r = r, g = g, b = b, desat = bar:IsStatusBarDesaturated() }
+        state[bar] = { key = keyOf[bar], r = r, g = g, b = b, desat = bar:IsStatusBarDesaturated() }
         hooksecurefunc(bar, "SetStatusBarColor", function(self, r2, g2, b2)
             if painting then return end
             local s = state[self]
-            local c = ClassColor(s.unit)
+            local c = ClassColor(s.key, s.unit)
             if c then
                 Paint(self, nil, c)
             else
@@ -90,18 +99,23 @@ watcher:SetScript("OnEvent", function(_, event, unit)
     RefreshAll()
 end)
 
-ns.RegisterFeature({
-    key = "unitFrameClassColors", label = "Class-colored health bars", section = "Unit frames", category = "Appearance",
-    tooltip = "Colors of the unit frames",
-    apply = function()
-        if ns.Enabled("unitFrameClassColors") then
-            for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",
-                                     "GROUP_ROSTER_UPDATE", "UNIT_CONNECTION" }) do
-                watcher:RegisterEvent(event)
-            end
-        else
-            watcher:UnregisterAllEvents()
+local function Apply()
+    local any
+    for _, page in ipairs(PAGES) do any = any or ns.Enabled(page.key.ClassColors) end
+    if any then
+        for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",
+                                 "GROUP_ROSTER_UPDATE", "UNIT_CONNECTION" }) do
+            watcher:RegisterEvent(event)
         end
-        RefreshAll()
-    end,
-})
+    else
+        watcher:UnregisterAllEvents()
+    end
+    RefreshAll()
+end
+
+for _, page in ipairs(PAGES) do
+    ns.RegisterFeature({
+        key = page.key.ClassColors, label = "Class-colored health bar", section = page.section,
+        view = page.view, category = "Appearance", apply = Apply,
+    })
+end

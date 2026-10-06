@@ -7,13 +7,16 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
+local PLAYER = ns.FramePages("player")[1]
+local KEY = PLAYER.key
+
 local GLOW = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.StatusTexture
 local ZZZ = PlayerFrame.PlayerFrameContent.PlayerFrameContentContextual.PlayerRestLoop
 
 hooksecurefunc("PlayerFrame_UpdateStatus", function()
     if not IsResting() then return end
-    if ns.Enabled("unitFrameHideRestGlow") then GLOW:Hide() end
-    if ns.Enabled("unitFrameHideRestZzz") then
+    if ns.Enabled(KEY.HideRestGlow) then GLOW:Hide() end
+    if ns.Enabled(KEY.HideRestZzz) then
         ZZZ.PlayerRestLoopAnim:Stop()
         ZZZ:Hide()
     end
@@ -23,13 +26,15 @@ end)
 local function Apply() PlayerFrame_UpdateStatus() end
 
 ns.RegisterFeature({
-    key = "unitFrameHideRestGlow", label = "Hide resting glow", section = "Unit frames", category = "Resting",
-    tooltip = "Resting effects on your player frame",
+    key = KEY.HideRestGlow, label = "Hide resting glow", section = PLAYER.section, view = PLAYER.view,
+    category = "Resting",
+    tooltip = "Resting effects on your frame",
     beside = true,  -- to the right of Appearance; loaded before the other categories for that
     apply = Apply,
 })
 ns.RegisterFeature({
-    key = "unitFrameHideRestZzz", label = "Hide resting Zzz", section = "Unit frames", category = "Resting",
+    key = KEY.HideRestZzz, label = "Hide resting Zzz", section = PLAYER.section, view = PLAYER.view,
+    category = "Resting",
     default = false,
     apply = Apply,
 })

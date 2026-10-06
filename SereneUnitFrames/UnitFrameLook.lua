@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --  Unit Frame Look -- dark frame art, name, level and the health/
 --  mana text on Blizzard's unit frames (player, pet, target, focus, their
---  targets, party).
+--  targets, party), each frame by its own page's settings.
 --
 --  Like the class colors, everything is painted from outside: regions are
 --  hidden with alpha (Blizzard keeps calling Show/Hide on them), and no
@@ -52,17 +52,7 @@ end
 
 -- Target of target runs UnitFrame_Update every frame while shown, so the
 -- hooks below must not build tables per call.
-local FRAMES = { PlayerFrame, PetFrame, TargetFrame, TargetFrameToT, FocusFrame, FocusFrameToT,
-    PartyFrame.MemberFrame1, PartyFrame.MemberFrame2, PartyFrame.MemberFrame3, PartyFrame.MemberFrame4 }
-
-local ours = {}
-for _, frame in ipairs(FRAMES) do ours[frame] = true end
-
-local function Frames() return FRAMES end
-
--- Only the frames above; boss and arena frames also go through UnitFrame_Update.
-local function IsOurs(frame) return ours[frame] end
-
+local Frames, FramePage = ns.UnitFrames, ns.FramePage
 local SetHidden = ns.SetHidden
 
 -------------------------------------------------------------------------------
@@ -94,9 +84,9 @@ local function ClassColor(unit)
     return RAID_CLASS_COLORS[Clean(class)]
 end
 
-local function ColorName(fs, unit)
+local function ColorName(fs, unit, key)
     if not fs then return end
-    local value = ns.Get("unitFrameNameColor")
+    local value = ns.Get(key)
     local r, g, b = ns.ColorRGB(value)
     if not r and value == "class" then
         local c = ClassColor(unit)
@@ -115,20 +105,22 @@ end
 -------------------------------------------------------------------------------
 --  Level color
 -------------------------------------------------------------------------------
--- The Level Color setting, or nil for Blizzard's own colors.
-local function LevelRGB()
-    return ns.ColorRGB(ns.Get("unitFrameLevelColor"))
-end
-
 -- The level number in its circle: Blizzard colors it (by difficulty, or
 -- white on the player) whenever the level updates, so the color goes
 -- straight back on; Blizzard's latest color is kept to hand back.
 local levelColors = {}  -- [font string] = Blizzard's color
+local levelKeys = {}    -- [font string] = its page's Level Color setting
 local coloring
 
-local function ColorLevel(fs)
+-- The Level Color setting, or nil for Blizzard's own colors.
+local function LevelRGB(fs)
+    return ns.ColorRGB(ns.Get(levelKeys[fs]))
+end
+
+local function ColorLevel(fs, key)
     if not fs then return end
-    local r, g, b = LevelRGB()
+    levelKeys[fs] = key
+    local r, g, b = LevelRGB(fs)
     if r then
         if not levelColors[fs] then
             levelColors[fs] = { fs:GetVertexColor() }
@@ -136,7 +128,7 @@ local function ColorLevel(fs)
                 if coloring then return end
                 local o = levelColors[self]
                 o[1], o[2], o[3], o[4] = r2, g2, b2, a2
-                local cr, cg, cb = LevelRGB()
+                local cr, cg, cb = LevelRGB(self)
                 if cr then
                     coloring = true
                     self:SetVertexColor(cr, cg, cb)
@@ -165,7 +157,7 @@ end
 -------------------------------------------------------------------------------
 local nameWidths = {}  -- [font string] = Blizzard's width
 local fullNames = {}   -- [font string] = Blizzard's latest text
-local nameHooked = {}
+local longKeys = {}    -- [font string] = its page's Longer Names setting
 local naming  -- set while we change a name, so our own call is not taken for Blizzard's
 
 local function FitName(fs)
@@ -173,17 +165,17 @@ local function FitName(fs)
     if not full then return end
     naming = true
     fs:SetText(full)
-    if ns.Enabled("unitFrameLongNames") and Clean(fs:IsTruncated()) then
+    if ns.Enabled(longKeys[fs]) and Clean(fs:IsTruncated()) then
         local first = full:match("^(%S+)%s")
         if first then fs:SetText(first) end
     end
     naming = nil
 end
 
-local function WidenName(fs, bar)
+local function WidenName(fs, bar, key)
     if not fs then return end
-    if not nameHooked[fs] then
-        nameHooked[fs] = true
+    if not longKeys[fs] then
+        longKeys[fs] = key
         fullNames[fs] = Clean(fs:GetText())
         hooksecurefunc(fs, "SetText", function(self, text)
             if naming then return end
@@ -191,7 +183,7 @@ local function WidenName(fs, bar)
             FitName(self)
         end)
     end
-    if ns.Enabled("unitFrameLongNames") then
+    if ns.Enabled(key) then
         if nameWidths[fs] then return end
         local left, right = Clean(fs:GetLeft()), Clean(bar:GetRight())
         if not (left and right) then return end
@@ -209,16 +201,16 @@ end
 --  Painting a frame
 -------------------------------------------------------------------------------
 local function Style(frame)
-    local p = PartsOf(frame)
-    local dark = ns.Enabled("unitFrameDark")
+    local p, key = PartsOf(frame), FramePage(frame).key
+    local dark = ns.Enabled(key.Dark)
     for _, tex in pairs(p.art) do SetDark(tex, dark) end
-    SetHidden(p.name, ns.Enabled("unitFrameHideName"))
+    SetHidden(p.name, ns.Enabled(key.HideName))
     SetHidden(p.nameBackground, true)  -- the colored bar behind the name, gone like on the player frame
-    ColorName(p.name, frame.unit)
-    WidenName(p.name, frame.healthbar)
-    local hideLevel = ns.Enabled("unitFrameHideLevel")
+    ColorName(p.name, frame.unit, key.NameColor)
+    WidenName(p.name, frame.healthbar, key.LongNames)
+    local hideLevel = ns.Enabled(key.HideLevel)
     for _, region in pairs(p.level) do SetHidden(region, hideLevel) end
-    ColorLevel(p.levelText)
+    ColorLevel(p.levelText, key.LevelColor)
 end
 
 local function StyleAll()
@@ -226,7 +218,7 @@ local function StyleAll()
 end
 
 -- For the unit frame fonts.
-ns.UnitFrames, ns.IsUnitFrame, ns.UnitFrameParts = Frames, IsOurs, PartsOf
+ns.UnitFrameParts = PartsOf
 
 -- Target and focus swap their frame art (rare, elite...) after UnitFrame_Update.
 hooksecurefunc(TargetFrame, "CheckClassification", Style)
@@ -275,7 +267,7 @@ local PAD = 2  -- from the bar's edge, like Blizzard's own left/right text
 local aligned = setmetatable({}, { __mode = "k" })
 
 local function AlignBars(frame)
-    local align = ALIGN[ns.Get("unitFrameTextAlign")]
+    local align = ALIGN[ns.Get(FramePage(frame).key.TextAlign)]
     for _, bar in ipairs(PartsOf(frame).bars) do
         local fs = bar.TextString
         local width = fs and Clean(bar:GetWidth())
@@ -297,7 +289,7 @@ end
 
 -- Every Blizzard unit frame passes through here when its unit changes.
 hooksecurefunc("UnitFrame_Update", function(frame)
-    if not IsOurs(frame) then return end
+    if not FramePage(frame) then return end
     Style(frame)
     HookBars(frame)
     AlignBars(frame)
@@ -330,66 +322,87 @@ end
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
-local SECTION = "Unit frames"
+-- Name and level colors offered on every page.
+local NAME_COLORS = {
+    { value = "default", label = "Default", swatch = function() return "ffd100" end },
+    { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
+}
+local LEVEL_COLORS = {
+    { value = "default", label = "Default", swatch = function() return "ffffff", "40d940", "ffd100", "ff4d1a" end },
+}
 
-ns.RegisterFeature({
-    key = "unitFrameDark", label = "Dark frames", section = SECTION, category = "Appearance",
-    apply = StyleAll,
-})
-ns.RegisterFeature({
-    key = "unitFrameHideName", label = "Hide names", section = SECTION, category = "Name",
-    tooltip = "Names on the unit frames",
-    default = false, apply = StyleAll,
-})
-ns.RegisterFeature({
-    key = "unitFrameNameColor", label = "Name color", section = SECTION, category = "Name", type = "color",
-    default = "default", apply = StyleAll,
-    specials = {
-        { value = "default", label = "Default", swatch = function() return "ffd100" end },
-        { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
-    },
-})
-ns.RegisterFeature({
-    key = "unitFrameLongNames", label = "Longer names", section = SECTION, category = "Name",
-    apply = StyleAll,
-})
-ns.RegisterFeature({
-    key = "unitFrameHideLevel", label = "Hide level", section = SECTION, category = "Level",
-    tooltip = "Levels on the unit frames",
-    beside = true,
-    default = false, apply = StyleAll,
-})
-ns.RegisterFeature({
-    key = "unitFrameLevelColor", label = "Level color", section = SECTION, category = "Level", type = "color",
-    default = "ffd100", apply = StyleAll,
-    specials = {
-        { value = "default", label = "Default", swatch = function() return "ffffff", "40d940", "ffd100", "ff4d1a" end },
-    },
-})
-ns.RegisterFeature({
-    key = "unitFrameText", label = "Format", section = SECTION, category = "Health & mana",
-    tooltip = "Numbers on the health and mana bars",
-    type = "dropdown",
-    default = "both", apply = ApplyText,
-    options = function()
-        return {
-            { value = "none",     label = "None" },
-            { value = "current",  label = "Current" },
-            { value = "value",    label = "Current / max" },
-            { value = "percent",  label = "Percent" },
-            { value = "both",     label = "Both" },
-        }
-    end,
-})
-ns.RegisterFeature({
-    key = "unitFrameTextAlign", label = "Alignment", section = SECTION, category = "Health & mana",
-    type = "dropdown", beside = true,
-    default = "center", apply = AlignAll,
-    options = function()
-        return {
-            { value = "left",   label = "Left" },
-            { value = "center", label = "Center" },
-            { value = "right",  label = "Right" },
-        }
-    end,
-})
+local hasLevel = { player = true, target = true, focus = true }
+
+-- Targets of targets have no numbers on their bars. Blizzard has one
+-- Status Text setting for every frame, so the format shows in each view
+-- that has numbers.
+local textViews = {}
+for _, page in ipairs(ns.FramePages()) do
+    if page.frames[1].healthbar.TextString then textViews[#textViews + 1] = page.view end
+end
+
+for _, page in ipairs(ns.FramePages()) do
+    local key, section, view = page.key, page.section, page.view
+    ns.RegisterFeature({
+        key = key.Dark, label = "Dark frame", section = section, view = view, category = "Appearance",
+        tooltip = "Colors of the frame",
+        apply = StyleAll,
+    })
+    ns.RegisterFeature({
+        key = key.HideName, label = "Hide name", section = section, view = view, category = "Name",
+        tooltip = "The unit's name",
+        default = false, apply = StyleAll,
+    })
+    ns.RegisterFeature({
+        key = key.NameColor, label = "Name color", section = section, view = view, category = "Name",
+        type = "color", default = "default", apply = StyleAll, specials = NAME_COLORS,
+    })
+    ns.RegisterFeature({
+        key = key.LongNames, label = "Longer name", section = section, view = view, category = "Name",
+        apply = StyleAll,
+    })
+    if hasLevel[page.id] then
+        ns.RegisterFeature({
+            key = key.HideLevel, label = "Hide level", section = section, view = view, category = "Level",
+            tooltip = "The level in its circle",
+            beside = true,
+            default = false, apply = StyleAll,
+        })
+        ns.RegisterFeature({
+            key = key.LevelColor, label = "Level color", section = section, view = view, category = "Level",
+            type = "color", default = "ffd100", apply = StyleAll, specials = LEVEL_COLORS,
+        })
+    end
+    if page.id == "player" then
+        ns.RegisterFeature({
+            key = "unitFrameText", label = "Format", section = section, view = textViews,
+            category = "Health & mana",
+            tooltip = "Numbers on the health and mana bars",
+            type = "dropdown", note = "On every frame",
+            default = "both", apply = ApplyText,
+            options = function()
+                return {
+                    { value = "none",     label = "None" },
+                    { value = "current",  label = "Current" },
+                    { value = "value",    label = "Current / max" },
+                    { value = "percent",  label = "Percent" },
+                    { value = "both",     label = "Both" },
+                }
+            end,
+        })
+    end
+    if page.frames[1].healthbar.TextString then
+        ns.RegisterFeature({
+            key = key.TextAlign, label = "Alignment", section = section, view = view, category = "Health & mana",
+            type = "dropdown", beside = true,
+            default = "center", apply = AlignAll,
+            options = function()
+                return {
+                    { value = "left",   label = "Left" },
+                    { value = "center", label = "Center" },
+                    { value = "right",  label = "Right" },
+                }
+            end,
+        })
+    end
+end

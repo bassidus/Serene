@@ -1,13 +1,12 @@
 -------------------------------------------------------------------------------
 --  Indicators -- crossed swords beside the target and focus frames while
 --  that unit is in combat (whether a mob is already pulled), and a blue
---  border around the player frame while stealthed. Both are our own
+--  border around the player frame while stealthed, each on its own page. Both are our own
 --  textures on frames of our own, so nothing of Blizzard's is touched.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
 local Clean = ns.Clean
-local SECTION = "Unit frames"
 
 -------------------------------------------------------------------------------
 --  Combat icon
@@ -31,9 +30,11 @@ end
 icons.target = MakeIcon(TargetFrame)
 icons.focus = MakeIcon(FocusFrame)
 
+local PAGES = ns.FramePages("target", "focus")
+local iconKeys = { target = PAGES[1].key.CombatIcon, focus = PAGES[2].key.CombatIcon }
+
 local function UpdateIcon(unit)
-    local icon = icons[unit]
-    icon:SetShown(ns.Enabled("unitFrameCombatIcon") and Clean(UnitAffectingCombat(unit)) == true)
+    icons[unit]:SetShown(ns.Enabled(iconKeys[unit]) and Clean(UnitAffectingCombat(unit)) == true)
 end
 
 local combat = CreateFrame("Frame")
@@ -48,7 +49,7 @@ combat:SetScript("OnEvent", function(_, event, unit)
 end)
 
 local function ApplyCombat()
-    if ns.Enabled("unitFrameCombatIcon") then
+    if ns.Enabled(iconKeys.target) or ns.Enabled(iconKeys.focus) then
         combat:RegisterUnitEvent("UNIT_FLAGS", "target", "focus")
         combat:RegisterEvent("PLAYER_TARGET_CHANGED")
         combat:RegisterEvent("PLAYER_FOCUS_CHANGED")
@@ -72,13 +73,15 @@ border:SetPoint("CENTER", PlayerFrame, "CENTER", -4, 0)
 border:SetVertexColor(0.21, 0.49, 1)
 border:Hide()
 
+local PLAYER = ns.FramePages("player")[1]
+
 local function UpdateStealth()
-    border:SetShown(ns.Enabled("unitFrameStealth") and IsStealthed())
+    border:SetShown(ns.Enabled(PLAYER.key.Stealth) and IsStealthed())
 end
 stealth:SetScript("OnEvent", UpdateStealth)
 
 local function ApplyStealth()
-    if ns.Enabled("unitFrameStealth") then
+    if ns.Enabled(PLAYER.key.Stealth) then
         stealth:RegisterEvent("UPDATE_STEALTH")
     else
         stealth:UnregisterAllEvents()
@@ -87,12 +90,18 @@ local function ApplyStealth()
 end
 
 ns.RegisterFeature({
-    key = "unitFrameCombatIcon", label = "Combat icon on target", section = SECTION, category = "Indicators",
-    tooltip = "Extra signs on the unit frames",
+    key = PLAYER.key.Stealth, label = "Blue border in stealth", section = PLAYER.section, view = PLAYER.view,
+    category = "Indicators",
+    tooltip = "Extra signs on the frame",
     beside = true,
-    default = false, apply = ApplyCombat,
-})
-ns.RegisterFeature({
-    key = "unitFrameStealth", label = "Blue border in stealth", section = SECTION, category = "Indicators",
     default = false, apply = ApplyStealth,
 })
+for _, page in ipairs(PAGES) do
+    ns.RegisterFeature({
+        key = page.key.CombatIcon, label = "Combat icon", section = page.section, view = page.view,
+        category = "Indicators",
+        tooltip = "Extra signs on the frame",
+        beside = true,
+        default = false, apply = ApplyCombat,
+    })
+end

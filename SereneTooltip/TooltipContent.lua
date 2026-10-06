@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Tooltip Content -- class, level, faction and guild colors, titles, guild rank,
---  target, AFK, item level and IDs. Every value read from a unit goes through
+--  target, AFK/DND, item level and IDs. Every value read from a unit goes through
 --  ns.Clean (secret values). Lines are added, recolored or hidden, and
 --  tooltip refreshes update them in place instead of adding twice.
 -------------------------------------------------------------------------------
@@ -121,17 +121,26 @@ local function PlayerLines(tt, unit)
     end
 end
 
--- " <AFK>" after the name. Refresh passes keep line 1, so the tag is only
--- added or removed when the player's AFK state no longer matches it.
+-- " <AFK>" or " <DND>" after the name. Refresh passes keep line 1, so the
+-- tag is only swapped when the player's state no longer matches it.
 local AFK_TAG = " |cffff9900<AFK>|r"
+local DND_TAG = " |cffff4040<DND>|r"
 
-local function AFKTag(tt, unit)
+local function StatusTag(tt, unit)
     local fs, cur = LineText(tt, "Left", 1)
     if not cur then return false end
-    local tagged = cur:sub(-#AFK_TAG) == AFK_TAG
-    local afk = Clean(UnitIsAFK(unit)) and true or false
-    if afk == tagged then return false end
-    fs:SetText(afk and cur .. AFK_TAG or cur:sub(1, -#AFK_TAG - 1))
+    local want
+    if ns.Enabled("tooltipAFK") and Clean(UnitIsAFK(unit)) then want = AFK_TAG
+    elseif ns.Enabled("tooltipDND") and Clean(UnitIsDND(unit)) then want = DND_TAG end
+    local base = cur
+    for _, tag in ipairs({ AFK_TAG, DND_TAG }) do
+        if cur:sub(-#tag) == tag then
+            if tag == want then return false end
+            base = cur:sub(1, -#tag - 1)
+        end
+    end
+    if base == cur and not want then return false end
+    fs:SetText(base .. (want or ""))
     return true
 end
 
@@ -347,7 +356,7 @@ local function OnUnit(tt)
     local added = false
     if UnitIsPlayer(unit) then
         added = PlayerLines(tt, unit)
-        if ns.Enabled("tooltipAFK") and AFKTag(tt, unit) then added = true end
+        if StatusTag(tt, unit) then added = true end
         if ns.Enabled("tooltipPlayerItemLevel") and PlayerItemLevel(tt, unit) then added = true end
     end
     if ColorBodyLines(tt, unit) then added = true end  -- a hidden line resizes too
@@ -421,6 +430,7 @@ for _, def in ipairs({
     { key = "tooltipTarget",          label = "Show target" },
     { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
     { key = "tooltipAFK",             label = "Show AFK" },
+    { key = "tooltipDND",             label = "Show DND", beside = true },
 }) do
     def.section, def.category = "Tooltip", "Settings"
     ns.RegisterFeature(def)

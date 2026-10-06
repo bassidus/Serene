@@ -16,7 +16,7 @@ QoL addon suite for WoW Forever (Interface 16001). Unreleased, one user.
 
 - The options page lists settings in registration order, so TOC file order matters. Some files exist only to register last (`NameplateLook.lua`).
 - `beside = true` puts a category, or a setting, to the right of the previous one.
-- `type = "custom"` with `build(parent)` puts your own frame in a category (the Performance page's addon list).
+- `type = "custom"` with `build(parent)` puts your own frame in a category.
 - `tooltip` shows under the category's "?". Leave it out when the label already says it.
 - Writes go through `ns.SetValue`, which applies the setting and refreshes the window.
 
@@ -46,5 +46,5 @@ When unsure whether something exists, don't guess and don't write a fallback. Ad
 - Commit straight to `main`.
 - There are no tests. Check syntax with `luac -p` on the files you change (delete `luac.out` afterwards), then the user tests in game.
 - `tools/release.sh <version>` bumps `## Version` in every TOC, writes the CHANGELOG section and zips every `Serene*` folder into `dist/`. It refuses to run if `## Interface` differs between TOCs. `tools/release.sh --check` only checks that Interface and Version match everywhere.
-- `tools/mockups/render.sh` renders a nameplate collage into `art/mockup-nameplates.png` with headless Chromium, no game needed. `tools/mockups/nameplates.html` is a hand-built replica: update it when the nameplates' look changes. Mockups are only for what is hard to screenshot in game; the options window and the overlay get real screenshots.
+- `tools/mockups/render.sh` renders a nameplate collage into `art/mockup-nameplates.png` with headless Chromium, no game needed. `tools/mockups/nameplates.html` is a hand-built replica: update it when the nameplates' look changes. Mockups are only for what is hard to screenshot in game; the options window gets real screenshots.
 - Every release gets a written summary. After `release.sh`, replace the generated commit list under the new version in CHANGELOG.md with a short summary for players: an intro if something affects installing or updating, then `### New`, `### Changed` and `### Fixed` as needed. No internal changes (README, CLAUDE.md, tooling, refactors). Then commit and tag. Don't push unless asked.

@@ -33,7 +33,7 @@ ns.featureByKey = {}
 --   inline     dropdown: the label on the left, the button in the right half
 --   min, max, step, suffix   slider
 --   build      custom: fn(parent) returning a frame of fixed height with a
---              Refresh(), e.g. the Performance page's addon list
+--              Refresh()
 --   specials   color: { { value =, label =, tooltip =, swatch = }, ... } before
 --              the palette; swatch returns the hex(es) the word stands for
 --   blizzard   outline: fn returning Blizzard's own flags, shown on "default"

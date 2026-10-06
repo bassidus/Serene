@@ -41,7 +41,6 @@ local GOLD, TAN = W.GOLD, W.TAN
 local MENU = {
     { "Interface", { "Action Bars", "Nameplates", "Unit frames", "Tooltip", "Move & Scale" } },
     { "Quality of life", { "General", "Quests", "Social" } },
-    { "Tools", { "Performance" } },
 }
 local OTHER = "Other"
 
@@ -1114,9 +1113,6 @@ function ns.ToggleOptionsWindow()
         return
     end
     if not frame then Build() end
-    -- A full garbage collection first, so memory (e.g. on the Performance
-    -- page) reads what is really in use; the hitch lands on the click.
-    collectgarbage("collect")
     frame:Show()
 end
 

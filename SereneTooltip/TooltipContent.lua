@@ -378,14 +378,14 @@ TooltipDataProcessor.AddTooltipPostCall(T.PetAction, OnSpell)
 -------------------------------------------------------------------------------
 -- In pairs, the second beside the first.
 for _, def in ipairs({
-    { key = "tooltipTitles",          label = "Show player titles" },
+    { key = "tooltipTitles",          label = "Show player titles",
+      tooltip = "Extra lines on tooltips; players' item level is read out of combat" },
     { key = "tooltipGuildRank",       label = "Show guild rank", beside = true },
     { key = "tooltipTarget",          label = "Show what the unit targets" },
     { key = "tooltipFaction",         label = "Show faction", beside = true },
     { key = "tooltipItemLevel",       label = "Show item level on items" },
     { key = "tooltipIDs",             label = "Show spell and item IDs", default = false, beside = true },
-    { key = "tooltipPlayerItemLevel", label = "Show players' item level", default = false,
-      tooltip = "Other players are inspected when you hover them, out of combat." },
+    { key = "tooltipPlayerItemLevel", label = "Show players' item level", default = false },
 }) do
     def.section, def.category = "Tooltip", "Information"
     ns.RegisterFeature(def)

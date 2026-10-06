@@ -114,6 +114,7 @@ end)
 
 ns.RegisterFeature({
     key = "tooltipHealthBar", label = "Show health bar", section = "Tooltip", category = "Appearance",
+    tooltip = "The look and size of tooltips",
     apply = function() GameTooltipStatusBar:SetAlpha(ns.Enabled("tooltipHealthBar") and 1 or 0) end,
 })
 ns.RegisterFeature({
@@ -123,5 +124,4 @@ ns.RegisterFeature({
     key = "tooltipBgOpacity", label = "Background opacity", section = "Tooltip", category = "Appearance",
     type = "slider", space = true,
     min = 0, max = 100, step = 5, default = 90, apply = Apply,
-    tooltip = "100 is Blizzard's normal background.",
 })

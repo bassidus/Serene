@@ -19,5 +19,4 @@ ns.RegisterFeature({
     key = "tooltipScale", label = "Size", section = "Tooltip", category = "Appearance",
     type = "slider", beside = true,  -- to the right of Background opacity
     min = 50, max = 150, step = 5, default = 100, suffix = "%", apply = Apply,
-    tooltip = "100% is Blizzard's size.",
 })

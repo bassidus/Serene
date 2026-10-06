@@ -5,7 +5,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "Action bars"
+local SECTION = "Action Bars"
 
 -- Runs from PLAYER_LOGIN on, when the character's bar toggles are in.
 -- Showing a protected bar waits for combat to end.
@@ -31,9 +31,8 @@ end
 
 ns.RegisterFeature({
     key = "barSync", label = "Check the bars you want enabled on all characters", section = SECTION,
+    tooltip = "Checked bars are turned on for every character at login",
     category = "Always shown bars", default = false, apply = Sync,
-    tooltip = "The checked bars are turned on for every character when it logs in. Unchecked bars are "
-        .. "left alone, so each character can still show more bars through Blizzard's own settings.",
 })
 for bar = 2, 8 do
     ns.RegisterFeature({

@@ -342,6 +342,6 @@ end
 
 ns.RegisterFeature({
     key = "perfSort", label = "Addons", section = SECTION, category = "Usage", type = "custom",
+    tooltip = "Click a heading to sort; the box pins an addon to the overlay",
     default = "mem", build = Build,
-    tooltip = "Click a column's heading to sort by it. While the overlay is on, the box at the left of an addon pins it there.",
 })

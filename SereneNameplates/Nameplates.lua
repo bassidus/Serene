@@ -618,10 +618,11 @@ NP.ApplyRelayout = Relayout
 -- sizes are in NameplateLook.lua, after the cast bar and debuff toggles, so
 -- the options page lists every toggle first.
 ns.RegisterFeature({
-    key = "nameplateThreat", label = "Select role", section = "Enemy nameplates", category = "Threat colors",
+    key = "nameplateThreat", label = "Select role", section = "Serene Nameplates", category = "Threat colors",
+    tooltip = "Colors health bars by threat; Auto picks Tank in Defensive Stance, Bear Form or with Righteous Fury",
+    space = true,
     type = "dropdown", default = "auto",
     apply = Relayout,
-    tooltip = "Auto chooses Tank in Defensive Stance, Bear Form or with Righteous Fury. Otherwise it chooses Damage / healer.",
     options = function()
         return {
             { value = "auto", label = "Auto" },
@@ -631,6 +632,10 @@ ns.RegisterFeature({
         }
     end,
 })
+local ROLE_HELP = {
+    ["Tank"] = "Health bar colors while you tank",
+    ["Damage / healer"] = "Health bar colors while you deal damage or heal",
+}
 for _, c in ipairs({
     { "nameplateThreatTankHigh",    "Tank",            "Your aggro",     "00ff00" },
     { "nameplateThreatTankMedium",  "Tank",            "Losing aggro",   "ffff00", true },
@@ -641,16 +646,18 @@ for _, c in ipairs({
     { "nameplateThreatDpsLow",      "Damage / healer", "Safe",           "00ff00" },
 }) do
     ns.RegisterFeature({
-        key = c[1], label = c[3], section = "Enemy nameplates", category = c[2], type = "color",
+        key = c[1], label = c[3], section = "Serene Nameplates", category = c[2], type = "color",
         default = c[4], beside = c[5], apply = Relayout,
         closed = c[3] == "Your aggro",  -- each role's first color
+        tooltip = c[3] == "Your aggro" and ROLE_HELP[c[2]] or nil,
     })
 end
 ns.RegisterFeature({
-    key = "nameplateLevel", label = "Show level", section = "Enemy nameplates", category = "Text", apply = Relayout,
+    key = "nameplateLevel", label = "Show level", section = "Serene Nameplates", category = "Text", apply = Relayout,
+    tooltip = "Text on enemy nameplates",
     closed = true,
 })
 ns.RegisterFeature({
-    key = "nameplateHealthText", label = "Show health percent", section = "Enemy nameplates", category = "Text",
+    key = "nameplateHealthText", label = "Show health percent", section = "Serene Nameplates", category = "Text",
     apply = Relayout,
 })

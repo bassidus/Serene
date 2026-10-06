@@ -24,6 +24,7 @@ local function Apply() PlayerFrame_UpdateStatus() end
 
 ns.RegisterFeature({
     key = "unitFrameHideRestGlow", label = "Hide resting glow", section = "Unit frames", category = "Resting",
+    tooltip = "Resting effects on your player frame",
     beside = true,  -- to the right of Appearance; loaded before the other categories for that
     apply = Apply,
 })

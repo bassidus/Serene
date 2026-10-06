@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Unit Frame Look -- dark frame art, portrait, name, level and the health/
+--  Unit Frame Look -- dark frame art, name, level and the health/
 --  mana text on Blizzard's unit frames (player, pet, target, focus, their
 --  targets, party).
 --
@@ -7,7 +7,7 @@
 --  hidden with alpha (Blizzard keeps calling Show/Hide on them), and no
 --  fields are written to the frames. Whenever Blizzard updates a frame
 --  (UnitFrame_Update) or puts an alpha back, our look goes straight back on.
---  The text and the class icon portraits are Blizzard's own CVars.
+--  The health/mana text uses Blizzard's own CVars.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -211,26 +211,6 @@ hooksecurefunc(TargetFrame, "CheckClassification", Style)
 hooksecurefunc(FocusFrame, "CheckClassification", Style)
 
 -------------------------------------------------------------------------------
---  Portrait: Blizzard's class icon CVars
--------------------------------------------------------------------------------
-local PORTRAIT_CVARS = { "ReplaceMyPlayerPortrait", "ReplaceOtherPlayerPortraits" }
-local lastPortrait
-
-local function ApplyPortrait()
-    local value = ns.Get("unitFramePortrait")
-    -- Only switching away from class icons turns the CVars off again, so a
-    -- choice made in Blizzard's own settings is left alone otherwise.
-    local cvar = value == "class" and "1" or (lastPortrait == "class" and "0") or nil
-    lastPortrait = value
-    if cvar then
-        for _, name in ipairs(PORTRAIT_CVARS) do SetCVar(name, cvar) end
-        for _, frame in ipairs(Frames()) do
-            if frame.portrait and frame.unit then UnitFramePortrait_Update(frame) end
-        end
-    end
-end
-
--------------------------------------------------------------------------------
 --  Health/mana text: Blizzard's Status Text CVars
 -------------------------------------------------------------------------------
 -- Like Blizzard's own setting, None also turns "statusText" off, so the
@@ -335,18 +315,8 @@ ns.RegisterFeature({
     apply = StyleAll,
 })
 ns.RegisterFeature({
-    key = "unitFramePortrait", label = "Portrait", section = SECTION, category = "Appearance", type = "dropdown",
-    hideLabel = true,
-    default = "portrait", apply = ApplyPortrait,
-    options = function()
-        return {
-            { value = "portrait", label = "Portrait" },
-            { value = "class",    label = "Class icon" },
-        }
-    end,
-})
-ns.RegisterFeature({
     key = "unitFrameHideName", label = "Hide names", section = SECTION, category = "Name",
+    tooltip = "Names on the unit frames",
     default = false, apply = StyleAll,
 })
 ns.RegisterFeature({
@@ -354,12 +324,12 @@ ns.RegisterFeature({
     default = "default", apply = StyleAll,
     specials = {
         { value = "default", label = "Default", swatch = function() return "ffd100" end },
-        { value = "class",   label = "Class", swatch = ns.PlayerClassHex,
-          tooltip = "Players' class color; everyone else keeps the default." },
+        { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
     },
 })
 ns.RegisterFeature({
     key = "unitFrameHideLevel", label = "Hide level", section = SECTION, category = "Level",
+    tooltip = "Levels on the unit frames",
     beside = true,
     default = false, apply = StyleAll,
 })
@@ -367,16 +337,14 @@ ns.RegisterFeature({
     key = "unitFrameLevelColor", label = "Level color", section = SECTION, category = "Level", type = "color",
     default = "ffd100", apply = StyleAll,
     specials = {
-        { value = "default", label = "Default", swatch = function() return "ffffff", "40d940", "ffd100", "ff4d1a" end,
-          tooltip = "Blizzard's colors: by difficulty for enemies, white on your own frame." },
+        { value = "default", label = "Default", swatch = function() return "ffffff", "40d940", "ffd100", "ff4d1a" end },
     },
 })
 ns.RegisterFeature({
     key = "unitFrameText", label = "Format", section = SECTION, category = "Health & mana",
+    tooltip = "Numbers on the health and mana bars; None shows them on mouseover",
     type = "dropdown",
     default = "both", apply = ApplyText,
-    tooltip = "How the numbers on the health and mana bars read. None shows them only while the mouse is over a bar.\n"
-        .. "Both shows the percent on the left and the value on the right, so Alignment doesn't change it.",
     options = function()
         return {
             { value = "none",     label = "None" },

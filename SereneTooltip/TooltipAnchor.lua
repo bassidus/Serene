@@ -34,9 +34,8 @@ end)
 
 ns.RegisterFeature({
     key = "tooltipAnchor", type = "dropdown", default = "cursorRight",
+    tooltip = "Where tooltips show; a button's tooltip stays by its button",
     label = "Where tooltips appear", section = "Tooltip", category = "Position",
-    tooltip = "Blizzard default is the bottom-right corner. Tooltips that belong to a button, like action buttons "
-        .. "and bags, stay by their button.",
     options = function()
         return {
             { value = "default",     label = "Blizzard default" },
@@ -50,5 +49,4 @@ ns.RegisterPositionSettings({
     prefix = "tooltip", label = "Offset from cursor", button = "Offset from cursor",
     section = "Tooltip", category = "Position",
     x = { -100, 100, 0 }, y = { -100, 100, 0 }, box = { -3, 3, -3, 3 }, scale = 1,
-    tooltip = "Moves tooltips that follow the cursor away from their usual spot beside it. The small square is the cursor.",
 })

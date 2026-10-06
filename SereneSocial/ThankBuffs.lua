@@ -152,6 +152,7 @@ end)
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
     key = "thankBuffs", label = "Thank players who buff you", section = SECTION, category = "Thanks for buffs",
+    tooltip = "An /emote at most once a minute, not for group members or buffs in combat",
     apply = function()
         local on = ns.Enabled("thankBuffs")
         if on then
@@ -162,14 +163,11 @@ ns.RegisterFeature({
         end
         Listen(on)
     end,
-    tooltip = "An /emote for players outside your group, at most once a minute. Buffs given in combat are "
-        .. "not thanked.",
 })
 ns.RegisterFeature({
     key = "thankBuffMessage", label = "Message", section = SECTION, category = "Thanks for buffs",
     type = "dropdown", default = "random",
     requires = "thankBuffs",
-    tooltip = "Your name comes first in chat.",
     options = function()
         local list = { { value = "random", label = "Random" } }
         for _, m in ipairs(MESSAGES) do list[#list + 1] = m end
@@ -182,6 +180,5 @@ ns.RegisterFeature({
 -- because this file loads last.
 ns.RegisterFeature({
     key = "socialGuildFriends", label = "Count your guild as friends", section = SECTION,
-    tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every "
-        .. "setting on this page.",
+    tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every setting on this page.",
 })

@@ -146,13 +146,14 @@ local function Apply()
     ns.RefreshKeybinds()
 end
 
-local SECTION = "Action bars"
+local SECTION = "Action Bars"
 
 ns.RegisterFeature({
-    key = "rangeColors", label = "Color buttons out of range", section = SECTION, category = "Range", apply = Apply,
+    key = "rangeColors", label = "Enable", section = SECTION, category = "Out Of Range Control", apply = Apply,
+    tooltip = "Colors out of range action buttons",
 })
 ns.RegisterFeature({
-    key = "rangeColor", label = "Out-of-range color", section = SECTION, category = "Range",
+    key = "rangeColor", label = "Out-of-range color", section = SECTION, category = "Out Of Range Control",
     type = "color", default = "ff4d1a", button = "Color",
     requires = "rangeColors", apply = Apply,
 })

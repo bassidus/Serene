@@ -129,6 +129,6 @@ end)
 
 ns.RegisterFeature({
     key = "hideTutorials", label = "Hide tutorial pop-ups", section = "General", category = "Interface",
+    tooltip = "Hides Blizzard's tutorials and red error messages",
     apply = Apply,
-    tooltip = "Hides the yellow tutorial tips and the (i) help buttons in Blizzard's windows, and turns off the game's tutorials.",
 })

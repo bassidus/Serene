@@ -410,26 +410,23 @@ local ON = "overlayShown"
 -- One group, two settings to a row.
 ns.RegisterFeature({
     key = "overlayShown", label = "Show overlay", section = SECTION, category = "Overlay", default = false,
+    tooltip = "Framerate, latency and your heaviest addons on screen; Ctrl+R toggles it",
     closed = true,
     apply = Apply,
-    tooltip = "Framerate, latency and your heaviest addons on screen while you play. The game's Toggle Framerate key (Ctrl+R) also shows and hides it.",
 })
 ns.RegisterFeature({
     key = "overlayLocked", label = "Lock position", section = SECTION, category = "Overlay", requires = ON,
     apply = Apply, beside = true,
-    tooltip = "Unlocked, the overlay drags to move and the lines between the columns change their width.",
 })
 
 ns.RegisterFeature({
     key = "overlaySummaryOnly", label = "Show summary only", section = SECTION, category = "Overlay", default = false,
     requires = ON, apply = Apply,
-    tooltip = "Only the summary line, without the addon list.",
 })
 local LIST = { ON, "!overlaySummaryOnly" }
 ns.RegisterFeature({
     key = "overlayGrow", label = "Grows from", section = SECTION, category = "Overlay", type = "dropdown",
     default = "upleft", requires = ON, apply = Apply, space = true,
-    tooltip = "Which corner stays put when the overlay's size changes; it grows away from it.",
     options = function()
         return {
             { value = "upleft",    label = "Bottom right corner" },
@@ -453,7 +450,6 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "overlayWidth", label = "Width", section = SECTION, category = "Overlay", type = "slider",
     min = 100, max = 800, step = 1, default = 260, requires = LIST, apply = Apply,
-    tooltip = "Without the addon list the overlay fits its text. The height always fits what it lists.",
 })
 ns.RegisterFeature({
     key = "overlayBackground", label = "Opacity", section = SECTION, category = "Overlay", type = "slider",
@@ -462,5 +458,4 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "overlayTop", label = "Number of addons", section = SECTION, category = "Overlay", type = "slider",
     min = 1, max = 20, step = 1, default = 5, requires = LIST, apply = Apply,
-    tooltip = "How many of the heaviest addons to list. Pinned addons (the box at the left of an addon under Usage) show besides these.",
 })

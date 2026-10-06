@@ -113,9 +113,8 @@ NP.RegisterModule({
 })
 
 ns.RegisterFeature({
-    key = "nameplateComboPoints", label = "Show combo points", section = "Enemy nameplates",
+    key = "nameplateComboPoints", label = "Show combo points", section = "Serene Nameplates",
+    tooltip = "Combo points stay on their enemy when you switch targets",
     category = "Combo points", closed = true,
     apply = Sync,
-    tooltip = "Five boxes under the health bar of the enemy holding your combo points, for rogues and druids in Cat Form.\n"
-        .. "They stay on that enemy when you switch targets, until you build points on another one.",
 })

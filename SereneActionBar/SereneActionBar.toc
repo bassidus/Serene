@@ -4,7 +4,7 @@
 ## Notes: Always shown action bars, short keybind text and action bar range coloring.
 ## Version: 1.4.0
 ## Dependencies: Serene
-## X-Serene-Section: Action bars
+## X-Serene-Section: Action Bars
 ## IconTexture: Interface\AddOns\Serene\Media\Logo
 
 Init.lua

@@ -122,23 +122,22 @@ end)
 
 ns.RegisterFeature({
     key = "autoAcceptQuests", label = "Accept quests automatically", section = "Quests", category = "Automation",
+    tooltip = "Quests with a reward to choose wait for you",
 })
 ns.RegisterFeature({
     key = "autoTurnInQuests", label = "Turn in quests automatically", section = "Quests", category = "Automation",
-    tooltip = "When there is a reward to choose, you pick it yourself.",
 })
 
 -- Drawn by SereneNameplates (NameplateQuest.lua), which adds the apply.
 local QUEST_GREEN = "28da79"  -- the nameplates' own quest color
 ns.RegisterFeature({
     key = "nameplateQuest", label = "Mark quest enemies", section = "Quests", category = "Nameplates",
+    tooltip = "Quest icon and progress on enemies your quests need",
     beside = true,  -- to the right of Automation
     addon = "SereneNameplates",
-    tooltip = "Shows a quest icon and your progress (e.g. 3/8) on the nameplates of enemies your quests still need.",
 })
 ns.RegisterFeature({
     key = "nameplateQuestColor", label = "Color their health bars", section = "Quests", category = "Nameplates",
-    tooltip = "Gives quest enemies' health bars their own color until they start fighting you.",
     requires = "nameplateQuest",
     addon = "SereneNameplates",
 })

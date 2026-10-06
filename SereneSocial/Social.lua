@@ -197,13 +197,13 @@ end
 -- Count your guild as friends is at the end of ThankBuffs.lua, last on the page.
 ns.RegisterFeature({
     key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION, category = "Invites",
+    tooltip = "Group invites from friends and by whispered keyword",
     apply = Apply,
-    tooltip = "Only while you are not already in a group.",
 })
 ns.RegisterFeature({
     key = "blockPartyInvites", label = "Block group invites from strangers", section = SECTION, category = "Blocking",
+    tooltip = "Declines group invites, duels and shared quests from strangers",
     default = false, apply = Apply,
-    tooltip = "Chat says who was declined.",
 })
 ns.RegisterFeature({
     key = "blockDuels", label = "Block duels from strangers", section = SECTION, category = "Blocking",
@@ -216,8 +216,6 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "whisperInvite", label = "Invite players who whisper a keyword", section = SECTION, category = "Invites",
     default = false, apply = Apply,
-    tooltip = "Sends a group invite to whoever whispers you the keyword. If you can't invite (you are not the "
-        .. "leader, or the group is full), they get a whisper back saying why.",
 })
 ns.RegisterFeature({
     key = "whisperInviteKeyword", label = "Keyword", section = SECTION, category = "Invites",

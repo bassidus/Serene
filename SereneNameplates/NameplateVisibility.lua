@@ -10,13 +10,12 @@ local function UpdateAll()
 end
 
 ns.RegisterFeature({
-    key = "nameplateFadeOthers", label = "Enable", section = "Enemy nameplates", category = "Visibility",
+    key = "nameplateFadeOthers", label = "Enable", section = "Serene Nameplates", category = "Visibility",
+    tooltip = "Fades enemies you have not targeted, except casters and the one under the mouse",
     closed = true, apply = UpdateAll,
 })
 ns.RegisterFeature({
-    key = "nameplateOtherAlpha", label = "Other enemies' opacity", section = "Enemy nameplates",
+    key = "nameplateOtherAlpha", label = "Other enemies' opacity", section = "Serene Nameplates",
     category = "Visibility", type = "slider", min = 0, max = 100, step = 5, default = 20, suffix = "%",
     requires = "nameplateFadeOthers", apply = UpdateAll,
-    tooltip = "With an enemy targeted, the other enemies' plates fade to this opacity.\n"
-        .. "The one under the mouse and any that is casting stay fully visible.",
 })

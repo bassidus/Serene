@@ -22,5 +22,4 @@ end
 ns.RegisterFeature({
     key = "autoFillDelete", label = "Type DELETE for you", section = "General", category = "Loot & items",
     apply = Apply,
-    tooltip = "Fills in DELETE when the game asks you to type it to destroy a valuable item. You still click Yes yourself.",
 })

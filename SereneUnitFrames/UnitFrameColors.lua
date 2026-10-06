@@ -92,6 +92,7 @@ end)
 
 ns.RegisterFeature({
     key = "unitFrameClassColors", label = "Class-colored health bars", section = "Unit frames", category = "Appearance",
+    tooltip = "The look of the unit frames; class colors are for players only",
     apply = function()
         if ns.Enabled("unitFrameClassColors") then
             for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",
@@ -103,5 +104,4 @@ ns.RegisterFeature({
         end
         RefreshAll()
     end,
-    tooltip = "NPCs keep Blizzard's colors.",
 })

@@ -169,14 +169,18 @@ ns.PALETTE = {
     { hex = "ffffff", label = "White" },
     { hex = "999999", label = "Gray" },
     { hex = "595959", label = "Dark gray" },
+    { hex = "ffff00", label = "Yellow" },
     { hex = "ffd100", label = "Gold" },
     { hex = "ff991a", label = "Orange" },
     { hex = "ff4d1a", label = "Red" },
+    { hex = "ff0000", label = "Bright red" },
     { hex = "ff69b4", label = "Pink" },
     { hex = "a335ee", label = "Purple" },
     { hex = "3b8cff", label = "Blue" },
+    { hex = "0faac8", label = "Teal" },
     { hex = "33ddee", label = "Cyan" },
     { hex = "40d940", label = "Green" },
+    { hex = "00ff00", label = "Bright green" },
 }
 
 -- The hex a color value stands for, or nil for a special word.

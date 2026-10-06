@@ -156,6 +156,28 @@ local function ColorLevel(fs)
 end
 
 -------------------------------------------------------------------------------
+--  Longer names: the name reaches the right end of the health bar instead of
+--  stopping short of it (the player frame's cuts off at 96 of ~130 pixels).
+--  Both sit in the same frame, so the difference holds at any scale or
+--  position; it is measured once, as soon as the frame is laid out.
+-------------------------------------------------------------------------------
+local nameWidths = {}  -- [font string] = Blizzard's width
+
+local function WidenName(fs, bar)
+    if not fs then return end
+    if ns.Enabled("unitFrameLongNames") then
+        if nameWidths[fs] then return end
+        local left, right = Clean(fs:GetLeft()), Clean(bar:GetRight())
+        if not (left and right) then return end
+        nameWidths[fs] = fs:GetWidth()
+        fs:SetWidth(right - left - 2)
+    elseif nameWidths[fs] then
+        fs:SetWidth(nameWidths[fs])
+        nameWidths[fs] = nil
+    end
+end
+
+-------------------------------------------------------------------------------
 --  Painting a frame
 -------------------------------------------------------------------------------
 local function Style(frame)
@@ -165,6 +187,7 @@ local function Style(frame)
     SetHidden(p.name, ns.Enabled("unitFrameHideName"))
     SetHidden(p.nameBackground, true)  -- the colored bar behind the name, gone like on the player frame
     ColorName(p.name, frame.unit)
+    WidenName(p.name, frame.healthbar)
     local hideLevel = ns.Enabled("unitFrameHideLevel")
     for _, region in pairs(p.level) do SetHidden(region, hideLevel) end
     ColorLevel(p.levelText)
@@ -297,6 +320,10 @@ ns.RegisterFeature({
         { value = "default", label = "Default", swatch = function() return "ffd100" end },
         { value = "class",   label = "Class", swatch = ns.PlayerClassHex },
     },
+})
+ns.RegisterFeature({
+    key = "unitFrameLongNames", label = "Longer names", section = SECTION, category = "Name",
+    apply = StyleAll,
 })
 ns.RegisterFeature({
     key = "unitFrameHideLevel", label = "Hide level", section = SECTION, category = "Level",

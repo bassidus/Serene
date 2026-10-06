@@ -38,7 +38,7 @@ local BRONZE = { [7948326] = true, [8154526] = true, [8119721] = true, [8200846]
 
 local bronze = {}  -- [texture] = true, every bronze texture found
 
-local DARK = 0.22
+local DARK = 0.6
 
 local function Paint(tex)
     local art = ns.Get("barArt")

@@ -9,9 +9,9 @@
 
 Init.lua
 UnitFrameColors.lua
-UnitFrameRest.lua
 UnitFrameLook.lua
 UnitFrameFonts.lua
 UnitFrameSmooth.lua
 UnitFrameHide.lua
+UnitFrameRest.lua
 UnitFrameIndicators.lua

@@ -27,14 +27,12 @@ local function Apply() PlayerFrame_UpdateStatus() end
 
 ns.RegisterFeature({
     key = KEY.HideRestGlow, label = "Hide resting glow", section = PLAYER.section, view = PLAYER.view,
-    category = "Resting",
-    tooltip = "Resting effects on your frame",
-    beside = true,  -- to the right of Appearance; loaded before the other categories for that
+    category = "Hide",
     apply = Apply,
 })
 ns.RegisterFeature({
     key = KEY.HideRestZzz, label = "Hide resting Zzz", section = PLAYER.section, view = PLAYER.view,
-    category = "Resting",
+    category = "Hide",
     default = false,
     apply = Apply,
 })

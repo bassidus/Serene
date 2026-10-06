@@ -19,6 +19,7 @@ ns.featureByKey = {}
 --   view       on a page with views (ns.SetPageViews): the view it shows in, or
 --              a list of them; without, it shows in every view
 --   category   heading on its page; categories keep their first-seen order
+--              (or ns.SetCategoryOrder)
 --   sub        a subgroup heading inside the category, a frame of its own
 --              that opens and closes; keep a subgroup's settings together
 --   tooltip    help text under the category's "?" (on hover without a category)
@@ -40,7 +41,9 @@ ns.featureByKey = {}
 --   space      an empty row above the control
 --   closed     on a category's (or subgroup's) first setting: it starts closed
 --   beside     on a category's first setting: that category goes right of the
---              previous one at half width; otherwise: right of the previous setting
+--              previous one at half width (on a page with views, it keeps
+--              that half in a view without the other); otherwise: right of
+--              the previous setting
 --   button     a plain button with this text in place of the field
 --   requires   key (or list) of booleans; dimmed and locked while any is off
 --              ("!key": while it is on)
@@ -91,6 +94,14 @@ end
 ns.pageViews = {}
 function ns.SetPageViews(section, views)
     ns.pageViews[section] = views
+end
+
+-- The order of a page's categories when registration order can't give it
+-- (settings from several files): categories = { "Appearance", ... }; any
+-- not named follow in their first-seen order.
+ns.categoryOrders = {}
+function ns.SetCategoryOrder(section, categories)
+    ns.categoryOrders[section] = categories
 end
 
 function ns.Get(key)

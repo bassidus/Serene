@@ -91,17 +91,13 @@ end
 
 ns.RegisterFeature({
     key = PLAYER.key.Stealth, label = "Blue border in stealth", section = PLAYER.section, view = PLAYER.view,
-    category = "Indicators",
-    tooltip = "Extra signs on the frame",
-    beside = true,
+    category = "Appearance",
     default = false, apply = ApplyStealth,
 })
 for _, page in ipairs(PAGES) do
     ns.RegisterFeature({
         key = page.key.CombatIcon, label = "Combat icon", section = page.section, view = page.view,
-        category = "Indicators",
-        tooltip = "Extra signs on the frame",
-        beside = true,
+        category = "Appearance",
         default = false, apply = ApplyCombat,
     })
 end

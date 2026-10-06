@@ -351,6 +351,7 @@ for _, page in ipairs(ns.FramePages()) do
     ns.RegisterFeature({
         key = key.HideName, label = "Hide name", section = section, view = view, category = "Name",
         tooltip = "The unit's name",
+        beside = true,
         default = false, apply = StyleAll,
     })
     ns.RegisterFeature({

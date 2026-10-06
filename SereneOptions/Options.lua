@@ -507,7 +507,8 @@ local function CreateModulesPage()
 end
 
 -- The section's settings in a view with each category's gathered together,
--- the categories in the order they first appear. A font group is one row,
+-- the categories in the page's order (ns.SetCategoryOrder), then in the
+-- order they first appear. A font group is one row,
 -- at its first setting, and its color and position go with it; a position
 -- pair is one row, at its X.
 local function SectionFeatures(section, view)
@@ -530,6 +531,15 @@ local function SectionFeatures(section, view)
             table.insert(byCategory[category], f)
         end
     end
+    local named = {}
+    for i, category in ipairs(ns.categoryOrders[section] or {}) do named[category] = i end
+    local seen = {}
+    for i, category in ipairs(order) do seen[category] = i end
+    table.sort(order, function(a, b)
+        local na, nb = named[a] or math.huge, named[b] or math.huge
+        if na ~= nb then return na < nb end
+        return seen[a] < seen[b]
+    end)
     local list = {}
     for _, category in ipairs(order) do
         for _, f in ipairs(byCategory[category]) do list[#list + 1] = f end
@@ -590,6 +600,13 @@ local function CreatePage(section)
             layouts[k] = { list = list, column = c, partner = p }
         end
         return layouts[k]
+    end
+
+    -- A category beside another in any view keeps its half of the row in a
+    -- view where it stands alone, so the views look alike.
+    local sides = views and {} or ViewLayout(nil).column
+    for _, view in ipairs(views or {}) do
+        for category, side in pairs(ViewLayout(view).column) do sides[category] = side end
     end
 
     -- From the first registered setting, which list may leave out (a font
@@ -755,7 +772,7 @@ local function CreatePage(section)
                 if group then y = Close() end
                 group, right = nil, false
                 if f.category then
-                    local col, start = column[f.category], y
+                    local col, start = sides[f.category], y
                     group = Group(f.category)
                     group:Show()
                     y = PlaceGroup(group, y, col == "right" and half + SPACING or 0, col == "left" and half + SPACING or 0)

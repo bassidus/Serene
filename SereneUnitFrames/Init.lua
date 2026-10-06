@@ -51,3 +51,5 @@ function ns.FramePage(frame) return byFrame[frame] end
 function ns.UnitFrames() return all end
 
 ns.SetPageViews(SECTION, views)
+-- The same places in every view; a view leaves out what its frame lacks.
+ns.SetCategoryOrder(SECTION, { "Appearance", "Name", "Health & mana", "Hide", "Level" })

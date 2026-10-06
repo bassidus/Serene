@@ -395,7 +395,7 @@ local hoverPlate
 -- With an enemy targeted the other plates fade, but not the one under the
 -- mouse or one that is casting.
 local function UpdateAlpha(plate)
-    local dim = not plate.lit and plate ~= hoverPlate and not plate.cast:IsShown()
+    local dim = ns.Get("nameplateFadeOthers") and not plate.lit and plate ~= hoverPlate and not plate.cast:IsShown()
         and Clean(UnitCanAttack("player", "target"))
     plate:SetAlpha(dim and ns.Get("nameplateOtherAlpha") / 100 or 1)
 end

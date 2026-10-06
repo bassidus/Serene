@@ -12,19 +12,18 @@ local SECTION = "Action Bars"
 --  Zoomed icons: the button's icon texture keeps its crop through texture
 --  changes, so it is set once per button.
 -------------------------------------------------------------------------------
-local BARS = { "ActionButton", "MultiBarBottomLeftButton", "MultiBarBottomRightButton", "MultiBarRightButton",
-               "MultiBarLeftButton", "MultiBar5Button", "MultiBar6Button", "MultiBar7Button", "PetActionButton",
-               "StanceButton" }
 local CROP = 0.08
 
-local function ApplyZoom()
-    local c = ns.Enabled("zoomActionIcons") and CROP or 0
-    for _, prefix in ipairs(BARS) do
-        for i = 1, 12 do
-            local btn = _G[prefix .. i]
-            if btn then btn.icon:SetTexCoord(c, 1 - c, c, 1 - c) end
-        end
+-- fn(button) for every action button.
+local function EachButton(fn)
+    for _, bar in ipairs(ns.ACTION_BUTTONS) do
+        for i = 1, bar[3] do fn(_G[bar[1] .. i]) end
     end
+end
+
+local function ApplyZoom()
+    local c = ns.Get("zoomActionIcons") and CROP or 0
+    EachButton(function(btn) btn.icon:SetTexCoord(c, 1 - c, c, 1 - c) end)
 end
 
 -------------------------------------------------------------------------------
@@ -71,12 +70,7 @@ end
 local function ApplyArt()
     if ns.Get("barArt") ~= "bronze" and not next(bronze) then
         for _, frame in ipairs({ MainActionBar, BagsBar, MicroMenuContainer }) do Collect(frame) end
-        for _, prefix in ipairs(BARS) do
-            for i = 1, 12 do
-                local btn = _G[prefix .. i]
-                if btn then Collect(btn) end
-            end
-        end
+        EachButton(Collect)
     end
     for tex in pairs(bronze) do Paint(tex) end
 end
@@ -94,7 +88,11 @@ local elapsed = 0
 
 local function Refresh()
     for _, f in ipairs(FADERS) do
-        ns.SetHidden(f.frame, ns.Enabled(f.key) and not f.frame:IsMouseOver())
+        local hide = ns.Get(f.key) and not f.frame:IsMouseOver()
+        if hide ~= f.hidden then
+            f.hidden = hide
+            ns.SetHidden(f.frame, hide)
+        end
     end
 end
 
@@ -107,7 +105,7 @@ end)
 
 local function ApplyFaders()
     local any = false
-    for _, f in ipairs(FADERS) do any = any or ns.Enabled(f.key) end
+    for _, f in ipairs(FADERS) do any = any or ns.Get(f.key) end
     watch:SetShown(any)
     Refresh()
 end

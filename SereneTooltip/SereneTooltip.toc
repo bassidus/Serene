@@ -14,5 +14,4 @@ TooltipBorder.lua
 TooltipScale.lua
 TooltipFont.lua
 TooltipUnitBars.lua
-TooltipIssueHint.lua
-TooltipClickHint.lua
+TooltipHints.lua

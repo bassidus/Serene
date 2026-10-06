@@ -18,6 +18,7 @@ local NP = { plates = {}, modules = {} }
 ns.NP = NP
 
 local BAR = "Interface\\Buttons\\WHITE8X8"
+NP.BAR = BAR
 
 local COLORS = {
     hostile   = { 0.80, 0.137, 0.137 },
@@ -73,37 +74,26 @@ end
 -------------------------------------------------------------------------------
 local parked = CreateFrame("Frame")
 parked:Hide()
-local held = setmetatable({}, { __mode = "k" })         -- UnitFrame -> true while hidden by us
-local auraParents = setmetatable({}, { __mode = "k" })  -- UnitFrame -> AurasFrame's own parent
-local alphaHooked = setmetatable({}, { __mode = "k" })
+local held = {}         -- UnitFrame -> true while hidden by us
+local auraParents = {}  -- UnitFrame -> AurasFrame's own parent
 
 local function HideBlizzard(nameplate)
-    local uf = nameplate and nameplate.UnitFrame
+    local uf = nameplate.UnitFrame
     if not uf or uf:IsForbidden() then return end
     held[uf] = true
-    uf:SetAlpha(0)
+    -- Blizzard fades its frame in and out (range, occlusion); SetHidden keeps it at 0.
+    ns.SetHidden(uf, true)
     local auras = uf.AurasFrame
     if auras and auras:GetParent() ~= parked then
         auraParents[uf] = auras:GetParent()
         auras:SetParent(parked)
-    end
-    -- Blizzard fades its frame in and out (range, occlusion); keep it at 0.
-    if not alphaHooked[uf] then
-        alphaHooked[uf] = true
-        local busy = false
-        hooksecurefunc(uf, "SetAlpha", function(self)
-            if busy or not held[self] then return end
-            busy = true
-            self:SetAlpha(0)
-            busy = false
-        end)
     end
 end
 
 local function RestoreBlizzard(uf)
     if not uf or not held[uf] or uf:IsForbidden() then return end
     held[uf] = nil
-    uf:SetAlpha(1)
+    ns.SetHidden(uf, false)
     local auras = uf.AurasFrame
     if auras and auraParents[uf] and auras:GetParent() == parked then
         auras:SetParent(auraParents[uf])
@@ -116,28 +106,25 @@ end
 -------------------------------------------------------------------------------
 local pool = {}
 
+-- A black 1px border just outside parent, on a frame above it.
+local BLACK, WHITE = { 0, 0, 0 }, { 1, 1, 1 }
 local function Border(parent)
     local f = CreateFrame("Frame", nil, parent)
     f:SetPoint("TOPLEFT", -1, 1)
     f:SetPoint("BOTTOMRIGHT", 1, -1)
     f:SetFrameLevel(parent:GetFrameLevel() + 2)
-    f.edges = {}
-    for i = 1, 4 do
-        local t = f:CreateTexture(nil, "OVERLAY")
-        t:SetColorTexture(0, 0, 0, 1)
-        f.edges[i] = t
-    end
-    local e = f.edges
-    e[1]:SetPoint("TOPLEFT"); e[1]:SetPoint("TOPRIGHT"); e[1]:SetHeight(1)
-    e[2]:SetPoint("BOTTOMLEFT"); e[2]:SetPoint("BOTTOMRIGHT"); e[2]:SetHeight(1)
-    e[3]:SetPoint("TOPLEFT"); e[3]:SetPoint("BOTTOMLEFT"); e[3]:SetWidth(1)
-    e[4]:SetPoint("TOPRIGHT"); e[4]:SetPoint("BOTTOMRIGHT"); e[4]:SetWidth(1)
-    function f:SetColor(r, g, b)
-        for _, t in ipairs(self.edges) do t:SetColorTexture(r, g, b, 1) end
-    end
+    f.edges = ns.Border(f, BLACK)
     return f
 end
 NP.Border = Border
+
+-- The dark background behind a bar.
+function NP.Background(bar)
+    local bg = bar:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.05, 0.05, 0.05, 0.85)
+    return bg
+end
 
 -- Rows other modules hang under the health bar, top to bottom. A module puts
 -- its row on the plate (plate.manaBar, plate.comboRow) and calls
@@ -186,9 +173,7 @@ local function CreatePlate()
     health:SetAllPoints()
     health:SetStatusBarTexture(BAR)
     health:SetMinMaxValues(0, 1)
-    local bg = health:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0.05, 0.05, 0.05, 0.85)
+    NP.Background(health)
     plate.health = health
     plate.border = Border(health)
 
@@ -231,7 +216,7 @@ local function UpdateHealth(plate, valueOnly)
     local unit = plate.unit
     if not valueOnly then plate.health:SetMinMaxValues(0, UnitHealthMax(unit)) end
     plate.health:SetValue(UnitHealth(unit))
-    if not ns.Enabled("nameplateHealthText") then
+    if not ns.Get("nameplateHealthText") then
         plate.healthText:SetText("")
     elseif UnitIsDeadOrGhost(unit) then
         plate.healthText:SetText("0%")
@@ -241,18 +226,15 @@ local function UpdateHealth(plate, valueOnly)
 end
 
 -- Auto role: Defensive Stance, Bear or Dire Bear Form, or Righteous Fury.
-local TANK_AURAS = { 20468, 20469, 20470, 25780 }
+local RIGHTEOUS_FURY = 25780
 local BEAR_FORMS = { [5] = true, [8] = true }
+local _, CLASS = UnitClass("player")
 
 local function DetectTank()
-    local _, class = UnitClass("player")
-    local form = GetShapeshiftFormID()
-    if class == "WARRIOR" then return form == 18 end
-    if class == "DRUID" then return BEAR_FORMS[form] or false end
-    for _, id in ipairs(TANK_AURAS) do
-        if C_UnitAuras.GetPlayerAuraBySpellID(id) then return true end
-    end
-    return false
+    if CLASS == "WARRIOR" then return GetShapeshiftFormID() == 18 end
+    if CLASS == "DRUID" then return BEAR_FORMS[GetShapeshiftFormID()] or false end
+    -- A truth test, not a comparison: the aura can be secret in combat.
+    return CLASS == "PALADIN" and C_UnitAuras.GetPlayerAuraBySpellID(RIGHTEOUS_FURY) and true or false
 end
 
 local autoTank = false
@@ -290,12 +272,10 @@ local function CheckOfftank(plate, unit, level)
     return plate.offtanked and "OFFTANK" or level
 end
 
--- Threat color for a mob that has you on its threat list: alone, with a pet
--- or in a group alike.
-local function ThreatColor(plate, unit)
-    if ns.Get("nameplateThreat") == "off" or Clean(UnitIsPlayer(unit)) then return end
-    local status = Clean(UnitThreatSituation("player", unit))
-    if not status then return end
+-- Threat color for a mob that has you (status) on its threat list: alone,
+-- with a pet or in a group alike.
+local function ThreatColor(plate, unit, status)
+    if not status or ns.Get("nameplateThreat") == "off" or Clean(UnitIsPlayer(unit)) then return end
     local level = THREAT_LEVEL[status]
     local role = IsTank() and "tank" or "dps"
     if status >= 2 then
@@ -316,12 +296,13 @@ local function UpdateHealthColor(plate)
     local unit = plate.unit
     local c
     -- On its threat list = the mob is fighting you (Blizzard's test).
-    local fighting = Clean(UnitThreatSituation("player", unit)) ~= nil
+    local status = Clean(UnitThreatSituation("player", unit))
+    local fighting = status ~= nil
     -- Threat first, then tapped, then quest mobs (NameplateQuest.lua) until
     -- they fight you.
-    c = ThreatColor(plate, unit)
+    c = ThreatColor(plate, unit, status)
         or (Clean(UnitIsTapDenied(unit)) and COLORS.tapped)
-        or (not fighting and NP.QuestColor and NP.QuestColor(unit))
+        or (not fighting and NP.QuestColor(unit))
     if not c and Clean(UnitIsPlayer(unit)) then
         local _, class = UnitClass(unit)
         local cc = RAID_CLASS_COLORS[Clean(class)]
@@ -356,7 +337,7 @@ end
 local function UpdateName(plate)
     local unit = plate.unit
     local name = UnitName(unit)
-    if ns.Enabled("nameplateLevel") then
+    if ns.Get("nameplateLevel") then
         plate.name:SetFormattedText("%s%s", LevelText(unit), name or "")
     else
         plate.name:SetFormattedText("%s", name or "")
@@ -377,11 +358,7 @@ local function UpdateTarget(plate)
     local lit = Clean(UnitIsUnit(plate.unit, "target")) and true or false
     if plate.lit == lit then return end
     plate.lit = lit
-    if lit then
-        plate.border:SetColor(1, 1, 1)
-    else
-        plate.border:SetColor(0, 0, 0)
-    end
+    ns.SetBorderColor(plate.border.edges, lit and WHITE or BLACK)
 end
 
 function NP.TargetPlate()
@@ -453,12 +430,11 @@ end
 NP.UpdateHealthColor = UpdateHealthColor
 
 OnPlateEvent = function(plate, event)
-    if not plate.unit then return end
     if event == "UNIT_HEALTH" then
         UpdateHealth(plate, true)
     elseif event == "UNIT_MAXHEALTH" then
         UpdateHealth(plate)
-    elseif event == "UNIT_THREAT_LIST_UPDATE" or event == "UNIT_FACTION" then
+    elseif event == "UNIT_THREAT_LIST_UPDATE" then
         UpdateHealthColor(plate)
     elseif event == "UNIT_NAME_UPDATE" or event == "UNIT_LEVEL" or event == "UNIT_CLASSIFICATION_CHANGED" then
         UpdateName(plate)
@@ -468,8 +444,9 @@ end
 -------------------------------------------------------------------------------
 --  Attach / detach
 -------------------------------------------------------------------------------
+-- UNIT_FACTION is the manager's: it also turns friendly plates into ours.
 local PLATE_EVENTS = { "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_THREAT_LIST_UPDATE",
-    "UNIT_FACTION", "UNIT_NAME_UPDATE", "UNIT_LEVEL", "UNIT_CLASSIFICATION_CHANGED" }
+    "UNIT_NAME_UPDATE", "UNIT_LEVEL", "UNIT_CLASSIFICATION_CHANGED" }
 
 local function Detach(unit)
     local plate = NP.plates[unit]
@@ -531,8 +508,11 @@ local manager = CreateFrame("Frame")
 
 local function RegisterManagerEvents()
     for _, ev in ipairs(MANAGER_EVENTS) do manager:RegisterEvent(ev) end
-    manager:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-    manager:RegisterUnitEvent("UNIT_AURA", "player")
+    if CLASS == "WARRIOR" or CLASS == "DRUID" then
+        manager:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+    elseif CLASS == "PALADIN" then
+        manager:RegisterUnitEvent("UNIT_AURA", "player")
+    end
 end
 
 -- Re-runs every visible plate, e.g. after a setting changed.
@@ -593,7 +573,11 @@ manager:SetScript("OnEvent", function(self, event, unit)
         Detach(unit)
     elseif event == "UNIT_FACTION" then
         -- Duels and flag changes move a unit between friendly and attackable.
-        if unit and unit:find("^nameplate") then Evaluate(unit) end
+        if unit:find("^nameplate") then
+            Evaluate(unit)
+            local plate = NP.plates[unit]
+            if plate then UpdateHealthColor(plate) end
+        end
     elseif event == "PLAYER_TARGET_CHANGED" then
         for _, plate in pairs(NP.plates) do
             UpdateTarget(plate)

@@ -21,7 +21,7 @@ end
 
 local function Settings()
     if IsShiftKeyDown() then return false, false end
-    return ns.Enabled("autoAcceptQuests"), ns.Enabled("autoTurnInQuests")
+    return ns.Get("autoAcceptQuests"), ns.Get("autoTurnInQuests")
 end
 
 local function Gossip()
@@ -60,9 +60,15 @@ local function Greeting()
     end
 end
 
--- Remembers the quest in the open window, so a stale list does not pick it again.
+-- Remembers the quest in the open window, so a stale list does not pick it
+-- again; forgets the ones taken long enough ago.
 local function Taken()
     local now = GetTime()
+    for _, taken in ipairs({ takenTitle, takenID }) do
+        for k, t in pairs(taken) do
+            if not Recent(t) then taken[k] = nil end
+        end
+    end
     local title = GetTitleText()
     if title and title ~= "" then takenTitle[title] = now end
     local id = GetQuestID()
@@ -128,11 +134,10 @@ ns.RegisterFeature({
 })
 
 -- Drawn by SereneNameplates (NameplateQuest.lua), which adds the apply.
-local QUEST_GREEN = "28da79"  -- the nameplates' own quest color
 ns.RegisterFeature({
     key = "nameplateQuest", label = "Mark quest enemies", section = "Quests", category = "Nameplates",
     tooltip = "Quest progress on enemy nameplates",
-    beside = true,  -- to the right of Automation
+    beside = true,
     addon = "SereneNameplates",
 })
 ns.RegisterFeature({
@@ -146,6 +151,6 @@ ns.RegisterFeature({
     button = "Color", default = "default", requires = { "nameplateQuest", "nameplateQuestColor" },
     addon = "SereneNameplates",
     specials = {
-        { value = "default", label = "Default", swatch = function() return QUEST_GREEN end },
+        { value = "default", label = "Default", swatch = function() return ns.QUEST_GREEN end },
     },
 })

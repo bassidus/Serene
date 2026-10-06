@@ -17,6 +17,8 @@ local PAGE_X = INSET + SIDEBAR_W + GAP         -- the page panel's left edge
 local TAB_H, SPACING = 26, 10
 local MENU_HEADING_H, MENU_GAP, MENU_INDENT = 22, 8, 22  -- the sidebar's group headings
 local BUTTON_H, BUTTON_GAP = 22, 6             -- Restore defaults and Reload UI
+-- Under the Modules tab: the gap, the line, Restore defaults and Reload UI.
+local BOTTOM_H = 10 + 2 * BUTTON_H + BUTTON_GAP + 10 + 1 + 6
 local GROUP_PAD = 12  -- inside a category's frame, around its heading and settings
 local BLANK_ROW = 16  -- the empty row above a setting with space = true
 local PAGE_W = WIDTH - PAGE_X - INSET - 2 * PAGE_PAD
@@ -34,7 +36,7 @@ local widgets, pages, tabs = {}, {}, {}
 
 local AddOns = C_AddOns
 
-local GOLD, TAN = W.GOLD, W.TAN
+local GOLD, TAN, WHITE = W.GOLD, W.TAN, W.WHITE
 
 -- The sidebar's groups: a heading over its settings tabs, in this order.
 -- Sections not listed here go under Other.
@@ -121,7 +123,7 @@ local function CreateTab(parent, section)
     local function Paint(hover)
         local lit = selected or hover
         hl:SetShown(lit)
-        local c = lit and { 1, 1, 1 } or GOLD
+        local c = lit and WHITE or GOLD
         text:SetTextColor(c[1], c[2], c[3])
     end
     function tab:SetSelected(on)
@@ -220,8 +222,8 @@ local function CreateReloadButton(sidebar)
     line:SetHeight(1)
 
     local modules = CreateTab(sidebar, MODULES)
-    modules:SetPoint("BOTTOMLEFT", 3, 10 + 2 * BUTTON_H + BUTTON_GAP + 10 + 1 + 6)
-    modules:SetPoint("BOTTOMRIGHT", -3, 10 + 2 * BUTTON_H + BUTTON_GAP + 10 + 1 + 6)
+    modules:SetPoint("BOTTOMLEFT", 3, BOTTOM_H)
+    modules:SetPoint("BOTTOMRIGHT", -3, BOTTOM_H)
     tabs[MODULES] = modules
 end
 
@@ -409,7 +411,7 @@ local function CreateGroup(page, text, onToggle, help)
     lit:SetTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
     lit:SetBlendMode("ADD")
     local function Paint(hover)
-        local c = hover and { 1, 1, 1 } or GOLD
+        local c = hover and WHITE or GOLD
         heading:SetTextColor(c[1], c[2], c[3])
     end
     btn:SetScript("OnClick", function() W.PlayClick(); onToggle() end)
@@ -673,14 +675,6 @@ local function CreatePage(section)
         picker:SetPoint("TOPLEFT", page.header, "RIGHT", 16, 12)
     end
 
-    local intro = ns.pageIntros[section] and content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    if intro then
-        intro:SetPoint("TOPLEFT", 0, -(36 - HEADER_H))
-        intro:SetWidth(PAGE_W)
-        intro:SetJustifyH("LEFT")
-        intro:SetText(ns.pageIntros[section])
-    end
-
     local made = {}  -- feature -> { control, note }, made once
     local function Made(f)
         if made[f] then return made[f] end
@@ -697,8 +691,6 @@ local function CreatePage(section)
             w = W.ColorField(content, f)
         elseif f.type == "outline" then
             w = W.Outline(content, f)
-        elseif f.type == "custom" then
-            w = f.build(content)
         else
             w = W.Checkbox(content, f)
         end
@@ -727,7 +719,6 @@ local function CreatePage(section)
         -- gap: the space left under the last setting, which a group's frame
         -- takes back so it closes snugly below it.
         local y, gap, group, sub = -(36 - HEADER_H), 0, nil, nil
-        if intro then y = y - intro:GetStringHeight() - SPACING end
         local left  -- the left group of a pair, while the right one is laid out
 
         -- Returns the y the next group opens at: beside a left group, its top.
@@ -971,19 +962,6 @@ end
 -- The default size, the top-left corner kept where it is.
 function ResetScale() SetWindowScale(DEFAULT_SCALE) end
 
--- The new size by the cursor for a moment.
-local sizeTip
-local function ShowPercent(scale)
-    GameTooltip:SetOwner(frame, "ANCHOR_CURSOR")
-    GameTooltip:SetText(math.floor(scale * 100 + 0.5) .. "%", 1, 1, 1)
-    GameTooltip:Show()
-    if sizeTip then sizeTip:Cancel() end
-    sizeTip = C_Timer.NewTimer(1, function()
-        sizeTip = nil
-        if GameTooltip:IsOwned(frame) then GameTooltip:Hide() end
-    end)
-end
-
 -- Also called by the controls that take the wheel themselves (the page's
 -- scrolling, sliders) while Ctrl is down.
 function W.ScaleWindow(delta)
@@ -992,7 +970,7 @@ function W.ScaleWindow(delta)
     if scale == frame:GetScale() then return end
     W.ClosePopups()
     SetWindowScale(scale)
-    ShowPercent(scale)
+    ns.FlashTip(frame, math.floor(scale * 100 + 0.5) .. "%")
 end
 
 local function Build()
@@ -1061,7 +1039,7 @@ local function Build()
     -- sidebar needs room for its tabs, the Modules tab, the line and the
     -- two buttons at the bottom.
     local first, menuH = CreateMenu(tabList)
-    sidebarH = TITLE_H + 8 + menuH + 8 + TAB_H + 6 + 1 + 10 + 2 * BUTTON_H + BUTTON_GAP + 10 + INSET
+    sidebarH = TITLE_H + 8 + menuH + 8 + TAB_H + BOTTOM_H + INSET
     pages[MODULES] = CreateModulesPage()
     local tallest = 0
     for _, page in pairs(pages) do tallest = math.max(tallest, page.contentHeight) end

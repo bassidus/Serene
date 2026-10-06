@@ -26,7 +26,7 @@ ns.RegisterFeature({
     section = "General", category = "Loot & items",
     apply = function()
         for _, event in ipairs(EVENTS) do
-            if ns.Enabled("skipLootWarnings") then f:RegisterEvent(event) else f:UnregisterEvent(event) end
+            if ns.Get("skipLootWarnings") then f:RegisterEvent(event) else f:UnregisterEvent(event) end
         end
     end,
 })

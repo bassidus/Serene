@@ -4,7 +4,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local function On() return ns.Enabled("hideTutorials") end
+local function On() return ns.Get("hideTutorials") end
 
 -- "i" circles are MainHelpPlateButtons, fingerprinted by a mixin method;
 -- Blizzard_HelpPlate is load-on-demand, so resolve lazily and cache.
@@ -16,7 +16,7 @@ local function GetFingerprint()
     return fingerprint
 end
 
-local hiddenByUs = setmetatable({}, { __mode = "k" })
+local hiddenByUs = {}
 local function HideButton(btn)
     btn:SetAlpha(0)
     btn:EnableMouse(false)
@@ -38,6 +38,7 @@ end
 -- Some Blizzard frame trees refuse GetChildren from insecure code; this walk
 -- runs inside a ShowUIPanel hook, so pcall per node keeps an error from
 -- aborting the panel's caller -- a refusing frame skips only its subtree.
+-- Callers make sure the fingerprint exists.
 local HideButtonsUnder
 local function ScanChildren(...)
     for i = 1, select("#", ...) do
@@ -48,16 +49,13 @@ local function ScanFrame(root)
     ScanChildren(root:GetChildren())
 end
 function HideButtonsUnder(root)
-    if not root then return end
-    local fp = GetFingerprint()
-    if not fp then return end
-    if root.ShowTooltip == fp then HideButton(root) end
-    if root.GetChildren then pcall(ScanFrame, root) end
+    if root.ShowTooltip == fingerprint then HideButton(root) end
+    pcall(ScanFrame, root)
 end
 
 -- Panels already walked: their (i) buttons are made with the panel, so a
 -- second walk on the next open would find the same ones.
-local scanned = setmetatable({}, { __mode = "k" })
+local scanned = {}
 
 local function RestoreButtons()
     for btn in pairs(hiddenByUs) do

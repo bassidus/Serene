@@ -42,18 +42,20 @@ timer:SetScript("OnUpdate", function(self, dt)
     end
 end)
 
-local watcher = CreateFrame("Frame")
-watcher:SetScript("OnEvent", function()
+local function Refresh()
     local i = Confirming()
     if i and i ~= index then warned = false end
     index = i
     timer:SetShown(i ~= nil)
-end)
+end
+
+local watcher = CreateFrame("Frame")
+watcher:SetScript("OnEvent", Refresh)
 
 local function Apply()
-    if ns.Enabled("queueTimer") then
+    if ns.Get("queueTimer") then
         watcher:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
-        watcher:GetScript("OnEvent")()
+        Refresh()
     else
         watcher:UnregisterAllEvents()
         index = nil

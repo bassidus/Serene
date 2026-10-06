@@ -11,7 +11,7 @@ local function Apply()
     for i = 1, 4 do
         hooksecurefunc(_G["StaticPopup" .. i], "Show", function(self)
             if self.which ~= "DELETE_GOOD_ITEM" and self.which ~= "DELETE_GOOD_QUEST_ITEM" then return end
-            if not ns.Enabled("autoFillDelete") then return end
+            if not ns.Get("autoFillDelete") then return end
             local editBox = self:GetEditBox()
             editBox:SetText(DELETE_ITEM_CONFIRM_STRING)
             editBox:SetFocus()

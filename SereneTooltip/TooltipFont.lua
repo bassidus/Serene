@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
 --  Tooltip Font -- changes the shared tooltip font objects (header/body/small)
 --  instead of restyling every line on every show. The originals are
---  captured at load and restored exactly when all settings are on default.
+--  captured at load and restored exactly when the settings match Blizzard's
+--  own look (its typeface and outline at size 12); the default size is 10.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

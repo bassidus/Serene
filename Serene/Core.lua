@@ -25,15 +25,12 @@ ns.featureByKey = {}
 --   tooltip    help text under the category's "?" (on hover without a category)
 --   apply      fn run at login and on every change
 --   type       "boolean" (default) | "dropdown" | "slider" | "color" | "outline"
---              | "custom"
 --   default    initial value
 --   options    dropdown: fn returning { { value =, label = }, ... }
 --   preview    dropdown: draw entries in their own font
 --   hideLabel  dropdown: no label above the button (still named in the help)
 --   inline     dropdown: the label on the left, the button in the right half
 --   min, max, step, suffix   slider
---   build      custom: fn(parent) returning a frame of fixed height with a
---              Refresh()
 --   specials   color: { { value =, label =, tooltip =, swatch = }, ... } before
 --              the palette; swatch returns the hex(es) the word stands for
 --   blizzard   outline: fn returning Blizzard's own flags, shown on "default"
@@ -46,7 +43,6 @@ ns.featureByKey = {}
 --              the previous setting
 --   button     a plain button with this text in place of the field
 --   requires   key (or list) of booleans; dimmed and locked while any is off
---              ("!key": while it is on)
 --   addon      the Serene* addon that does the work; locked while not loaded
 --   links      keys of settings this one stands for (e.g. one for every unit
 --              frame): it has no value or apply of its own, a change goes to
@@ -60,38 +56,29 @@ function ns.RegisterFeature(def)
     if def.default == nil and def.type == "boolean" then def.default = true end
     ns.features[#ns.features + 1] = def
     ns.featureByKey[def.key] = def
-    -- Addons loading after this one register once SereneDB exists.
-    if SereneDB and not def.links and SereneDB[def.key] == nil then SereneDB[def.key] = def.default end
 end
 
 -- Registers X and Y offsets ("<prefix>OffsetX", "<prefix>OffsetY", slider
 -- settings) as one pair: the options window shows a button that opens a pad
 -- with what they count from drawn to scale and a dot to drag around.
 -- def = { prefix =, label = the pad's title, section =, category =, apply =,
---         tooltip =, requires = see RegisterFeature,
+--         requires = see RegisterFeature,
 --         x = { min, max, default }, y = { min, max, default },
 --         box = { left, right, bottom, top } what the offsets count from, in
---         their own units, e.g. a button's { -18, 18, -18, 18 } around its middle,
---         button = the button's text (default "Position"),
---         scale = pixels per step on the pad (default 2) }
+--         their own units, e.g. a button's { -18, 18, -18, 18 } around its middle }
+-- The pad draws 2 pixels per step.
 function ns.RegisterPositionSettings(def)
-    local pos = { label = def.label, box = def.box, button = def.button or "Position", scale = def.scale or 2 }
+    local pos = { label = def.label, box = def.box, button = "Position", scale = 2 }
     for _, axis in ipairs({ "x", "y" }) do
         local range = def[axis]
         pos[axis] = {
-            key = def.prefix .. "Offset" .. axis:upper(), label = def.label, tooltip = def.tooltip,
+            key = def.prefix .. "Offset" .. axis:upper(), label = def.label,
             section = def.section, category = def.category, type = "slider",
             min = range[1], max = range[2], step = 1, default = range[3],
             requires = def.requires, apply = def.apply, pos = pos,
         }
         ns.RegisterFeature(pos[axis])
     end
-end
-
--- A short text at the top of a settings page, above its categories.
-ns.pageIntros = {}
-function ns.SetPageIntro(section, text)
-    ns.pageIntros[section] = text
 end
 
 -- A page that shows one view at a time (e.g. one unit frame's settings),
@@ -128,16 +115,13 @@ local function LinkedValue(f)
     return first
 end
 
+-- A setting's value; its default until it is set.
 function ns.Get(key)
     local v = SereneDB[key]
     if v ~= nil then return v end
     local f = ns.featureByKey[key]
     if f and f.links then return LinkedValue(f) end
     return f and f.default
-end
-
-function ns.Enabled(key)
-    return SereneDB[key]
 end
 
 -- The one write path: stores the value, applies the feature and refreshes
@@ -223,6 +207,10 @@ function ns.ResetAll()
     for _, fn in ipairs(ns.resetAllHooks) do fn() end
     ns.Print("Everything is back to its defaults, the options window and the minimap icon too.")
 end
+
+-- The quest green of the nameplates' quest marks (SereneNameplates), whose
+-- settings SereneQuests registers.
+ns.QUEST_GREEN = "28da79"
 
 -- The TOCs name the same file in ## IconTexture (art/logo.svg is the source).
 ns.LOGO = "Interface\\AddOns\\Serene\\Media\\Logo"
@@ -311,6 +299,38 @@ function ns.SetHidden(region, on)
     end
 end
 
+-- A 1px border inside frame; returns its four edges for ns.SetBorderColor.
+function ns.Border(frame, c)
+    local edges = {}
+    for i = 1, 4 do
+        edges[i] = frame:CreateTexture(nil, "BORDER")
+        edges[i]:SetColorTexture(c[1], c[2], c[3], c[4] or 1)
+    end
+    edges[1]:SetPoint("TOPLEFT"); edges[1]:SetPoint("TOPRIGHT"); edges[1]:SetHeight(1)
+    edges[2]:SetPoint("BOTTOMLEFT"); edges[2]:SetPoint("BOTTOMRIGHT"); edges[2]:SetHeight(1)
+    edges[3]:SetPoint("TOPLEFT"); edges[3]:SetPoint("BOTTOMLEFT"); edges[3]:SetWidth(1)
+    edges[4]:SetPoint("TOPRIGHT"); edges[4]:SetPoint("BOTTOMRIGHT"); edges[4]:SetWidth(1)
+    return edges
+end
+
+function ns.SetBorderColor(edges, c)
+    for _, e in ipairs(edges) do e:SetColorTexture(c[1], c[2], c[3], c[4] or 1) end
+end
+
+-- text in GameTooltip at the cursor for a second, e.g. a new size while
+-- Ctrl + scroll changes it.
+local flashTimer
+function ns.FlashTip(owner, text)
+    GameTooltip:SetOwner(owner, "ANCHOR_CURSOR")
+    GameTooltip:SetText(text, 1, 1, 1)
+    GameTooltip:Show()
+    if flashTimer then flashTimer:Cancel() end
+    flashTimer = C_Timer.NewTimer(1, function()
+        flashTimer = nil
+        if GameTooltip:IsOwned(owner) then GameTooltip:Hide() end
+    end)
+end
+
 function ns.Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage(CreateColor(unpack(ns.ACCENT)):WrapTextInColorCode("Serene:") .. " " .. msg)
 end
@@ -347,15 +367,9 @@ SlashCmdList["SERENE"] = function(msg)
 end
 
 -------------------------------------------------------------------------------
---  Init -- features also register from the addons that load after this one,
---  so defaults are filled in again at login, before anything applies.
+--  Init -- every feature applies at login, once all the addons that register
+--  them have loaded. ns.Get stands in a default for a setting never set.
 -------------------------------------------------------------------------------
-local function FillDefaults()
-    for _, f in ipairs(ns.features) do
-        if not f.links and SereneDB[f.key] == nil then SereneDB[f.key] = f.default end
-    end
-end
-
 local init = CreateFrame("Frame")
 init:RegisterEvent("ADDON_LOADED")
 init:RegisterEvent("PLAYER_LOGIN")
@@ -364,11 +378,9 @@ init:SetScript("OnEvent", function(self, event, addonName)
         if addonName ~= ADDON then return end
         self:UnregisterEvent("ADDON_LOADED")
         SereneDB = SereneDB or {}
-        FillDefaults()
         return
     end
     self:UnregisterEvent("PLAYER_LOGIN")
-    FillDefaults()
     for _, f in ipairs(ns.features) do
         if f.apply then f.apply() end
     end

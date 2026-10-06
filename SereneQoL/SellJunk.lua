@@ -53,7 +53,7 @@ end
 
 local function Pass()
     pending = nil
-    if not merchantOpen or not ns.Enabled("autoSellJunk") then return end
+    if not merchantOpen or not ns.Get("autoSellJunk") then return end
 
     local junk, unknown = CountJunk()
     if junk == 0 and unknown == 0 then Report() return end
@@ -83,7 +83,7 @@ f:SetScript("OnEvent", function(_, event)
     merchantOpen = event == "MERCHANT_SHOW"
     Stop()
     if running then Report() end
-    if merchantOpen and ns.Enabled("autoSellJunk") then
+    if merchantOpen and ns.Get("autoSellJunk") then
         wipe(seen)
         running = true
         lastCount, stalls, delay = math.huge, 0, BASE_DELAY

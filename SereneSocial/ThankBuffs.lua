@@ -17,8 +17,7 @@ local SETTLE = 2         -- seconds after a loading screen with no thanks
 local Clean = ns.Clean
 
 -------------------------------------------------------------------------------
---  Buffs worth a thank-you, by name so every rank counts. Spells this client
---  does not know are skipped.
+--  Buffs worth a thank-you, by name so every rank counts.
 -------------------------------------------------------------------------------
 local BUFF_IDS = {
     1126,   -- Mark of the Wild
@@ -38,7 +37,6 @@ local BUFF_IDS = {
     20217,  -- Blessing of Kings
     1038,   -- Blessing of Salvation
     19977,  -- Blessing of Light
-    20911,  -- Blessing of Sanctuary
     25782,  -- Greater Blessing of Might
     25894,  -- Greater Blessing of Wisdom
     25898,  -- Greater Blessing of Kings
@@ -100,7 +98,7 @@ local function Thank()
     nextThanks = now + COOLDOWN
     -- A short, varied pause reads less like a macro than an instant reply.
     C_Timer.After(1.5 + math.random() * 1.5, function()
-        if not ns.Enabled("thankBuffs") then return end
+        if not ns.Get("thankBuffs") then return end
         C_ChatInfo.SendChatMessage(PickMessage(), "EMOTE")
     end)
 end
@@ -154,7 +152,7 @@ ns.RegisterFeature({
     key = "thankBuffs", label = "Thank players who buff you", section = SECTION, category = "Thanks for buffs",
     tooltip = "A short thank-you when a stranger buffs you",
     apply = function()
-        local on = ns.Enabled("thankBuffs")
+        local on = ns.Get("thankBuffs")
         if on then
             f:RegisterEvent("PLAYER_ENTERING_WORLD")
             f:RegisterEvent("PLAYER_LEAVING_WORLD")

@@ -18,12 +18,11 @@ local function CursorAnchor()
 end
 
 hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip, parent)
-    if tooltip ~= GameTooltip or tooltip:IsForbidden() then return end
+    if tooltip ~= GameTooltip then return end
     local a = CursorAnchor()
-    if not a then return end
-    -- pcall: a forbidden owner cannot be passed to SetOwner.
-    pcall(tooltip.SetOwner, tooltip, parent, a[1],
-        a[2] + ns.Get("tooltipOffsetX"), a[3] + ns.Get("tooltipOffsetY"))
+    -- A forbidden owner cannot be passed to SetOwner.
+    if not a or (parent and parent:IsForbidden()) then return end
+    tooltip:SetOwner(parent, a[1], a[2] + ns.Get("tooltipOffsetX"), a[3] + ns.Get("tooltipOffsetY"))
 end)
 
 -- World-unit tooltips fade out slowly on mouse-off; while riding the cursor

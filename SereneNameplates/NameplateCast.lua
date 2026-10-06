@@ -10,7 +10,6 @@
 local _, ns = ...
 local NP = ns.NP
 
-local BAR = "Interface\\Buttons\\WHITE8X8"
 local CAST_COLOR    = { 0.70, 0.40, 0.90 }
 local SHIELD_COLOR  = { 0.45, 0.45, 0.45 }
 local INTERRUPT_COLOR = { 0.90, 0.15, 0.15 }
@@ -18,23 +17,17 @@ local INTERRUPT_HOLD = 0.6
 
 local casting = {}  -- plate -> true while its bar runs (drives the timer text)
 
-local function Enabled()
-    return ns.Enabled("nameplateCastBar")
-end
-
 -------------------------------------------------------------------------------
 --  Frames
 -------------------------------------------------------------------------------
 local function Create(plate)
     local cast = CreateFrame("StatusBar", nil, plate)
-    cast:SetStatusBarTexture(BAR)
+    cast:SetStatusBarTexture(NP.BAR)
     cast:Hide()
     -- A casting plate is never faded.
     cast:SetScript("OnShow", function() NP.UpdateAlpha(plate) end)
     cast:SetScript("OnHide", function() NP.UpdateAlpha(plate) end)
-    local bg = cast:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0.05, 0.05, 0.05, 0.85)
+    NP.Background(cast)
     NP.Border(cast)
 
     local text = CreateFrame("Frame", nil, cast)
@@ -93,7 +86,7 @@ end
 
 local function UpdateCast(plate)
     local unit, cast = plate.unit, plate.cast
-    if not unit or not Enabled() then StopCast(plate) return end
+    if not unit or not ns.Get("nameplateCastBar") then StopCast(plate) return end
 
     local name, _, texture, _, _, _, _, notInt = UnitCastingInfo(unit)
     local channel = false
@@ -167,7 +160,7 @@ local CAST_EVENTS = {
 local dispatcher = CreateFrame("Frame")
 local listening
 NP.OnRefresh(function()
-    local on = Enabled() and true or false
+    local on = ns.Get("nameplateCastBar")
     if on == listening then return end
     listening = on
     for _, ev in ipairs(CAST_EVENTS) do
@@ -175,7 +168,7 @@ NP.OnRefresh(function()
     end
 end)
 dispatcher:SetScript("OnEvent", function(_, event, unit)
-    local plate = unit and NP.plates[unit]
+    local plate = NP.plates[unit]
     if not plate then return end
     if event == "UNIT_SPELLCAST_INTERRUPTED" then
         ShowInterrupted(plate)

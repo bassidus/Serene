@@ -31,7 +31,7 @@ local function FindLine(tt, text, pattern)
 end
 
 local function ColorCode(r, g, b)
-    return format("|cff%02x%02x%02x", r * 255, g * 255, b * 255)
+    return "|cff" .. ns.RGBToHex(r, g, b)
 end
 
 -------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ local function TargetLine(tt, unit)
     if i then
         -- Refresh pass: update the existing row; a new name can be wider.
         local fs, cur = LineText(tt, "Left", i)
-        if not fs or cur == text then return false end
+        if cur == text then return false end
         fs:SetText(text)
         return true
     end
@@ -79,9 +79,8 @@ end
 
 local function PlayerLines(tt, unit)
     local nameLine = LineText(tt, "Left", 1)
-    if not nameLine then return end
 
-    if not ns.Enabled("tooltipTitles") then
+    if not ns.Get("tooltipTitles") then
         -- Rewrite line 1 only when a title is genuinely present. Forever is one
         -- mega realm, so the plain name never needs a realm suffix.
         local name, titled, cur = Clean(UnitName(unit)), Clean(UnitPVPName(unit)), Clean(nameLine:GetText())
@@ -104,12 +103,12 @@ local function PlayerLines(tt, unit)
         for i = 2, tt:NumLines() do
             local fs, txt = LineText(tt, "Left", i)
             if txt == guild or txt == "<" .. guild .. ">" then
-                if not ns.Enabled("tooltipGuild") then
+                if not ns.Get("tooltipGuild") then
                     fs:SetText("")
                     fs:Hide()
                     return true
                 end
-                if ns.Enabled("tooltipGuildRank") and rank then
+                if ns.Get("tooltipGuildRank") and rank then
                     fs:SetText(rank .. " of |cff40ff40" .. guild .. "|r")
                     fs:SetTextColor(1, 1, 1)
                     return true
@@ -126,15 +125,16 @@ end
 -- tag is only swapped when the player's state no longer matches it.
 local AFK_TAG = " |cffff9900<AFK>|r"
 local DND_TAG = " |cffff4040<DND>|r"
+local TAGS = { AFK_TAG, DND_TAG }
 
 local function StatusTag(tt, unit)
     local fs, cur = LineText(tt, "Left", 1)
     if not cur then return false end
     local want
-    if ns.Enabled("tooltipAFK") and Clean(UnitIsAFK(unit)) then want = AFK_TAG
-    elseif ns.Enabled("tooltipDND") and Clean(UnitIsDND(unit)) then want = DND_TAG end
+    if ns.Get("tooltipAFK") and Clean(UnitIsAFK(unit)) then want = AFK_TAG
+    elseif ns.Get("tooltipDND") and Clean(UnitIsDND(unit)) then want = DND_TAG end
     local base = cur
-    for _, tag in ipairs({ AFK_TAG, DND_TAG }) do
+    for _, tag in ipairs(TAGS) do
         if cur:sub(-#tag) == tag then
             if tag == want then return false end
             base = cur:sub(1, -#tag - 1)
@@ -190,7 +190,7 @@ local function ColorBodyLines(tt, unit)
         name, file = Clean(name), Clean(file)
         if name and file then className, classColor = name, RAID_CLASS_COLORS[file] end
     end
-    local showFaction = ns.Enabled("tooltipFaction")
+    local showFaction = ns.Get("tooltipFaction")
     local hid, merged = false, false
 
     local factionName, factionColor
@@ -265,10 +265,8 @@ local function ItemLevelLine(tt, ilvl)
     local i = FindLine(tt, ILVL_LABEL)
     if i then
         local right = LineText(tt, "Right", i)
-        if right then
-            right:SetText(text)
-            right:SetTextColor(r, g, b)
-        end
+        right:SetText(text)
+        right:SetTextColor(r, g, b)
         return false
     end
     tt:AddDoubleLine(ILVL_LABEL, text, 1, 0.82, 0, r, g, b)
@@ -304,7 +302,7 @@ local function RequestInspect(unit, guid)
             C_Timer.After(wait, function()
                 retryQueued = false
                 local g, u = TooltipUnitGUID()
-                if g and ns.Enabled("tooltipPlayerItemLevel") and UnitIsPlayer(u)
+                if g and ns.Get("tooltipPlayerItemLevel") and UnitIsPlayer(u)
                     and not UnitIsUnit(u, "player") and not CachedItemLevel(g) and not InFlight(g) then
                     RequestInspect(u, g)
                 end
@@ -341,8 +339,12 @@ inspectEvents:SetScript("OnEvent", function(_, _, guid)
     -- Leave Blizzard's inspect alone if its window took over meanwhile.
     if not (InspectFrame and InspectFrame:IsShown()) then ClearInspectPlayer() end
     if not ilvl or ilvl <= 0 then return end
-    ilvlCache[guid] = { ilvl = ilvl, time = GetTime() }
-    if ns.Enabled("tooltipPlayerItemLevel") and TooltipUnitGUID() == guid then
+    local now = GetTime()
+    for g, entry in pairs(ilvlCache) do
+        if now - entry.time >= ILVL_CACHE_TIME then ilvlCache[g] = nil end
+    end
+    ilvlCache[guid] = { ilvl = ilvl, time = now }
+    if ns.Get("tooltipPlayerItemLevel") and TooltipUnitGUID() == guid then
         ItemLevelLine(GameTooltip, ilvl)
         GameTooltip:Show()  -- the value can be wider than the - it replaces
     end
@@ -358,18 +360,17 @@ local function OnUnit(tt)
     if UnitIsPlayer(unit) then
         added = PlayerLines(tt, unit)
         if StatusTag(tt, unit) then added = true end
-        if ns.Enabled("tooltipPlayerItemLevel") and PlayerItemLevel(tt, unit) then added = true end
+        if ns.Get("tooltipPlayerItemLevel") and PlayerItemLevel(tt, unit) then added = true end
     end
     if ColorBodyLines(tt, unit) then added = true end  -- a hidden line resizes too
-    if ns.Enabled("tooltipTarget") and TargetLine(tt, unit) then added = true end
+    if ns.Get("tooltipTarget") and TargetLine(tt, unit) then added = true end
     if added then tt:Show() end  -- resize for the added or hidden rows
 end
 
 -------------------------------------------------------------------------------
 --  Items and spells
 -------------------------------------------------------------------------------
-local ITEM_LEVEL_FORMAT = ITEM_LEVEL
-local ITEM_LEVEL_PATTERN = "^" .. ITEM_LEVEL_FORMAT:gsub("%%d", "%%d+")
+local ITEM_LEVEL_PATTERN = "^" .. ITEM_LEVEL:gsub("%%d", "%%d+")
 local NO_ILVL_SLOTS = { [""] = true, INVTYPE_BAG = true, INVTYPE_NON_EQUIP_IGNORE = true,
                         INVTYPE_BODY = true, INVTYPE_TABARD = true }
 
@@ -384,7 +385,7 @@ local function OnItem(tt, data)
     if tt:IsForbidden() then return end
     local added = false
 
-    if ns.Enabled("tooltipItemLevel") and tt.GetItem then
+    if ns.Get("tooltipItemLevel") and tt.GetItem then
         local _, link = tt:GetItem()
         link = Clean(link)
         if link then
@@ -392,14 +393,14 @@ local function OnItem(tt, data)
             if equipLoc and not NO_ILVL_SLOTS[equipLoc] and not FindLine(tt, ITEM_LEVEL_PATTERN, true) then
                 local ilvl = C_Item.GetDetailedItemLevelInfo(link)
                 if ilvl and ilvl > 0 then
-                    tt:AddLine(ITEM_LEVEL_FORMAT:format(ilvl), 1, 0.82, 0)
+                    tt:AddLine(ITEM_LEVEL:format(ilvl), 1, 0.82, 0)
                     added = true
                 end
             end
         end
     end
 
-    if ns.Enabled("tooltipIDs") and data then
+    if ns.Get("tooltipIDs") then
         added = AddID(tt, "Item ID", data.id) or added
     end
 
@@ -407,7 +408,7 @@ local function OnItem(tt, data)
 end
 
 local function OnSpell(tt, data)
-    if tt:IsForbidden() or not ns.Enabled("tooltipIDs") or not data then return end
+    if tt:IsForbidden() or not ns.Get("tooltipIDs") then return end
     if AddID(tt, "Spell ID", data.id) then tt:Show() end
 end
 
@@ -421,7 +422,7 @@ TooltipDataProcessor.AddTooltipPostCall(T.PetAction, OnSpell)
 -- The health bar under unit tooltips is hidden with alpha only (never
 -- Hide/Show on the bar), re-asserted each time Blizzard shows it.
 hooksecurefunc(GameTooltipStatusBar, "Show", function(bar)
-    if not ns.Enabled("tooltipHealthBar") then bar:SetAlpha(0) end
+    if not ns.Get("tooltipHealthBar") then bar:SetAlpha(0) end
 end)
 
 -------------------------------------------------------------------------------
@@ -437,7 +438,7 @@ for _, def in ipairs({
     { key = "tooltipPlayerItemLevel", label = "Show player item level", beside = true },
     { key = "tooltipTarget",          label = "Show target" },
     { key = "tooltipHealthBar",       label = "Show health bar", beside = true,
-      apply = function() GameTooltipStatusBar:SetAlpha(ns.Enabled("tooltipHealthBar") and 1 or 0) end },
+      apply = function() GameTooltipStatusBar:SetAlpha(ns.Get("tooltipHealthBar") and 1 or 0) end },
     { key = "tooltipAFK",             label = "Show AFK" },
     { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
     { key = "tooltipDND",             label = "Show DND" },

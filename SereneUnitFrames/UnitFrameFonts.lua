@@ -32,6 +32,10 @@ for _, page in ipairs(ns.FramePages()) do
         list[#list + 1] = { kind = "bar", prefix = page.key.Bar, label = "Health/mana font",
                             category = "Health & mana", base = SizeOf(frame.healthbar.TextString) }
     end
+    for _, g in ipairs(list) do
+        g.fontKey, g.sizeKey, g.outlineKey = g.prefix .. "Font", g.prefix .. "FontSize", g.prefix .. "Outline"
+        g.isDefault = true  -- until Apply reads the settings
+    end
     groupsOf[page] = list
 end
 
@@ -54,15 +58,17 @@ local function Strings(frame)
     return strings[frame]
 end
 
-local orig = setmetatable({}, { __mode = "k" })  -- [font string] = Blizzard's look (ns.FontState)
+local orig = {}  -- [font string] = Blizzard's look (ns.FontState)
 
-local function IsDefault(g)
-    return ns.Get(g.prefix .. "Font") == "default" and ns.Get(g.prefix .. "FontSize") == g.base
-        and ns.Get(g.prefix .. "Outline") == "default"
+-- The group's settings, read into it once per Apply: target of target
+-- restyles every frame.
+local function ReadSettings(g)
+    g.font, g.size, g.outline = ns.Get(g.fontKey), ns.Get(g.sizeKey), ns.Get(g.outlineKey)
+    g.isDefault = g.font == "default" and g.size == g.base and g.outline == "default"
 end
 
 local function StyleString(fs, g)
-    if IsDefault(g) then
+    if g.isDefault then
         -- Blizzard's again; captured anew on the next change.
         if orig[fs] then ns.RestoreFont(fs, orig[fs]) end
         orig[fs] = nil
@@ -70,20 +76,22 @@ local function StyleString(fs, g)
     end
     orig[fs] = orig[fs] or ns.FontState(fs)
     local o = orig[fs]
-    ns.ApplyFont(fs, o, ns.Get(g.prefix .. "Font"), o.size + ns.Get(g.prefix .. "FontSize") - g.base,
-        ns.Get(g.prefix .. "Outline"))
+    ns.ApplyFont(fs, o, g.font, o.size + g.size - g.base, g.outline)
 end
 
 local function Style(frame)
     for g, list in pairs(Strings(frame)) do
         for _, fs in pairs(list) do
             -- Untouched strings on their defaults need nothing.
-            if orig[fs] or not IsDefault(g) then StyleString(fs, g) end
+            if orig[fs] or not g.isDefault then StyleString(fs, g) end
         end
     end
 end
 
 local function Apply()
+    for _, list in pairs(groupsOf) do
+        for _, g in ipairs(list) do ReadSettings(g) end
+    end
     for _, frame in ipairs(ns.UnitFrames()) do Style(frame) end
 end
 

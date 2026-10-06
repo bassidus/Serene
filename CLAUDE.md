@@ -12,7 +12,7 @@ QoL addon suite for WoW Forever (Interface 16001). Unreleased, one user.
 
 ## Adding a setting
 
-`ns.RegisterFeature{ key, label, section, category, type, default, apply, tooltip, ... }`. The full field list is above the function in `Serene/Core.lua`. Also useful: `ns.RegisterFontSettings`, `ns.RegisterPositionSettings`, `ns.SetPageIntro`, `ns.AddShiftSkip`, `ns.OnReset` and `ns.OnResetAll`.
+`ns.RegisterFeature{ key, label, section, category, type, default, apply, tooltip, ... }`. The full field list is above the function in `Serene/Core.lua`. Also useful: `ns.RegisterFontSettings`, `ns.RegisterPositionSettings`, `ns.AddShiftSkip`, `ns.OnReset` and `ns.OnResetAll`.
 
 - The options page lists settings in registration order, so TOC file order matters. Some files exist only to register last (`NameplateLook.lua`).
 - `beside = true` puts a category, or a setting, to the right of the previous one.

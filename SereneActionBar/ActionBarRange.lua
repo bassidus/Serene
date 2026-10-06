@@ -11,7 +11,7 @@ local Clean = ns.Clean
 
 local enabled, color             -- current settings, read by Apply
 local buttons = {}                -- [action button] = true
-local tinted = setmetatable({}, { __mode = "k" })  -- [button] = we colored its icon
+local tinted = {}                 -- [button] = we colored its icon
 
 local function Tint(icon)
     icon:SetVertexColor(color[1], color[2], color[3])
@@ -36,7 +36,7 @@ end
 -- oor: out of range. repainted: Blizzard just set the usable color itself.
 local function Color(btn, oor, repainted)
     local icon = btn.icon
-    if not (icon and btn.action) then return end
+    if not btn.action then return end
     if enabled and oor and Clean(C_ActionBar.IsUsableAction(btn.action)) then
         Tint(icon)
         tinted[btn] = true
@@ -106,7 +106,7 @@ hooksecurefunc(PetActionBar, "Update", PetUpdate)
 
 -------------------------------------------------------------------------------
 local function Apply()
-    enabled = ns.Enabled("rangeColors")
+    enabled = ns.Get("rangeColors")
     color = { ns.ColorRGB(ns.Get("rangeColor")) }
     ActionBarButtonEventsFrame:ForEachFrame(Register)
     for btn in pairs(buttons) do

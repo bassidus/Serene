@@ -12,12 +12,13 @@ local W = {}
 ns.Widgets = W
 
 W.GOLD      = { 1, 0.82, 0 }
+W.WHITE     = { 1, 1, 1 }
 W.TAN       = { 0.69, 0.6, 0.47 }
 W.EDGE      = { 0.4, 0.27, 0.19 }     -- 1px borders of swatches and chips
 W.HIGHLIGHT = { 0.196, 0.388, 0.8 }   -- the quest log's selection blue
 
-local GOLD, TAN, EDGE = W.GOLD, W.TAN, W.EDGE
-local WHITE = { 1, 1, 1 }
+local GOLD, TAN, EDGE, WHITE = W.GOLD, W.TAN, W.EDGE, W.WHITE
+local GRAY = { 0.5, 0.5, 0.5 }  -- a disabled button's text
 local DARK = { 0, 0, 0, 0.6 }  -- behind chips, swatches and the position pad
 
 local MEDIA = "Interface\\AddOns\\Serene\\Media\\"
@@ -237,7 +238,7 @@ function W.RedButton(btn, label, opts)
 
     local locked = false
     local function Paint()
-        local c = not btn:IsEnabled() and { 0.5, 0.5, 0.5 } or (locked or btn:IsMouseOver()) and WHITE or GOLD
+        local c = not btn:IsEnabled() and GRAY or (locked or btn:IsMouseOver()) and WHITE or GOLD
         text:SetTextColor(c[1], c[2], c[3])
     end
     function btn.SetLabel(s)
@@ -259,21 +260,6 @@ function W.RedButton(btn, label, opts)
     btn.SetLabel(label)
     Paint()
     return btn
-end
-
--- 1px border; returns the four edges so the color can change on hover.
-function W.Border(frame, c)
-    local edges = {}
-    for i = 1, 4 do edges[i] = W.Solid(frame, "BORDER", c) end
-    edges[1]:SetPoint("TOPLEFT"); edges[1]:SetPoint("TOPRIGHT"); edges[1]:SetHeight(1)
-    edges[2]:SetPoint("BOTTOMLEFT"); edges[2]:SetPoint("BOTTOMRIGHT"); edges[2]:SetHeight(1)
-    edges[3]:SetPoint("TOPLEFT"); edges[3]:SetPoint("BOTTOMLEFT"); edges[3]:SetWidth(1)
-    edges[4]:SetPoint("TOPRIGHT"); edges[4]:SetPoint("BOTTOMRIGHT"); edges[4]:SetWidth(1)
-    return edges
-end
-
-function W.SetBorderColor(edges, c)
-    for _, e in ipairs(edges) do e:SetColorTexture(c[1], c[2], c[3], c[4] or 1) end
 end
 
 -- Only for a setting under no category: a category's settings are explained
@@ -304,11 +290,8 @@ end
 
 -- Dims a widget whose setting depends on a toggle that is off or an addon
 -- that is not loaded; returns whether it can be used.
--- A requires key is met while that boolean is on, or with "!" in front
--- while it is off.
 local function Met(key)
-    if key:sub(1, 1) == "!" then return not SereneDB[key:sub(2)] end
-    return SereneDB[key] and true or false
+    return ns.Get(key) and true or false
 end
 
 local function Available(holder, f)
@@ -323,10 +306,10 @@ local function Available(holder, f)
     return on
 end
 
--- Draws text in a font file, falling back to the stock font if it fails to load.
+-- Draws text in a font file; the stock font stays if it fails to load.
 local function SetPreviewFont(fs, path)
     fs:SetFontObject(GameFontHighlight)
-    if path ~= "default" and not fs:SetFont(path, 13, "") then fs:SetFontObject(GameFontHighlight) end
+    if path ~= "default" then fs:SetFont(path, 13, "") end
 end
 
 -- A dropdown setting's label for a value; a saved value no longer offered
@@ -469,11 +452,12 @@ local function GetMenu()
         state.offset = math.min(maxOffset, math.max(0, state.offset - delta * 2))
         Render()
     end)
-    menu:RegisterEvent("GLOBAL_MOUSE_DOWN")
+    -- Listens only while it is open.
+    menu:SetScript("OnShow", function(self) self:RegisterEvent("GLOBAL_MOUSE_DOWN") end)
+    menu:SetScript("OnHide", function(self) self:UnregisterEvent("GLOBAL_MOUSE_DOWN") end)
     menu:SetScript("OnEvent", function(self)
         -- The anchor is spared so a click on it toggles the list closed via OpenMenu.
-        if self:IsShown() and not self:IsMouseOver()
-           and not (state.anchor and state.anchor:IsMouseOver()) then
+        if not self:IsMouseOver() and not (state.anchor and state.anchor:IsMouseOver()) then
             self:Hide()
         end
     end)
@@ -616,7 +600,7 @@ local SWATCH, SWATCH_GAP = 20, 4
 local function Swatch(parent, size)
     local s = CreateFrame("Frame", nil, parent)
     s:SetSize(size, size)
-    W.Border(s, EDGE)
+    ns.Border(s, EDGE)
     local stripes = {}
     function s.SetColors(...)
         local hexes = { ... }
@@ -664,6 +648,7 @@ local function ShowColor(swatch, f)
 end
 
 -- Blizzard's picker, raised above the options window while it is open.
+local pickerStrata  -- the picker's own strata, put back as it closes
 local function OpenColorPicker(value, onChange)
     local picker = ColorPickerFrame
     local r, g, b = ns.ColorRGB(value)
@@ -679,9 +664,9 @@ local function OpenColorPicker(value, onChange)
     local function Cancelled() onChange(value) end
     picker:SetupColorPickerAndShow({ r = r, g = g, b = b, hasOpacity = false,
                                      swatchFunc = Picked, cancelFunc = Cancelled })
-    if not picker.sereneStrata then
-        picker.sereneStrata = picker:GetFrameStrata()
-        picker:HookScript("OnHide", function(self) self:SetFrameStrata(self.sereneStrata) end)
+    if not pickerStrata then
+        pickerStrata = picker:GetFrameStrata()
+        picker:HookScript("OnHide", function(self) self:SetFrameStrata(pickerStrata) end)
     end
     picker:SetFrameStrata("FULLSCREEN_DIALOG")
     picker:Raise()
@@ -703,8 +688,8 @@ function W.Color(parent, f, labeled)
     local function Choice(button, value)
         local c = { button = button, value = value }
         W.Solid(button, "BACKGROUND", DARK):SetAllPoints()
-        c.edges = W.Border(button, EDGE)
-        button:SetScript("OnEnter", function() W.SetBorderColor(c.edges, WHITE) end)
+        c.edges = ns.Border(button, EDGE)
+        button:SetScript("OnEnter", function() ns.SetBorderColor(c.edges, WHITE) end)
         button:SetScript("OnLeave", function() holder.Refresh() end)
         choices[#choices + 1] = c
         return c
@@ -772,7 +757,7 @@ function W.Color(parent, f, labeled)
         for _, c in ipairs(choices) do
             local on = c.value ~= nil and c.value == selected
             matched = matched or on
-            W.SetBorderColor(c.edges, on and GOLD or EDGE)
+            ns.SetBorderColor(c.edges, on and GOLD or EDGE)
             if c.text then
                 if on then c.text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) else c.text:SetTextColor(1, 1, 1) end
             end
@@ -783,7 +768,7 @@ function W.Color(parent, f, labeled)
         custom.fill:SetShown(own)
         custom.plus:SetShown(not own)
         if own then custom.fill:SetColorTexture(r, g, b, 1) end
-        W.SetBorderColor(custom.edges, own and GOLD or EDGE)
+        ns.SetBorderColor(custom.edges, own and GOLD or EDGE)
         local on = Available(holder, f)
         for _, c in ipairs(choices) do c.button:SetEnabled(on) end
     end
@@ -811,8 +796,6 @@ function W.Outline(parent, f)
     label:SetPoint("TOPLEFT", 0, 0)
     label:SetText(f.label)
 
-    local function Shown() return ShownOutline(f) end
-
     local x = 0
     local controls = {}
 
@@ -820,7 +803,7 @@ function W.Outline(parent, f)
     if f.default == "default" then
         local button = CreateFrame("Button", nil, holder)
         W.Solid(button, "BACKGROUND", DARK):SetAllPoints()
-        local edges = W.Border(button, EDGE)
+        local edges = ns.Border(button, EDGE)
         local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         text:SetPoint("CENTER")
         text:SetText("Default")
@@ -829,7 +812,7 @@ function W.Outline(parent, f)
         button:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
         x = width + 16
         button:SetScript("OnClick", function() PlayClick(); ns.SetValue(f.key, "default") end)
-        button:SetScript("OnEnter", function() W.SetBorderColor(edges, WHITE) end)
+        button:SetScript("OnEnter", function() ns.SetBorderColor(edges, WHITE) end)
         button:SetScript("OnLeave", function() holder.Refresh() end)
         AttachTooltip(button, f)
         chip = { button = button, edges = edges, text = text }
@@ -851,7 +834,7 @@ function W.Outline(parent, f)
         x = x + width + 14
         row:SetScript("OnClick", function()
             PlayClick()
-            local set = Shown()
+            local set = ShownOutline(f)
             set[o.value] = not set[o.value] or nil
             ns.SetValue(f.key, ns.OutlineValue(set))
         end)
@@ -862,11 +845,11 @@ function W.Outline(parent, f)
     holder.width = x - 14  -- the row's own width, for the editor
 
     function holder.Refresh()
-        local set = Shown()
+        local set = ShownOutline(f)
         for _, b in ipairs(boxes) do b.box.SetChecked(set[b.flag]) end
         if chip then
             local on = ns.Get(f.key) == "default"
-            W.SetBorderColor(chip.edges, on and GOLD or EDGE)
+            ns.SetBorderColor(chip.edges, on and GOLD or EDGE)
             if on then chip.text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) else chip.text:SetTextColor(1, 1, 1) end
         end
         local on = Available(holder, f)
@@ -979,7 +962,7 @@ local function PositionPad(parent, pos)
     pad:SetSize((fx.max - fx.min) * scale, (fy.max - fy.min) * scale)
     pad:SetPoint("TOPLEFT", 0, 0)
     W.Solid(pad, "BACKGROUND", DARK):SetAllPoints()
-    local edges = W.Border(pad, EDGE)
+    local edges = ns.Border(pad, EDGE)
     holder:SetHeight(pad:GetHeight())
 
     -- Offset units -> pixels from the pad's bottom left.
@@ -991,7 +974,7 @@ local function PositionPad(parent, pos)
     box:SetPoint("BOTTOMLEFT", PX(b[1]), PY(b[3]))
     box:SetSize((b[2] - b[1]) * scale, (b[4] - b[3]) * scale)
     W.Solid(box, "BACKGROUND", W.LINE, 0.3):SetAllPoints()
-    W.Border(box, TAN)
+    ns.Border(box, TAN)
     local home = W.Solid(box, "ARTWORK", TAN)
     home:SetSize(4, 4)
     home:SetPoint("CENTER", pad, "BOTTOMLEFT", PX(fx.default), PY(fy.default))
@@ -1037,8 +1020,8 @@ local function PositionPad(parent, pos)
     end)
     pad:SetScript("OnMouseUp", Stop)
     pad:SetScript("OnHide", Stop)
-    pad:SetScript("OnEnter", function() W.SetBorderColor(edges, GOLD) end)
-    pad:SetScript("OnLeave", function() W.SetBorderColor(edges, EDGE) end)
+    pad:SetScript("OnEnter", function() ns.SetBorderColor(edges, GOLD) end)
+    pad:SetScript("OnLeave", function() ns.SetBorderColor(edges, EDGE) end)
 
     function holder.Refresh()
         local x, y = ns.Get(fx.key), ns.Get(fy.key)
@@ -1076,15 +1059,19 @@ local function GetEditor()
     editor:Hide()
 
     local function Over(frame) return frame and frame:IsShown() and frame:IsMouseOver() end
-    editor:RegisterEvent("GLOBAL_MOUSE_DOWN")
     editor:SetScript("OnEvent", function(self)
         -- The field toggles it via OpenEditor.
-        if self:IsShown() and not self:IsMouseOver() and not Over(menu) and not Over(ColorPickerFrame)
+        if not self:IsMouseOver() and not Over(menu) and not Over(ColorPickerFrame)
            and not (editorAnchor and editorAnchor:IsMouseOver()) then
             self:Hide()
         end
     end)
-    editor:SetScript("OnHide", CloseMenu)
+    -- Listens only while it is open.
+    editor:SetScript("OnShow", function(self) self:RegisterEvent("GLOBAL_MOUSE_DOWN") end)
+    editor:SetScript("OnHide", function(self)
+        self:UnregisterEvent("GLOBAL_MOUSE_DOWN")
+        CloseMenu()
+    end)
     return editor
 end
 
@@ -1293,7 +1280,7 @@ function W.Help(parent, title, help)
 
     -- White while hovered or showing its help.
     function q.Paint(hover)
-        local c = (hover or HelpShown(q)) and { 1, 1, 1 } or W.GOLD
+        local c = (hover or HelpShown(q)) and WHITE or GOLD
         text:SetTextColor(c[1], c[2], c[3])
     end
     q:SetScript("OnClick", function(self)

@@ -4,11 +4,10 @@
 local _, ns = ...
 
 -- EmbeddedItemTooltip lives inside GameTooltip and follows its scale.
-local TOOLTIPS = {
-    "GameTooltip", "ShoppingTooltip1", "ShoppingTooltip2",
-    "ItemRefTooltip", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2",
-    "FriendsTooltip", "GameSmallHeaderTooltip", "QuickKeybindTooltip",
-}
+local TOOLTIPS = { "FriendsTooltip" }
+for _, name in ipairs(ns.TOOLTIPS) do
+    if name ~= "EmbeddedItemTooltip" then TOOLTIPS[#TOOLTIPS + 1] = name end
+end
 
 local function Apply()
     local scale = ns.Get("tooltipScale") / 100
@@ -17,6 +16,6 @@ end
 
 ns.RegisterFeature({
     key = "tooltipScale", label = "Scale", section = "Tooltip", category = "Settings",
-    type = "slider", beside = true,  -- to the right of Opacity
+    type = "slider", beside = true,
     min = 50, max = 150, step = 5, default = 100, suffix = "%", apply = Apply,
 })

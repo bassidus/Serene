@@ -10,7 +10,7 @@
 local _, ns = ...
 local NP = ns.NP
 
-local QUEST_COLOR = { 0.157, 0.855, 0.475 }
+local QUEST_COLOR = { ns.ColorRGB(ns.QUEST_GREEN) }
 local cache = {}  -- unit -> false, or the progress text ("" when it has none)
 
 local Clean = ns.Clean
@@ -35,7 +35,7 @@ local function QuestProgress(unit)
                     local have, need = Clean(line.numFulfilled), Clean(line.numRequired)
                     local text = Clean(line.leftText)
                     -- Area objectives keep their real progress (a percent) in the text only.
-                    local pct = type(text) == "string" and text:match("(%d+)%s*%%")
+                    local pct = text and text:match("(%d+)%s*%%")
                     if pct then
                         result = pct .. "%"
                     elseif have and need and need > 1 then
@@ -65,7 +65,7 @@ local function BarColor()
 end
 
 function NP.QuestColor(unit)
-    if ns.Enabled("nameplateQuest") and ns.Enabled("nameplateQuestColor") and QuestProgress(unit) then
+    if ns.Get("nameplateQuest") and ns.Get("nameplateQuestColor") and QuestProgress(unit) then
         return BarColor()
     end
 end
@@ -98,7 +98,7 @@ end
 
 local function Update(plate)
     local q = plate.quest
-    local progress = plate.unit and ns.Enabled("nameplateQuest") and QuestProgress(plate.unit)
+    local progress = ns.Get("nameplateQuest") and QuestProgress(plate.unit)
     if progress then
         q.text:SetText(progress)
         q:Show()
@@ -114,7 +114,7 @@ NP.RegisterModule({
     layout = Layout,
     attach = Update,
     detach = function(plate)
-        if plate.unit then cache[plate.unit] = nil end
+        cache[plate.unit] = nil
         plate.quest:Hide()
         plate.name:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, 3)
     end,
@@ -140,7 +140,7 @@ watcher:SetScript("OnEvent", function()
 end)
 
 local function SyncEvents()
-    if ns.Enabled("nameplateQuest") then
+    if ns.Get("nameplateQuest") then
         watcher:RegisterEvent("QUEST_LOG_UPDATE")
         -- Your own log only; group members' changes do not affect your marks.
         watcher:RegisterUnitEvent("UNIT_QUEST_LOG_CHANGED", "player")

@@ -19,11 +19,11 @@ end
 local f = CreateFrame("Frame")
 f:RegisterEvent("MERCHANT_SHOW")
 f:SetScript("OnEvent", function()
-    if ns.Enabled("autoRepair") then AutoRepair() end
+    if ns.Get("autoRepair") then AutoRepair() end
 end)
 
 ns.RegisterFeature({
     key = "autoRepair", label = "Repair at vendors", section = "General", category = "Vendors & trainers",
     tooltip = "Fewer clicks at vendors and trainers",
-    beside = true,  -- to the right of Loot & items
+    beside = true,
 })

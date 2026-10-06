@@ -35,7 +35,7 @@ end
 
 local function Refresh()
     if not button then return end
-    if not ns.Enabled("trainAllButton") then
+    if not ns.Get("trainAllButton") then
         button:Hide()
         return
     end
@@ -78,7 +78,7 @@ local function Create()
 end
 
 local function Apply()
-    if ns.Enabled("trainAllButton") and C_AddOns.IsAddOnLoaded("Blizzard_TrainerUI") then Create() end
+    if ns.Get("trainAllButton") and C_AddOns.IsAddOnLoaded("Blizzard_TrainerUI") then Create() end
     Refresh()
 end
 
@@ -87,7 +87,7 @@ loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(self, _, addon)
     if addon ~= "Blizzard_TrainerUI" then return end
     self:UnregisterEvent("ADDON_LOADED")
-    if ns.Enabled("trainAllButton") then Create() end
+    if ns.Get("trainAllButton") then Create() end
 end)
 
 ns.RegisterFeature({

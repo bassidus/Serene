@@ -9,23 +9,16 @@
 local _, ns = ...
 local NP = ns.NP
 
-local BAR = "Interface\\Buttons\\WHITE8X8"
 local MANA = Enum.PowerType.Mana
 local MANA_COLOR = { 0.20, 0.45, 0.95 }
 
 local Clean = ns.Clean
 
-local function Enabled()
-    return ns.Enabled("nameplateMana")
-end
-
 local bar = CreateFrame("StatusBar")
 bar:Hide()
-bar:SetStatusBarTexture(BAR)
+bar:SetStatusBarTexture(NP.BAR)
 bar:SetStatusBarColor(MANA_COLOR[1], MANA_COLOR[2], MANA_COLOR[3])
-local bg = bar:CreateTexture(nil, "BACKGROUND")
-bg:SetAllPoints()
-bg:SetColorTexture(0.05, 0.05, 0.05, 0.85)
+NP.Background(bar)
 NP.Border(bar)
 
 local owner  -- the plate the bar is on
@@ -53,7 +46,7 @@ local function UpdateValue()
 end
 
 local function Update()
-    local plate = Enabled() and HasMana() and NP.TargetPlate() or nil
+    local plate = ns.Get("nameplateMana") and HasMana() and NP.TargetPlate() or nil
     if plate ~= owner then
         Release()
         if not plate then return end
@@ -78,7 +71,7 @@ watcher:SetScript("OnEvent", function(_, event, _, powerType)
 end)
 
 local function Sync()
-    if Enabled() then
+    if ns.Get("nameplateMana") then
         watcher:RegisterEvent("PLAYER_TARGET_CHANGED")
         watcher:RegisterUnitEvent("UNIT_POWER_UPDATE", "target")
         watcher:RegisterUnitEvent("UNIT_MAXPOWER", "target")

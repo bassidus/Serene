@@ -46,13 +46,8 @@ local REGIONS = {
 }
 
 -- The player frame's red combat glow is the same texture as the yellow one
--- while resting (UnitFrameRest.lua), so it is only hidden outside an inn.
-local GLOW = playerMain.StatusTexture
+-- while resting, so UnitFrameRest.lua hides it, outside an inn only.
 local PLAYER_THREAT = ns.FramePages("player")[1].key.HideThreat
-
-hooksecurefunc("PlayerFrame_UpdateStatus", function()
-    if ns.Enabled(PLAYER_THREAT) and not IsResting() then GLOW:Hide() end
-end)
 
 for _, page in ipairs(ns.FramePages("player", "target", "focus", "pet")) do
     for i, entry in ipairs(REGIONS[page.id]) do
@@ -63,7 +58,7 @@ for _, page in ipairs(ns.FramePages("player", "target", "focus", "pet")) do
             tooltip = i == 1 and "Clutter on the frame" or nil,
             default = false,
             apply = function()
-                local on = ns.Enabled(key)
+                local on = ns.Get(key)
                 for _, region in ipairs(regions) do SetHidden(region, on) end
                 if key == PLAYER_THREAT then PlayerFrame_UpdateStatus() end
             end,

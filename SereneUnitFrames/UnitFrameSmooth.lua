@@ -86,7 +86,7 @@ end)
 
 local function Apply()
     for frame, key in pairs(keyOf) do
-        local on = ns.Enabled(key) or nil
+        local on = ns.Get(key) or nil
         for _, stock in ipairs({ frame.healthbar, frame.manabar }) do
             enabled[stock] = on
             if on then

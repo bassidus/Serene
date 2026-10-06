@@ -21,7 +21,7 @@ local function IsFriend(name, guid)
     if guid and guid ~= "" and (C_FriendList.IsFriend(guid) or C_BattleNet.GetGameAccountInfoByGUID(guid)) then
         return true
     end
-    if ns.Enabled("socialGuildFriends") and IsGuildMate(name, guid) then return true end
+    if ns.Get("socialGuildFriends") and IsGuildMate(name, guid) then return true end
     if not name or name == "" then return false end
     name = Ambiguate(name, "none")
     if C_FriendList.GetFriendInfo(name) then return true end
@@ -44,12 +44,13 @@ local function Allowed(key, name, guid)
 end
 
 -------------------------------------------------------------------------------
---  Popups -- closed a frame later, after Blizzard has shown them.
+--  Popups
 -------------------------------------------------------------------------------
 local function HideInvite()
     StaticPopup_Hide("PARTY_INVITE")
     StaticPopupSpecial_Hide(LFGInvitePopup)
 end
+-- Closed a frame later, after Blizzard has shown it.
 local function HideDuel() StaticPopup_Hide("DUEL_REQUESTED") end
 
 -------------------------------------------------------------------------------
@@ -73,6 +74,9 @@ local replied = {}
 local function CanReply(key)
     local now = GetTime()
     if replied[key] and now - replied[key] < REPLY_GAP then return false end
+    for k, t in pairs(replied) do
+        if now - t >= REPLY_GAP then replied[k] = nil end
+    end
     replied[key] = now
     return true
 end
@@ -114,7 +118,7 @@ local function OnBNetWhisper(text, accountID)
     if not (game and game.isOnline and game.clientProgram == BNET_CLIENT_WOW) then return end
     -- No cross-faction groups: say why instead of sending an invite that fails.
     local myFaction = UnitFactionGroup("player")
-    if game.factionName and myFaction and game.factionName ~= myFaction then
+    if game.factionName and game.factionName ~= myFaction then
         ns.Print((game.characterName or "Your Battle.net friend") .. " whispered the invite keyword, but is on "
             .. game.factionName .. ": cross-faction groups are not possible.")
         return ReplyBNet(accountID, "you're on " .. game.factionName .. " and I'm on " .. myFaction .. ".")
@@ -129,7 +133,6 @@ end
 --  Events
 -------------------------------------------------------------------------------
 local f = CreateFrame("Frame")
-local hideAfterJoin = false
 
 f:SetScript("OnEvent", function(self, event, ...)
     if event == "PARTY_INVITE_REQUEST" then
@@ -137,16 +140,12 @@ f:SetScript("OnEvent", function(self, event, ...)
         if Allowed("partyInviteFrom", name, guid) and not IsInGroup() then
             AcceptGroup()
             -- The popup goes once the group exists; closing it earlier declines.
-            hideAfterJoin = true
             self:RegisterEvent("GROUP_ROSTER_UPDATE")
         end
 
     elseif event == "GROUP_ROSTER_UPDATE" then
         self:UnregisterEvent("GROUP_ROSTER_UPDATE")
-        if hideAfterJoin then
-            hideAfterJoin = false
-            HideInvite()
-        end
+        HideInvite()
 
     elseif event == "DUEL_REQUESTED" then
         local name = ...

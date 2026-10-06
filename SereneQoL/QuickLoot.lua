@@ -6,14 +6,17 @@ local _, ns = ...
 local lootFrame
 
 local function Apply()
-    if ns.Enabled("quickLoot") then
+    if ns.Get("quickLoot") then
         if not lootFrame then
             lootFrame = CreateFrame("Frame")
             lootFrame:SetScript("OnEvent", function()
-                if IsShiftKeyDown() then return end
-                for i = 1, GetNumLootItems() do
-                    C_Timer.After(0.05 * i, function() LootSlot(i) end)
-                end
+                local n = GetNumLootItems()
+                if IsShiftKeyDown() or n == 0 then return end
+                local slot = 0
+                C_Timer.NewTicker(0.05, function()
+                    slot = slot + 1
+                    LootSlot(slot)
+                end, n)
             end)
         end
         lootFrame:RegisterEvent("LOOT_READY")

@@ -18,7 +18,7 @@ local DARK = 0.3  -- vertex color of the desaturated frame art in Dark Mode
 -------------------------------------------------------------------------------
 --  The parts of each frame, looked up once
 -------------------------------------------------------------------------------
-local parts = setmetatable({}, { __mode = "k" })
+local parts = {}
 
 -- art: darkened in Dark Mode.
 local function PartsOf(frame)
@@ -50,8 +50,6 @@ local function PartsOf(frame)
     return p
 end
 
--- Target of target runs UnitFrame_Update every frame while shown, so the
--- hooks below must not build tables per call.
 local Frames, FramePage = ns.UnitFrames, ns.FramePage
 local SetHidden = ns.SetHidden
 
@@ -85,7 +83,6 @@ local function ClassColor(unit)
 end
 
 local function ColorName(fs, unit, key)
-    if not fs then return end
     local value = ns.Get(key)
     local r, g, b = ns.ColorRGB(value)
     if not r and value == "class" then
@@ -165,15 +162,15 @@ local function FitName(fs)
     if not full then return end
     naming = true
     fs:SetText(full)
-    if ns.Enabled(longKeys[fs]) and Clean(fs:IsTruncated()) then
+    if ns.Get(longKeys[fs]) and Clean(fs:IsTruncated()) then
         local first = full:match("^(%S+)%s")
         if first then fs:SetText(first) end
     end
     naming = nil
 end
 
+-- Returns false while the frame is not laid out yet, to be tried again.
 local function WidenName(fs, bar, key)
-    if not fs then return end
     if not longKeys[fs] then
         longKeys[fs] = key
         fullNames[fs] = Clean(fs:GetText())
@@ -183,10 +180,10 @@ local function WidenName(fs, bar, key)
             FitName(self)
         end)
     end
-    if ns.Enabled(key) then
-        if nameWidths[fs] then return end
+    if ns.Get(key) then
+        if nameWidths[fs] then return true end
         local left, right = Clean(fs:GetLeft()), Clean(bar:GetRight())
-        if not (left and right) then return end
+        if not (left and right) then return false end
         nameWidths[fs] = fs:GetWidth()
         fs:SetWidth(right - left - 2)
         FitName(fs)
@@ -195,25 +192,33 @@ local function WidenName(fs, bar, key)
         nameWidths[fs] = nil
         FitName(fs)
     end
+    return true
 end
 
 -------------------------------------------------------------------------------
 --  Painting a frame
 -------------------------------------------------------------------------------
+-- Returns false while the frame is not laid out yet.
 local function Style(frame)
     local p, key = PartsOf(frame), FramePage(frame).key
-    local dark = ns.Enabled(key.Dark)
+    local dark = ns.Get(key.Dark)
     for _, tex in pairs(p.art) do SetDark(tex, dark) end
-    SetHidden(p.name, ns.Enabled(key.HideName))
+    SetHidden(p.name, ns.Get(key.HideName))
     SetHidden(p.nameBackground, true)  -- the colored bar behind the name, gone like on the player frame
     ColorName(p.name, frame.unit, key.NameColor)
-    WidenName(p.name, frame.healthbar, key.LongNames)
-    local hideLevel = ns.Enabled(key.HideLevel)
+    local hideLevel = ns.Get(key.HideLevel)
     for _, region in pairs(p.level) do SetHidden(region, hideLevel) end
     ColorLevel(p.levelText, key.LevelColor)
+    return WidenName(p.name, frame.healthbar, key.LongNames)
 end
 
+-- Counts setting changes; a frame styled in the current one, for the unit
+-- it shows, needs only its name's class color redone (see the
+-- UnitFrame_Update hook below).
+local gen = 1
+
 local function StyleAll()
+    gen = gen + 1
     for _, frame in ipairs(Frames()) do Style(frame) end
 end
 
@@ -244,15 +249,16 @@ local function CurrentOnly(bar, textString, value)
     if not textString:IsShown() or bar.isZero or bar.numericDisplayTransformFunc or bar.disableMaxValue then
         return
     end
-    -- Formatting fails on a secret value; Blizzard's text then stays.
-    pcall(SetCurrent, bar, textString, value)
+    -- A secret value can't be formatted; Blizzard's text then stays.
+    value = Clean(value)
+    if value then SetCurrent(bar, textString, value) end
 end
 
-local barHooked = setmetatable({}, { __mode = "k" })
+local barHooked = {}
 
 local function HookBars(frame)
     for _, bar in ipairs(PartsOf(frame).bars) do
-        if not barHooked[bar] and bar.UpdateTextStringWithValues then
+        if not barHooked[bar] then
             barHooked[bar] = true
             hooksecurefunc(bar, "UpdateTextStringWithValues", CurrentOnly)
         end
@@ -264,10 +270,12 @@ end
 -- anchors read back as secret values, so they can't be copied or moved.
 local ALIGN = { left = "LEFT", right = "RIGHT" }
 local PAD = 2  -- from the bar's edge, like Blizzard's own left/right text
-local aligned = setmetatable({}, { __mode = "k" })
+local aligned = {}
 
+-- Returns false while a bar to align has no width yet.
 local function AlignBars(frame)
     local align = ALIGN[ns.Get(FramePage(frame).key.TextAlign)]
+    local done = true
     for _, bar in ipairs(PartsOf(frame).bars) do
         local fs = bar.TextString
         local width = fs and Clean(bar:GetWidth())
@@ -275,24 +283,42 @@ local function AlignBars(frame)
             fs:SetWidth(width - 2 * PAD)
             fs:SetJustifyH(align)
             aligned[fs] = true
-        elseif aligned[fs] then
-            fs:SetWidth(0)  -- back to fitting the text, as Blizzard has it
-            fs:SetJustifyH("CENTER")
-            aligned[fs] = nil
+        else
+            if align and fs then done = false end
+            if aligned[fs] then
+                fs:SetWidth(0)  -- back to fitting the text, as Blizzard has it
+                fs:SetJustifyH("CENTER")
+                aligned[fs] = nil
+            end
         end
     end
+    return done
 end
 
 local function AlignAll()
+    gen = gen + 1
     for _, frame in ipairs(Frames()) do AlignBars(frame) end
 end
 
--- Every Blizzard unit frame passes through here when its unit changes.
+-- Every Blizzard unit frame passes through here when its unit changes, and
+-- target of target every frame while it shows. A frame is styled in full
+-- once per setting change and unit; until then only a class-colored name
+-- can change, with the unit the frame shows.
+local styledGen, styledUnit = {}, {}
 hooksecurefunc("UnitFrame_Update", function(frame)
-    if not FramePage(frame) then return end
-    Style(frame)
+    local page = FramePage(frame)
+    if not page then return end
+    if styledGen[frame] == gen and styledUnit[frame] == frame.unit then
+        if ns.Get(page.key.NameColor) == "class" then
+            ColorName(PartsOf(frame).name, frame.unit, page.key.NameColor)
+        end
+        return
+    end
     HookBars(frame)
-    AlignBars(frame)
+    local styled = Style(frame)
+    if AlignBars(frame) and styled then
+        styledGen[frame], styledUnit[frame] = gen, frame.unit
+    end
 end)
 
 local lastText
@@ -303,9 +329,10 @@ local function ApplyText()
     for _, frame in ipairs(Frames()) do HookBars(frame) end
     -- Current and Current / max share a CVar value, so the option itself
     -- counts too (and the first time, so Current takes the max off at login).
-    local changed = GetCVar("statusTextDisplay") ~= mode or lastText ~= value
+    local display = GetCVar("statusTextDisplay")
+    local changed = display ~= mode or lastText ~= value
     lastText = value
-    if GetCVar("statusTextDisplay") ~= mode then SetCVar("statusTextDisplay", mode) end
+    if display ~= mode then SetCVar("statusTextDisplay", mode) end
     -- The bars only redraw their text when "statusText" changes or the value
     -- does, so at full health a new mode would not show until a hit.
     -- Changing "statusText" lets Blizzard's own CVAR_UPDATE handler redraw

@@ -104,7 +104,7 @@ end
 
 local function Apply()
     SereneDB.minimap = SereneDB.minimap or {}
-    SereneDB.minimap.hide = not ns.Enabled("minimapIcon")
+    SereneDB.minimap.hide = not ns.Get("minimapIcon")
     if not iconButton then Register() end
     if SereneDB.minimap.hide then DBIcon:Hide("Serene") else DBIcon:Show("Serene") end
 end

@@ -21,10 +21,6 @@ local MAX_ICONS = 6
 
 C_AddOns.LoadAddOn("Blizzard_AuraContainer")
 
-local function Enabled()
-    return ns.Enabled("nameplateDebuffs")
-end
-
 local function IconSize()
     return math.max(14, math.floor(ns.Get("nameplateWidth") / 6.5))
 end
@@ -65,20 +61,17 @@ local function InitButton(button)
     NP.SetFont(stack, -1)
     stack:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -1)
 
-    pcall(button.SetMouseClickEnabled, button, false)
+    button:SetMouseClickEnabled(false)
 
     button:SetIcon(icon)
     button:SetDurationCooldown(cd)
     button:SetApplicationCount(stack, {})
-    -- Engine-side time text; without it the cooldown shows its own numbers.
-    if not pcall(button.SetDurationText, button, duration, {}) then
-        cd:SetHideCountdownNumbers(false)
-    end
+    button:SetDurationText(duration, {})
 end
 
 local function Create(plate)
+    -- Placed by Layout, which runs right after.
     local c = CreateFrame("AuraContainer", nil, plate, "CustomAuraContainerTemplate")
-    c:SetPoint("BOTTOM", plate.health, "TOP", 0, ns.Get("nameplateFontSize") + 8)
     c:SetSize(1, 1)
     c:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
     -- Growth takes AnchorUtil.FlowDirection values, not point names.
@@ -100,7 +93,7 @@ end
 
 -- Shows the group for the current setting and parks the other.
 local function SetGroupCounts(c)
-    local mine = ns.Enabled("nameplateDebuffsMine")
+    local mine = ns.Get("nameplateDebuffsMine")
     c:SetAuraGroupMaxFrameCount("all", mine and 0 or MAX_ICONS)
     c:SetAuraGroupMaxFrameCount("mine", mine and MAX_ICONS or 0)
     c.mineOnly = mine
@@ -109,15 +102,15 @@ end
 local function Unbind(c)
     if c.bound then
         c.bound = nil
-        if not pcall(c.SetUnit, c, "none") then pcall(c.SetUnit, c, nil) end
+        c:SetUnit("none")
     end
     c:Hide()
 end
 
 local function Attach(plate, unit)
     local c = plate.debuffs
-    if not Enabled() then Unbind(c) return end
-    if c.mineOnly ~= (ns.Enabled("nameplateDebuffsMine") and true or false) then SetGroupCounts(c) end
+    if not ns.Get("nameplateDebuffs") then Unbind(c) return end
+    if c.mineOnly ~= (ns.Get("nameplateDebuffsMine") and true or false) then SetGroupCounts(c) end
     c:Show()
     c.bound = true
     c:SetUnit(unit)
@@ -154,7 +147,7 @@ NP.RegisterModule({
 
 ns.RegisterFeature({
     key = "nameplateDebuffs", label = "Show target debuffs", section = "Nameplates", category = "Settings",
-    beside = true,  -- to the right of the mana bar
+    beside = true,
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
 })
 -- nameplateDebuffsMine registers in NameplateLook.lua, beside the fading.

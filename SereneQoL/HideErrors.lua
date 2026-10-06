@@ -6,11 +6,11 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
--- The errors that always show (not every one exists on this client).
+-- The errors that always show.
 local KEEP = {}
-for _, name in ipairs({ "ERR_INV_FULL", "ERR_BAG_FULL", "ERR_QUEST_LOG_FULL", "ERR_ITEM_MAX_COUNT",
-                        "ERR_NOT_ENOUGH_MONEY", "ERR_LOOT_GONE", "ERR_NO_ROOM_FOR_ITEM" }) do
-    if _G[name] then KEEP[_G[name]] = true end
+for _, msg in ipairs({ ERR_INV_FULL, ERR_BAG_FULL, ERR_QUEST_LOG_FULL, ERR_ITEM_MAX_COUNT,
+                       ERR_NOT_ENOUGH_MONEY, ERR_LOOT_GONE }) do
+    KEEP[msg] = true
 end
 
 local f = CreateFrame("Frame")
@@ -28,9 +28,12 @@ local function SetHiding(on)
     end
 end
 
+-- "combat" and "outOfCombat" follow combat; "always" and "never" do not.
+local function ByCombat(when) return when == "combat" or when == "outOfCombat" end
+
 local function Update()
     local when = ns.Get("hideErrors")
-    if when == "combat" or when == "outOfCombat" then
+    if ByCombat(when) then
         SetHiding(UnitAffectingCombat("player") == (when == "combat"))
     else
         SetHiding(when == "always")
@@ -47,8 +50,7 @@ f:SetScript("OnEvent", function(_, event, _, msg)
 end)
 
 local function Apply()
-    local when = ns.Get("hideErrors")
-    if when == "combat" or when == "outOfCombat" then
+    if ByCombat(ns.Get("hideErrors")) then
         f:RegisterEvent("PLAYER_REGEN_DISABLED")
         f:RegisterEvent("PLAYER_REGEN_ENABLED")
     else

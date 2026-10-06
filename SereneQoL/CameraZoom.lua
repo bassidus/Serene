@@ -10,7 +10,7 @@ local CVAR = "cameraDistanceMaxZoomFactor"
 local MAX = 2.6
 
 local function Apply()
-    if ns.Enabled("maxCameraZoom") then
+    if ns.Get("maxCameraZoom") then
         SetCVar(CVAR, MAX)
         SereneDB.cameraZoomSet = true
     elseif SereneDB.cameraZoomSet then

@@ -22,7 +22,7 @@ local function WowGame(index)
 end
 
 hooksecurefunc("FriendsFrame_UpdateFriendButton", function(button)
-    if not ns.Enabled("friendClassColors") or not button.id then return end
+    if not ns.Get("friendClassColors") or not button.id then return end
     local fs = button.name
     if button.buttonType == FRIENDS_BUTTON_TYPE_WOW then
         local info = C_FriendList.GetFriendInfoByIndex(button.id)

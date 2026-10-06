@@ -8,15 +8,11 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local TOOLTIPS = {
-    "GameTooltip", "ShoppingTooltip1", "ShoppingTooltip2",
-    "ItemRefTooltip", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2",
-    "EmbeddedItemTooltip", "FriendsTooltip", "GameSmallHeaderTooltip", "QuickKeybindTooltip",
-}
+local TOOLTIPS = { "FriendsTooltip", unpack(ns.TOOLTIPS) }
 
-local backgrounds = setmetatable({}, { __mode = "k" })
-local faded = setmetatable({}, { __mode = "k" })  -- tooltips whose NineSlice we hid
-local dimmed = setmetatable({}, { __mode = "k" }) -- tooltips whose center we made see-through
+local backgrounds = {}
+local faded = {}   -- tooltips whose NineSlice we hid
+local dimmed = {}  -- tooltips whose center we made see-through
 
 local function Opacity()
     return ns.Get("tooltipBgOpacity") / 100
@@ -55,7 +51,7 @@ local function Style(tt)
     if tt:IsForbidden() then return end
     local nine = tt.NineSlice
     local opacity = Opacity()
-    if not ns.Enabled("tooltipBorder") then
+    if not ns.Get("tooltipBorder") then
         local bg = backgrounds[tt]
         if not bg then
             bg = tt:CreateTexture(nil, "BACKGROUND", nil, -8)
@@ -97,7 +93,7 @@ local function Flush()
     end
 end
 hooksecurefunc("SharedTooltip_SetBackdropStyle", function(tt)
-    if ns.Enabled("tooltipBorder") and not (faded[tt] or dimmed[tt] or Opacity() < 1) then return end
+    if ns.Get("tooltipBorder") and not (faded[tt] or dimmed[tt] or Opacity() < 1) then return end
     if not next(queued) then C_Timer.After(0, Flush) end
     queued[tt] = true
 end)

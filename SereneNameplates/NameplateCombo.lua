@@ -19,10 +19,6 @@ local CLASSES = { ROGUE = true, DRUID = true }
 
 local Clean = ns.Clean
 
-local function Enabled()
-    return ns.Enabled("nameplateComboPoints")
-end
-
 local row = CreateFrame("Frame")
 row:Hide()
 row.boxes = {}
@@ -56,7 +52,7 @@ end
 
 local function Update()
     local plate, points
-    if Enabled() then
+    if ns.Get("nameplateComboPoints") then
         points = GetComboPoints("player", "target")
         if points > 0 then
             plate = NP.TargetPlate()
@@ -90,7 +86,7 @@ end)
 
 local function Sync()
     local _, class = UnitClass("player")
-    if Enabled() and CLASSES[class] then
+    if ns.Get("nameplateComboPoints") and CLASSES[class] then
         watcher:RegisterEvent("PLAYER_TARGET_CHANGED")
         watcher:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
     else
@@ -114,6 +110,6 @@ NP.RegisterModule({
 
 ns.RegisterFeature({
     key = "nameplateComboPoints", label = "Show combo points", section = "Nameplates",
-    category = "Settings", beside = true,  -- to the right of the cast bar
+    category = "Settings", beside = true,
     apply = Sync,
 })

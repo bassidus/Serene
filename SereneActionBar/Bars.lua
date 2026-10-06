@@ -9,13 +9,24 @@ local _, ns = ...
 local SECTION = "Action Bars"
 
 -- Runs from PLAYER_LOGIN on, when the character's bar toggles are in.
--- Showing a protected bar waits for combat to end.
+-- Showing a protected bar waits for combat to end. The settings apply
+-- together at login, so the bars are set once, a frame later.
 local Sync
 local waiter = CreateFrame("Frame")
 waiter:SetScript("OnEvent", function(self, event)
     self:UnregisterEvent(event)
     Sync()
 end)
+
+local queued = false
+local function Queue()
+    if queued then return end
+    queued = true
+    C_Timer.After(0, function()
+        queued = false
+        Sync()
+    end)
+end
 
 function Sync()
     if InCombatLockdown() then
@@ -24,7 +35,7 @@ function Sync()
     end
     local toggles, changed = { GetActionBarToggles() }, false  -- bars 2-8
     for bar = 2, 8 do
-        if ns.Enabled("showBar" .. bar) and not toggles[bar - 1] then toggles[bar - 1], changed = true, true end
+        if ns.Get("showBar" .. bar) and not toggles[bar - 1] then toggles[bar - 1], changed = true, true end
     end
     if changed then SetActionBarToggles(unpack(toggles)) end
 end
@@ -32,7 +43,7 @@ end
 for bar = 2, 8 do
     ns.RegisterFeature({
         key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION,
-        category = "Bars enabled on all characters", default = false, beside = bar % 2 == 1 or nil, apply = Sync,
+        category = "Bars enabled on all characters", default = false, beside = bar % 2 == 1 or nil, apply = Queue,
         tooltip = bar == 2 and "No setting up bars on each new character" or nil,
     })
 end

@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
 --  Resting -- hides the pulsing yellow glow on the player frame and the
 --  Zzz animation while resting (inn, city). The glow is the same texture
---  as the red one in combat, so it is only hidden while resting. Blizzard
+--  as the red one in combat, so it follows Hide resting glow while resting
+--  and Hide combat & threat glow (UnitFrameHide.lua) otherwise. Blizzard
 --  shows both again whenever it updates the status, so they are hidden
 --  right after; hiding the glow also stops its pulse.
 -------------------------------------------------------------------------------
@@ -14,9 +15,12 @@ local GLOW = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.StatusTexture
 local ZZZ = PlayerFrame.PlayerFrameContent.PlayerFrameContentContextual.PlayerRestLoop
 
 hooksecurefunc("PlayerFrame_UpdateStatus", function()
-    if not IsResting() then return end
-    if ns.Enabled(KEY.HideRestGlow) then GLOW:Hide() end
-    if ns.Enabled(KEY.HideRestZzz) then
+    if not IsResting() then
+        if ns.Get(KEY.HideThreat) then GLOW:Hide() end
+        return
+    end
+    if ns.Get(KEY.HideRestGlow) then GLOW:Hide() end
+    if ns.Get(KEY.HideRestZzz) then
         ZZZ.PlayerRestLoopAnim:Stop()
         ZZZ:Hide()
     end

@@ -1,8 +1,9 @@
 -------------------------------------------------------------------------------
 --  Indicators -- crossed swords beside the target and focus frames while
 --  that unit is in combat (whether a mob is already pulled), and a blue
---  border around the player frame while stealthed, each on its own page. Both are our own
---  textures on frames of our own, so nothing of Blizzard's is touched.
+--  border around the player frame while stealthed, each on its own page.
+--  Both are our own textures on frames of our own, so nothing of
+--  Blizzard's is touched.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -34,7 +35,7 @@ local PAGES = ns.FramePages("target", "focus")
 local iconKeys = { target = PAGES[1].key.CombatIcon, focus = PAGES[2].key.CombatIcon }
 
 local function UpdateIcon(unit)
-    icons[unit]:SetShown(ns.Enabled(iconKeys[unit]) and Clean(UnitAffectingCombat(unit)) == true)
+    icons[unit]:SetShown(ns.Get(iconKeys[unit]) and Clean(UnitAffectingCombat(unit)) == true)
 end
 
 local combat = CreateFrame("Frame")
@@ -43,13 +44,13 @@ combat:SetScript("OnEvent", function(_, event, unit)
         UpdateIcon("target")
     elseif event == "PLAYER_FOCUS_CHANGED" then
         UpdateIcon("focus")
-    elseif icons[unit] then
+    else  -- UNIT_FLAGS, for target or focus
         UpdateIcon(unit)
     end
 end)
 
 local function ApplyCombat()
-    if ns.Enabled(iconKeys.target) or ns.Enabled(iconKeys.focus) then
+    if ns.Get(iconKeys.target) or ns.Get(iconKeys.focus) then
         combat:RegisterUnitEvent("UNIT_FLAGS", "target", "focus")
         combat:RegisterEvent("PLAYER_TARGET_CHANGED")
         combat:RegisterEvent("PLAYER_FOCUS_CHANGED")
@@ -76,12 +77,12 @@ border:Hide()
 local PLAYER = ns.FramePages("player")[1]
 
 local function UpdateStealth()
-    border:SetShown(ns.Enabled(PLAYER.key.Stealth) and IsStealthed())
+    border:SetShown(ns.Get(PLAYER.key.Stealth) and IsStealthed())
 end
 stealth:SetScript("OnEvent", UpdateStealth)
 
 local function ApplyStealth()
-    if ns.Enabled(PLAYER.key.Stealth) then
+    if ns.Get(PLAYER.key.Stealth) then
         stealth:RegisterEvent("UPDATE_STEALTH")
     else
         stealth:UnregisterAllEvents()

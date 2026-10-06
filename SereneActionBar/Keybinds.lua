@@ -6,7 +6,6 @@
 local _, ns = ...
 
 local function FormatHotkeyText(text)
-    if not text or text == "" then return "" end
     -- Gamepad binds resolve to glyph markup (no substitution below matches);
     -- keyboard binds keep the raw tokens the substitutions are written against.
     local resolved = GetBindingText(text, 1)
@@ -17,7 +16,6 @@ local function FormatHotkeyText(text)
     text = text:gsub("ALT%-", "A")
     text = text:gsub("SHIFT%-", "S")
     text = text:gsub("META%-", "M")
-    text = text:gsub("Mouse Button ", "M")
     text = text:gsub("MOUSEWHEELUP", "MwU")
     text = text:gsub("MOUSEWHEELDOWN", "MwD")
     text = text:gsub("CAPSLOCK", "Caps")
@@ -32,23 +30,16 @@ local function FormatHotkeyText(text)
     return text
 end
 
--- Blizzard button name prefix -> binding command prefix.
-local BARS = {
-    { "ActionButton",              "ACTIONBUTTON",          12 },
-    { "MultiBarBottomLeftButton",  "MULTIACTIONBAR1BUTTON", 12 },
-    { "MultiBarBottomRightButton", "MULTIACTIONBAR2BUTTON", 12 },
-    { "MultiBarRightButton",       "MULTIACTIONBAR3BUTTON", 12 },
-    { "MultiBarLeftButton",        "MULTIACTIONBAR4BUTTON", 12 },
-    { "MultiBar5Button",           "MULTIACTIONBAR5BUTTON", 12 },
-    { "MultiBar6Button",           "MULTIACTIONBAR6BUTTON", 12 },
-    { "MultiBar7Button",           "MULTIACTIONBAR7BUTTON", 12 },
-    { "OverrideActionBarButton",   "ACTIONBUTTON",          6 },
-    { "StanceButton",              "SHAPESHIFTBUTTON",      10 },
-    { "PetActionButton",           "BONUSACTIONBUTTON",     10 },
-}
+-- The bars' buttons and the vehicle bar's, which uses the main bar's binds.
+local BARS = { { "OverrideActionBarButton", "ACTIONBUTTON", 6 }, unpack(ns.ACTION_BUTTONS) }
+
+-- The method each bar rewrites its hotkey text with on every binding or
+-- action change, re-applied right after; the stance bar has none, so only
+-- UPDATE_BINDINGS reaches it.
+local HOTKEY_METHOD = { PetActionButton = "SetHotkeys", StanceButton = false }
 
 local buttons = {}  -- [button] = binding command
-local hooked = setmetatable({}, { __mode = "k" })
+local hooked = {}
 
 local function BindingKey(btn)
     return GetBindingKey(buttons[btn]) or GetBindingKey("CLICK " .. btn:GetName() .. ":LeftButton")
@@ -69,7 +60,7 @@ end
 
 -- After Blizzard's own refresh. When off, Blizzard's text already stands.
 local function Update(btn)
-    if ns.Enabled("shortKeybinds") then SetText(btn, true) end
+    if ns.Get("shortKeybinds") then SetText(btn, true) end
 end
 
 -------------------------------------------------------------------------------
@@ -91,12 +82,12 @@ local MACRO = { field = "Name", prefix = "macro", defaultSize = 10, point = "BOT
                 justify = "CENTER", x = 0, y = 2, fx = 0, fy = 0 }
 local TEXTS = { KEYBIND, MACRO }
 
-local orig = setmetatable({}, { __mode = "k" })  -- [text] = Blizzard's look
+local orig = {}  -- [text] = Blizzard's look
 local painting  -- set while we color, so our own calls are not taken for Blizzard's
 
 -- Blizzard turns the hotkey red while the target is out of range.
 local function IsRed(r, g, b)
-    return type(r) == "number" and r > 0.9 and g < 0.3 and b < 0.3
+    return r > 0.9 and g < 0.3 and b < 0.3
 end
 
 local function Original(fs, t)
@@ -165,7 +156,7 @@ local function StyleColor(fs, o)
         if not o.hooked then
             o.hooked = true
             hooksecurefunc(fs, "SetTextColor", OnColor)
-            if fs.SetVertexColor then hooksecurefunc(fs, "SetVertexColor", OnColor) end
+            hooksecurefunc(fs, "SetVertexColor", OnColor)
         end
         o.colored = true
         Paint(fs, Wanted(o))
@@ -181,7 +172,7 @@ local function Place(btn, fs, o)
         if o.placed then
             fs:ClearAllPoints()
             for _, p in ipairs(o.points) do fs:SetPoint(p[1], p[2], p[3], p[4], p[5]) end
-            fs:SetJustifyH(o.justify or t.justify)
+            fs:SetJustifyH(o.justify)
             o.placed = nil
         end
         return
@@ -204,7 +195,7 @@ local function ReadSettings()
             or t.offX ~= t.x or t.offY ~= t.y
     end
     -- Range Coloring is on: the icon shows range, the keybind stays put.
-    KEYBIND.noRed = ns.Enabled("rangeColors") and true or false
+    KEYBIND.noRed = ns.Get("rangeColors")
     KEYBIND.styled = KEYBIND.styled or KEYBIND.noRed
 end
 
@@ -228,49 +219,31 @@ end
 local function CollectButtons()
     for _, bar in ipairs(BARS) do
         local prefix, command, count = bar[1], bar[2], bar[3]
+        local method = HOTKEY_METHOD[prefix]
+        if method == nil then method = "UpdateHotkeys" end
         for i = 1, count do
             local btn = _G[prefix .. i]
-            if btn and btn.HotKey then
-                buttons[btn] = command .. i
-                if not hooked[btn] then
-                    hooked[btn] = true
-                    -- Blizzard rewrites the text on every binding/action change;
-                    -- re-apply right after whichever refresh method the button has.
-                    for _, method in ipairs({ "UpdateHotkeys", "SetHotkeys" }) do
-                        if type(btn[method]) == "function" then
-                            hooksecurefunc(btn, method, Update)
-                        end
-                    end
-                end
+            buttons[btn] = command .. i
+            if method and not hooked[btn] then
+                hooked[btn] = true
+                hooksecurefunc(btn, method, Update)
             end
         end
     end
 end
 
--- Macro names: hidden with alpha only, so Blizzard's own text updates carry on.
-local macroHidden = setmetatable({}, { __mode = "k" })
-local function MacroText(btn, show)
-    local name = btn.Name
-    if not name then return end
-    if not show then
-        name:SetAlpha(0)
-        macroHidden[name] = true
-    elseif macroHidden[name] then
-        name:SetAlpha(1)
-        macroHidden[name] = nil
-    end
-end
 
 -- Rewrites every button; settings back on default put Blizzard's look back.
 local function Apply()
     CollectButtons()
     ReadSettings()
-    local enabled = ns.Enabled("shortKeybinds")
-    local showMacro = ns.Enabled("showMacroText")
+    local enabled = ns.Get("shortKeybinds")
+    local showMacro = ns.Get("showMacroText")
     for btn in pairs(buttons) do
         SetText(btn, enabled)
         Style(btn)
-        MacroText(btn, showMacro)
+        -- Hidden with alpha only, so Blizzard's own text updates carry on.
+        ns.SetHidden(btn.Name, not showMacro)
     end
 end
 
@@ -280,7 +253,7 @@ end
 local pending, forced = false, false
 local function Run()
     pending = false
-    if forced or KEYBIND.styled or MACRO.styled or ns.Enabled("shortKeybinds") then Apply() end
+    if forced or KEYBIND.styled or MACRO.styled or ns.Get("shortKeybinds") then Apply() end
     forced = false
 end
 local function Queue(force)
@@ -309,7 +282,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "showMacroText", label = "Show macro names", section = SECTION, category = "Settings",
-    beside = true,  -- keybinds on the left, macro names on the right
+    beside = true,
     apply = ApplySetting,
 })
 ns.RegisterFontSettings({
@@ -342,7 +315,7 @@ ns.RegisterPositionSettings({
 })
 ns.RegisterFontSettings({
     prefix = "macro", label = "Macro name text", section = SECTION, category = "Settings", apply = ApplySetting,
-    beside = true,  -- its buttons under Show macro names
+    beside = true,
     size = { 6, 24, MACRO.defaultSize }, outline = "default", color = "macroColor", requires = "showMacroText",
     button = "Font", position = "macroOffsetX",
     blizzard = function()

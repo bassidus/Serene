@@ -21,11 +21,11 @@ for _, page in ipairs(PAGES) do
     for _, frame in ipairs(page.frames) do keyOf[frame.healthbar] = page.key.ClassColors end
 end
 
-local state = setmetatable({}, { __mode = "k" })  -- [bar] = Blizzard's look + ours
+local state = {}  -- [bar] = Blizzard's look + ours
 local painting  -- set while we color, so our own calls are not taken for Blizzard's
 
 local function ClassColor(key, unit)
-    if not (unit and ns.Enabled(key)) then return nil end
+    if not (unit and ns.Get(key)) then return nil end
     if not Clean(UnitIsPlayer(unit)) or not Clean(UnitIsConnected(unit)) then return nil end
     local _, class = UnitClass(unit)
     return RAID_CLASS_COLORS[Clean(class)]
@@ -101,7 +101,7 @@ end)
 
 local function Apply()
     local any
-    for _, page in ipairs(PAGES) do any = any or ns.Enabled(page.key.ClassColors) end
+    for _, page in ipairs(PAGES) do any = any or ns.Get(page.key.ClassColors) end
     if any then
         for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_FOCUS_CHANGED",
                                  "GROUP_ROSTER_UPDATE", "UNIT_CONNECTION" }) do

@@ -321,8 +321,8 @@ end
 -- here; the choice turns the addon on or off for all characters, which the
 -- client applies on the next load, and until then a note beside it says so.
 -- The client's own enable state is not read back: it does not reliably
--- answer for this character. Returns the y below it.
-local function CreateAddonToggle(page, module, x, y)
+-- answer for this character.
+local function CreateAddonToggle(page, module)
     local loaded = AddOns.IsAddOnLoaded(module.name) and true or false
     local wanted = loaded
     local box = W.Checkbox(page, {
@@ -334,8 +334,6 @@ local function CreateAddonToggle(page, module, x, y)
             ns.RefreshOptions()
         end,
     })
-    box:SetPoint("TOPLEFT", x, y)
-    box:SetPoint("TOPRIGHT", -x, y)
     widgets[#widgets + 1] = box
 
     local note = box:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -346,7 +344,7 @@ local function CreateAddonToggle(page, module, x, y)
         refresh()
         note:SetShown(wanted ~= loaded)
     end
-    return y - box:GetHeight() - 2
+    return box
 end
 
 -- The help text of a category's settings, for its "?": { { label =, text = }, ... }
@@ -429,23 +427,62 @@ local function CloseGroup(group, y)
     return bottom
 end
 
--- The Modules page: a line on what the checkboxes do, then one per Serene*
--- addon.
+-- The Modules page: a line on what the checkboxes do, then a group with one
+-- per Serene* addon, which opens and closes like a settings page's.
+local ADDONS = "Addons"
 local function CreateModulesPage()
     local page = CreatePageFrame(MODULES)
     local content = AddScrolling(page)
-    local y = -(36 - HEADER_H)
+    local top = -(36 - HEADER_H)
     local intro = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    intro:SetPoint("TOPLEFT", 0, y)
+    intro:SetPoint("TOPLEFT", 0, top)
     intro:SetWidth(PAGE_W)
     intro:SetJustifyH("LEFT")
     intro:SetText("Turns each Serene module on or off for all your characters.")
-    y = y - intro:GetStringHeight() - SPACING
+
+    local boxes = {}
     for _, module in ipairs(Modules()) do
-        y = CreateAddonToggle(content, module, 0, y)
+        boxes[#boxes + 1] = CreateAddonToggle(content, module)
     end
-    content:SetHeight(-y)
-    page.contentHeight = HEADER_H - y
+
+    local key = MODULES .. "/" .. ADDONS
+    local allOpen  -- while measuring the page open
+    local function Open()
+        return allOpen or (SereneDB.optionsOpen or {})[key] ~= false
+    end
+
+    local group
+    -- Returns the content's height.
+    local function Layout()
+        local open = Open()
+        local y = PlaceGroup(group, top - intro:GetStringHeight() - SPACING, 0, 0)
+        group.SetOpen(open)
+        for _, box in ipairs(boxes) do
+            box:SetShown(open)
+            if open then
+                box:ClearAllPoints()
+                box:SetPoint("TOPLEFT", GROUP_PAD, y)
+                box:SetPoint("TOPRIGHT", -GROUP_PAD, y)
+                y = y - box:GetHeight() - 2
+            end
+        end
+        -- Closed: the frame ends as far under the heading as it starts above it.
+        y = CloseGroup(group, open and y + 2 or group.top - GROUP_PAD * 1.5 - group.headingH)
+        content:SetHeight(-y)
+        return -y
+    end
+    group = CreateGroup(content, ADDONS, function()
+        SereneDB.optionsOpen = SereneDB.optionsOpen or {}
+        SereneDB.optionsOpen[key] = not Open()
+        W.ClosePopups()
+        Layout()
+    end)
+
+    allOpen = true
+    page.contentHeight = HEADER_H + Layout()
+    allOpen = nil
+    Layout()
+    page.Layout = Layout
     page:Hide()
     return page
 end

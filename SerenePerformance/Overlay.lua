@@ -354,7 +354,8 @@ end
 
 local function Build()
     frame = CreateFrame("Frame", "SereneOverlayFrame", UIParent)
-    frame:SetFrameStrata("HIGH")
+    -- Something to glance at; any window or bar opened over it wins.
+    frame:SetFrameStrata("BACKGROUND")
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
     frame:RegisterForDrag("LeftButton")

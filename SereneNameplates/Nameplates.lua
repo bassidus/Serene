@@ -632,7 +632,7 @@ ns.RegisterFeature({
         }
     end,
 })
-local TANK, DPS = "Threat colors while tanking", "Colors while healing or dealing damage"
+local TANK, DPS = "Threat colors while tanking", "Threat colors while healing or dealing damage"
 for _, c in ipairs({
     { "nameplateThreatTankHigh",    TANK, "Your aggro",     "00ff00" },
     { "nameplateThreatTankMedium",  TANK, "Losing aggro",   "ffff00", true },

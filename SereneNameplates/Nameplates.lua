@@ -620,7 +620,7 @@ NP.ApplyRelayout = Relayout
 ns.RegisterFeature({
     key = "nameplateThreat", label = "Select role", section = "Nameplates", category = "Threat colors",
     tooltip = "Colors health bars by threat; Auto picks Tank in Defensive Stance, Bear Form or with Righteous Fury",
-    space = true,
+    space = true, closed = true,
     type = "dropdown", default = "auto",
     apply = Relayout,
     options = function()

@@ -20,6 +20,9 @@ local BUTTON_H, BUTTON_GAP = 22, 6             -- Restore defaults and Reload UI
 local GROUP_PAD = 12  -- inside a category's frame, around its heading and settings
 local BLANK_ROW = 16  -- the empty row above a setting with space = true
 local PAGE_W = WIDTH - PAGE_X - INSET - 2 * PAGE_PAD
+-- Fields and sliders are as wide as one of a pair in a full-width category,
+-- so a lone one lines up with the pairs around it.
+W.CONTROL_W = (PAGE_W - 2 * GROUP_PAD - SPACING) / 2
 local HEADER_H = 30   -- a settings page's title, which stays put while the rest scrolls
 local SCROLL_STEP = 40
 local MODULES = "Modules"  -- the page and tab of the addon list

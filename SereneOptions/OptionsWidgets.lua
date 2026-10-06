@@ -3,8 +3,8 @@
 --  through ns.SetValue and has a Refresh() that re-reads SereneDB. The
 --  surfaces are the CurseForge banner's browns, in rounded panels drawn from
 --  Serene's own textures (Media: Corner, CornerFill, Glow); the controls
---  wear Blizzard's classic art. No Blizzard templates beyond
---  BackdropTemplate for the slider's bar.
+--  wear Blizzard's classic art, except the sliders (Media: Knob), whose
+--  grey bar stood out. No Blizzard templates.
 -------------------------------------------------------------------------------
 local ns = Serene
 
@@ -19,7 +19,6 @@ W.HIGHLIGHT = { 0.196, 0.388, 0.8 }   -- the quest log's selection blue
 local GOLD, TAN, EDGE = W.GOLD, W.TAN, W.EDGE
 local WHITE = { 1, 1, 1 }
 local DARK = { 0, 0, 0, 0.6 }  -- behind chips, swatches and the position pad
-local CONTROL_W = 260
 
 local MEDIA = "Interface\\AddOns\\Serene\\Media\\"
 local ART = {
@@ -521,7 +520,7 @@ local function Field(parent, labelText, onClick)
     holder:SetHeight(labelText and 50 or 30)
 
     local btn = CreateFrame("Button", nil, holder)
-    btn:SetSize(CONTROL_W, 24)
+    btn:SetSize(W.CONTROL_W, 24)
     if labelText then
         local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         label:SetPoint("TOPLEFT", 0, 0)
@@ -554,7 +553,7 @@ local function Field(parent, labelText, onClick)
     btn:SetScript("OnMouseUp", function() arrow:SetTexture(ART.arrow) end)
     -- Narrower than CONTROL_W in a half-width category; a plain button keeps its own width.
     holder:SetScript("OnSizeChanged", function(_, w)
-        if not btn.plain and w > 0 then btn:SetWidth(math.min(CONTROL_W, w)) end
+        if not btn.plain and w > 0 then btn:SetWidth(math.min(W.CONTROL_W, w)) end
     end)
     return holder, btn, text, arrow
 end
@@ -864,6 +863,10 @@ end
 -------------------------------------------------------------------------------
 --  Slider
 -------------------------------------------------------------------------------
+local KNOB = 20
+local BAR_INSET = 4  -- the fill's distance from the track's line
+local BAR = { top = { 0.82, 0.53, 0.16, 0.9 }, bottom = { 0.5, 0.27, 0.08, 0.9 } }
+
 function W.Slider(parent, f)
     local holder = CreateFrame("Frame", nil, parent)
     holder:SetHeight(46)
@@ -872,23 +875,41 @@ function W.Slider(parent, f)
     label:SetPoint("TOPLEFT", 0, 0)
     label:SetText(f.label)
 
-    -- Blizzard's options slider: its bar is a backdrop, the knob its own art.
-    local slider = CreateFrame("Slider", nil, holder, "BackdropTemplate")
+    -- The track is a field's capsule (twice RADIUS high, so its ends are
+    -- round), filled up to the knob.
+    local slider = CreateFrame("Slider", nil, holder)
     slider:SetOrientation("HORIZONTAL")
-    slider:SetSize(CONTROL_W, 17)
-    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
+    slider:SetSize(W.CONTROL_W, 2 * RADIUS)
+    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -8)
     slider:SetMinMaxValues(f.min, f.max)
     slider:SetValueStep(f.step or 1)
     slider:SetObeyStepOnDrag(true)
     slider:EnableMouseWheel(true)
-    slider:SetBackdrop({
-        bgFile = "Interface\\Buttons\\UI-SliderBar-Background",
-        edgeFile = "Interface\\Buttons\\UI-SliderBar-Border",
-        tile = true, tileSize = 8, edgeSize = 8,
-        insets = { left = 3, right = 3, top = 6, bottom = 6 },
-    })
-    slider:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
-    slider:GetThumbTexture():SetSize(32, 32)
+    local track = W.Panel(slider, "FIELD")
+    slider:SetThumbTexture(MEDIA .. "Knob")
+    local thumb = slider:GetThumbTexture()
+    thumb:SetSize(KNOB, KNOB)
+    thumb:SetDrawLayer("OVERLAY")
+
+    -- The fill: a bar from a round left end to the knob's middle, inside
+    -- the track's line.
+    local bar = slider:CreateTexture(nil, "ARTWORK")
+    bar:SetPoint("TOPLEFT", 2 * BAR_INSET, -BAR_INSET)
+    bar:SetPoint("BOTTOMRIGHT", thumb, "CENTER", 0, -(RADIUS - BAR_INSET))
+    bar:SetColorTexture(1, 1, 1, 1)
+    bar:SetGradient("VERTICAL", CreateColor(unpack(BAR.bottom)), CreateColor(unpack(BAR.top)))
+    for _, corner in ipairs({ "TOPLEFT", "BOTTOMLEFT" }) do
+        local top = corner == "TOPLEFT"
+        local cap = slider:CreateTexture(nil, "ARTWORK")
+        cap:SetTexture(MEDIA .. "CornerFill")
+        cap:SetTexCoord(unpack(CORNERS[corner]))
+        cap:SetSize(BAR_INSET, RADIUS - BAR_INSET)
+        cap:SetPoint(corner, BAR_INSET, top and -BAR_INSET or BAR_INSET)
+        local c = top and BAR.top or BAR.bottom
+        cap:SetVertexColor(c[1], c[2], c[3], c[4])
+    end
+    slider:SetScript("OnEnter", function() track.SetLineColor(GOLD) end)
+    slider:SetScript("OnLeave", function() track.SetLineColor() end)
 
     local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     valueText:SetPoint("BOTTOMRIGHT", slider, "TOPRIGHT", 0, 6)
@@ -910,7 +931,7 @@ function W.Slider(parent, f)
     AttachTooltip(slider, f)
     -- Narrower than CONTROL_W in a half-width row.
     holder:SetScript("OnSizeChanged", function(_, w)
-        if w > 0 then slider:SetWidth(math.min(CONTROL_W, w)) end
+        if w > 0 then slider:SetWidth(math.min(W.CONTROL_W, w)) end
     end)
 
     function holder.Refresh()
@@ -1065,7 +1086,7 @@ local function OpenEditor(anchor, id, title, build)
         panel = CreateFrame("Frame", nil, editor)
         panel:SetPoint("TOPLEFT", EDITOR_PAD, -(EDITOR_PAD + EDITOR_TITLE_H))
         panel.widgets = build(panel)
-        local width, y = CONTROL_W, 0
+        local width, y = W.CONTROL_W, 0
         for _, w in ipairs(panel.widgets) do
             width = math.max(width, w.width or 0)
             w:SetPoint("TOPLEFT", 0, y)

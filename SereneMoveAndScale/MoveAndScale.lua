@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Move & scale -- Blizzard's windows dragged with the mouse and scaled from
+--  Move & Scale -- Blizzard's windows dragged with the mouse and scaled from
 --  a slider or Ctrl + scroll. A window scales from its top left corner and
 --  is never made taller than the screen. A frame's anchor offsets count in
 --  its own scale, so each anchor Blizzard sets is kept at scale 1 and set
@@ -10,87 +10,80 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "Move & scale"
+local SECTION = "Move & Scale"
 
 local WINDOWS = {
-    { key = "Character", label = "Character", category = "Your character",
+    { key = "Character", label = "Character sheet",
       frames = { "CharacterFrame" } },
-    { key = "Bags", label = "Bags", category = "Your character", titleMenu = true,
+    { key = "Bags", label = "Bags", titleMenu = true,
       frames = { "ContainerFrameCombinedBags", "ContainerFrame1", "ContainerFrame2", "ContainerFrame3",
                  "ContainerFrame4", "ContainerFrame5", "ContainerFrame6", "ContainerFrame7" } },
-    { key = "Spellbook", label = "Spellbook & talents", category = "Your character",
+    { key = "Spellbook", label = "Spellbook & talents",
       frames = { "PlayerSpellsFrame" }, handles = { "TalentsFrame.ButtonsParent" } },
-    { key = "Professions", label = "Professions", category = "Your character",
-      frames = { "ProfessionsFrame", "InspectRecipeFrame" },
-      tooltip = "Also the recipe that opens from a recipe link in chat." },
-    { key = "Social", label = "Social", category = "Your character",
+    { key = "Professions", label = "Professions & recipes",
+      frames = { "ProfessionsFrame", "InspectRecipeFrame" } },
+    { key = "Social", label = "Friends & guild",
       frames = { "FriendsFrame", "CommunitiesFrame", "GuildControlUI" } },
-    { key = "Achievements", label = "Achievements", category = "Your character",
+    { key = "Achievements", label = "Achievements",
       frames = { "AchievementFrame" } },
-    { key = "Macros", label = "Macros", category = "Your character",
+    { key = "Macros", label = "Macros",
       frames = { "MacroFrame" } },
-    { key = "Collections", label = "Collections", category = "Your character",
+    { key = "Collections", label = "Mounts, pets & toys",
       frames = { "CollectionsJournal" } },
 
-    { key = "Gossip", label = "Quest givers & gossip", category = "NPCs",
-      frames = { "QuestFrame", "GossipFrame", "ItemTextFrame" },
-      tooltip = "What an NPC says when you talk to them, the quests they give, and books and letters you read." },
-    { key = "Merchant", label = "Vendors", category = "NPCs",
+    { key = "Gossip", label = "NPC talk & quest text",
+      frames = { "QuestFrame", "GossipFrame", "ItemTextFrame" } },
+    { key = "Merchant", label = "Vendor",
       frames = { "MerchantFrame" } },
-    { key = "Trainer", label = "Trainers", category = "NPCs",
+    { key = "Trainer", label = "Trainer",
       frames = { "ClassTrainerFrame" } },
-    { key = "Bank", label = "Bank", category = "NPCs",
+    { key = "Bank", label = "Bank",
       frames = { "BankFrame" } },
-    { key = "Mail", label = "Mailbox", category = "NPCs",
+    { key = "Mail", label = "Mailbox",
       frames = { "MailFrame", "OpenMailFrame" } },
-    { key = "Auction", label = "Auction house", category = "NPCs",
+    { key = "Auction", label = "Auction house",
       frames = { "AuctionHouseFrame" } },
-    { key = "Taxi", label = "Flight master", category = "NPCs",
+    { key = "Taxi", label = "Flight master map",
       frames = { "TaxiFrame", "FlightMapFrame" } },
-    { key = "Stable", label = "Stable master", category = "NPCs",
+    { key = "Stable", label = "Stable master",
       frames = { "PetStableFrame" } },
-    { key = "Guild", label = "Guild charters & tabards", category = "NPCs",
+    { key = "Guild", label = "Guild charter & tabard",
       frames = { "GuildRegistrarFrame", "PetitionFrame", "TabardFrame" } },
 
-    { key = "WorldMap", label = "World map", category = "Other",
-      frames = { "WorldMapFrame", "QuestLogPopupDetailFrame" },
-      tooltip = "Also a quest's details when they open in a window of their own." },
-    { key = "Loot", label = "Loot", category = "Other",
-      frames = { "LootFrame", "GroupLootHistoryFrame" },
-      tooltip = "The loot window and the history of loot rolls." },
-    { key = "ItemRef", label = "Item links", category = "Other",
-      frames = { "ItemRefTooltip" },
-      tooltip = "The tooltip that opens when you click an item link in chat." },
-    { key = "ReadyCheck", label = "Ready & role checks", category = "Other",
+    { key = "WorldMap", label = "World map & quest log",
+      frames = { "WorldMapFrame", "QuestLogPopupDetailFrame" } },
+    { key = "Loot", label = "Loot & roll history",
+      frames = { "LootFrame", "GroupLootHistoryFrame" } },
+    { key = "ItemRef", label = "Item links from chat",
+      frames = { "ItemRefTooltip" } },
+    { key = "ReadyCheck", label = "Ready check & role poll",
       frames = { "ReadyCheckFrame", "RolePollPopup" } },
-    { key = "Groups", label = "Group finder", category = "Other",
+    { key = "Groups", label = "Group finder (LFG)",
       frames = { "LFGParentFrame" } },
-    { key = "DressUp", label = "Dressing room", category = "Other",
+    { key = "DressUp", label = "Dressing room",
       frames = { "DressUpFrame", "ModelPreviewFrame" } },
-    { key = "Inspect", label = "Inspect", category = "Other",
+    { key = "Inspect", label = "Inspect player",
       frames = { "InspectFrame" } },
-    { key = "Trade", label = "Trade", category = "Other",
+    { key = "Trade", label = "Trade with a player",
       frames = { "TradeFrame" } },
-    { key = "Chat", label = "Chat settings & channels", category = "Other",
+    { key = "Chat", label = "Chat settings & channels",
       frames = { "ChatConfigFrame", "ChannelFrame" } },
-    { key = "Calendar", label = "Clock & calendar", category = "Other",
+    { key = "Calendar", label = "Clock & calendar",
       frames = { "TimeManagerFrame", "CalendarFrame" } },
-    { key = "Scoreboard", label = "Battleground scores", category = "Other",
+    { key = "Scoreboard", label = "Battleground scores",
       frames = { "PVPMatchScoreboard", "PVPMatchResults" } },
-    { key = "DeathRecap", label = "Death recap", category = "Other",
+    { key = "DeathRecap", label = "Death recap",
       frames = { "DeathRecapFrame" } },
-    { key = "LuaErrors", label = "Lua errors", category = "Other",
+    { key = "LuaErrors", label = "Lua error window",
       frames = { "ScriptErrorsFrame" } },
-    { key = "GameMenu", label = "Game menu & settings", category = "Other",
-      frames = { "GameMenuFrame", "SettingsPanel", "AddonList", "HelpFrame", "QuickKeybindFrame" },
-      tooltip = "The Escape menu, Blizzard's settings, the addon list, customer support and quick keybinds." },
-    { key = "Tracker", label = "Objective tracker", category = "Other", scaleOnly = true,
-      frames = { "ObjectiveTrackerFrame" },
-      tooltip = "The quest list at the side of the screen. It grows and shrinks from where Blizzard "
-          .. "(or Edit Mode) puts it, and is not moved with the mouse." },
+    { key = "GameMenu", label = "Escape menu & settings",
+      frames = { "GameMenuFrame", "SettingsPanel", "AddonList", "HelpFrame", "QuickKeybindFrame" } },
+    { key = "Tracker", label = "Quest tracker", scaleOnly = true,
+      frames = { "ObjectiveTrackerFrame" } },
 }
 
-local function Key(window) return "windowScale" .. window.key end
+local byKey = {}
+for _, window in ipairs(WINDOWS) do byKey[window.key] = window end
 
 local STEP, MIN, MAX = 5, 50, 150
 
@@ -101,12 +94,23 @@ local anchors = {}  -- frame -> { [point] = { relativeTo, relativePoint, x, y } 
 local mouse = {}    -- frame -> true once it can be moved and resized with the mouse
 local moved = {}    -- frame name -> { left, top }; SereneDB.windowPositions while remembered
 local sessionScale = {}  -- window -> percent set by Ctrl + scroll, while not remembered
+-- SereneDB.windowScales: window key -> percent other than 100, the sizes that stay
 local pending       -- windows waiting for combat to end
 local busy          -- while Serene sets points or scale, which the hooks skip
 
+-- Windows take the mouse while it drags or resizes them.
+local function Handled() return ns.Enabled("windowMove") or ns.Enabled("windowWheel") end
+
 local function Locked(frame) return InCombatLockdown() and frame:IsProtected() end
 
-local function Percent(window) return sessionScale[window] or ns.Get(Key(window)) end
+local function Saved(window)
+    return SereneDB.windowScales and SereneDB.windowScales[window.key] or 100
+end
+
+local function Percent(window) return sessionScale[window] or Saved(window) end
+
+-- The window the Size slider is set to.
+local function Picked() return byKey[ns.Get("windowSizeWindow")] end
 
 -- Effective scale against UIParent's: UIParent units per frame unit.
 local function Ratio(frame) return frame:GetEffectiveScale() / UIParent:GetEffectiveScale() end
@@ -250,13 +254,23 @@ local function ShowPercent(frame, pct)
     end)
 end
 
+-- A size that stays; it wins over a Ctrl + scroll size from this session.
+local function SetSaved(window, pct)
+    SereneDB.windowScales = SereneDB.windowScales or {}
+    SereneDB.windowScales[window.key] = pct ~= 100 and pct or nil
+    sessionScale[window] = nil
+    if Picked() == window then SereneDB.windowSize = pct end
+    ApplyWindow(window)
+    if ns.RefreshOptions then ns.RefreshOptions() end
+end
+
 local function Wheel(frame, delta)
-    if not (ns.Enabled("windowMove") and IsControlKeyDown()) or Locked(frame) then return end
+    if not (ns.Enabled("windowWheel") and IsControlKeyDown()) or Locked(frame) then return end
     local window = hooked[frame]
     local pct = math.min(MAX, math.max(MIN, Percent(window) + delta * STEP))
     if pct == Percent(window) then return end
     if ns.Enabled("windowRemember") then
-        ns.SetValue(Key(window), pct)
+        SetSaved(window, pct)
     else
         sessionScale[window] = pct
         ApplyWindow(window)
@@ -268,7 +282,7 @@ end
 local function ResetWindow(frame)
     if Locked(frame) then return end
     moved[frame:GetName()] = nil
-    ns.SetValue(Key(hooked[frame]), 100)  -- its apply drops the session size and places the window
+    SetSaved(hooked[frame], 100)  -- also places the window
 end
 
 -- A window that lets the mouse through (the character window, ready
@@ -352,7 +366,7 @@ local function MouseUp(button)
     if button == "LeftButton" then
         press = nil
         StopDrag()
-    elseif button == "MiddleButton" and ns.Enabled("windowMove") then
+    elseif button == "MiddleButton" and Handled() then
         local frame = WindowAtCursor()
         if frame then ResetWindow(frame) end
     end
@@ -390,7 +404,7 @@ ctrlWatcher:SetScript("OnUpdate", function()
 end)
 
 local function WheelOn()
-    local on = ns.Enabled("windowMove") and IsControlKeyDown()
+    local on = ns.Enabled("windowWheel") and IsControlKeyDown()
     ctrlWatcher:SetShown(on)
     if not on then
         wheelWindow = nil
@@ -403,7 +417,7 @@ function ApplyWindow(window)
         local frame = _G[name]
         if frame and OnScreen(window, frame) then
             if not hooked[frame] then Hook(frame, window) end
-            if ns.Enabled("windowMove") and not window.scaleOnly then EnableMouse(frame) end
+            if Handled() and not window.scaleOnly then EnableMouse(frame) end
             Scale(window, frame)
         end
     end
@@ -456,7 +470,7 @@ local function ApplyRemember()
     if ns.Enabled("windowRemember") then
         moved = SereneDB.windowPositions or moved
         SereneDB.windowPositions = moved
-        for window, pct in pairs(sessionScale) do ns.SetValue(Key(window), pct) end
+        for window, pct in pairs(sessionScale) do SetSaved(window, pct) end
     else
         SereneDB.windowPositions = nil
     end
@@ -465,33 +479,48 @@ end
 ns.OnReset(function()
     wipe(moved)
     wipe(sessionScale)
+    SereneDB.windowScales = nil
 end, SECTION)
 
-ns.SetPageIntro(SECTION, "With \"Move windows with the mouse\" on:\n"
-    .. "- Drag a window by any spot that is not a button or a model to move it.\n"
-    .. "- Hold Ctrl and scroll over a window to make it smaller or bigger.\n"
-    .. "- Middle-click a window to put it back at Blizzard's spot and size.")
-
 ns.RegisterFeature({
-    key = "windowMove", label = "Move windows with the mouse", section = SECTION, category = "Mouse",
+    key = "windowMove", label = "Drag windows to move them", section = SECTION, category = "Settings",
     default = false, apply = ApplyAll,
+    tooltip = "Middle-click on a window restores default size and position",
 })
 ns.RegisterFeature({
-    key = "windowRemember", label = "Remember positions and sizes", section = SECTION, category = "Mouse",
-    requires = "windowMove", apply = ApplyRemember,
-    tooltip = "Windows you have moved, and sizes set with Ctrl + scroll, stay after a reload or logout. "
-        .. "Off: each session starts with Blizzard's spots and the sizes below.",
+    key = "windowWheel", label = "Ctrl + mouse wheel resizes windows", section = SECTION, category = "Settings",
+    default = false, apply = function() ApplyAll(); WheelOn() end,
+})
+ns.RegisterFeature({
+    key = "windowRemember", label = "Save sizes and positions between sessions", section = SECTION,
+    category = "Settings", apply = ApplyRemember,
 })
 
--- Two sliders to a row: every second one in a category goes beside the one before.
-local inCategory = {}
-for _, window in ipairs(WINDOWS) do
-    inCategory[window.category] = (inCategory[window.category] or 0) + 1
-    ns.RegisterFeature({
-        key = Key(window), label = window.label, section = SECTION, category = window.category,
-        beside = inCategory[window.category] % 2 == 0, closed = inCategory[window.category] == 1, type = "slider", min = MIN, max = MAX, step = STEP, default = 100, suffix = "%",
-        -- A slider change wins over a Ctrl + scroll size from this session.
-        apply = function() sessionScale[window] = nil; ApplyWindow(window) end,
-        tooltip = window.tooltip,  -- what all the sliders do is in the page intro
-    })
+-- In alphabetical order: there are too many to scan for one in any other.
+local sorted = {}
+for i, window in ipairs(WINDOWS) do sorted[i] = window end
+table.sort(sorted, function(a, b) return a.label < b.label end)
+
+local function SizeOptions()
+    local options = {}
+    for _, window in ipairs(sorted) do
+        local pct = Saved(window)
+        options[#options + 1] = { value = window.key,
+                                  label = pct == 100 and window.label or (window.label .. " (" .. pct .. "%)") }
+    end
+    return options
 end
+
+-- One slider for every window: it shows the size of the window picked in
+-- the list, so picking one sets the slider without changing a size.
+ns.RegisterFeature({
+    key = "windowSizeWindow", label = "Window", section = SECTION, category = "Scale Windows", space = true,
+    type = "dropdown", default = WINDOWS[1].key, options = SizeOptions,
+    tooltip = "Manually scale windows",
+    apply = function() SereneDB.windowSize = Saved(Picked()) end,
+})
+ns.RegisterFeature({
+    key = "windowSize", label = "Size", section = SECTION, category = "Scale Windows", beside = true,
+    type = "slider", min = MIN, max = MAX, step = STEP, default = 100, suffix = "%",
+    apply = function() SetSaved(Picked(), ns.Get("windowSize")) end,
+})

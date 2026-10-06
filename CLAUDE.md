@@ -29,7 +29,7 @@ Forever runs the retail 12.x API on classic-era content.
 - There are no specs (`GetSpecialization` is nil), and `BEAR_FORM` is nil (Bear is form 5, Dire Bear is 8).
 - The whole game is one realm, so names never need a realm suffix.
 - The UI frames are retail ones: `PlayerSpellsFrame` (spellbook and talents), `ProfessionsFrame`, `PartyFrame.MemberFrame1..4` and `.healthbar` / `.manabar` on unit frames. There is no `QuestLogFrame`, because the quest log sits in the world map.
-- `RegisterForDrag` does nothing on a window that is already shown. Move & scale drags via `GLOBAL_MOUSE_DOWN/UP` instead.
+- `RegisterForDrag` does nothing on a window that is already shown. Move & Scale drags via `GLOBAL_MOUSE_DOWN/UP` instead.
 
 When unsure whether something exists, don't guess and don't write a fallback. Add a temporary file that writes what it finds into `SereneDB`, have the user `/reload` twice, and read `WTF/Account/817318#2/SavedVariables/Serene.lua` under the game folder. Remove the file afterwards.
 

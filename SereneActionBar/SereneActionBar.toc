@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene Action Bar
 ## Group: Serene
-## Notes: Always shown action bars, short keybind text and action bar range coloring.
+## Notes: Action bars enabled on all characters, short keybind text and action bar range coloring.
 ## Version: 1.4.0
 ## Dependencies: Serene
 ## X-Serene-Section: Action Bars

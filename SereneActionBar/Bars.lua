@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
---  Always Shown Bars -- the ticked bars (2-8) are turned on for every
---  character at every login. Unticked bars are the character's own and are
---  never hidden, so one character can show more bars than the rest.
+--  Bars Enabled On All Characters -- the ticked bars (2-8) are turned on
+--  for every character at every login. Unticked bars are the character's
+--  own and are never hidden, so one character can show more bars than the
+--  rest.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -17,7 +18,6 @@ waiter:SetScript("OnEvent", function(self, event)
 end)
 
 function Sync()
-    if not ns.Enabled("barSync") then return end
     if InCombatLockdown() then
         waiter:RegisterEvent("PLAYER_REGEN_ENABLED")
         return
@@ -29,14 +29,10 @@ function Sync()
     if changed then SetActionBarToggles(unpack(toggles)) end
 end
 
-ns.RegisterFeature({
-    key = "barSync", label = "Check the bars you want enabled on all characters", section = SECTION,
-    tooltip = "Checked bars are turned on for every character at login",
-    category = "Always shown bars", default = false, apply = Sync,
-})
 for bar = 2, 8 do
     ns.RegisterFeature({
-        key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION, category = "Always shown bars",
-        default = false, beside = bar % 2 == 1 or nil, requires = "barSync", apply = Sync,
+        key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION,
+        category = "Bars enabled on all characters", default = false, beside = bar % 2 == 1 or nil, apply = Sync,
+        tooltip = bar == 2 and "Checked bars are turned on for every character at login" or nil,
     })
 end

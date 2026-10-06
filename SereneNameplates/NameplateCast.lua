@@ -28,8 +28,6 @@ end
 local function Create(plate)
     local cast = CreateFrame("StatusBar", nil, plate)
     cast:SetStatusBarTexture(BAR)
-    cast:SetPoint("TOPLEFT", plate.health, "BOTTOMLEFT", 0, -3)
-    cast:SetPoint("TOPRIGHT", plate.health, "BOTTOMRIGHT", 0, -3)
     cast:Hide()
     -- A casting plate is never faded.
     cast:SetScript("OnShow", function() NP.UpdateAlpha(plate) end)
@@ -51,7 +49,8 @@ local function Create(plate)
     cast.timer:SetJustifyH("RIGHT")
     cast.name:SetPoint("RIGHT", cast.timer, "LEFT", -4, 0)
 
-    -- Icon left of the bar, as tall as health + cast together.
+    -- Icon left of the bar, as tall as health + cast together; NP.StackBelow
+    -- places the bar and sets the icon's width.
     local iconFrame = CreateFrame("Frame", nil, cast)
     iconFrame:SetPoint("TOPRIGHT", plate.health, "TOPLEFT", -3, 0)
     iconFrame:SetPoint("BOTTOMRIGHT", cast, "BOTTOMLEFT", -3, 0)
@@ -68,7 +67,6 @@ local function Layout(plate)
     local cast = plate.cast
     local h = math.max(6, ns.Get("nameplateHeight") - 2)
     cast:SetHeight(h)
-    cast.iconFrame:SetWidth(ns.Get("nameplateHeight") + h + 3)
     NP.SetFont(cast.name, -1)
     NP.SetFont(cast.timer, -1)
 end

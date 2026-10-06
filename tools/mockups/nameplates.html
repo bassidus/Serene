@@ -3,7 +3,8 @@
   A collage of Serene's enemy nameplates in their different states, rebuilt from
   SereneNameplates (Nameplates.lua and its modules) at the default settings:
   130 x 12, font size 10 with OUTLINE, cast bar 10 tall with a 25 wide icon,
-  combo boxes 4 tall, debuff icons 20 wide 18 above the bar.
+  mana bar and combo boxes 4 tall, debuff icons 20 wide 18 above the bar, other
+  enemies at 50% opacity while one is targeted.
   Colors are the code's defaults (COLORS, the threat settings, QUEST_COLOR, CAST_COLOR...).
   Spell icons are in icons/ (from Wowhead's CDN); the quest icon and raid marks are drawn.
   Friz Quadrata (friz.ttf, unpacked by render.sh) has old-style digits only, so the
@@ -47,7 +48,8 @@ body{width:1000px;height:836px;overflow:hidden;
 <script>
 Promise.all([document.fonts.load('10px Friz','abc'),document.fonts.load('10px Friz','123')]).then(()=>{
 const W=130, H=12, FS=10;
-const CAST_H=Math.max(6,H-2), ICON_W=H+CAST_H+3, COMBO_H=Math.max(4,Math.floor(H/3)), GAP=3;
+const CAST_H=Math.max(6,H-2), ROW_H=Math.max(4,Math.floor(H/3)), GAP=3;
+const MANA='rgb(51,115,242)';
 const DEBUFF=Math.max(14,Math.floor(W/6.5));
 const rgb=(r,g,b)=>`rgb(${r*255},${g*255},${b*255})`;
 const COLORS={hostile:rgb(.80,.137,.137), neutral:rgb(.81,.72,.19), tapped:rgb(.5,.5,.5), mage:rgb(.25,.78,.92)};
@@ -92,10 +94,11 @@ const SKULL_SVG=`<svg viewBox="0 0 20 20" width="18" height="18"><defs><radialGr
   <path d="M10 11.4l1.1 2h-2.2z" fill="#1a1410"/>
   <path d="M8 15.2v1.8M10 15.2v1.8M12 15.2v1.8" stroke="#1a1410" stroke-width=".9"/></svg>`;
 
-// One plate. o = { name, level, lc (level color key), elite, hp, color, target, hover, quest,
-//   cast:{ name, icon, fill, color, timer }, combo, debuffs:[{ icon, time, stack, used }], raid }
+// One plate. o = { name, level, lc (level color key), elite, hp, color, target, hover, faded, quest,
+//   mana, cast:{ name, icon, fill, color, timer }, combo, debuffs:[{ icon, time, stack, used }], raid }
 function plate(parent, x, y, o){
   const p=el(parent,'p',{left:px(x),top:px(y)});
+  if(o.faded) p.style.opacity=.5;
   // Health bar, its border white on the target.
   const hb=bar(p,0,0,W,H,o.hp,o.color);
   if(o.target) hb.style.outlineColor='#fff';
@@ -111,20 +114,24 @@ function plate(parent, x, y, o){
   el(p,'f o abs',{left:0,right:px(right),top:px(-3-FS),fontSize:px(FS),color:'#fff',overflow:'hidden',textOverflow:'ellipsis'},lvl+o.name);
   el(p,'f o abs',{right:'3px',top:px((H-(FS-1))/2+.5),fontSize:px(FS-1),color:'#fff'},Math.round(o.hp*100)+'%');
   if(o.raid) el(p,'abs',{left:px(W+4),top:px((H-18)/2),width:'18px',height:'18px'},o.raid==='skull'?SKULL_SVG:STAR_SVG);
-  // Combo points: five boxes under the bar; the cast bar goes under them.
+  // Rows under the bar: mana, then combo points; the cast bar goes under the last.
   let below=H;
+  if(o.mana!==undefined){
+    bar(p,0,below+3,W,ROW_H,o.mana,MANA);
+    below+=3+ROW_H;
+  }
   if(o.combo!==undefined){
     const bw=(W-GAP*4)/5;
-    for(let i=0;i<5;i++) el(p,'abs',{left:px(i*(bw+GAP)),top:px(H+3),width:px(bw),height:px(COMBO_H),
+    for(let i=0;i<5;i++) el(p,'abs',{left:px(i*(bw+GAP)),top:px(below+3),width:px(bw),height:px(ROW_H),
       outline:'1px solid #000',background:i<o.combo?'rgb(255,209,0)':'rgba(13,13,13,.85)'});
-    below=H+3+COMBO_H;
+    below+=3+ROW_H;
   }
   if(o.cast){
     const c=o.cast, cy=below+3;
     bar(p,0,cy,W,CAST_H,c.fill,c.color);
     el(p,'f o abs',{left:'3px',top:px(cy+(CAST_H-(FS-1))/2+.5),fontSize:px(FS-1),color:'#fff'},c.name);
     if(c.timer) el(p,'f o abs',{right:'3px',top:px(cy+(CAST_H-(FS-1))/2+.5),fontSize:px(FS-1),color:'#fff'},c.timer);
-    spell(p,-3-ICON_W,0,ICON_W,cy+CAST_H,c.icon);
+    spell(p,-3-(cy+CAST_H),0,cy+CAST_H,cy+CAST_H,c.icon);  // square, health top to cast bottom
   }
   // Debuffs: a centered row 18 above the bar; reverse swipe over the time gone, time in the middle, stacks bottom right.
   if(o.debuffs){
@@ -201,9 +208,9 @@ rows(panel('Quest enemies'),[
   {name:'Harvest Golem',level:16,hp:.58,color:hex('ff0000'),quest:'5/12',label:'Fighting you'},
 ],48);
 
-rows(panel('Combo points'),[
+rows(panel('Mana and combo points'),[
   {name:'Defias Smuggler',level:16,hp:.64,color:hex('ff0000'),target:true,combo:3,label:'3 points'},
-  {name:'Defias Magician',level:17,hp:.29,color:hex('ff0000'),target:true,combo:5,label:'With a cast',
+  {name:'Defias Magician',level:17,hp:.29,color:hex('ff0000'),target:true,mana:.55,combo:5,label:'Mana and a cast',
    cast:{name:'Frostbolt',icon:'spell_frost_frostbolt02',fill:.48,color:CAST,timer:'1.5'}},
 ],70);
 
@@ -218,7 +225,7 @@ rows(panel('Debuffs'),[
 rows(panel('Target and mouseover'),[
   {name:'Murloc Tidehunter',level:18,hp:.69,color:COLORS.hostile,target:true,label:'Target'},
   {name:'Murloc Oracle',level:17,hp:.88,color:COLORS.hostile,hover:true,label:'Mouseover'},
-  {name:'Murloc Warrior',level:16,lc:'green',hp:1,color:COLORS.hostile,label:'Other'},
+  {name:'Murloc Warrior',level:16,lc:'green',hp:1,color:COLORS.hostile,faded:true,label:'Other, faded'},
 ],48);
 
 rows(panel('Levels and raid marks'),[

@@ -139,6 +139,33 @@ local function Border(parent)
 end
 NP.Border = Border
 
+-- Rows other modules hang under the health bar, top to bottom. A module puts
+-- its row on the plate (plate.manaBar, plate.comboRow) and calls
+-- NP.StackBelow; the cast bar goes under the last one and its icon grows to
+-- stay square.
+local BELOW = { "manaBar", "comboRow" }
+local GAP = 3  -- the rows' borders sit outside them; 3 leaves a 1px gap
+
+local function Below(frame, above)
+    frame:ClearAllPoints()
+    frame:SetPoint("TOPLEFT", above, "BOTTOMLEFT", 0, -GAP)
+    frame:SetPoint("TOPRIGHT", above, "BOTTOMRIGHT", 0, -GAP)
+end
+
+function NP.StackBelow(plate)
+    local above, height = plate.health, ns.Get("nameplateHeight")
+    for _, key in ipairs(BELOW) do
+        local row = plate[key]
+        if row then
+            Below(row, above)
+            above, height = row, height + GAP + row:GetHeight()
+        end
+    end
+    local cast = plate.cast
+    Below(cast, above)
+    cast.iconFrame:SetWidth(height + GAP + cast:GetHeight())
+end
+
 local OnPlateEvent
 
 local function Layout(plate)
@@ -148,6 +175,7 @@ local function Layout(plate)
     local icon = ns.Get("nameplateHeight") + 6
     plate.raidIcon:SetSize(icon, icon)
     RunModules("layout", plate)
+    NP.StackBelow(plate)
 end
 
 local function CreatePlate()
@@ -353,6 +381,12 @@ local function UpdateTarget(plate)
         plate.border:SetColor(1, 1, 1)
     else
         plate.border:SetColor(0, 0, 0)
+    end
+end
+
+function NP.TargetPlate()
+    for unit, plate in pairs(NP.plates) do
+        if Clean(UnitIsUnit(unit, "target")) then return plate end
     end
 end
 

@@ -6,7 +6,7 @@
 --  reads the target, so the plate that last showed points keeps them after a
 --  target switch, counted by UnitPower, which keeps its count until you build
 --  on another enemy. Only one enemy holds them, so a single row moves between
---  plates, and the plate it is on drops its cast bar below it.
+--  plates, and NP.StackBelow fits it in under the health bar.
 -------------------------------------------------------------------------------
 local _, ns = ...
 local NP = ns.NP
@@ -46,24 +46,12 @@ local function Size()
     end
 end
 
-local function PlaceCast(plate, below)
-    local cast = plate.cast
-    cast:ClearAllPoints()
-    cast:SetPoint("TOPLEFT", below, "BOTTOMLEFT", 0, -3)
-    cast:SetPoint("TOPRIGHT", below, "BOTTOMRIGHT", 0, -3)
-end
-
 local function Release()
     if not owner then return end
-    PlaceCast(owner, owner.health)
+    owner.comboRow = nil
+    NP.StackBelow(owner)
     owner = nil
     row:Hide()
-end
-
-local function TargetPlate()
-    for unit, plate in pairs(NP.plates) do
-        if Clean(UnitIsUnit(unit, "target")) then return plate end
-    end
 end
 
 local function Update()
@@ -71,7 +59,7 @@ local function Update()
     if Enabled() then
         points = GetComboPoints("player", "target")
         if points > 0 then
-            plate = TargetPlate()
+            plate = NP.TargetPlate()
         else
             plate, points = owner, UnitPower("player", Enum.PowerType.ComboPoints)
             if points == 0 then plate = nil end
@@ -81,12 +69,10 @@ local function Update()
         Release()
         if not plate then return end
         owner = plate
+        plate.comboRow = row
         row:SetParent(plate)
-        row:ClearAllPoints()
-        row:SetPoint("TOPLEFT", plate.health, "BOTTOMLEFT", 0, -3)
-        row:SetPoint("TOPRIGHT", plate.health, "BOTTOMRIGHT", 0, -3)
         Size()
-        PlaceCast(plate, row)
+        NP.StackBelow(plate)
         row:Show()
     end
     for i, box in ipairs(row.boxes) do

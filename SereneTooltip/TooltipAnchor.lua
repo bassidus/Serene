@@ -35,7 +35,7 @@ end)
 ns.RegisterFeature({
     key = "tooltipCursor", type = "dropdown", default = true, space = true,
     tooltip = "Select tooltip position",
-    label = "Where tooltips appear", section = "Tooltip", category = "Position",
+    label = "Anchor", section = "Tooltip", category = "Position",
     options = function()
         return {
             { value = true,  label = "Anchored to cursor" },
@@ -45,7 +45,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "tooltipCursorSide", type = "dropdown", default = "right", beside = true,
-    label = "Side of cursor", section = "Tooltip", category = "Position", requires = "tooltipCursor",
+    label = "Alignment", section = "Tooltip", category = "Position", requires = "tooltipCursor",
     options = function()
         return {
             { value = "left",  label = "Left" },

@@ -514,14 +514,22 @@ end
 --  value text (single line, left of the arrow) and the arrow.
 -------------------------------------------------------------------------------
 -- Without labelText the button sits at the top, e.g. right under the
--- checkbox it belongs to.
-local function Field(parent, labelText, onClick)
+-- checkbox it belongs to. Inline: the label on the left of the row, level
+-- with the button at its right.
+local function Field(parent, labelText, onClick, inline)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(labelText and 50 or 30)
+    holder:SetHeight(labelText and not inline and 50 or 30)
 
     local btn = CreateFrame("Button", nil, holder)
     btn:SetSize(W.CONTROL_W, 24)
-    if labelText then
+    if labelText and inline then
+        btn:SetPoint("TOPRIGHT", 0, 0)
+        local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        label:SetPoint("LEFT", holder, "TOPLEFT", 0, -12)
+        label:SetPoint("RIGHT", btn, "LEFT", -8, 0)
+        label:SetJustifyH("LEFT")
+        label:SetText(labelText)
+    elseif labelText then
         local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         label:SetPoint("TOPLEFT", 0, 0)
         label:SetText(labelText)
@@ -574,7 +582,7 @@ end
 function W.Dropdown(parent, f)
     local holder, btn, text = Field(parent, not f.hideLabel and f.label, function(self)
         W.OpenMenu(self, f.options(), ns.Get(f.key), function(v) ns.SetValue(f.key, v) end, f.preview)
-    end)
+    end, f.inline)
     AttachTooltip(btn, f)
 
     function holder.Refresh()

@@ -27,6 +27,7 @@ ns.featureByKey = {}
 --   options    dropdown: fn returning { { value =, label = }, ... }
 --   preview    dropdown: draw entries in their own font
 --   hideLabel  dropdown: no label above the button (still named in the help)
+--   inline     dropdown: the label on the left, the button in the right half
 --   min, max, step, suffix   slider
 --   build      custom: fn(parent) returning a frame of fixed height with a
 --              Refresh(), e.g. the Performance page's addon list

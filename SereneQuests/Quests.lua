@@ -96,8 +96,7 @@ f:SetScript("OnEvent", function(_, event)
         Greeting()
 
     elseif event == "QUEST_DETAIL" then
-        -- A quest shared by a stranger is left to Block Shared Quests (SereneSocial).
-        if accept and not (ns.BlockedQuestShare and ns.BlockedQuestShare()) then
+        if accept then
             Taken()
             AcceptQuest()
         end

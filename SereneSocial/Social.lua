@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
---  Social -- invites from friends, invite on whisper, and declining duels,
---  invites and shared quests from strangers. Friends are your friends list,
---  Battle.net friends and, if set, your guild.
+--  Social -- accepting group invites, inviting on a whispered keyword and
+--  declining duels, each for friends, your guild, anyone or no one. Friends
+--  are your friends list, Battle.net friends and, if set, your guild.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -12,13 +12,16 @@ local Clean = ns.Clean
 -------------------------------------------------------------------------------
 --  Friends
 -------------------------------------------------------------------------------
+local function IsGuildMate(name, guid)
+    if guid and guid ~= "" and IsGuildMember(guid) then return true end
+    return name and name ~= "" and IsInGuild() and C_GuildInfo.MemberExistsByName(Ambiguate(name, "none")) or false
+end
+
 local function IsFriend(name, guid)
-    name, guid = Clean(name), Clean(guid)
-    local guild = ns.Enabled("socialGuildFriends")
-    if guid and guid ~= "" then
-        if C_FriendList.IsFriend(guid) or C_BattleNet.GetGameAccountInfoByGUID(guid) then return true end
-        if guild and IsGuildMember(guid) then return true end
+    if guid and guid ~= "" and (C_FriendList.IsFriend(guid) or C_BattleNet.GetGameAccountInfoByGUID(guid)) then
+        return true
     end
+    if ns.Enabled("socialGuildFriends") and IsGuildMate(name, guid) then return true end
     if not name or name == "" then return false end
     name = Ambiguate(name, "none")
     if C_FriendList.GetFriendInfo(name) then return true end
@@ -27,15 +30,17 @@ local function IsFriend(name, guid)
         local game = account and account.gameAccountInfo
         if game and game.characterName == name then return true end
     end
-    return guild and IsInGuild() and C_GuildInfo.MemberExistsByName(name) or false
+    return false
 end
 
--- Quests.lua (SereneQuests) asks before accepting a quest: one shared by a
--- stranger is not. Set on Serene so other addons can reach it.
-function Serene.BlockedQuestShare()
-    if not ns.Enabled("blockSharedQuests") then return false end
-    if not Clean(UnitIsPlayer("questnpc")) then return false end
-    return not IsFriend(UnitName("questnpc"), UnitGUID("questnpc"))
+-- Whether a setting's choice ("friends", "guild" = friends and guild,
+-- "anyone", "none") lets this player in.
+local function Allowed(key, name, guid)
+    local who = ns.Get(key)
+    if who == "anyone" then return true end
+    if who == "none" then return false end
+    name, guid = Clean(name), Clean(guid)
+    return IsFriend(name, guid) or who == "guild" and IsGuildMate(name, guid)
 end
 
 -------------------------------------------------------------------------------
@@ -50,11 +55,7 @@ local function HideDuel() StaticPopup_Hide("DUEL_REQUESTED") end
 -------------------------------------------------------------------------------
 --  Whisper invites
 -------------------------------------------------------------------------------
-local KEYWORDS = {
-    inv    = { inv = true },
-    invite = { invite = true },
-    both   = { inv = true, invite = true },
-}
+local KEYWORDS = { inv = true, invite = true }
 
 -- nil when an invite can go out, else the reason (sent back to the whisperer).
 local function CannotInvite()
@@ -88,14 +89,14 @@ end
 
 local function IsKeyword(text)
     text = Clean(text)
-    return text and KEYWORDS[ns.Get("whisperInviteKeyword")][strtrim(text):lower()] or false
+    return text and KEYWORDS[strtrim(text):lower()] or false
 end
 
 local function OnWhisper(text, sender, guid)
     sender = Clean(sender)
     if not sender or not IsKeyword(text) then return end
-    -- Strangers get no answer when only friends are invited.
-    if ns.Get("whisperInviteFrom") == "friends" and not IsFriend(sender, guid) then return end
+    -- Those not let in get no answer.
+    if not Allowed("whisperInviteFrom", sender, guid) then return end
     local reason = CannotInvite()
     if reason then return Reply(sender, reason) end
     C_PartyInfo.InviteUnit(sender)
@@ -103,7 +104,7 @@ local function OnWhisper(text, sender, guid)
 end
 
 -- Battle.net whisper: the friend's WoW character gets the invite (they are
--- a friend by definition, so "friends only" is met).
+-- a friend by definition, so every choice but "none" lets them in).
 local function OnBNetWhisper(text, accountID)
     accountID = Clean(accountID)
     if not accountID or not IsKeyword(text) then return end
@@ -133,18 +134,11 @@ local hideAfterJoin = false
 f:SetScript("OnEvent", function(self, event, ...)
     if event == "PARTY_INVITE_REQUEST" then
         local name, _, _, _, _, _, guid = ...
-        if IsFriend(name, guid) then
-            if ns.Enabled("partyFromFriends") and not IsInGroup() then
-                AcceptGroup()
-                -- The popup goes once the group exists; closing it earlier declines.
-                hideAfterJoin = true
-                self:RegisterEvent("GROUP_ROSTER_UPDATE")
-            end
-        elseif ns.Enabled("blockPartyInvites") then
-            DeclineGroup()
-            C_Timer.After(0, HideInvite)
-            local who = Clean(name)
-            if who then ns.Print("Declined a group invite from " .. who .. ".") end
+        if Allowed("partyInviteFrom", name, guid) and not IsInGroup() then
+            AcceptGroup()
+            -- The popup goes once the group exists; closing it earlier declines.
+            hideAfterJoin = true
+            self:RegisterEvent("GROUP_ROSTER_UPDATE")
         end
 
     elseif event == "GROUP_ROSTER_UPDATE" then
@@ -156,18 +150,11 @@ f:SetScript("OnEvent", function(self, event, ...)
 
     elseif event == "DUEL_REQUESTED" then
         local name = ...
-        if not IsFriend(name) then
+        if not Allowed("duelsFrom", name) then
             CancelDuel()
             C_Timer.After(0, HideDuel)
             local who = Clean(name)
             if who then ns.Print("Declined a duel from " .. who .. ".") end
-        end
-
-    elseif event == "QUEST_DETAIL" then
-        if ns.BlockedQuestShare() then
-            local who = Clean(UnitName("questnpc"))
-            DeclineQuest()
-            if who then ns.Print("Declined a quest shared by " .. who .. ".") end
         end
 
     elseif event == "CHAT_MSG_WHISPER" then
@@ -184,66 +171,39 @@ local function Apply()
     local function Want(event, on)
         if on then f:RegisterEvent(event) else f:UnregisterEvent(event) end
     end
-    Want("PARTY_INVITE_REQUEST", ns.Enabled("partyFromFriends") or ns.Enabled("blockPartyInvites"))
-    Want("DUEL_REQUESTED", ns.Enabled("blockDuels"))
-    Want("QUEST_DETAIL", ns.Enabled("blockSharedQuests"))
-    Want("CHAT_MSG_WHISPER", ns.Enabled("whisperInvite"))
-    Want("CHAT_MSG_BN_WHISPER", ns.Enabled("whisperInvite"))
+    Want("PARTY_INVITE_REQUEST", ns.Get("partyInviteFrom") ~= "none")
+    Want("DUEL_REQUESTED", ns.Get("duelsFrom") ~= "anyone")
+    Want("CHAT_MSG_WHISPER", ns.Get("whisperInviteFrom") ~= "none")
+    Want("CHAT_MSG_BN_WHISPER", ns.Get("whisperInviteFrom") ~= "none")
 end
 
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
+local function Who()
+    return {
+        { value = "friends", label = "Friends" },
+        { value = "guild",   label = "Guild" },
+        { value = "anyone",  label = "Anyone" },
+        { value = "none",    label = "None" },
+    }
+end
+
 ns.RegisterFeature({
-    key = "partyFromFriends", label = "Accept group invites from friends", section = SECTION,
-    category = "Automation",
-    tooltip = "Handles group invites, duels and shared quests for you",
-    apply = Apply,
+    key = "partyInviteFrom", label = "Accept group invites from", section = SECTION, category = "Automation",
+    tooltip = "Guild means your friends and your guild. Invites while you are in a group are left to you.",
+    type = "dropdown", inline = true, default = "friends", options = Who, apply = Apply,
 })
 ns.RegisterFeature({
-    key = "whisperInvite", label = "Invite players who whisper a keyword", section = SECTION, category = "Automation",
-    default = false, apply = Apply,
+    key = "whisperInviteFrom", label = "Keyword inv / invite from", section = SECTION, category = "Automation",
+    type = "dropdown", inline = true, default = "none", options = Who, apply = Apply,
 })
 ns.RegisterFeature({
-    key = "whisperInviteKeyword", label = "Keyword", section = SECTION, category = "Automation",
-    type = "dropdown", default = "both",
-    requires = "whisperInvite",
-    options = function()
-        return {
-            { value = "inv",    label = "inv" },
-            { value = "invite", label = "invite" },
-            { value = "both",   label = "inv or invite" },
-        }
-    end,
+    key = "duelsFrom", label = "Allow duels from", section = SECTION, category = "Automation",
+    type = "dropdown", inline = true, default = "anyone", options = Who, apply = Apply,
 })
+-- Read by IsFriend, so it needs no apply.
 ns.RegisterFeature({
-    key = "whisperInviteFrom", label = "Who gets invited", section = SECTION, category = "Automation",
-    type = "dropdown", beside = true,
-    default = "anyone", requires = "whisperInvite",
-    options = function()
-        return {
-            { value = "anyone",  label = "Anyone" },
-            { value = "friends", label = "Friends only" },
-        }
-    end,
-})
-ns.RegisterFeature({
-    key = "blockPartyInvites", label = "Block group invites from strangers", section = SECTION,
-    category = "Automation", space = true,
-    default = false, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "blockDuels", label = "Block duels from strangers", section = SECTION, category = "Automation",
-    default = false, apply = Apply,
-})
-ns.RegisterFeature({
-    key = "blockSharedQuests", label = "Block quests shared by strangers", section = SECTION, category = "Automation",
-    default = false, apply = Apply,
-})
--- Decides who is a friend for the whole page, Thanks for buffs too. Read by
--- IsFriend, so it needs no apply.
-ns.RegisterFeature({
-    key = "socialGuildFriends", label = "Count your guild as friends", section = SECTION, category = "Automation",
-    space = true,
-    tooltip = "Friends are your friends list and Battle.net friends. With this on, your guild counts too, for every setting on this page.",
+    key = "socialGuildFriends", label = "Count guild mates as friends", section = SECTION, category = "Automation",
+    tooltip = "Friends are your friends list and Battle.net friends; with this on, your guild too",
 })

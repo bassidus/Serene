@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Bar Extras -- gray bar art instead of Forever's bronze, zoomed button
+--  Bar Extras -- gray or dark bar art instead of Forever's bronze, zoomed button
 --  icons (their rough edges cropped), and the bags bar and micro menu shown
 --  only while the mouse is over them. Those two are only made invisible, so
 --  they still answer the mouse.
@@ -28,21 +28,27 @@ local function ApplyZoom()
 end
 
 -------------------------------------------------------------------------------
---  No bronze: Forever's bar art (frame, wyverns, dividers, button rims) is
+--  Bar art: Forever's bar art (frame, wyverns, dividers, button rims) is
 --  bronze, drawn from these files; desaturated it is the plain gray of the
---  retail bars. The micro menu's sheet also holds its colored icons, so only
---  the button backgrounds there.
+--  retail bars, and darkened on top of that it recedes behind the icons.
+--  The micro menu's sheet also holds its colored icons, so only the button
+--  backgrounds there.
 -------------------------------------------------------------------------------
 local BRONZE = { [7948326] = true, [8154526] = true, [8119721] = true, [8200846] = "ButtonBG" }
 
 local bronze = {}  -- [texture] = true, every bronze texture found
 
+local DARK = 0.22
+
 local function Paint(tex)
-    tex:SetDesaturated(ns.Enabled("noBronzeBars"))
+    local art = ns.Get("barArt")
+    local v = art == "dark" and DARK or 1
+    tex:SetDesaturated(art ~= "bronze")
+    tex:SetVertexColor(v, v, v)
 end
 
 local function Repaint(tex)
-    if ns.Enabled("noBronzeBars") then Paint(tex) end
+    if ns.Get("barArt") ~= "bronze" then Paint(tex) end
 end
 
 local function IsBronze(tex)
@@ -62,8 +68,8 @@ local function Collect(frame)
     for _, child in ipairs({ frame:GetChildren() }) do Collect(child) end
 end
 
-local function ApplyBronze()
-    if ns.Enabled("noBronzeBars") and not next(bronze) then
+local function ApplyArt()
+    if ns.Get("barArt") ~= "bronze" and not next(bronze) then
         for _, frame in ipairs({ MainActionBar, BagsBar, MicroMenuContainer }) do Collect(frame) end
         for _, prefix in ipairs(BARS) do
             for i = 1, 12 do
@@ -107,9 +113,16 @@ local function ApplyFaders()
 end
 
 ns.RegisterFeature({
-    key = "noBronzeBars", label = "Gray instead of bronze", section = SECTION, category = "Look",
+    key = "barArt", label = "Bar art", section = SECTION, category = "Look",
     tooltip = "How the bars look",
-    default = false, apply = ApplyBronze,
+    type = "dropdown", inline = true, default = "bronze", apply = ApplyArt,
+    options = function()
+        return {
+            { value = "bronze", label = "Bronze" },
+            { value = "gray",   label = "Gray" },
+            { value = "dark",   label = "Dark" },
+        }
+    end,
 })
 ns.RegisterFeature({
     key = "zoomActionIcons", label = "Zoom button icons", section = SECTION, category = "Look",

@@ -2,8 +2,8 @@
 --  Options window -- a sidebar tab per feature section, each page stacking
 --  a control per registered feature. At the bottom, with the buttons: the
 --  Modules tab, listing every Serene* addon, loaded or not, with a checkbox
---  to turn it on or off. Built on first open; position and scale are saved
---  (SereneDB.optionsWindow).
+--  to turn it on or off. Built on first open; Ctrl + scroll scales it.
+--  Position and scale are saved (SereneDB.optionsWindow).
 -------------------------------------------------------------------------------
 local ns = Serene
 local W = ns.Widgets
@@ -176,7 +176,7 @@ local function TwoClick(btn, setArmed, onConfirm)
     return function() return armed end
 end
 
-local ResetScale  -- set with the scale grip, below
+local ResetScale  -- set with the window's scaling, below
 
 -- Armed, it reads "Click again to restore", white and lit. Puts the window's
 -- size back too; it stays where it is.
@@ -290,6 +290,7 @@ local function AddScrolling(page)
 
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel", function(_, delta)
+        if IsControlKeyDown() then return W.ScaleWindow(delta) end
         W.ClosePopups()
         ScrollTo(scroll:GetVerticalScroll() - delta * SCROLL_STEP)
     end)
@@ -790,9 +791,11 @@ local wantedH, sidebarH
 
 -- As tall as the tallest page, but no taller than MAX_SCREEN of the screen
 -- at the current scale: longer pages scroll. Never shorter than the sidebar.
+-- EXTRA_H on top gives the bottom of the page and the sidebar some air.
+local EXTRA_H = 10
 local function FitHeight()
     local screenH = UIParent:GetHeight() * MAX_SCREEN / frame:GetScale()
-    frame:SetHeight(math.max(sidebarH, math.min(wantedH, screenH)))
+    frame:SetHeight(math.max(sidebarH, math.min(wantedH, screenH)) + EXTRA_H)
 end
 
 local function Center()
@@ -801,22 +804,17 @@ local function Center()
 end
 
 -------------------------------------------------------------------------------
---  Scale grip (bottom-right corner). Dragging scales the whole window -- the
---  pages have a fixed layout, so scaling keeps every control in place where
---  a free resize would clip them. The top-left corner stays put while
---  dragging; right-click resets size (100%) and position (centered).
+--  Scaling: Ctrl + scroll anywhere on the window, in the steps Move & scale
+--  uses. The pages have a fixed layout, so scaling keeps every control in
+--  place where a free resize would clip them. The top-left corner stays put.
 -------------------------------------------------------------------------------
-local DEFAULT_SCALE, MIN_SCALE, MAX_SCALE = 1, 0.5, 1.6
+local DEFAULT_SCALE, MIN_SCALE, MAX_SCALE, SCALE_STEP = 1, 0.5, 1.6, 0.05
 
 -- leftUI/topUI are UIParent units; SetPoint offsets are in the frame's own
 -- (scaled) units, so they are divided by the scale being applied.
 local function PinTopLeft(leftUI, topUI, scale)
     frame:ClearAllPoints()
     frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", leftUI / scale, topUI / scale)
-end
-
-local function CursorX()
-    return GetCursorPosition() / UIParent:GetEffectiveScale()
 end
 
 -- Saved as the top left corner in UIParent units, and the scale.
@@ -833,61 +831,40 @@ local function PlaceWindow()
     if saved then PinTopLeft(saved.left, saved.top, saved.scale) else Center() end
 end
 
--- The default size, the top-left corner kept where it is.
-function ResetScale()
+local function SetWindowScale(scale)
     local s = frame:GetScale()
     local left, top = frame:GetLeft() * s, frame:GetTop() * s
-    frame:SetScale(DEFAULT_SCALE)
+    frame:SetScale(scale)
     FitHeight()
-    PinTopLeft(left, top, DEFAULT_SCALE)
+    PinTopLeft(left, top, scale)
     SaveWindow()
 end
 
-local function CreateScaleGrip()
-    local grip = CreateFrame("Button", nil, frame)
-    grip:SetSize(16, 16)
-    grip:SetPoint("BOTTOMRIGHT", -5, 5)
-    grip:SetFrameLevel(frame:GetFrameLevel() + 10)
-    grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
-    grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
-    grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
-    grip:RegisterForClicks("RightButtonUp")
+-- The default size, the top-left corner kept where it is.
+function ResetScale() SetWindowScale(DEFAULT_SCALE) end
 
-    local leftUI, topUI, grabOffset
-    local function Drag()
-        local scale = (CursorX() - grabOffset - leftUI) / WIDTH
-        scale = math.floor(math.min(MAX_SCALE, math.max(MIN_SCALE, scale)) * 100 + 0.5) / 100
-        if scale ~= frame:GetScale() then
-            frame:SetScale(scale)
-            FitHeight()
-            PinTopLeft(leftUI, topUI, scale)
-        end
-    end
+-- The new size by the cursor for a moment.
+local sizeTip
+local function ShowPercent(scale)
+    GameTooltip:SetOwner(frame, "ANCHOR_CURSOR")
+    GameTooltip:SetText(math.floor(scale * 100 + 0.5) .. "%", 1, 1, 1)
+    GameTooltip:Show()
+    if sizeTip then sizeTip:Cancel() end
+    sizeTip = C_Timer.NewTimer(1, function()
+        sizeTip = nil
+        if GameTooltip:IsOwned(frame) then GameTooltip:Hide() end
+    end)
+end
 
-    grip:SetScript("OnMouseDown", function(self, button)
-        if button ~= "LeftButton" then return end
-        W.ClosePopups()
-        local s = frame:GetScale()
-        leftUI, topUI = frame:GetLeft() * s, frame:GetTop() * s
-        -- Where in the grip the cursor caught it, so the window does not jump.
-        grabOffset = CursorX() - frame:GetRight() * s
-        self:SetScript("OnUpdate", Drag)
-    end)
-    grip:SetScript("OnMouseUp", function(self, button)
-        if button ~= "LeftButton" then return end
-        self:SetScript("OnUpdate", nil)
-        SaveWindow()
-    end)
-    grip:SetScript("OnClick", function()  -- right-click: default size, centered
-        SereneDB.optionsWindow = nil
-        PlaceWindow()
-    end)
-    grip:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Right click to reset size and position", 1, 1, 1)
-        GameTooltip:Show()
-    end)
-    grip:SetScript("OnLeave", GameTooltip_Hide)
+-- Also called by the controls that take the wheel themselves (the page's
+-- scrolling, sliders) while Ctrl is down.
+function W.ScaleWindow(delta)
+    local scale = math.floor((frame:GetScale() + delta * SCALE_STEP) * 100 + 0.5) / 100
+    scale = math.min(MAX_SCALE, math.max(MIN_SCALE, scale))
+    if scale == frame:GetScale() then return end
+    W.ClosePopups()
+    SetWindowScale(scale)
+    ShowPercent(scale)
 end
 
 local function Build()
@@ -897,6 +874,11 @@ local function Build()
     frame:SetClampedToScreen(true)
     frame:EnableMouse(true)
     frame:SetMovable(true)
+    -- Over the sidebar and the title the wheel would zoom the camera.
+    frame:EnableMouseWheel(true)
+    frame:SetScript("OnMouseWheel", function(_, delta)
+        if IsControlKeyDown() then W.ScaleWindow(delta) end
+    end)
     tinsert(UISpecialFrames, "SereneOptionsFrame")  -- Escape closes it
 
     W.Panel(frame, "WINDOW")
@@ -960,7 +942,6 @@ local function Build()
 
     CreateFooter()
 
-    CreateScaleGrip()
     -- Saved by us, not in the client's layout cache.
     frame:SetDontSavePosition(true)
     PlaceWindow()

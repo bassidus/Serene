@@ -922,6 +922,7 @@ function W.Slider(parent, f)
         if userInput and v ~= ns.Get(f.key) then ns.SetValue(f.key, v) end
     end)
     slider:SetScript("OnMouseWheel", function(self, delta)
+        if IsControlKeyDown() then return W.ScaleWindow(delta) end
         local v = math.min(f.max, math.max(f.min, ns.Get(f.key) + delta * step))
         if v ~= ns.Get(f.key) then
             self:SetValue(v)

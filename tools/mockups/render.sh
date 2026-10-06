@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Renders the mockups (options window and overlay) into art/ with headless
+# Renders the mockups (options window, overlay and nameplates) into art/ with headless
 # Chromium, without logging into the game. Needs chromium, ImageMagick (magick)
 # and unzip; the overlay uses the system's Nimbus Sans Narrow (gsfonts).
 #   tools/mockups/render.sh
@@ -12,11 +12,15 @@ trap 'rm -rf "$work"' EXIT
 
 version="$(sed -n 's/^## Version: *//p' "$root/Serene/Serene.toc" | tr -d '\r')"
 
-cp "$here/options.html" "$here/overlay.html" "$here/belleza.woff2" "$work/"
+cp "$here/options.html" "$here/overlay.html" "$here/nameplates.html" "$here/belleza.woff2" "$work/"
+cp -r "$here/icons" "$work/"
 cp "$root/art/logo.png" "$work/"
 unzip -p "$root/tools/friz-quadrata-regular.zip" "*.ttf" > "$work/friz.ttf"
 # A patch of game world from the old promo screenshot, behind the overlay.
 magick "$root/art/serene-curseforge.png" -crop 400x274+1484+406 +repage "$work/scene.png"
+# Two patches without plates in them, behind the nameplates.
+magick "$root/art/serene-curseforge.png" -crop 376x150+1075+530 +repage "$work/sceneA.png"
+magick "$root/art/serene-curseforge.png" -crop 404x150+1481+530 +repage "$work/sceneB.png"
 
 # Chromium sometimes saves the screenshot before the page has finished
 # painting, which leaves a white block; such a shot is retaken.
@@ -38,4 +42,5 @@ shoot() {  # url width height out
 shoot "file://$work/options.html?state=usage&version=$version"   700 686 "$root/art/mockup-options-usage.png"
 shoot "file://$work/options.html?state=overlay&version=$version" 700 686 "$root/art/mockup-options-overlay-settings.png"
 shoot "file://$work/overlay.html" 560 320 "$root/art/mockup-overlay.png"
-echo "Wrote art/mockup-options-usage.png, art/mockup-options-overlay-settings.png, art/mockup-overlay.png"
+shoot "file://$work/nameplates.html" 1000 836 "$root/art/mockup-nameplates.png"
+echo "Wrote art/mockup-options-usage.png, art/mockup-options-overlay-settings.png, art/mockup-overlay.png, art/mockup-nameplates.png"

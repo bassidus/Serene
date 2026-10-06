@@ -1,0 +1,231 @@
+<!doctype html>
+<!--
+  A collage of Serene's enemy nameplates in their different states, rebuilt from
+  SereneNameplates (Nameplates.lua and its modules) at the default settings:
+  130 x 12, font size 10 with OUTLINE, cast bar 10 tall with a 25 wide icon,
+  combo boxes 4 tall, debuff icons 20 wide 18 above the bar.
+  Colors are the code's defaults (COLORS, the threat settings, QUEST_COLOR, CAST_COLOR...).
+  Spell icons are in icons/ (from Wowhead's CDN); the quest icon and raid marks are drawn.
+  Friz Quadrata (friz.ttf, unpacked by render.sh) has old-style digits only, so the
+  digits come from Belleza to look like the game's FRIZQT.
+-->
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Friz;src:url(friz.ttf) format('truetype');}
+@font-face{font-family:Friz;src:url(belleza.woff2) format('woff2');unicode-range:U+0030-0039;}
+:root{
+  --panel: rgb(26,20,20); --edge: rgb(71,56,54); --accent: rgb(255,107,41); --gold: rgb(255,209,0);
+}
+html,body{margin:0}
+body{width:1000px;height:836px;overflow:hidden;
+  background:radial-gradient(ellipse 70% 60% at 85% 0%, rgba(140,60,20,.35), transparent 70%),
+             radial-gradient(ellipse 60% 50% at 0% 100%, rgba(90,40,20,.25), transparent 70%), #140f0e}
+*{box-sizing:border-box}
+.f{font-family:Friz,serif;white-space:nowrap;line-height:1}
+#head{position:absolute;left:20px;top:20px;height:64px;display:flex;align-items:center;gap:14px}
+#head img{width:56px;height:56px}
+#head .title{font-size:30px;color:var(--accent);text-shadow:1px 1px 0 #000}
+#head .sub{font-size:13px;color:#cfc4bc;margin-top:8px;text-shadow:1px 1px 0 #000}
+#grid{position:absolute;left:20px;top:104px;display:grid;grid-template-columns:repeat(3,310px);gap:14px}
+.panel{position:relative;width:310px;height:228px;background:var(--panel);border:1px solid var(--edge)}
+.panel .cap{position:absolute;left:10px;top:9px;font-size:14px;color:var(--accent);text-shadow:1px 1px 0 #000}
+.scene{position:absolute;left:8px;right:8px;top:30px;bottom:8px;overflow:hidden;border:1px solid var(--edge)}
+.scene .bg{position:absolute;inset:-10px;background-size:cover;filter:blur(1.4px) brightness(.62) saturate(.9)}
+.p{position:absolute;width:130px;height:12px}
+.abs{position:absolute}
+.o{text-shadow:-.8px -.8px 0 #000,.8px -.8px 0 #000,-.8px .8px 0 #000,.8px .8px 0 #000,
+              0 1px 0 #000,0 -1px 0 #000,1px 0 0 #000,-1px 0 0 #000}
+.bar{position:absolute;background:rgba(13,13,13,.85);outline:1px solid #000}
+.lbl{position:absolute;font-size:11px;color:#e4dcd4;text-shadow:1px 1px 0 #000,0 0 3px #000}
+</style></head>
+<body>
+<div id="head"><img src="logo.png">
+  <div><div class="f title">Enemy nameplates</div>
+       <div class="f sub">Threat colors, cast bars, debuffs, combo points and quest progress on flat enemy plates</div></div>
+</div>
+<div id="grid"></div>
+<script>
+Promise.all([document.fonts.load('10px Friz','abc'),document.fonts.load('10px Friz','123')]).then(()=>{
+const W=130, H=12, FS=10;
+const CAST_H=Math.max(6,H-2), ICON_W=H+CAST_H+3, COMBO_H=Math.max(4,Math.floor(H/3)), GAP=3;
+const DEBUFF=Math.max(14,Math.floor(W/6.5));
+const rgb=(r,g,b)=>`rgb(${r*255},${g*255},${b*255})`;
+const COLORS={hostile:rgb(.80,.137,.137), neutral:rgb(.81,.72,.19), tapped:rgb(.5,.5,.5), mage:rgb(.25,.78,.92)};
+const QUEST='rgb(40,218,121)';                      // QUEST_COLOR 0.157, 0.855, 0.475
+const CAST=rgb(.70,.40,.90), SHIELD=rgb(.45,.45,.45), INTERRUPT=rgb(.90,.15,.15);
+// GetCreatureDifficultyColor
+const LV={red:'#ff1a1a', orange:'#ff8040', yellow:'#ffd100', green:'#40bf40', grey:'#808080'};
+
+const px=v=>v+'px';
+function el(parent, cls, css, html){
+  const d=document.createElement('div'); d.className=cls||''; Object.assign(d.style, css||{});
+  if(html!==undefined) d.innerHTML=html; parent.appendChild(d); return d;
+}
+function icon(name){ return `url(icons/${name}.jpg)`; }
+
+// A bordered status bar: x, y, w, h relative to the plate, fill 0..1.
+function bar(parent, x, y, w, h, fill, color){
+  const b=el(parent,'bar',{left:px(x),top:px(y),width:px(w),height:px(h)});
+  el(b,'abs',{left:0,top:0,bottom:0,width:px(w*fill),background:color});
+  return b;
+}
+// Spell icon cropped like SetTexCoord(0.08, 0.92, 0.08, 0.92), with the 1px black border.
+function spell(parent, x, y, w, h, name){
+  const d=el(parent,'abs',{left:px(x),top:px(y),width:px(w),height:px(h),outline:'1px solid #000',
+    backgroundImage:icon(name),backgroundSize:`${w/0.84}px ${h/0.84}px`,backgroundPosition:'center'});
+  return d;
+}
+
+const QUEST_SVG=`<svg viewBox="0 0 16 16" width="16" height="16"><defs><linearGradient id="qg" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#ffe866"/><stop offset="1" stop-color="#e8a200"/></linearGradient></defs>
+  <path d="M6.2 1.6h3.6l-.7 8.6H6.9z" fill="url(#qg)" stroke="#2a1800" stroke-width="1" stroke-linejoin="round"/>
+  <circle cx="8" cy="13" r="1.9" fill="url(#qg)" stroke="#2a1800" stroke-width="1"/></svg>`;
+const STAR_SVG=`<svg viewBox="0 0 20 20" width="18" height="18"><defs><radialGradient id="sg" cx=".5" cy=".4" r=".6">
+  <stop offset="0" stop-color="#fff6a0"/><stop offset=".55" stop-color="#ffd21a"/><stop offset="1" stop-color="#e08a00"/></radialGradient></defs>
+  <path d="M10 1.2l2.6 5.6 6.1.7-4.5 4.2 1.2 6.1L10 14.8l-5.4 3 1.2-6.1-4.5-4.2 6.1-.7z"
+   fill="url(#sg)" stroke="#3a2200" stroke-width="1.1" stroke-linejoin="round"/></svg>`;
+const SKULL_SVG=`<svg viewBox="0 0 20 20" width="18" height="18"><defs><radialGradient id="kg" cx=".45" cy=".35" r=".7">
+  <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#bdb6aa"/></radialGradient></defs>
+  <path d="M10 1.3c-4.4 0-7.4 3-7.4 6.9 0 2.4 1.1 4.1 2.6 5.1v2.6c0 .9.7 1.6 1.6 1.6h6.4c.9 0 1.6-.7 1.6-1.6v-2.6
+   c1.5-1 2.6-2.7 2.6-5.1 0-3.9-3-6.9-7.4-6.9z" fill="url(#kg)" stroke="#1a1410" stroke-width="1.1"/>
+  <ellipse cx="7" cy="9" rx="2" ry="2.3" fill="#1a1410"/><ellipse cx="13" cy="9" rx="2" ry="2.3" fill="#1a1410"/>
+  <path d="M10 11.4l1.1 2h-2.2z" fill="#1a1410"/>
+  <path d="M8 15.2v1.8M10 15.2v1.8M12 15.2v1.8" stroke="#1a1410" stroke-width=".9"/></svg>`;
+
+// One plate. o = { name, level, lc (level color key), elite, hp, color, target, hover, quest,
+//   cast:{ name, icon, fill, color, timer }, combo, debuffs:[{ icon, time, stack, used }], raid }
+function plate(parent, x, y, o){
+  const p=el(parent,'p',{left:px(x),top:px(y)});
+  // Health bar, its border white on the target.
+  const hb=bar(p,0,0,W,H,o.hp,o.color);
+  if(o.target) hb.style.outlineColor='#fff';
+  if(o.hover) el(hb,'abs',{left:0,top:0,bottom:0,width:px(W*o.hp),background:'rgba(255,255,255,.18)'});
+  // Name row: level (difficulty color, + for elites) then the name; the quest progress at the right.
+  let right=0;
+  if(o.quest!==undefined){
+    const q=el(p,'f o abs',{right:0,top:px(-3-(FS-1)),fontSize:px(FS-1),color:QUEST},o.quest);
+    right=q.offsetWidth+3;
+    el(p,'abs',{left:px(-2-(FS+6)),top:px((H-(FS+6))/2),width:px(FS+6),height:px(FS+6)},QUEST_SVG);
+  }
+  const lvl=o.level===undefined?'':`<span style="color:${LV[o.lc||'yellow']}">${o.level}${o.elite?'+':''}</span> `;
+  el(p,'f o abs',{left:0,right:px(right),top:px(-3-FS),fontSize:px(FS),color:'#fff',overflow:'hidden',textOverflow:'ellipsis'},lvl+o.name);
+  el(p,'f o abs',{right:'3px',top:px((H-(FS-1))/2+.5),fontSize:px(FS-1),color:'#fff'},Math.round(o.hp*100)+'%');
+  if(o.raid) el(p,'abs',{left:px(W+4),top:px((H-18)/2),width:'18px',height:'18px'},o.raid==='skull'?SKULL_SVG:STAR_SVG);
+  // Combo points: five boxes under the bar; the cast bar goes under them.
+  let below=H;
+  if(o.combo!==undefined){
+    const bw=(W-GAP*4)/5;
+    for(let i=0;i<5;i++) el(p,'abs',{left:px(i*(bw+GAP)),top:px(H+3),width:px(bw),height:px(COMBO_H),
+      outline:'1px solid #000',background:i<o.combo?'rgb(255,209,0)':'rgba(13,13,13,.85)'});
+    below=H+3+COMBO_H;
+  }
+  if(o.cast){
+    const c=o.cast, cy=below+3;
+    bar(p,0,cy,W,CAST_H,c.fill,c.color);
+    el(p,'f o abs',{left:'3px',top:px(cy+(CAST_H-(FS-1))/2+.5),fontSize:px(FS-1),color:'#fff'},c.name);
+    if(c.timer) el(p,'f o abs',{right:'3px',top:px(cy+(CAST_H-(FS-1))/2+.5),fontSize:px(FS-1),color:'#fff'},c.timer);
+    spell(p,-3-ICON_W,0,ICON_W,cy+CAST_H,c.icon);
+  }
+  // Debuffs: a centered row 18 above the bar; reverse swipe over the time gone, time in the middle, stacks bottom right.
+  if(o.debuffs){
+    const n=o.debuffs.length, rowW=n*DEBUFF+(n-1)*3, x0=(W-rowW)/2, top=-(FS+8)-DEBUFF;
+    o.debuffs.forEach((d,i)=>{
+      const b=spell(p,x0+i*(DEBUFF+3),top,DEBUFF,DEBUFF,d.icon);
+      el(b,'abs',{inset:0,background:`conic-gradient(rgba(0,0,0,.6) 0 ${d.used*100}%, transparent 0)`});
+      el(b,'f o abs',{left:0,right:0,top:px((DEBUFF-(FS-1))/2+.5),textAlign:'center',fontSize:px(FS-1),color:'#fff'},d.time);
+      if(d.stack) el(b,'f o abs',{right:'-2px',bottom:'-1px',fontSize:px(FS-1),color:'#fff'},d.stack);
+    });
+  }
+  return p;
+}
+
+const grid=document.getElementById('grid');
+let sceneIdx=0;
+function panel(title){
+  const d=el(grid,'panel');
+  el(d,'f cap',{},title);
+  const s=el(d,'scene');
+  const bg=el(s,'bg',{backgroundImage:`url(scene${'AB'[sceneIdx%2]}.png)`,backgroundPosition:['30% 60%','70% 40%','10% 30%'][sceneIdx%3]});
+  sceneIdx++;
+  return s;
+}
+// Plates in a column, each with a label to its right (past the raid mark when one is shown);
+// the whole group is then centered in the scene.
+function label(s, x, y, text){ el(s,'f lbl',{left:px(x),top:px(y+(H-11)/2+.5)},text); }
+function rows(scene, items, pitch){
+  const g=el(scene,'abs',{left:0,top:0});
+  const lx=W+(items.some(it=>it.raid)?30:16);
+  items.forEach((it,i)=>{ const y=i*pitch; plate(g,0,y,it); if(it.label) label(g,lx,y,it.label); });
+  let l=1e9,t=1e9,r=-1e9,b=-1e9;
+  const base=g.getBoundingClientRect();
+  g.querySelectorAll('*').forEach(e=>{ const q=e.getBoundingClientRect(); if(!q.width) return;
+    l=Math.min(l,q.left-base.left); t=Math.min(t,q.top-base.top); r=Math.max(r,q.right-base.left); b=Math.max(b,q.bottom-base.top); });
+  g.style.left=px(Math.round((scene.clientWidth-(r-l))/2-l));
+  g.style.top=px(Math.round((scene.clientHeight-(b-t))/2-t));
+}
+const hex=h=>'#'+h;
+
+// Threat as tank: green yours, yellow losing it, red lost, blue held by another tank.
+rows(panel('Threat as tank'),[
+  {name:'Defias Pillager',level:18,hp:.72,color:hex('00ff00'),label:'Your aggro'},
+  {name:'Defias Highwayman',level:19,hp:.91,color:hex('ffff00'),label:'Losing aggro'},
+  {name:'Defias Bandit',level:17,lc:'green',hp:1,color:hex('ff0000'),label:'Lost aggro'},
+  {name:'Defias Footpad',level:18,hp:.54,color:hex('0faac8'),label:'Another tank'},
+],40);
+
+rows(panel('Threat as damage / healer'),[
+  {name:'Riverpaw Mystic',level:16,hp:.83,color:hex('00ff00'),label:'Safe'},
+  {name:'Riverpaw Brute',level:17,hp:.47,color:hex('ffff00'),label:'Almost pulling'},
+  {name:'Riverpaw Taskmaster',level:19,lc:'orange',hp:.66,color:hex('ff0000'),label:'Your aggro'},
+],48);
+
+rows(panel('Not fighting you'),[
+  {name:'Murloc Raider',level:16,lc:'green',hp:1,color:COLORS.hostile,label:'Hostile'},
+  {name:'Fleshripper',level:17,hp:1,color:COLORS.neutral,label:'Neutral'},
+  {name:'Harvest Reaper',level:18,hp:.38,color:COLORS.tapped,label:'Tapped'},
+  {name:'Vexmora',level:19,hp:.86,color:COLORS.mage,label:'Enemy player'},
+],40);
+
+rows(panel('Cast bar'),[
+  {name:'Defias Conjurer',level:18,hp:.77,color:COLORS.hostile,label:'Interruptible',
+   cast:{name:'Fireball',icon:'spell_fire_flamebolt',fill:.62,color:CAST,timer:'1.3'}},
+  {name:'Defias Evoker',level:19,hp:.95,color:COLORS.hostile,label:'Uninterruptible',
+   cast:{name:'Shadow Bolt',icon:'spell_shadow_shadowbolt',fill:.35,color:SHIELD,timer:'2.1'}},
+  {name:'Defias Renegade Mage',level:18,hp:.41,color:COLORS.hostile,label:'Interrupted',
+   cast:{name:'Interrupted',icon:'spell_holy_heal',fill:1,color:INTERRUPT}},
+],50);
+
+rows(panel('Quest enemies'),[
+  {name:'Harvest Watcher',level:17,hp:1,color:QUEST,quest:'3/8',label:'Quest progress'},
+  {name:'Defias Trapper',level:15,lc:'green',hp:1,color:QUEST,quest:'11/15',label:'Quest color'},
+  {name:'Harvest Golem',level:16,hp:.58,color:hex('ff0000'),quest:'5/12',label:'Fighting you'},
+],48);
+
+rows(panel('Combo points'),[
+  {name:'Defias Smuggler',level:16,hp:.64,color:hex('ff0000'),target:true,combo:3,label:'3 points'},
+  {name:'Defias Magician',level:17,hp:.29,color:hex('ff0000'),target:true,combo:5,label:'With a cast',
+   cast:{name:'Frostbolt',icon:'spell_frost_frostbolt02',fill:.48,color:CAST,timer:'1.5'}},
+],70);
+
+rows(panel('Debuffs'),[
+  {name:'Defias Enchanter',level:18,hp:.52,color:hex('ff0000'),label:'Time and stacks',
+   debuffs:[{icon:'ability_gouge',time:'9 s',used:.25},{icon:'ability_shockwave',time:'4 s',used:.45},
+            {icon:'ability_warrior_sunder',time:'6 s',stack:'5',used:.1}]},
+  {name:'Gnoll Mystic',level:17,hp:.73,color:hex('00ff00'),
+   debuffs:[{icon:'spell_shadow_shadowwordpain',time:'7 s',used:.2},{icon:'spell_shadow_abominationexplosion',time:'3 s',used:.5}]},
+],76);
+
+rows(panel('Target and mouseover'),[
+  {name:'Murloc Tidehunter',level:18,hp:.69,color:COLORS.hostile,target:true,label:'Target'},
+  {name:'Murloc Oracle',level:17,hp:.88,color:COLORS.hostile,hover:true,label:'Mouseover'},
+  {name:'Murloc Warrior',level:16,lc:'green',hp:1,color:COLORS.hostile,label:'Other'},
+],48);
+
+rows(panel('Levels and raid marks'),[
+  {name:'Hogger',level:11,lc:'grey',elite:true,hp:.43,color:hex('ff0000'),raid:'skull',label:'Elite'},
+  {name:'Lord Kazzak',level:'??',lc:'red',hp:1,color:COLORS.hostile,raid:'star',label:'Boss'},
+  {name:'Defias Overseer',level:22,lc:'red',hp:1,color:COLORS.hostile,label:'High level'},
+],48);
+});
+</script>
+</body></html>

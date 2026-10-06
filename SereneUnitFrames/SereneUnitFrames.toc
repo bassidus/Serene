@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene Unit Frames
 ## Group: Serene
-## Notes: Class colors, dark mode, portrait, name, level and health/mana text on the unit frames.
+## Notes: Class colors, dark mode, portrait, name, level and health/mana text, smooth bars, hidden clutter, combat and stealth indicators on the unit frames.
 ## Version: 1.4.0
 ## Dependencies: Serene
 ## X-Serene-Section: Unit frames
@@ -12,3 +12,6 @@ UnitFrameColors.lua
 UnitFrameRest.lua
 UnitFrameLook.lua
 UnitFrameFonts.lua
+UnitFrameSmooth.lua
+UnitFrameHide.lua
+UnitFrameIndicators.lua

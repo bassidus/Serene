@@ -214,6 +214,37 @@ function ns.Clean(v)
     return v
 end
 
+-- Hides a Blizzard region with alpha 0 and keeps it hidden: Blizzard keeps
+-- calling Show and SetAlpha on its own art, so every alpha it sets is put
+-- back to 0 right after. Off hands the region back at alpha 1.
+local hiddenRegions, alphaHooked = {}, {}
+local settingAlpha  -- set while we change an alpha, so our own call is not taken for Blizzard's
+
+function ns.SetHidden(region, on)
+    if not region then return end
+    if on then
+        if not alphaHooked[region] then
+            alphaHooked[region] = true
+            hooksecurefunc(region, "SetAlpha", function(self)
+                if hiddenRegions[self] and not settingAlpha then
+                    settingAlpha = true
+                    self:SetAlpha(0)
+                    settingAlpha = nil
+                end
+            end)
+        end
+        hiddenRegions[region] = true
+        settingAlpha = true
+        region:SetAlpha(0)
+        settingAlpha = nil
+    elseif hiddenRegions[region] then
+        hiddenRegions[region] = nil
+        settingAlpha = true
+        region:SetAlpha(1)
+        settingAlpha = nil
+    end
+end
+
 function ns.Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage(CreateColor(unpack(ns.ACCENT)):WrapTextInColorCode("Serene:") .. " " .. msg)
 end

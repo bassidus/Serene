@@ -63,36 +63,7 @@ local function Frames() return FRAMES end
 -- Only the frames above; boss and arena frames also go through UnitFrame_Update.
 local function IsOurs(frame) return ours[frame] end
 
--------------------------------------------------------------------------------
---  Hiding: alpha 0, put back whenever Blizzard sets an alpha of its own
--------------------------------------------------------------------------------
-local hidden, hooked = {}, {}
-local setting  -- set while we change an alpha, so our own call is not taken for Blizzard's
-
-local function SetHidden(region, on)
-    if not region then return end
-    if on then
-        if not hooked[region] then
-            hooked[region] = true
-            hooksecurefunc(region, "SetAlpha", function(self)
-                if hidden[self] and not setting then
-                    setting = true
-                    self:SetAlpha(0)
-                    setting = nil
-                end
-            end)
-        end
-        hidden[region] = true
-        setting = true
-        region:SetAlpha(0)
-        setting = nil
-    elseif hidden[region] then
-        hidden[region] = nil
-        setting = true
-        region:SetAlpha(1)
-        setting = nil
-    end
-end
+local SetHidden = ns.SetHidden
 
 -------------------------------------------------------------------------------
 --  Dark Mode: the frame art desaturated and darkened

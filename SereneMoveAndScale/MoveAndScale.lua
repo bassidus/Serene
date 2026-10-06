@@ -15,16 +15,22 @@ local SECTION = "Move & scale"
 local WINDOWS = {
     { key = "Character", label = "Character", category = "Your character",
       frames = { "CharacterFrame" } },
+    -- The title is a button that opens the bag's menu on press; it drags the bag too.
+    { key = "Bags", label = "Bags", category = "Your character", titleMenu = true,
+      frames = { "ContainerFrameCombinedBags", "ContainerFrame1", "ContainerFrame2", "ContainerFrame3",
+                 "ContainerFrame4", "ContainerFrame5", "ContainerFrame6", "ContainerFrame7" } },
     { key = "Spellbook", label = "Spellbook & talents", category = "Your character",
       frames = { "PlayerSpellsFrame" } },
     { key = "Professions", label = "Professions", category = "Your character",
       frames = { "ProfessionsFrame" } },
     { key = "Social", label = "Social", category = "Your character",
-      frames = { "FriendsFrame", "CommunitiesFrame" } },
+      frames = { "FriendsFrame", "CommunitiesFrame", "GuildControlUI" } },
     { key = "Achievements", label = "Achievements", category = "Your character",
       frames = { "AchievementFrame" } },
     { key = "Macros", label = "Macros", category = "Your character",
       frames = { "MacroFrame" } },
+    { key = "Collections", label = "Collections", category = "Your character",
+      frames = { "CollectionsJournal" } },
 
     { key = "Gossip", label = "Quest givers & gossip", category = "NPCs",
       frames = { "QuestFrame", "GossipFrame", "ItemTextFrame" },
@@ -43,20 +49,30 @@ local WINDOWS = {
       frames = { "TaxiFrame", "FlightMapFrame" } },
     { key = "Stable", label = "Stable master", category = "NPCs",
       frames = { "PetStableFrame" } },
+    { key = "Guild", label = "Guild charters & tabards", category = "NPCs",
+      frames = { "GuildRegistrarFrame", "PetitionFrame", "TabardFrame" } },
 
     { key = "WorldMap", label = "World map", category = "Other",
       frames = { "WorldMapFrame" } },
+    { key = "Loot", label = "Loot", category = "Other",
+      frames = { "LootFrame" } },
     { key = "Groups", label = "Group finder", category = "Other",
       frames = { "LFGParentFrame" } },
     { key = "DressUp", label = "Dressing room", category = "Other",
-      frames = { "DressUpFrame" } },
+      frames = { "DressUpFrame", "ModelPreviewFrame" } },
     { key = "Inspect", label = "Inspect", category = "Other",
       frames = { "InspectFrame" } },
     { key = "Trade", label = "Trade", category = "Other",
       frames = { "TradeFrame" } },
+    { key = "Chat", label = "Chat settings & channels", category = "Other",
+      frames = { "ChatConfigFrame", "ChannelFrame" } },
+    { key = "Calendar", label = "Clock & calendar", category = "Other",
+      frames = { "TimeManagerFrame", "CalendarFrame" } },
+    { key = "Scoreboard", label = "Battleground scores", category = "Other",
+      frames = { "PVPMatchScoreboard", "PVPMatchResults" } },
     { key = "GameMenu", label = "Game menu & settings", category = "Other",
-      frames = { "GameMenuFrame", "SettingsPanel", "AddonList" },
-      tooltip = "The Escape menu, Blizzard's settings and the addon list." },
+      frames = { "GameMenuFrame", "SettingsPanel", "AddonList", "HelpFrame", "QuickKeybindFrame" },
+      tooltip = "The Escape menu, Blizzard's settings, the addon list, customer support and quick keybinds." },
     { key = "Tracker", label = "Objective tracker", category = "Other", scaleOnly = true,
       frames = { "ObjectiveTrackerFrame" },
       tooltip = "The quest list at the side of the screen. It grows and shrinks from where Blizzard "
@@ -167,6 +183,13 @@ end
 
 local ApplyWindow
 
+-- Only frames on the screen itself, so a panel inside another window is left
+-- alone. The separate bags sit in ContainerFrameContainer, which covers UIParent.
+local function OnScreen(window, frame)
+    local parent = frame:GetParent()
+    return window.scaleOnly or parent == UIParent or parent == ContainerFrameContainer
+end
+
 -- The cursor in UIParent units.
 local function Cursor()
     local x, y = GetCursorPosition()
@@ -182,6 +205,7 @@ local function StartDrag(frame, x, y)
     if not ns.Enabled("windowMove") or Locked(frame) or not frame:GetLeft() then return end
     local r = Ratio(frame)
     drag = { frame = frame, name = frame:GetName(), left = frame:GetLeft() * r, top = frame:GetTop() * r, x = x, y = y }
+    Menu.GetManager():CloseMenus()  -- a bag's title opened its menu on the press
 end
 
 -- Keeps the spot where the window ended up, kept on screen.
@@ -252,11 +276,16 @@ local function TakesPress(region)
     return region:HasScript("OnMouseDown") and region:GetScript("OnMouseDown") ~= nil
 end
 
+local function TitleMenu(region)
+    local window = hooked[region:GetParent()]
+    return window and window.titleMenu and region:IsObjectType("Button") and not region:GetScript("OnClick")
+end
+
 -- The window under the cursor, unless what is on top there takes the press.
 local function WindowAtCursor()
     local focus = GetMouseFoci()[1]
     if not focus or not focus.IsObjectType or focus:IsForbidden() then return end
-    if not mouse[focus] and TakesPress(focus) then return end
+    if not mouse[focus] and TakesPress(focus) and not TitleMenu(focus) then return end
     while focus and not mouse[focus] do focus = focus:GetParent() end
     return focus
 end
@@ -310,7 +339,7 @@ end
 function ApplyWindow(window)
     for _, name in ipairs(window.frames) do
         local frame = _G[name]
-        if frame and (window.scaleOnly or frame:GetParent() == UIParent) then
+        if frame and OnScreen(window, frame) then
             if not hooked[frame] then Hook(frame, window) end
             if ns.Enabled("windowMove") and not window.scaleOnly then EnableMouse(frame) end
             Scale(window, frame)
@@ -326,7 +355,7 @@ end
 local function NewFrame(window)
     for _, name in ipairs(window.frames) do
         local frame = _G[name]
-        if frame and not hooked[frame] and (window.scaleOnly or frame:GetParent() == UIParent) then
+        if frame and not hooked[frame] and OnScreen(window, frame) then
             return true
         end
     end

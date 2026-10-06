@@ -6,15 +6,15 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
--- value -> { anchor, x offset, y offset }; "default" leaves Blizzard alone.
--- The X/Y offset settings are added on top.
+-- side -> { anchor, x offset, y offset }; the X/Y offset settings are added
+-- on top.
 local ANCHORS = {
-    cursorRight = { "ANCHOR_CURSOR_RIGHT", 24, -8 },
-    cursorLeft  = { "ANCHOR_CURSOR_LEFT", -24, -8 },
+    right = { "ANCHOR_CURSOR_RIGHT", 24, -8 },
+    left  = { "ANCHOR_CURSOR_LEFT", -24, -8 },
 }
 
 local function CursorAnchor()
-    return ANCHORS[ns.Get("tooltipAnchor")]
+    return ns.Get("tooltipCursor") and ANCHORS[ns.Get("tooltipCursorSide")]
 end
 
 hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip, parent)
@@ -33,20 +33,31 @@ hooksecurefunc(GameTooltip, "FadeOut", function(self)
 end)
 
 ns.RegisterFeature({
-    key = "tooltipAnchor", type = "dropdown", default = "cursorRight",
-    tooltip = "Where tooltips show; a button's tooltip stays by its button",
+    key = "tooltipCursor", type = "dropdown", default = true,
+    tooltip = "A button's tooltip always stays by its button",
     label = "Where tooltips appear", section = "Tooltip", category = "Position",
     options = function()
         return {
-            { value = "default",     label = "Blizzard default" },
-            { value = "cursorRight", label = "Right of cursor" },
-            { value = "cursorLeft",  label = "Left of cursor" },
+            { value = true,  label = "Anchored to cursor" },
+            { value = false, label = "Blizzard default" },
         }
     end,
 })
--- The box is the cursor; the dot moves the tooltip from its usual spot beside it.
-ns.RegisterPositionSettings({
-    prefix = "tooltip", label = "Offset from cursor", button = "Offset from cursor",
-    section = "Tooltip", category = "Position",
-    x = { -100, 100, 0 }, y = { -100, 100, 0 }, box = { -3, 3, -3, 3 }, scale = 1,
+ns.RegisterFeature({
+    key = "tooltipCursorSide", type = "dropdown", default = "right", beside = true,
+    label = "Side of cursor", section = "Tooltip", category = "Position", requires = "tooltipCursor",
+    options = function()
+        return {
+            { value = "left",  label = "Left" },
+            { value = "right", label = "Right" },
+        }
+    end,
+})
+ns.RegisterFeature({
+    key = "tooltipOffsetX", label = "X offset", section = "Tooltip", category = "Position",
+    type = "slider", min = -100, max = 100, step = 1, default = 0, requires = "tooltipCursor",
+})
+ns.RegisterFeature({
+    key = "tooltipOffsetY", label = "Y offset", section = "Tooltip", category = "Position",
+    type = "slider", min = -100, max = 100, step = 1, default = 0, requires = "tooltipCursor", beside = true,
 })

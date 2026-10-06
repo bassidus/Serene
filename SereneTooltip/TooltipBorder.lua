@@ -117,7 +117,7 @@ ns.RegisterFeature({
     apply = function() GameTooltipStatusBar:SetAlpha(ns.Enabled("tooltipHealthBar") and 1 or 0) end,
 })
 ns.RegisterFeature({
-    key = "tooltipBorder", label = "Show border", section = "Tooltip", category = "Settings",
+    key = "tooltipBorder", label = "Show border", section = "Tooltip", category = "Settings", default = false,
     beside = true, apply = Apply,
 })
 ns.RegisterFeature({

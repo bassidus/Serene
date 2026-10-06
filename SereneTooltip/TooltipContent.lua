@@ -402,7 +402,7 @@ for _, def in ipairs({
     { key = "tooltipGuild",           label = "Show guild" },
     { key = "tooltipGuildRank",       label = "Show guild rank", beside = true, requires = "tooltipGuild" },
     { key = "tooltipItemLevel",       label = "Show item level" },
-    { key = "tooltipPlayerItemLevel", label = "Show player item level", default = false, beside = true },
+    { key = "tooltipPlayerItemLevel", label = "Show player item level", beside = true },
     { key = "tooltipTarget",          label = "Show target" },
     { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
 }) do

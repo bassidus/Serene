@@ -33,11 +33,17 @@ local BRONZE = { [7948326] = true, [8154526] = true, [8119721] = true, [8200846]
 
 local bronze = {}  -- [texture] = true, every bronze texture found
 
-local DARK = 0.6
+local DARK = 0.4
+-- The bag slots' rims are a brighter gold than the rest and need more to
+-- match.
+local DARK_BAGS = 0.25
 
 local function Paint(tex)
     local dark = ns.Get("darkMode")
-    local v = dark and DARK or 1
+    local v = 1
+    if dark then
+        v = (tex:GetAtlas() or ""):lower():find("iconframe-bags", 1, true) and DARK_BAGS or DARK
+    end
     tex:SetDesaturated(dark)
     tex:SetVertexColor(v, v, v)
 end
@@ -63,12 +69,42 @@ local function Collect(frame)
     for _, child in ipairs({ frame:GetChildren() }) do Collect(child) end
 end
 
+-- An empty bag slot shows bronze in its icon texture, which turns into the
+-- bag's icon once a bag is equipped there.
+local EMPTY_BAG = 4760248
+local BAG_SLOTS = { "CharacterBag0Slot", "CharacterBag1Slot", "CharacterBag2Slot", "CharacterBag3Slot", "CharacterReagentBag0Slot" }
+
+local emptySlots = {}  -- [icon texture] = true while it shows EMPTY_BAG
+local painting  -- PaintSlot's own color calls also run its hooks
+
+local function PaintSlot(tex)
+    if painting then return end
+    painting = true
+    if tex:GetTexture() == EMPTY_BAG then
+        emptySlots[tex] = true
+        Paint(tex)
+    elseif emptySlots[tex] then
+        emptySlots[tex] = nil
+        tex:SetDesaturated(false)
+        tex:SetVertexColor(1, 1, 1)
+    end
+    painting = false
+end
+
 local function ApplyArt()
     if ns.Get("darkMode") and not next(bronze) then
         for _, frame in ipairs({ MainActionBar, BagsBar, MicroMenuContainer }) do Collect(frame) end
         EachButton(Collect)
+        -- Blizzard's bag update resets the icon's color after login.
+        for _, name in ipairs(BAG_SLOTS) do
+            local icon = _G[name .. "IconTexture"]
+            hooksecurefunc(icon, "SetTexture", PaintSlot)
+            hooksecurefunc(icon, "SetDesaturated", PaintSlot)
+            hooksecurefunc(icon, "SetVertexColor", PaintSlot)
+        end
     end
     for tex in pairs(bronze) do Paint(tex) end
+    for _, name in ipairs(BAG_SLOTS) do PaintSlot(_G[name .. "IconTexture"]) end
 end
 
 -- Its setting is registered with the keybind ones (Keybinds.lua).

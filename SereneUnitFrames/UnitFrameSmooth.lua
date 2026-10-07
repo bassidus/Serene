@@ -41,7 +41,9 @@ local function Mirror(stock)
         end
     end
     ov:SetStatusBarDesaturated(stock:IsStatusBarDesaturated())
-    ov:SetStatusBarColor(stock:GetStatusBarColor())
+    -- Not the alpha: once Blizzard's fill is hidden it reads back as 0.
+    local r, g, b = stock:GetStatusBarColor()
+    ov:SetStatusBarColor(r, g, b)
     ns.SetHidden(src, enabled[stock])
 end
 

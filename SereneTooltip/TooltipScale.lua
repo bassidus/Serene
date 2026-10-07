@@ -15,7 +15,7 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "tooltipScale", label = "Scale", section = "Tooltip", category = "Settings",
-    type = "slider", beside = true,
+    key = "tooltipScale", label = "Scale", section = "Tooltip", category = "Appearance",
+    type = "slider",
     min = 50, max = 150, step = 5, default = 100, suffix = "%", apply = Apply,
 })

@@ -33,8 +33,9 @@ local function Apply()
 end
 
 ns.RegisterFontSettings({
-    prefix = "tooltip", label = "Font", section = "Tooltip", category = "Settings", apply = Apply,
-    size = { 8, 20, 10 }, outline = "default", button = "Font",
+    prefix = "tooltip", label = "Font", section = "Tooltip", category = "Appearance", apply = Apply,
+    beside = true,
+    size = { 8, 20, 10 }, outline = "default", button = "Font settings",
     blizzard = function()
         local orig = original.GameTooltipText
         return ns.OutlineOf(orig.flags, orig.sx, orig.sy)

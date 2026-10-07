@@ -33,8 +33,8 @@ end)
 
 ns.RegisterFeature({
     key = "tooltipCursor", type = "dropdown", default = true, space = true,
-    tooltip = "Where tooltips appear",
-    label = "Anchor", section = "Tooltip", category = "Position",
+    tooltip = "Where tooltips appear and how they look",
+    label = "Anchor", section = "Tooltip", category = "Appearance",
     options = function()
         return {
             { value = true,  label = "Cursor" },
@@ -44,7 +44,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "tooltipCursorSide", type = "dropdown", default = "right", beside = true,
-    label = "Alignment", section = "Tooltip", category = "Position", requires = "tooltipCursor",
+    label = "Alignment", section = "Tooltip", category = "Appearance", requires = "tooltipCursor",
     options = function()
         return {
             { value = "left",  label = "Left" },
@@ -53,10 +53,10 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "tooltipOffsetX", label = "X offset", section = "Tooltip", category = "Position",
+    key = "tooltipOffsetX", label = "X offset", section = "Tooltip", category = "Appearance",
     type = "slider", min = -100, max = 100, step = 1, default = 0, requires = "tooltipCursor",
 })
 ns.RegisterFeature({
-    key = "tooltipOffsetY", label = "Y offset", section = "Tooltip", category = "Position",
+    key = "tooltipOffsetY", label = "Y offset", section = "Tooltip", category = "Appearance",
     type = "slider", min = -100, max = 100, step = 1, default = 0, requires = "tooltipCursor", beside = true,
 })

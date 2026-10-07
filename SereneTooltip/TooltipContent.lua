@@ -426,23 +426,22 @@ hooksecurefunc(GameTooltipStatusBar, "Show", function(bar)
 end)
 
 -------------------------------------------------------------------------------
--- In pairs, the second beside the first. Show DND pairs with Show border
--- from TooltipBorder.lua.
+-- In pairs, the second beside the first.
 for _, def in ipairs({
-    { key = "tooltipTitles",          label = "Show title",
-      tooltip = "What tooltips show and how they look" },
-    { key = "tooltipFaction",         label = "Show faction", beside = true },
-    { key = "tooltipGuild",           label = "Show guild" },
-    { key = "tooltipGuildRank",       label = "Show guild rank", beside = true, requires = "tooltipGuild" },
-    { key = "tooltipItemLevel",       label = "Show item level" },
-    { key = "tooltipPlayerItemLevel", label = "Show player item level", beside = true },
-    { key = "tooltipTarget",          label = "Show target" },
-    { key = "tooltipHealthBar",       label = "Show health bar", beside = true,
+    { key = "tooltipTitles",          label = "Player title",
+      tooltip = "What tooltips show" },
+    { key = "tooltipFaction",         label = "Faction", beside = true },
+    { key = "tooltipGuild",           label = "Guild name" },
+    { key = "tooltipGuildRank",       label = "Guild rank", beside = true, requires = "tooltipGuild" },
+    { key = "tooltipItemLevel",       label = "Item level" },
+    { key = "tooltipHealthBar",       label = "Health bar", beside = true,
       apply = function() GameTooltipStatusBar:SetAlpha(ns.Get("tooltipHealthBar") and 1 or 0) end },
-    { key = "tooltipAFK",             label = "Show AFK" },
-    { key = "tooltipIDs",             label = "Show spell & item IDs", default = false, beside = true },
-    { key = "tooltipDND",             label = "Show DND" },
+    { key = "tooltipPlayerItemLevel", label = "Player item level" },
+    { key = "tooltipAFK",             label = "AFK", beside = true },
+    { key = "tooltipTarget",          label = "Target of target" },
+    { key = "tooltipDND",             label = "DND", beside = true },
+    { key = "tooltipIDs",             label = "Spell & Item ID", default = false },
 }) do
-    def.section, def.category = "Tooltip", "Settings"
+    def.section, def.category = "Tooltip", "Content"
     ns.RegisterFeature(def)
 end

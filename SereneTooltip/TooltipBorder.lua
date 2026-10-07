@@ -103,11 +103,11 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "tooltipBorder", label = "Show border", section = "Tooltip", category = "Settings", default = false,
-    beside = true, apply = Apply,
+    key = "tooltipBgOpacity", label = "Opacity", section = "Tooltip", category = "Appearance",
+    type = "slider", beside = true,
+    min = 0, max = 100, step = 5, default = 90, apply = Apply,
 })
 ns.RegisterFeature({
-    key = "tooltipBgOpacity", label = "Opacity", section = "Tooltip", category = "Settings",
-    type = "slider", space = true,
-    min = 0, max = 100, step = 5, default = 90, apply = Apply,
+    key = "tooltipBorder", label = "Show border", section = "Tooltip", category = "Appearance", default = false,
+    apply = Apply,
 })

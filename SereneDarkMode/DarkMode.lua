@@ -64,7 +64,13 @@ ns.AddDarkArtNow = Collect
 -------------------------------------------------------------------------------
 local ICON = 0.7  -- items and spells keep their colors, a little darker
 
-function ns.DimIcon() return ICON end
+-- Only an icon in its plain color: the colors Blizzard and Range Coloring
+-- give it (out of range, out of mana, unusable) stay as they are, or the
+-- dimming muddies them.
+function ns.DimIcon(c)
+    -- A color read back with GetVertexColor need not be exactly 1.
+    return (c[1] > 0.99 and c[2] > 0.99 and c[3] > 0.99) and ICON or 1
+end
 
 local tints = {}  -- [texture] = { color = Blizzard's { r, g, b, a }, factor =, isEmpty =, emptied = }
 local painting  -- Tint's own calls also run its hooks

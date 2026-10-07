@@ -10,11 +10,11 @@ local SECTION = ns.SECTION
 ns.RegisterFeature({
     key = "unitFrameClassColors", label = "Show class colors", section = SECTION, category = "All frames",
     tooltip = "Every unit frame: player, target, focus, their targets, pet and party",
-    default = false, apply = ns.ApplyClassColors,
+    default = true, apply = ns.ApplyClassColors,
 })
 ns.RegisterFeature({
     key = "unitFrameSmoothBars", label = "Use smooth bars", section = SECTION, category = "All frames",
-    beside = true, default = false, apply = ns.ApplySmoothBars,
+    beside = true, default = true, apply = ns.ApplySmoothBars,
 })
 ns.RegisterFeature({
     key = "unitFrameHideHits", label = "Hide damage numbers", section = SECTION, category = "All frames",
@@ -74,6 +74,6 @@ for _, unit in ipairs({
 }) do
     ns.RegisterFeature({
         key = "unitFrameNumbersHide" .. unit[1], label = unit[1], section = SECTION, category = "Status numbers",
-        sub = HIDE, beside = unit[2], default = false, apply = ns.ApplyNumbersHide,
+        sub = HIDE, closed = true, beside = unit[2], default = false, apply = ns.ApplyNumbersHide,
     })
 end

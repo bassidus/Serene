@@ -15,7 +15,7 @@
 *   **Nameplates:** flat enemy plates with threat colors, cast bars, debuffs, combo points and quest progress
 *   **Move & Scale:** drag Blizzard's windows anywhere, Ctrl + scroll to resize them
 *   **Tooltip:** follows the cursor, has a cleaner look and adds the target, item level and guild rank
-*   **Unit Frames:** class colors, dark frames, options for the name, level and health text
+*   **Unit Frames:** class colors, smooth bars, fonts and health text, plus a few player frame tweaks
 
 ## <span style="color: #f65820;">Quality of Life</span>
 

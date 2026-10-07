@@ -26,7 +26,6 @@ local PAGE_W = WIDTH - PAGE_X - INSET - 2 * PAGE_PAD
 -- so a lone one lines up with the pairs around it.
 W.CONTROL_W = (PAGE_W - 2 * GROUP_PAD - SPACING) / 2
 local HEADER_H = 30   -- a settings page's title, which stays put while the rest scrolls
-local VIEW_W = 160    -- the view dropdown beside the title
 local SCROLL_STEP = 40
 local MODULES = "Modules"  -- the page and tab of the addon list
 local MAX_SCREEN = 0.45 -- the window's height at most, as a share of the screen's
@@ -351,29 +350,14 @@ local function CreateAddonToggle(page, module)
     return box
 end
 
-local function Contains(list, value)
-    for _, v in ipairs(list) do
-        if v == value then return true end
-    end
-    return false
-end
-
--- Whether a setting shows in a page's view (nil on a page without views).
-local function InView(f, view)
-    if f.view == nil then return true end
-    if type(f.view) == "table" then return Contains(f.view, view) end
-    return f.view == view
-end
-
 -- The help texts of a category's settings, for its "?", in registration
 -- order, a color's specials as "Name: text" under its own. Each reads on its
 -- own: the settings' labels are not repeated there.
 -- With sub, the help of that subgroup; without, the category's own settings.
-local function CategoryHelp(section, category, sub, view)
+local function CategoryHelp(section, category, sub)
     local help = {}
     for _, f in ipairs(ns.features) do
-        if f.section == section and f.category == category and f.sub == sub
-           and InView(f, view) then
+        if f.section == section and f.category == category and f.sub == sub then
             local lines = {}
             if f.tooltip then lines[1] = f.tooltip end
             for _, s in ipairs(f.specials or {}) do
@@ -507,11 +491,10 @@ local function CreateModulesPage()
     return page
 end
 
--- The section's settings in a view with each category's gathered together,
--- the categories in the page's order (ns.SetCategoryOrder), then in the
--- order they first appear. A font group is one row,
--- at its first setting, and its color goes with it.
-local function SectionFeatures(section, view)
+-- The section's settings with each category's gathered together, the
+-- categories in the order they first appear. A font group is one row, at
+-- its first setting, and its color goes with it.
+local function SectionFeatures(section)
     local inGroup = {}
     for _, f in ipairs(ns.features) do
         if f.group then
@@ -520,8 +503,7 @@ local function SectionFeatures(section, view)
     end
     local order, byCategory = {}, {}
     for _, f in ipairs(ns.features) do
-        if f.section == section and not inGroup[f.key] and (not f.group or f == f.group.font)
-           and InView(f, view) then
+        if f.section == section and not inGroup[f.key] and (not f.group or f == f.group.font) then
             local category = f.category or ""
             if not byCategory[category] then
                 byCategory[category] = {}
@@ -530,15 +512,6 @@ local function SectionFeatures(section, view)
             table.insert(byCategory[category], f)
         end
     end
-    local named = {}
-    for i, category in ipairs(ns.categoryOrders[section] or {}) do named[category] = i end
-    local seen = {}
-    for i, category in ipairs(order) do seen[category] = i end
-    table.sort(order, function(a, b)
-        local na, nb = named[a] or math.huge, named[b] or math.huge
-        if na ~= nb then return na < nb end
-        return seen[a] < seen[b]
-    end)
     local list = {}
     for _, category in ipairs(order) do
         for _, f in ipairs(byCategory[category]) do list[#list + 1] = f end
@@ -569,44 +542,15 @@ end
 -- subgroup (settings with sub) is a smaller frame inside its category that
 -- opens and closes the same way ("<section>/<category>/<sub>"). A change
 -- lays the page out again.
--- A page with views (ns.SetPageViews) has a dropdown beside its title and
--- lays out only the picked view's settings (SereneDB.optionsView); a
--- category is open or closed in every view alike.
 local function CreatePage(section)
     local page = CreatePageFrame(section)
     CreatePageReset(page, section)
     local content = AddScrolling(page)
-    local views = ns.pageViews[section]
     local half = (PAGE_W - SPACING) / 2
 
-    local measuring  -- the view laid out while the page is measured
-    local function View()
-        if not views then return nil end
-        if measuring then return measuring end
-        local v = (SereneDB.optionsView or {})[section]
-        return Contains(views, v) and v or views[1]
-    end
-
-    -- [view] = its settings and side-by-side categories, worked out once.
     -- Two categories side by side open and close together.
-    local layouts = {}
-    local column, partner  -- of the view being laid out
-    local function ViewLayout(view)
-        local k = view or ""
-        if not layouts[k] then
-            local list = SectionFeatures(section, view)
-            local c, p = Columns(list)
-            layouts[k] = { list = list, column = c, partner = p }
-        end
-        return layouts[k]
-    end
-
-    -- A category beside another in any view keeps its half of the row in a
-    -- view where it stands alone, so the views look alike.
-    local sides = views and {} or ViewLayout(nil).column
-    for _, view in ipairs(views or {}) do
-        for category, side in pairs(ViewLayout(view).column) do sides[category] = side end
-    end
+    local list = SectionFeatures(section)
+    local column, partner = Columns(list)
 
     -- From the first registered setting, which list may leave out (a font
     -- group's color shows in its editor).
@@ -629,14 +573,12 @@ local function CreatePage(section)
     end
 
     local Layout
-    local groups = {}  -- "<view>/<key>" -> its frame, made once
+    local groups = {}  -- key -> its frame, made once
 
     local function Group(category, sub)
-        local view = View()
         local key = sub and category .. "/" .. sub or category
-        local id = (view or "") .. "/" .. key
-        if not groups[id] then
-            groups[id] = CreateGroup(content, sub or category, function()
+        if not groups[key] then
+            groups[key] = CreateGroup(content, sub or category, function()
                 SereneDB.optionsOpen = SereneDB.optionsOpen or {}
                 local open = not Open(key)
                 SereneDB.optionsOpen[section .. "/" .. key] = open
@@ -645,32 +587,10 @@ local function CreatePage(section)
                 end
                 W.ClosePopups()
                 Layout()
-            end, CategoryHelp(section, category, sub, view))
-            groups[id].category, groups[id].sub, groups[id].key = category, sub, key
+            end, CategoryHelp(section, category, sub))
+            groups[key].category, groups[key].sub, groups[key].key = category, sub, key
         end
-        return groups[id]
-    end
-
-    if views then
-        local picker = W.Dropdown(page, {
-            label = section, hideLabel = true,
-            options = function()
-                local list = {}
-                for i, v in ipairs(views) do list[i] = { value = v, label = v } end
-                return list
-            end,
-            get = View,
-            set = function(v)
-                SereneDB.optionsView = SereneDB.optionsView or {}
-                SereneDB.optionsView[section] = v
-                Layout()
-                ns.RefreshOptions()
-            end,
-        })
-        widgets[#widgets + 1] = picker
-        picker:SetWidth(VIEW_W)
-        -- The button, at the top of its 30-high holder, level with the title.
-        picker:SetPoint("TOPLEFT", page.header, "RIGHT", 16, 12)
+        return groups[key]
     end
 
     local made = {}  -- feature -> { control, note }, made once
@@ -705,15 +625,6 @@ local function CreatePage(section)
 
     -- Returns the content's height.
     function Layout()
-        local l = ViewLayout(View())
-        local list = l.list
-        column, partner = l.column, l.partner
-        -- Other views' settings and frames stay hidden.
-        for _, g in pairs(groups) do g:Hide() end
-        for _, m in pairs(made) do
-            m[1]:Hide()
-            if m[2] then m[2]:Hide() end
-        end
         -- gap: the space left under the last setting, which a group's frame
         -- takes back so it closes snugly below it.
         local y, gap, group, sub = -(36 - HEADER_H), 0, nil, nil
@@ -760,7 +671,7 @@ local function CreatePage(section)
                 if group then y = Close() end
                 group, right = nil, false
                 if f.category then
-                    local col, start = sides[f.category], y
+                    local col, start = column[f.category], y
                     group = Group(f.category)
                     group:Show()
                     y = PlaceGroup(group, y, col == "right" and half + SPACING or 0, col == "left" and half + SPACING or 0)
@@ -824,15 +735,10 @@ local function CreatePage(section)
         return -y
     end
 
-    -- The window is sized for the page's tallest view with everything open.
+    -- The window is sized for the page with everything open.
     allOpen = true
-    local tallest = 0
-    for _, view in ipairs(views or { false }) do
-        measuring = view or nil
-        tallest = math.max(tallest, Layout())
-    end
-    measuring, allOpen = nil, nil
-    page.contentHeight = HEADER_H + tallest
+    page.contentHeight = HEADER_H + Layout()
+    allOpen = nil
     Layout()
     page.Layout = Layout
     page:Hide()

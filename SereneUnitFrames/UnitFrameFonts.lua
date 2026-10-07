@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
---  Unit Frame Fonts -- font, size and outline of the names, the level and
---  the health/mana text on the unit frames, each its own group on each
---  frame's page. Sizes are relative to each text's own size, so the two
---  targets of targets keep theirs apart; the size setting's default is the
---  page's own frame's size.
+--  Unit Frame Fonts -- font, size and outline in two groups: the names and
+--  levels, and the status numbers. Sizes are relative to each text's own
+--  size, so texts of different sizes keep their difference; the size
+--  setting's default is the player frame's.
 --  Blizzard's look is captured on first touch and put back exactly once a
 --  group is on its defaults again.
 -------------------------------------------------------------------------------
@@ -14,48 +13,28 @@ local function SizeOf(fs)
     return math.floor(size + 0.5)
 end
 
--- [page] = its groups, for the texts its frames have. A size counts from
--- the page's own frame.
-local groupsOf = {}
-for _, page in ipairs(ns.FramePages()) do
-    local frame = page.frames[1]
-    local p = ns.UnitFrameParts(frame)
-    local list = {
-        { kind = "name", prefix = page.key.Name, label = "Name text", category = "Name",
-          base = SizeOf(p.name), color = page.key.NameColor },
-    }
-    if p.levelText then
-        list[#list + 1] = { kind = "level", prefix = page.key.Level, label = "Level text", category = "Level",
-                            base = SizeOf(p.levelText), color = page.key.LevelColor }
-    end
-    if frame.healthbar.TextString then
-        list[#list + 1] = { kind = "bar", prefix = page.key.Bar, label = "Health/mana font",
-                            category = "Health & mana", base = SizeOf(frame.healthbar.TextString) }
-    end
-    for _, g in ipairs(list) do
-        g.fontKey, g.sizeKey, g.outlineKey = g.prefix .. "Font", g.prefix .. "FontSize", g.prefix .. "Outline"
-        g.isDefault = true  -- until Apply reads the settings
-    end
-    groupsOf[page] = list
+local player = ns.UnitFrameParts(PlayerFrame)
+local GROUPS = {
+    { prefix = "unitFrame", label = "Name and level", base = SizeOf(player.name) },
+    { prefix = "unitFrameNumbers", label = "Status numbers", base = SizeOf(PlayerFrame.healthbar.TextString) },
+}
+local names, numbers = GROUPS[1], GROUPS[2]
+for _, g in ipairs(GROUPS) do
+    g.fontKey, g.sizeKey, g.outlineKey = g.prefix .. "Font", g.prefix .. "FontSize", g.prefix .. "Outline"
+    g.isDefault = true  -- until Apply reads the settings
 end
 
--- The font strings of a frame, per group; built once, since target of
--- target styles itself every frame.
+-- [frame] = { [group] = its font strings }
 local strings = {}
-
-local function Strings(frame)
-    if strings[frame] then return strings[frame] end
+for _, frame in ipairs(ns.UnitFrames()) do
     local p = ns.UnitFrameParts(frame)
-    local bars = {}
+    local barTexts = {}
     for _, bar in ipairs(p.bars) do
-        bars[#bars + 1] = bar.TextString
-        bars[#bars + 1] = bar.LeftText
-        bars[#bars + 1] = bar.RightText
+        barTexts[#barTexts + 1] = bar.TextString
+        barTexts[#barTexts + 1] = bar.LeftText
+        barTexts[#barTexts + 1] = bar.RightText
     end
-    local of = { name = { p.name }, level = { p.levelText }, bar = bars }
-    strings[frame] = {}
-    for _, g in ipairs(groupsOf[ns.FramePage(frame)]) do strings[frame][g] = of[g.kind] end
-    return strings[frame]
+    strings[frame] = { [names] = { p.name, p.levelText }, [numbers] = barTexts }
 end
 
 local orig = {}  -- [font string] = Blizzard's look (ns.FontState)
@@ -80,7 +59,7 @@ local function StyleString(fs, g)
 end
 
 local function Style(frame)
-    for g, list in pairs(Strings(frame)) do
+    for g, list in pairs(strings[frame]) do
         for _, fs in pairs(list) do
             -- Untouched strings on their defaults need nothing.
             if orig[fs] or not g.isDefault then StyleString(fs, g) end
@@ -89,27 +68,25 @@ local function Style(frame)
 end
 
 local function Apply()
-    for _, list in pairs(groupsOf) do
-        for _, g in ipairs(list) do ReadSettings(g) end
-    end
+    for _, g in ipairs(GROUPS) do ReadSettings(g) end
     for _, frame in ipairs(ns.UnitFrames()) do Style(frame) end
 end
 
 hooksecurefunc("UnitFrame_Update", function(frame)
-    if ns.FramePage(frame) then Style(frame) end
+    if ns.IsUnitFrame(frame) then Style(frame) end
 end)
 
-for _, page in ipairs(ns.FramePages()) do
-    for _, g in ipairs(groupsOf[page]) do
-        ns.RegisterFontSettings({
-            prefix = g.prefix, label = g.label, section = page.section, view = page.view,
-            category = g.category, apply = Apply,
-            size = { 6, 24, g.base }, outline = "default", color = g.color, button = "Font",
-            blizzard = function()
-                local fs = Strings(page.frames[1])[g][1]
-                local o = orig[fs] or ns.FontState(fs)
-                return ns.OutlineOf(o.flags, o.sx, o.sy)
-            end,
-        })
+-- def: the rest of the group's RegisterFontSettings fields.
+local function Register(g, def)
+    def.prefix, def.label, def.apply = g.prefix, g.label, Apply
+    def.size, def.outline, def.button = { 6, 24, g.base }, "default", "Font settings"
+    def.blizzard = function()
+        local fs = strings[PlayerFrame][g][1]
+        local o = orig[fs] or ns.FontState(fs)
+        return ns.OutlineOf(o.flags, o.sx, o.sy)
     end
+    ns.RegisterFontSettings(def)
 end
+
+function ns.RegisterNameFont(def) Register(names, def) end
+function ns.RegisterNumbersFont(def) Register(numbers, def) end

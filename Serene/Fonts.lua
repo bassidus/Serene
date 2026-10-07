@@ -40,7 +40,7 @@ end
 -- "<prefix>FontSize", "<prefix>Outline") as one group: the options window
 -- shows it as a single row that opens an editor for all three. The typeface
 -- starts on "default", Blizzard's.
--- def = { prefix =, label = row name, section =, view =, category =, apply =,
+-- def = { prefix =, label = row name, section =, category =, apply =,
 --         size = { min, max, default },
 --         outline = default outline value ("default" offers Blizzard's own look),
 --         blizzard = see type "outline" in Core.lua,
@@ -54,20 +54,20 @@ end
 function ns.RegisterFontSettings(def)
     local group = { label = def.label, color = def.color, button = def.button }
     group.font = {
-        key = def.prefix .. "Font", label = "Font", section = def.section, view = def.view,
+        key = def.prefix .. "Font", label = "Font", section = def.section,
         category = def.category, type = "dropdown",
         default = "default", preview = true, apply = def.apply, options = ns.FontOptions, group = group,
         requires = def.requires, beside = def.beside, space = def.space,
     }
     group.size = {
-        key = def.prefix .. "FontSize", label = "Size", section = def.section, view = def.view,
+        key = def.prefix .. "FontSize", label = "Size", section = def.section,
         category = def.category, type = "slider",
         min = def.size[1], max = def.size[2], step = 1, default = def.size[3], apply = def.apply, group = group,
         requires = def.requires,
     }
     group.outline = {
         key = def.prefix .. "Outline", label = "Outline",
-        section = def.section, view = def.view, category = def.category, type = "outline",
+        section = def.section, category = def.category, type = "outline",
         default = def.outline, blizzard = def.blizzard, apply = def.apply, group = group,
         requires = def.requires,
     }

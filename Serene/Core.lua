@@ -16,10 +16,7 @@ ns.featureByKey = {}
 --   key        SereneDB key
 --   label      display name
 --   section    options page; none for a setting the window places itself
---   view       on a page with views (ns.SetPageViews): the view it shows in, or
---              a list of them; without, it shows in every view
 --   category   heading on its page; categories keep their first-seen order
---              (or ns.SetCategoryOrder)
 --   sub        a subgroup heading inside the category, a frame of its own
 --              that opens and closes; keep a subgroup's settings together
 --   tooltip    help text under the category's "?" (on hover without a category)
@@ -39,19 +36,12 @@ ns.featureByKey = {}
 --   space      an empty row above the control
 --   closed     on a category's (or subgroup's) first setting: it starts closed
 --   beside     on a category's first setting: that category goes right of the
---              previous one at half width (on a page with views, it keeps
---              that half in a view without the other); otherwise: right of
---              the previous setting
+--              previous one at half width; otherwise: right of the previous
+--              setting
 --   button     a plain button with this text in place of the field
 --   requires   key (or list) of booleans; dimmed and locked while any is off
 --              ("!key": while it is on)
 --   addon      the Serene* addon that does the work; locked while not loaded
---   links      keys of settings this one stands for (e.g. one for every unit
---              frame): it has no value or apply of its own, a change goes to
---              each of them, and it reads as theirs while they agree; when
---              they don't, a checkbox reads off and the rest as the first's.
---              A slider moves each from its own default, so different
---              sizes keep their difference
 --   group      set by RegisterFontSettings
 function ns.RegisterFeature(def)
     def.type = def.type or "boolean"
@@ -60,46 +50,11 @@ function ns.RegisterFeature(def)
     ns.featureByKey[def.key] = def
 end
 
--- A page that shows one view at a time (e.g. one unit frame's settings),
--- picked in a dropdown beside its title: views = { "Player", ... } in the
--- dropdown's order, the first shown until another is picked.
-ns.pageViews = {}
-function ns.SetPageViews(section, views)
-    ns.pageViews[section] = views
-end
-
--- The order of a page's categories when registration order can't give it
--- (settings from several files): categories = { "Appearance", ... }; any
--- not named follow in their first-seen order.
-ns.categoryOrders = {}
-function ns.SetCategoryOrder(section, categories)
-    ns.categoryOrders[section] = categories
-end
-
--- A slider link's value as the linking setting counts it.
-local function LinkValue(f, key)
-    local v = ns.Get(key)
-    if f.type == "slider" then v = v - ns.featureByKey[key].default + f.default end
-    return v
-end
-
-local function LinkedValue(f)
-    local first = LinkValue(f, f.links[1])
-    for i = 2, #f.links do
-        if LinkValue(f, f.links[i]) ~= first then
-            if f.type == "boolean" then return false end
-            return first
-        end
-    end
-    return first
-end
-
 -- A setting's value; its default until it is set.
 function ns.Get(key)
     local v = SereneDB[key]
     if v ~= nil then return v end
     local f = ns.featureByKey[key]
-    if f and f.links then return LinkedValue(f) end
     return f and f.default
 end
 
@@ -107,27 +62,8 @@ end
 -- the options window.
 function ns.SetValue(key, value)
     local f = ns.featureByKey[key]
-    if f and f.links then
-        for _, link in ipairs(f.links) do
-            local l = ns.featureByKey[link]
-            local v = value
-            if f.type == "slider" then v = math.min(l.max, math.max(l.min, v - f.default + l.default)) end
-            SereneDB[link] = v
-        end
-        -- Links often share one apply that redraws them all, so it runs
-        -- once, after every value is in.
-        local applied = {}
-        for _, link in ipairs(f.links) do
-            local l = ns.featureByKey[link]
-            if l.apply and not applied[l.apply] then
-                applied[l.apply] = true
-                l.apply()
-            end
-        end
-    else
-        SereneDB[key] = value
-        if f and f.apply then f.apply() end
-    end
+    SereneDB[key] = value
+    if f and f.apply then f.apply() end
     if ns.RefreshOptions then ns.RefreshOptions() end
 end
 
@@ -172,7 +108,7 @@ end
 function ns.ResetDefaults(section, quiet)
     local function Included(s) return not section or s == section end
     for _, f in ipairs(ns.features) do
-        if Included(f.section) and not f.links then SereneDB[f.key] = f.default end
+        if Included(f.section) then SereneDB[f.key] = f.default end
     end
     for _, hook in ipairs(ns.resetHooks) do
         if Included(hook.section) then hook.fn() end
@@ -189,13 +125,12 @@ function ns.ResetDefaults(section, quiet)
     end
 end
 
--- /serene reset: every option, the options window's spot, size, page, views
+-- /serene reset: every option, the options window's spot, size, page
 -- and open categories (SereneOptions, which is load on demand, so cleared
 -- here) and the ns.OnResetAll state.
 function ns.ResetAll()
     ns.ResetDefaults(nil, true)
     SereneDB.optionsWindow, SereneDB.optionsPage, SereneDB.optionsOpen = nil, nil, nil
-    SereneDB.optionsView = nil
     for _, fn in ipairs(ns.resetAllHooks) do fn() end
     ns.Print("Everything is back to its defaults, the options window and the minimap icon too.")
 end

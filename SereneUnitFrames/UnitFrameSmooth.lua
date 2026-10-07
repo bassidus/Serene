@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --  Smooth Bars -- health and mana on the player, target, focus, pet and
---  party frames glide to a new value instead of jumping, each frame by its
---  own page's setting. Targets of targets update every frame, so their
---  bars would only ever snap; they are left out.
+--  party frames glide to a new value instead of jumping. Targets of targets
+--  update every frame, so their bars would only ever snap; they are left
+--  out.
 --
 --  Blizzard's bar can't be animated itself (it is set straight to each new
 --  value), so a bar of ours lies on top and follows it: same texture, color,
@@ -13,12 +13,12 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
+local KEY = "unitFrameSmoothBars"
 local SMOOTH = Enum.StatusBarInterpolation.ExponentialEaseOut
-local PAGES = ns.FramePages("player", "target", "focus", "pet", "party")
 
-local keyOf = {}  -- [frame] = its page's setting
-for _, page in ipairs(PAGES) do
-    for _, frame in ipairs(page.frames) do keyOf[frame] = page.key.SmoothBars end
+local FRAMES = {}
+for _, frame in ipairs(ns.UnitFrames()) do
+    if frame ~= TargetFrameToT and frame ~= FocusFrameToT then FRAMES[#FRAMES + 1] = frame end
 end
 
 local overlays = {}  -- [Blizzard's bar] = our bar
@@ -84,9 +84,9 @@ hooksecurefunc("UnitFrame_Update", function(frame)
     Snap(frame.manabar)
 end)
 
-local function Apply()
-    for frame, key in pairs(keyOf) do
-        local on = ns.Get(key) or nil
+function ns.ApplySmoothBars()
+    local on = ns.Get(KEY) or nil
+    for _, frame in ipairs(FRAMES) do
         for _, stock in ipairs({ frame.healthbar, frame.manabar }) do
             enabled[stock] = on
             if on then
@@ -100,12 +100,4 @@ local function Apply()
             end
         end
     end
-end
-
-for _, page in ipairs(PAGES) do
-    ns.RegisterFeature({
-        key = page.key.SmoothBars, label = "Smooth bars", section = page.section, view = page.view,
-        category = "Health & mana",
-        default = false, apply = Apply,
-    })
 end

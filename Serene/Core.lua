@@ -43,6 +43,7 @@ ns.featureByKey = {}
 --              the previous setting
 --   button     a plain button with this text in place of the field
 --   requires   key (or list) of booleans; dimmed and locked while any is off
+--              ("!key": while it is on)
 --   addon      the Serene* addon that does the work; locked while not loaded
 --   links      keys of settings this one stands for (e.g. one for every unit
 --              frame): it has no value or apply of its own, a change goes to
@@ -50,35 +51,12 @@ ns.featureByKey = {}
 --              they don't, a checkbox reads off and the rest as the first's.
 --              A slider moves each from its own default, so different
 --              sizes keep their difference
---   group, pos set by RegisterFontSettings / RegisterPositionSettings
+--   group      set by RegisterFontSettings
 function ns.RegisterFeature(def)
     def.type = def.type or "boolean"
     if def.default == nil and def.type == "boolean" then def.default = true end
     ns.features[#ns.features + 1] = def
     ns.featureByKey[def.key] = def
-end
-
--- Registers X and Y offsets ("<prefix>OffsetX", "<prefix>OffsetY", slider
--- settings) as one pair: the options window shows a button that opens a pad
--- with what they count from drawn to scale and a dot to drag around.
--- def = { prefix =, label = the pad's title, section =, category =, apply =,
---         requires = see RegisterFeature,
---         x = { min, max, default }, y = { min, max, default },
---         box = { left, right, bottom, top } what the offsets count from, in
---         their own units, e.g. a button's { -18, 18, -18, 18 } around its middle }
--- The pad draws 2 pixels per step.
-function ns.RegisterPositionSettings(def)
-    local pos = { label = def.label, box = def.box, button = "Position", scale = 2 }
-    for _, axis in ipairs({ "x", "y" }) do
-        local range = def[axis]
-        pos[axis] = {
-            key = def.prefix .. "Offset" .. axis:upper(), label = def.label,
-            section = def.section, category = def.category, type = "slider",
-            min = range[1], max = range[2], step = 1, default = range[3],
-            requires = def.requires, apply = def.apply, pos = pos,
-        }
-        ns.RegisterFeature(pos[axis])
-    end
 end
 
 -- A page that shows one view at a time (e.g. one unit frame's settings),

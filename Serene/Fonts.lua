@@ -49,12 +49,10 @@ end
 --         requires = see Core.lua; the row is dimmed and locked with it,
 --         button = text for a plain button in place of the row, e.g. "Font"
 --         where the category already names the text; label titles its editor,
---         position = with button: the X key of a ns.RegisterPositionSettings
---         pair, shown as a "Position" button beside it instead of a row,
 --         beside = the row goes right of the previous setting (see Core.lua),
 --         space = an empty row above it }
 function ns.RegisterFontSettings(def)
-    local group = { label = def.label, color = def.color, button = def.button, position = def.position }
+    local group = { label = def.label, color = def.color, button = def.button }
     group.font = {
         key = def.prefix .. "Font", label = "Font", section = def.section, view = def.view,
         category = def.category, type = "dropdown",

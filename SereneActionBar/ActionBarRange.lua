@@ -116,10 +116,5 @@ local function Apply()
     ns.RefreshKeybinds()
 end
 
-local SECTION = "Action Bars"
-
--- Loads after Keybinds.lua, so this comes last under Settings (Zoom button
--- icons from BarExtras.lua sits beside it).
-ns.RegisterFeature({
-    key = "rangeColors", label = "Enable out of range color", section = SECTION, category = "Settings", apply = Apply,
-})
+-- Its setting is registered with the keybind ones (Keybinds.lua).
+ns.ApplyRangeColors = Apply

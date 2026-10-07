@@ -17,9 +17,9 @@ W.TAN       = { 0.69, 0.6, 0.47 }
 W.EDGE      = { 0.4, 0.27, 0.19 }     -- 1px borders of swatches and chips
 W.HIGHLIGHT = { 0.196, 0.388, 0.8 }   -- the quest log's selection blue
 
-local GOLD, TAN, EDGE, WHITE = W.GOLD, W.TAN, W.EDGE, W.WHITE
+local GOLD, EDGE, WHITE = W.GOLD, W.EDGE, W.WHITE
 local GRAY = { 0.5, 0.5, 0.5 }  -- a disabled button's text
-local DARK = { 0, 0, 0, 0.6 }  -- behind chips, swatches and the position pad
+local DARK = { 0, 0, 0, 0.6 }  -- behind chips and swatches
 
 local MEDIA = "Interface\\AddOns\\Serene\\Media\\"
 local ART = {
@@ -291,6 +291,7 @@ end
 -- Dims a widget whose setting depends on a toggle that is off or an addon
 -- that is not loaded; returns whether it can be used.
 local function Met(key)
+    if key:sub(1, 1) == "!" then return not ns.Get(key:sub(2)) end
     return ns.Get(key) and true or false
 end
 
@@ -947,95 +948,6 @@ function W.Slider(parent, f)
 end
 
 -------------------------------------------------------------------------------
---  Position pad -- for a ns.RegisterPositionSettings pair, in the editor
---  W.Position opens: what the offsets count from drawn to scale, a dot
---  where they put the text.
---  Click or drag to move it; right-click puts back the defaults.
--------------------------------------------------------------------------------
-local DOT = 8  -- the dot's size
-
-local function PositionPad(parent, pos)
-    local fx, fy, scale = pos.x, pos.y, pos.scale
-    local holder = CreateFrame("Frame", nil, parent)
-
-    local pad = CreateFrame("Frame", nil, holder)
-    pad:SetSize((fx.max - fx.min) * scale, (fy.max - fy.min) * scale)
-    pad:SetPoint("TOPLEFT", 0, 0)
-    W.Solid(pad, "BACKGROUND", DARK):SetAllPoints()
-    local edges = ns.Border(pad, EDGE)
-    holder:SetHeight(pad:GetHeight())
-
-    -- Offset units -> pixels from the pad's bottom left.
-    local function PX(x) return (x - fx.min) * scale end
-    local function PY(y) return (y - fy.min) * scale end
-
-    local b = pos.box
-    local box = CreateFrame("Frame", nil, pad)
-    box:SetPoint("BOTTOMLEFT", PX(b[1]), PY(b[3]))
-    box:SetSize((b[2] - b[1]) * scale, (b[4] - b[3]) * scale)
-    W.Solid(box, "BACKGROUND", W.LINE, 0.3):SetAllPoints()
-    ns.Border(box, TAN)
-    local home = W.Solid(box, "ARTWORK", TAN)
-    home:SetSize(4, 4)
-    home:SetPoint("CENTER", pad, "BOTTOMLEFT", PX(fx.default), PY(fy.default))
-
-    -- Its own frame, so it draws over the box.
-    local dot = CreateFrame("Frame", nil, pad)
-    dot:SetSize(DOT, DOT)
-    dot:SetFrameLevel(box:GetFrameLevel() + 1)
-    W.Solid(dot, "ARTWORK", GOLD):SetAllPoints()
-
-    local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    valueText:SetPoint("TOPLEFT", pad, "TOPRIGHT", 12, 0)
-    valueText:SetJustifyH("LEFT")
-    local hint = holder:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    hint:SetPoint("TOPLEFT", valueText, "BOTTOMLEFT", 0, -6)
-    hint:SetText("Right-click: default")
-    -- Wide pads (e.g. the tooltip's) widen the editor to fit the readout.
-    holder.width = pad:GetWidth() + 12 + math.ceil(hint:GetStringWidth())
-
-    local function Set(f, v)
-        if v ~= ns.Get(f.key) then ns.SetValue(f.key, v) end
-    end
-    local function Step(v, f)
-        return math.min(f.max, math.max(f.min, math.floor(v + 0.5)))
-    end
-    local function FollowCursor()
-        local ui = pad:GetEffectiveScale()
-        local cx, cy = GetCursorPosition()
-        Set(fx, Step((cx / ui - pad:GetLeft()) / scale + fx.min, fx))
-        Set(fy, Step((cy / ui - pad:GetBottom()) / scale + fy.min, fy))
-    end
-    local function Stop() pad:SetScript("OnUpdate", nil) end
-
-    pad:SetScript("OnMouseDown", function(_, mouse)
-        if mouse == "RightButton" then
-            PlayClick()
-            Set(fx, fx.default)
-            Set(fy, fy.default)
-        else
-            FollowCursor()
-            pad:SetScript("OnUpdate", FollowCursor)
-        end
-    end)
-    pad:SetScript("OnMouseUp", Stop)
-    pad:SetScript("OnHide", Stop)
-    pad:SetScript("OnEnter", function() ns.SetBorderColor(edges, GOLD) end)
-    pad:SetScript("OnLeave", function() ns.SetBorderColor(edges, EDGE) end)
-
-    function holder.Refresh()
-        local x, y = ns.Get(fx.key), ns.Get(fy.key)
-        dot:ClearAllPoints()
-        dot:SetPoint("CENTER", pad, "BOTTOMLEFT", PX(x), PY(y))
-        valueText:SetText("X " .. x .. "\nY " .. y)
-        local on = Available(holder, fx)
-        pad:EnableMouse(on)
-        if not on then Stop() end
-    end
-    return holder
-end
-
--------------------------------------------------------------------------------
 --  Editor -- a popup under a field holding that field's own controls under
 --  a title; shared by font groups and colors. Closes on a click outside it
 --  (its dropdown list and the color picker count as inside) or on the field
@@ -1120,17 +1032,12 @@ local function RefreshEditor(id)
     end
 end
 
-local function OpenPosition(anchor, pos)
-    OpenEditor(anchor, pos, pos.label, function(panel) return { PositionPad(panel, pos) } end)
-end
-
 -------------------------------------------------------------------------------
 --  Font group -- one field for a ns.RegisterFontSettings group: font, size
 --  and outline at a glance, drawn in that font, after a swatch of its color
 --  if it has one; its editor holds the group's own dropdown, slider and
 --  outline controls, and the palette. With group.button the row is just a
---  button reading that, without a label above it, and a "Position" button
---  beside it for the group's position pair.
+--  button reading that, without a label above it.
 -------------------------------------------------------------------------------
 -- "Outline, Shadow"; "No outline" for none.
 local function OutlineLabel(f)
@@ -1153,24 +1060,9 @@ function W.FontGroup(parent, group)
 
     if group.button then
         AsButton(btn, text, arrow, group.button)
-        local pos = group.position and ns.featureByKey[group.position].pos
-        local posHolder, posBtn
-        if pos then
-            local posText, posArrow
-            posHolder, posBtn, posText, posArrow = Field(holder, nil, function(self) OpenPosition(self, pos) end)
-            posHolder:SetPoint("TOPLEFT", btn, "TOPRIGHT", 8, 0)
-            AsButton(posBtn, posText, posArrow, pos.button)
-            -- A field's holder takes its width from the page; this one has none.
-            posHolder:SetWidth(posBtn:GetWidth())
-            AttachTooltip(posBtn, pos.x)
-        end
         function holder.Refresh()
             btn:SetEnabled(Available(holder, group.font))
             RefreshEditor(group)
-            if pos then
-                posBtn:SetEnabled(Available(posHolder, pos.x))
-                RefreshEditor(pos)
-            end
         end
         return holder
     end
@@ -1189,22 +1081,6 @@ function W.FontGroup(parent, group)
             .. " / " .. OutlineLabel(group.outline))
         btn:SetEnabled(Available(holder, group.font))
         RefreshEditor(group)
-    end
-    return holder
-end
-
--------------------------------------------------------------------------------
---  Position -- a button for a ns.RegisterPositionSettings pair; its editor
---  holds the pad.
--------------------------------------------------------------------------------
-function W.Position(parent, pos)
-    local holder, btn, text, arrow = Field(parent, nil, function(self) OpenPosition(self, pos) end)
-    AsButton(btn, text, arrow, pos.button)
-    AttachTooltip(btn, pos.x)
-
-    function holder.Refresh()
-        btn:SetEnabled(Available(holder, pos.x))
-        RefreshEditor(pos)
     end
     return holder
 end

@@ -4,8 +4,6 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "Action Bars"
-
 -------------------------------------------------------------------------------
 --  Zoomed icons: the button's icon texture keeps its crop through texture
 --  changes, so it is set once per button.
@@ -73,9 +71,6 @@ local function ApplyArt()
     for tex in pairs(bronze) do Paint(tex) end
 end
 
--- Loads after ActionBarRange.lua, so this lands beside its range color.
-ns.RegisterFeature({
-    key = "zoomActionIcons", label = "Zoom button icons", section = SECTION, category = "Settings",
-    beside = true, default = true, apply = ApplyZoom,
-})
+-- Its setting is registered with the keybind ones (Keybinds.lua).
+ns.ApplyZoomIcons = ApplyZoom
 ns.OnDarkMode(ApplyArt)

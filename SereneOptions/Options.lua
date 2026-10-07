@@ -367,12 +367,12 @@ end
 
 -- The help texts of a category's settings, for its "?", in registration
 -- order, a color's specials as "Name: text" under its own. Each reads on its
--- own: the settings' labels are not repeated there. A position pair counts once.
+-- own: the settings' labels are not repeated there.
 -- With sub, the help of that subgroup; without, the category's own settings.
 local function CategoryHelp(section, category, sub, view)
     local help = {}
     for _, f in ipairs(ns.features) do
-        if f.section == section and f.category == category and f.sub == sub and (not f.pos or f == f.pos.x)
+        if f.section == section and f.category == category and f.sub == sub
            and InView(f, view) then
             local lines = {}
             if f.tooltip then lines[1] = f.tooltip end
@@ -517,13 +517,12 @@ local function SectionFeatures(section, view)
     for _, f in ipairs(ns.features) do
         if f.group then
             if f.group.color then inGroup[f.group.color] = true end
-            if f.group.position then inGroup[f.group.position] = true end
         end
     end
     local order, byCategory = {}, {}
     for _, f in ipairs(ns.features) do
         if f.section == section and not inGroup[f.key] and (not f.group or f == f.group.font)
-           and (not f.pos or f == f.pos.x) and InView(f, view) then
+           and InView(f, view) then
             local category = f.category or ""
             if not byCategory[category] then
                 byCategory[category] = {}
@@ -681,8 +680,6 @@ local function CreatePage(section)
         local w
         if f.group then
             w = W.FontGroup(content, f.group)
-        elseif f.pos then
-            w = W.Position(content, f.pos)
         elseif f.type == "dropdown" then
             w = W.Dropdown(content, f)
         elseif f.type == "slider" then

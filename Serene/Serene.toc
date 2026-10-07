@@ -14,3 +14,4 @@ Libs\LibDBIcon-1.0.lua
 Core.lua
 Fonts.lua
 Minimap.lua
+UnitFrames.lua

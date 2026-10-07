@@ -1,0 +1,15 @@
+## Interface: 16001
+## Title: Serene Dark Mode
+## Group: Serene
+## Notes: Dark art instead of Forever's bronze and gold: action bars, bags, experience bar, unit frames, minimap and quest tracker.
+## Version: 1.4.0
+## Dependencies: Serene
+## X-Serene-Section: Dark mode
+## IconTexture: Interface\AddOns\Serene\Media\Logo
+
+Init.lua
+DarkMode.lua
+BarArt.lua
+UnitFrameArt.lua
+MinimapArt.lua
+TrackerArt.lua

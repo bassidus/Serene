@@ -737,7 +737,7 @@ local function FooterText()
 end
 
 -- The footer: the Shift line, then the minimap icon's and Dark mode's
--- checkboxes after it.
+-- checkboxes after it; Dark mode's only while its module is on.
 local function CreateFooter()
     local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     footer:SetPoint("LEFT", frame, "BOTTOMLEFT", PAGE_X + 6, INSET + FOOTER_H / 2)
@@ -745,7 +745,9 @@ local function CreateFooter()
 
     local prev = footer:GetText() ~= "" and footer
     for _, key in ipairs({ "minimapIcon", "darkMode" }) do
-        local box = W.Checkbox(frame, ns.featureByKey[key])
+        local f = ns.featureByKey[key]
+        if not f then break end
+        local box = W.Checkbox(frame, f)
         box.label:SetFontObject("GameFontHighlightSmall")
         box:SetSize(26 + math.ceil(box.label:GetStringWidth()), 20)
         if prev then

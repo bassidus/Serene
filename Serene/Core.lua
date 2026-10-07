@@ -73,18 +73,20 @@ function ns.AddShiftSkip(what)
     ns.shiftSkips[#ns.shiftSkips + 1] = what
 end
 
--- Dark mode, the checkbox in the options window's footer: the action bar
--- art and the unit frames go dark. An addon with something to darken
--- passes its redraw here.
-local darkModeHooks = {}
-function ns.OnDarkMode(fn)
-    darkModeHooks[#darkModeHooks + 1] = fn
-end
-
-ns.RegisterFeature({
-    key = "darkMode", label = "Dark mode",
-    apply = function() for _, fn in ipairs(darkModeHooks) do fn() end end,
-})
+-- Blizzard's action buttons: name prefix, binding command prefix, count.
+-- Action Bars styles them, Dark mode darkens their rims.
+ns.ACTION_BUTTONS = {
+    { "ActionButton",              "ACTIONBUTTON",          12 },
+    { "MultiBarBottomLeftButton",  "MULTIACTIONBAR1BUTTON", 12 },
+    { "MultiBarBottomRightButton", "MULTIACTIONBAR2BUTTON", 12 },
+    { "MultiBarRightButton",       "MULTIACTIONBAR3BUTTON", 12 },
+    { "MultiBarLeftButton",        "MULTIACTIONBAR4BUTTON", 12 },
+    { "MultiBar5Button",           "MULTIACTIONBAR5BUTTON", 12 },
+    { "MultiBar6Button",           "MULTIACTIONBAR6BUTTON", 12 },
+    { "MultiBar7Button",           "MULTIACTIONBAR7BUTTON", 12 },
+    { "StanceButton",              "SHAPESHIFTBUTTON",      10 },
+    { "PetActionButton",           "BONUSACTIONBUTTON",     10 },
+}
 
 -- Extra state a feature wants cleared by Restore defaults (e.g. a moved
 -- frame's spot); fn runs before the features re-apply.

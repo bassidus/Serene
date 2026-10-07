@@ -307,9 +307,15 @@ local function Available(holder, f)
     return on
 end
 
+-- The shared menu rows keep a font set by SetFont even after SetFontObject,
+-- so the stock font goes back on with SetFont too.
+local function SetStockFont(fs)
+    fs:SetFont(GameFontHighlight:GetFont())
+end
+
 -- Draws text in a font file; the stock font stays if it fails to load.
 local function SetPreviewFont(fs, path)
-    fs:SetFontObject(GameFontHighlight)
+    SetStockFont(fs)
     if path ~= "default" then fs:SetFont(path, 13, "") end
 end
 
@@ -415,7 +421,7 @@ local function Render()
         local o = opts[i + state.offset]
         local r = MenuRow(i)
         r.value = o.value
-        if state.preview then SetPreviewFont(r.text, o.value) else r.text:SetFontObject(GameFontHighlight) end
+        if state.preview then SetPreviewFont(r.text, o.value) else SetStockFont(r.text) end
         r.text:SetText(o.label)
         r.mark:SetShown(o.value == state.selected)
         r:Show()

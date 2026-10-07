@@ -141,7 +141,7 @@ end
 
 -- Registered after the core's minimap icon, which is then already made.
 ns.RegisterFeature({
-    key = "darkMode", label = "Dark mode",
+    key = "darkMode", label = "Dark mode", default = false,
     apply = function()
         if ns.Get("darkMode") then
             for _, source in ipairs(sources) do Collect(_G[source[1]], source[2]) end

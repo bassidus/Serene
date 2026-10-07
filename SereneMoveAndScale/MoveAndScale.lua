@@ -78,12 +78,19 @@ local WINDOWS = {
       frames = { "ScriptErrorsFrame" } },
     { key = "GameMenu", label = "Escape menu & settings",
       frames = { "GameMenuFrame", "SettingsPanel", "AddonList", "HelpFrame", "QuickKeybindFrame" } },
-    { key = "Tracker", label = "Quest tracker", scaleOnly = true,
+    { key = "Tracker", label = "Quest tracker", scaleOnly = true, notAll = true,
       frames = { "ObjectiveTrackerFrame" } },
 }
 
 local byKey = {}
 for _, window in ipairs(WINDOWS) do byKey[window.key] = window end
+
+-- What "All windows" in the Size list takes in: the quest tracker is part
+-- of the screen rather than a window and keeps its own size.
+local allWindows = {}
+for _, window in ipairs(WINDOWS) do
+    if not window.notAll then allWindows[#allWindows + 1] = window end
+end
 
 local STEP, MIN, MAX = 5, 50, 150
 
@@ -106,8 +113,24 @@ local function Saved(window)
     return SereneDB.windowScales and SereneDB.windowScales[window.key] or 100
 end
 
--- The window the Size slider is set to.
-local function Picked() return byKey[ns.Get("windowSizeWindow")] end
+local ALL = "All"
+
+-- The windows the Size slider is set to.
+local function Picked()
+    local key = ns.Get("windowSizeWindow")
+    return key == ALL and allWindows or { byKey[key] }
+end
+
+-- The size the slider shows: the one most of the picked windows have.
+local function Shown()
+    local count, best = {}, 100
+    for _, window in ipairs(Picked()) do
+        local pct = Saved(window)
+        count[pct] = (count[pct] or 0) + 1
+        if count[pct] > (count[best] or 0) then best = pct end
+    end
+    return best
+end
 
 -- Effective scale against UIParent's: UIParent units per frame unit.
 local function Ratio(frame) return frame:GetEffectiveScale() / UIParent:GetEffectiveScale() end
@@ -239,11 +262,13 @@ local function StopDrag()
     Anchor(frame)
 end
 
-local function SetSaved(window, pct)
+local function SetSaved(windows, pct)
     SereneDB.windowScales = SereneDB.windowScales or {}
-    SereneDB.windowScales[window.key] = pct ~= 100 and pct or nil
-    if Picked() == window then SereneDB.windowSize = pct end
-    ApplyWindow(window)
+    for _, window in ipairs(windows) do
+        SereneDB.windowScales[window.key] = pct ~= 100 and pct or nil
+    end
+    SereneDB.windowSize = Shown()
+    for _, window in ipairs(windows) do ApplyWindow(window) end
     if ns.RefreshOptions then ns.RefreshOptions() end
 end
 
@@ -252,7 +277,7 @@ local function Wheel(frame, delta)
     local window = hooked[frame]
     local pct = math.min(MAX, math.max(MIN, Saved(window) + delta * STEP))
     if pct == Saved(window) then return end
-    SetSaved(window, pct)
+    SetSaved({ window }, pct)
     ns.FlashTip(frame, pct .. "%")
 end
 
@@ -260,7 +285,7 @@ end
 local function ResetWindow(frame)
     if Locked(frame) then return end
     moved[frame:GetName()] = nil
-    SetSaved(hooked[frame], 100)  -- also places the window
+    SetSaved({ hooked[frame] }, 100)  -- also places the window
 end
 
 -- A window that lets the mouse through (the character window, ready
@@ -470,11 +495,14 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "windowResetPositions", button = "Reset positions", section = SECTION, category = "Mouse",
+    key = "windowReset", button = "Reset Scale & Positions", section = SECTION, category = "Mouse",
     type = "button", beside = true,
     click = function()
         wipe(moved)
+        SereneDB.windowScales = nil
+        SereneDB.windowSize = 100
         ApplyAll()
+        if ns.RefreshOptions then ns.RefreshOptions() end
     end,
 })
 
@@ -484,7 +512,7 @@ for i, window in ipairs(WINDOWS) do sorted[i] = window end
 table.sort(sorted, function(a, b) return a.label < b.label end)
 
 local function SizeOptions()
-    local options = {}
+    local options = { { value = ALL, label = "All windows" } }
     for _, window in ipairs(sorted) do
         local pct = Saved(window)
         options[#options + 1] = { value = window.key,
@@ -494,14 +522,21 @@ local function SizeOptions()
 end
 
 -- One slider for every window: it shows the size of the window picked in
--- the list, so picking one sets the slider without changing a size.
+-- the list, so picking one sets the slider without changing a size. With
+-- all windows picked, the slider sets every window to the same size.
 ns.RegisterFeature({
     key = "windowSizeWindow", label = "Window", section = SECTION, category = "Scale Windows", space = true,
-    type = "dropdown", default = WINDOWS[1].key, options = SizeOptions,
-    apply = function() SereneDB.windowSize = Saved(Picked()) end,
+    type = "dropdown", default = ALL, options = SizeOptions,
+    apply = function() SereneDB.windowSize = Shown() end,
 })
+local sizeLoaded
 ns.RegisterFeature({
     key = "windowSize", label = "Size", section = SECTION, category = "Scale Windows", beside = true,
     type = "slider", min = MIN, max = MAX, step = STEP, default = 100, suffix = "%",
-    apply = function() SetSaved(Picked(), ns.Get("windowSize")) end,
+    apply = function()
+        -- Login's apply: the sizes are already in windowScales, and with all
+        -- windows picked the slider would put its size on every one.
+        if not sizeLoaded then sizeLoaded = true; return end
+        SetSaved(Picked(), ns.Get("windowSize"))
+    end,
 })

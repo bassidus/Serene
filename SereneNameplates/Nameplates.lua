@@ -320,7 +320,7 @@ local function UpdateHealthColor(plate)
     local unit = plate.unit
     -- The tapped icon rides along: it changes on the same events as the color.
     local tapped = Clean(UnitIsTapDenied(unit))
-    plate.tapIcon:SetShown(tapped and ns.Get("nameplateTapped") or false)
+    plate.tapIcon:SetShown(tapped or false)
     NP.StackLeft(plate)
     local c
     -- On its threat list = the mob is fighting you (Blizzard's test).
@@ -648,8 +648,4 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "nameplateHealthText", label = "Show target health", section = "Nameplates", category = "Settings",
     beside = true, apply = Relayout,
-})
-ns.RegisterFeature({
-    key = "nameplateTapped", label = "Mark enemies tagged by others", section = "Nameplates", category = "Settings",
-    apply = Relayout,
 })

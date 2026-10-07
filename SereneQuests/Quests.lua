@@ -149,7 +149,7 @@ ns.RegisterFeature({
     button = "Hostile color", default = "default", requires = { "nameplateQuest", "nameplateQuestColor" },
     addon = "SereneNameplates",
     specials = {
-        { value = "default", label = "Default", swatch = function() return ns.QUEST_GREEN end },
+        { value = "default", label = "Default", swatch = function() return ns.QUEST_HOSTILE end },
     },
 })
 ns.RegisterFeature({

@@ -126,10 +126,11 @@ function ns.ResetAll()
 end
 
 -- The quest green of the nameplates' quest marks (SereneNameplates), whose
--- settings SereneQuests registers. Neutral quest mobs get a lime of their
--- own, so they stay apart from hostile ones.
+-- settings SereneQuests registers, and the default bar colors of quest mobs.
+-- Neutral ones get their own, so they stay apart from hostile ones.
 ns.QUEST_GREEN = "28da79"
-ns.QUEST_NEUTRAL = "b4e03c"
+ns.QUEST_HOSTILE = "ff4d1a"
+ns.QUEST_NEUTRAL = "ffd100"
 
 -- The TOCs name the same file in ## IconTexture (art/logo.svg is the source).
 ns.LOGO = "Interface\\AddOns\\Serene\\Media\\Logo"

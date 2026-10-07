@@ -55,7 +55,7 @@ end
 -- The chosen bar colors, rebuilt only when a setting changes. Neutral quest
 -- mobs get their own, so yellow and red ones stay apart.
 local barColors = {
-    hostile = { key = "nameplateQuestBarColor", default = QUEST_COLOR },
+    hostile = { key = "nameplateQuestBarColor", default = { ns.ColorRGB(ns.QUEST_HOSTILE) } },
     neutral = { key = "nameplateQuestNeutralColor", default = { ns.ColorRGB(ns.QUEST_NEUTRAL) } },
 }
 local function BarColor(bar)

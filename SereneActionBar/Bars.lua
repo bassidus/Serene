@@ -43,6 +43,6 @@ end
 for bar = 2, 8 do
     ns.RegisterFeature({
         key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION,
-        category = "Bars enabled on all characters", default = false, beside = bar % 2 == 1 or nil, apply = Queue,
+        category = "Bars enabled on all characters", default = bar <= 4, beside = bar % 2 == 1 or nil, apply = Queue,
     })
 end

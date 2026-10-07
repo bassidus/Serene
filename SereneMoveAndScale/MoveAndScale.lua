@@ -486,7 +486,6 @@ end)
 
 ns.RegisterFeature({
     key = "moveAndScale", label = "Enable Move & Scale", section = SECTION, category = "Mouse",
-    default = false,
     apply = function()
         -- The first apply runs at login, once SereneDB is loaded.
         SereneDB.windowPositions = SereneDB.windowPositions or moved

@@ -72,7 +72,7 @@ for _, unit in ipairs({
 }) do
     ns.RegisterFeature({
         key = "unitFrameNumbersHide" .. unit[1], label = unit[1], section = SECTION, category = "Status numbers",
-        sub = HIDE, closed = true, beside = unit[2], default = false, apply = ns.ApplyNumbersHide,
+        sub = HIDE, closed = true, beside = unit[2], apply = ns.ApplyNumbersHide,
     })
 end
 ns.RegisterFeature({

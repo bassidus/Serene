@@ -253,7 +253,7 @@ local SECTION = "Action Bars"
 -- looked up when they run.
 ns.RegisterFeature({
     key = "shortKeybinds", label = "Short keybinds", section = SECTION, category = "Settings",
-    tooltip = "Text and range color on the action buttons", requires = "!hideKeybinds",
+    requires = "!hideKeybinds",
     apply = ApplySetting,
 })
 ns.RegisterFeature({

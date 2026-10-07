@@ -262,19 +262,6 @@ function W.RedButton(btn, label, opts)
     return btn
 end
 
--- Only for a setting under no category: a category's settings are explained
--- by the "?" after its heading.
-local function AttachTooltip(region, f)
-    if not f.tooltip or f.category then return end
-    region:HookScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(f.label, 1, 1, 1)
-        GameTooltip:AddLine(f.tooltip, nil, nil, nil, true)
-        GameTooltip:Show()
-    end)
-    region:HookScript("OnLeave", GameTooltip_Hide)
-end
-
 local function PlayClick()
     PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 end
@@ -356,7 +343,6 @@ function W.Checkbox(parent, f)
         PlayClick()
         if f.set then f.set(not Checked()) else ns.SetValue(f.key, not Checked()) end
     end)
-    AttachTooltip(row, f)
 
     -- "Requires Serene Nameplates" beside the label; on the parent, so the row's
     -- dimming leaves it readable.
@@ -558,7 +544,7 @@ local function Field(parent, labelText, onClick, inline)
 end
 
 -- A field turned into a red button reading `label`, sized to it. The field's
--- hover scripts stay (tooltips hook them) and only touch hidden parts.
+-- hover scripts stay and only touch hidden parts.
 local function AsButton(btn, text, arrow, label)
     btn.panel.SetShown(false)
     arrow:Hide()
@@ -581,7 +567,6 @@ function W.Dropdown(parent, f)
             if f.set then f.set(v) else ns.SetValue(f.key, v) end
         end, f.preview)
     end, f.inline)
-    AttachTooltip(btn, f)
 
     function holder.Refresh()
         local value = Value()
@@ -821,7 +806,6 @@ function W.Outline(parent, f)
         button:SetScript("OnClick", function() PlayClick(); ns.SetValue(f.key, "default") end)
         button:SetScript("OnEnter", function() ns.SetBorderColor(edges, WHITE) end)
         button:SetScript("OnLeave", function() holder.Refresh() end)
-        AttachTooltip(button, f)
         chip = { button = button, edges = edges, text = text }
         controls[#controls + 1] = button
     end
@@ -845,7 +829,6 @@ function W.Outline(parent, f)
             set[o.value] = not set[o.value] or nil
             ns.SetValue(f.key, ns.OutlineValue(set))
         end)
-        AttachTooltip(row, f)
         boxes[#boxes + 1] = { flag = o.value, box = box }
         controls[#controls + 1] = row
     end
@@ -936,7 +919,6 @@ function W.Slider(parent, f)
             ns.SetValue(f.key, v)
         end
     end)
-    AttachTooltip(slider, f)
     -- Narrower than CONTROL_W in a half-width row.
     holder:SetScript("OnSizeChanged", function(_, w)
         if w > 0 then slider:SetWidth(math.min(W.CONTROL_W, w)) end
@@ -1100,7 +1082,6 @@ function W.ColorField(parent, f)
     local holder, btn, text, arrow = Field(parent, not f.button and f.label, function(self)
         OpenEditor(self, f, f.label, function(panel) return { W.Color(panel, f) } end)
     end)
-    AttachTooltip(btn, f)
 
     if f.button then
         AsButton(btn, text, arrow, f.button)
@@ -1130,79 +1111,14 @@ end
 function W.Button(parent, f)
     local holder, btn, text, arrow = Field(parent, nil, function() f.click() end)
     AsButton(btn, text, arrow, f.button)
-    AttachTooltip(btn, f)
     function holder.Refresh()
         btn:SetEnabled(Available(holder, f))
     end
     return holder
 end
 
--------------------------------------------------------------------------------
---  Help -- a gold "?" whose click shows help in the tooltip until it is
---  clicked again, a click lands anywhere else or the popups close.
---  help = { text, ... }, under title.
--------------------------------------------------------------------------------
-local helpOpen  -- the "?" whose help shows
-local helpWatch = CreateFrame("Frame")
-
-local function HelpShown(q)
-    return helpOpen == q and GameTooltip:IsShown() and GameTooltip:GetOwner() == q
-end
-
-local function CloseHelp()
-    local q = helpOpen
-    if not q then return end
-    helpOpen = nil
-    helpWatch:UnregisterEvent("GLOBAL_MOUSE_DOWN")
-    if GameTooltip:GetOwner() == q then GameTooltip_Hide() end
-    q.Paint(q:IsMouseOver())
-end
-
-helpWatch:SetScript("OnEvent", function()
-    -- A click on the "?" itself toggles it closed in its OnClick.
-    if helpOpen and not helpOpen:IsMouseOver() then CloseHelp() end
-end)
-
-function W.Help(parent, title, help)
-    local q = CreateFrame("Button", nil, parent)
-    q:SetSize(16, 16)
-    -- A size up and outlined so it stands out as bold.
-    local text = q:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    local path, size = text:GetFont()
-    text:SetFont(path, size, "OUTLINE")
-    text:SetPoint("CENTER")
-    text:SetText("?")
-
-    -- White while hovered or showing its help.
-    function q.Paint(hover)
-        local c = (hover or HelpShown(q)) and WHITE or GOLD
-        text:SetTextColor(c[1], c[2], c[3])
-    end
-    q:SetScript("OnClick", function(self)
-        PlayClick()
-        local shown = HelpShown(self)
-        CloseHelp()
-        if shown then return end
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(title, 1, 1, 1)
-        for _, text in ipairs(help) do
-            GameTooltip:AddLine(" ")
-            GameTooltip:AddLine(text, nil, nil, nil, true)
-        end
-        GameTooltip:Show()
-        helpOpen = self
-        helpWatch:RegisterEvent("GLOBAL_MOUSE_DOWN")
-        self.Paint(true)
-    end)
-    q:SetScript("OnEnter", function() q.Paint(true) end)
-    q:SetScript("OnLeave", function() q.Paint(false) end)
-    q.Paint(false)
-    return q
-end
-
--- The dropdown list, the editor and the help, e.g. when the page changes.
+-- The dropdown list and the editor, e.g. when the page changes.
 function W.ClosePopups()
     CloseMenu()
     if editor then editor:Hide() end
-    CloseHelp()
 end

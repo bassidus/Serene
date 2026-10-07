@@ -9,7 +9,6 @@ local SECTION = ns.SECTION
 -- All frames
 ns.RegisterFeature({
     key = "unitFrameClassColors", label = "Show class colors", section = SECTION, category = "All frames",
-    tooltip = "Every unit frame: player, target, focus, their targets, pet and party",
     default = true, apply = ns.ApplyClassColors,
 })
 ns.RegisterFeature({
@@ -43,7 +42,6 @@ ns.RegisterFeature({
 -- Status numbers
 ns.RegisterFeature({
     key = "unitFrameNumbersFormat", label = "Format", section = SECTION, category = "Status numbers",
-    tooltip = "Numbers on the health and mana bars",
     type = "dropdown", default = "both", apply = ns.ApplyNumbersFormat,
     options = function()
         return {

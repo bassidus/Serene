@@ -19,17 +19,16 @@ ns.featureByKey = {}
 --   category   heading on its page; categories keep their first-seen order
 --   sub        a subgroup heading inside the category, a frame of its own
 --              that opens and closes; keep a subgroup's settings together
---   tooltip    help text under the category's "?" (on hover without a category)
 --   apply      fn run at login and on every change
 --   type       "boolean" (default) | "dropdown" | "slider" | "color" | "outline"
 --              | "button" (no value: `button` is its text, `click` runs on a press)
 --   default    initial value
 --   options    dropdown: fn returning { { value =, label = }, ... }
 --   preview    dropdown: draw entries in their own font
---   hideLabel  dropdown: no label above the button (still named in the help)
+--   hideLabel  dropdown: no label above the button
 --   inline     dropdown: the label on the left, the button in the right half
 --   min, max, step, suffix   slider
---   specials   color: { { value =, label =, tooltip =, swatch = }, ... } before
+--   specials   color: { { value =, label =, swatch = }, ... } before
 --              the palette; swatch returns the hex(es) the word stands for
 --   blizzard   outline: fn returning Blizzard's own flags, shown on "default"
 --   note       text always shown under the control

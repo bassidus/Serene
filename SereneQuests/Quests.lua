@@ -127,7 +127,6 @@ end)
 
 ns.RegisterFeature({
     key = "autoAcceptQuests", label = "Accept quests automatically", section = "Quests", category = "Automation",
-    tooltip = "Fewer clicks at quest givers",
 })
 ns.RegisterFeature({
     key = "autoTurnInQuests", label = "Turn in quests automatically", section = "Quests", category = "Automation",
@@ -136,7 +135,6 @@ ns.RegisterFeature({
 -- Drawn by SereneNameplates (NameplateQuest.lua), which adds the apply.
 ns.RegisterFeature({
     key = "nameplateQuest", label = "Mark quest enemies", section = "Quests", category = "Nameplates",
-    tooltip = "Quest progress on enemy nameplates",
     beside = true,
     addon = "SereneNameplates",
 })

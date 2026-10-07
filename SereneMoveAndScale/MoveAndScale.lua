@@ -468,7 +468,6 @@ ns.RegisterFeature({
         moved = SereneDB.windowPositions
         ApplyAll(); SyncEvents(); WheelOn()
     end,
-    tooltip = "Drag a window to move it, Ctrl + mouse wheel resizes it and middle-click resets it",
 })
 ns.RegisterFeature({
     key = "windowResetPositions", button = "Reset positions", section = SECTION, category = "Mouse",
@@ -499,7 +498,6 @@ end
 ns.RegisterFeature({
     key = "windowSizeWindow", label = "Window", section = SECTION, category = "Scale Windows", space = true,
     type = "dropdown", default = WINDOWS[1].key, options = SizeOptions,
-    tooltip = "A set size for each window",
     apply = function() SereneDB.windowSize = Saved(Picked()) end,
 })
 ns.RegisterFeature({

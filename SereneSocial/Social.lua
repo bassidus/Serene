@@ -190,7 +190,6 @@ end
 
 ns.RegisterFeature({
     key = "partyInviteFrom", label = "Accept group invites from", section = SECTION, category = "Automation",
-    tooltip = "Handles invites and duels for you",
     type = "dropdown", inline = true, default = "friends", options = Who, apply = Apply,
 })
 ns.RegisterFeature({

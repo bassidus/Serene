@@ -27,5 +27,4 @@ end
 
 ns.RegisterFeature({
     key = "quickLoot", label = "Fast auto loot", section = "General", category = "Loot & items", apply = Apply,
-    tooltip = "Faster looting and fewer confirmations",
 })

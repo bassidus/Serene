@@ -586,7 +586,6 @@ NP.ApplyRelayout = Relayout
 -- the options page lists every toggle first.
 ns.RegisterFeature({
     key = "nameplateThreat", label = "Select role", section = "Nameplates", category = "Threat colors",
-    tooltip = "Health bars colored by threat",
     space = true, closed = true,
     type = "dropdown", default = "auto",
     apply = Relayout,
@@ -617,7 +616,6 @@ for _, c in ipairs({
 end
 ns.RegisterFeature({
     key = "nameplateLevel", label = "Show target level", section = "Nameplates", category = "Settings", apply = Relayout,
-    tooltip = "What enemy nameplates show and how they look",
 })
 ns.RegisterFeature({
     key = "nameplateHealthText", label = "Show target health", section = "Nameplates", category = "Settings",

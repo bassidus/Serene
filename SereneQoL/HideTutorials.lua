@@ -127,6 +127,5 @@ end)
 
 ns.RegisterFeature({
     key = "hideTutorials", label = "Hide tutorial pop-ups", section = "General", category = "Interface",
-    tooltip = "Less clutter from the game's interface",
     apply = Apply,
 })

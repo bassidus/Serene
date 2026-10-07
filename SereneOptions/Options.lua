@@ -336,30 +336,10 @@ local function CreateAddonToggle(page, module)
     return box
 end
 
--- The help texts of a category's settings, for its "?", in registration
--- order, a color's specials as "Name: text" under its own. Each reads on its
--- own: the settings' labels are not repeated there.
--- With sub, the help of that subgroup; without, the category's own settings.
-local function CategoryHelp(section, category, sub)
-    local help = {}
-    for _, f in ipairs(ns.features) do
-        if f.section == section and f.category == category and f.sub == sub then
-            local lines = {}
-            if f.tooltip then lines[1] = f.tooltip end
-            for _, s in ipairs(f.specials or {}) do
-                if s.tooltip then lines[#lines + 1] = s.label .. ": " .. s.tooltip end
-            end
-            if #lines > 0 then help[#help + 1] = table.concat(lines, "\n") end
-        end
-    end
-    return help
-end
-
 -- A category: a thin frame with its heading inside, around the settings
 -- that follow. The heading's row is a button running onToggle, with a plus
 -- (closed) or minus (open) at its right; group.SetOpen(open) shows which.
--- With help (see CategoryHelp) a "?" sits left of the plus/minus.
-local function CreateGroup(page, text, onToggle, help)
+local function CreateGroup(page, text, onToggle)
     local group = CreateFrame("Frame", nil, page)
     W.Panel(group, "GROUP")
 
@@ -390,11 +370,6 @@ local function CreateGroup(page, text, onToggle, help)
     Paint(false)
     function group.SetOpen(open)
         sign:SetTexture(open and "Interface\\Buttons\\UI-MinusButton-Up" or "Interface\\Buttons\\UI-PlusButton-Up")
-    end
-    if help and #help > 0 then
-        local q = W.Help(group, text, help)
-        q:SetFrameLevel(btn:GetFrameLevel() + 1)  -- over the heading's row button
-        q:SetPoint("RIGHT", sign, "LEFT", -4, 0)
     end
     return group
 end
@@ -570,7 +545,7 @@ local function CreatePage(section)
                 end
                 W.ClosePopups()
                 Layout()
-            end, CategoryHelp(section, category, sub))
+            end)
             groups[key].category, groups[key].sub, groups[key].key = category, sub, key
         end
         return groups[key]

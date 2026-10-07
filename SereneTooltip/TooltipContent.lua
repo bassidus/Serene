@@ -428,8 +428,7 @@ end)
 -------------------------------------------------------------------------------
 -- In pairs, the second beside the first.
 for _, def in ipairs({
-    { key = "tooltipTitles",          label = "Player title",
-      tooltip = "What tooltips show" },
+    { key = "tooltipTitles",          label = "Player title" },
     { key = "tooltipFaction",         label = "Faction", beside = true },
     { key = "tooltipGuild",           label = "Guild name" },
     { key = "tooltipGuildRank",       label = "Guild rank", beside = true, requires = "tooltipGuild" },

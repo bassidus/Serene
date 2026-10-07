@@ -28,7 +28,6 @@ end
 
 ns.RegisterFeature({
     key = "fasterMovieSkip", label = "Skip cinematics without asking",
-    tooltip = "A wider view and fewer interruptions",
     section = "General", category = "Camera & cinematics",
     beside = true,
     apply = function() if On() then Hook() end end,

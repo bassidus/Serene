@@ -24,6 +24,5 @@ end)
 
 ns.RegisterFeature({
     key = "autoRepair", label = "Repair at vendors", section = "General", category = "Vendors & trainers",
-    tooltip = "Fewer clicks at vendors and trainers",
     beside = true,
 })

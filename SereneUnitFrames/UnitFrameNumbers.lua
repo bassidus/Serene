@@ -119,9 +119,12 @@ function ns.ApplyNumbersAlign()
 end
 
 -------------------------------------------------------------------------------
---  Always hidden on some units, with alpha, since Blizzard shows the text
---  again on mouseover and on every update.
+--  Hidden on some units, with alpha, since Blizzard shows the text again on
+--  mouseover and on every update. With Show on mouseover they come back
+--  while the mouse is anywhere on the frame.
 -------------------------------------------------------------------------------
+local HOVER_KEY = "unitFrameNumbersHover"
+
 local HIDE = {  -- [setting] = its frames
     unitFrameNumbersHidePlayer = { PlayerFrame },
     unitFrameNumbersHideTarget = { TargetFrame },
@@ -131,15 +134,54 @@ local HIDE = {  -- [setting] = its frames
                                    PartyFrame.MemberFrame3, PartyFrame.MemberFrame4 },
 }
 
-function ns.ApplyNumbersHide()
-    for key, frames in pairs(HIDE) do
-        local on = ns.Get(key)
-        for _, frame in ipairs(frames) do
-            for _, bar in ipairs(ns.UnitFrameParts(frame).bars) do
-                ns.SetHidden(bar.TextString, on)
-                ns.SetHidden(bar.LeftText, on)
-                ns.SetHidden(bar.RightText, on)
-            end
-        end
+local hideKey = {}  -- [frame] = its setting
+for key, frames in pairs(HIDE) do
+    for _, frame in ipairs(frames) do hideKey[frame] = key end
+end
+
+local hovered  -- the unit frame under the mouse
+
+local function UpdateHide(frame)
+    local on = ns.Get(hideKey[frame]) and not (ns.Get(HOVER_KEY) and hovered == frame)
+    for _, bar in ipairs(ns.UnitFrameParts(frame).bars) do
+        ns.SetHidden(bar.TextString, on)
+        ns.SetHidden(bar.LeftText, on)
+        ns.SetHidden(bar.RightText, on)
     end
+end
+
+-- The frame under the mouse goes by its art, not the mouse focus: Blizzard's
+-- frames take the mouse well outside their art, and parts of the pet frame
+-- (its name, the gap between its bars) take none. The pet frame lies inside
+-- the player frame's area and comes first.
+local BY_ART = {
+    PetFrame, PartyFrame.MemberFrame1, PartyFrame.MemberFrame2, PartyFrame.MemberFrame3,
+    PartyFrame.MemberFrame4, PlayerFrame, TargetFrame, FocusFrame,
+}
+
+local function UnitFrameUnderMouse()
+    for _, frame in ipairs(BY_ART) do
+        if frame:IsVisible() and Clean(ns.UnitFrameParts(frame).art[1]:IsMouseOver()) then return frame end
+    end
+end
+
+-- Watched every frame while Show on mouseover has something to show.
+local watcher = CreateFrame("Frame")
+local function Watch()
+    local frame = UnitFrameUnderMouse()
+    if frame == hovered then return end
+    local old = hovered
+    hovered = frame
+    if old then UpdateHide(old) end
+    if frame then UpdateHide(frame) end
+end
+
+function ns.ApplyNumbersHide()
+    local watch = false
+    if ns.Get(HOVER_KEY) then
+        for key in pairs(HIDE) do watch = watch or ns.Get(key) end
+    end
+    watcher:SetScript("OnUpdate", watch and Watch or nil)
+    if not watch then hovered = nil end
+    for frame in pairs(hideKey) do UpdateHide(frame) end
 end

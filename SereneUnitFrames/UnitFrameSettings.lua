@@ -66,7 +66,7 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterNumbersFont({ section = SECTION, category = "Status numbers" })
-local HIDE = "Always hide numbers on the following units"
+local HIDE = "Hide numbers on the following units"
 for _, unit in ipairs({
     { "Player" }, { "Target", true },
     { "Focus" },  { "Pet", true },
@@ -77,3 +77,7 @@ for _, unit in ipairs({
         sub = HIDE, closed = true, beside = unit[2], default = false, apply = ns.ApplyNumbersHide,
     })
 end
+ns.RegisterFeature({
+    key = "unitFrameNumbersHover", label = "Show on mouseover", section = SECTION, category = "Status numbers",
+    sub = HIDE, space = true, apply = ns.ApplyNumbersHide,
+})

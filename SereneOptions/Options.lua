@@ -27,7 +27,6 @@ local PAGE_W = WIDTH - PAGE_X - INSET - 2 * PAGE_PAD
 -- so a lone one lines up with the pairs around it.
 W.CONTROL_W = (PAGE_W - 2 * GROUP_PAD - SPACING) / 2
 local HEADER_H = 30   -- a settings page's title, which stays put while the rest scrolls
-local SCROLL_STEP = 40
 local MODULES = "Modules"  -- the page and tab of the addon list
 local MAX_SCREEN = 0.45 -- the window's height at most at scale 1, as a share of the screen's
 
@@ -238,10 +237,9 @@ local function CreatePageFrame(name)
     return page
 end
 
--- Puts a settings page's content in a scroll frame under its title, with a
--- thin bar in the right margin, shown only while the content does not fit;
--- the wheel scrolls and the bar can be dragged. Returns the frame to build
--- the content on, PAGE_W wide; its height is set by the caller.
+-- Puts a settings page's content in a scroll frame under its title, with
+-- the scroll bar in the right margin. Returns the frame to build the
+-- content on, PAGE_W wide; its height is set by the caller.
 local function AddScrolling(page)
     local scroll = CreateFrame("ScrollFrame", nil, page)
     scroll:SetPoint("TOPLEFT", 0, -HEADER_H)
@@ -249,59 +247,7 @@ local function AddScrolling(page)
     local content = CreateFrame("Frame", nil, scroll)
     content:SetSize(PAGE_W, 1)
     scroll:SetScrollChild(content)
-
-    local bar = CreateFrame("Button", nil, page)
-    bar:SetWidth(9)
-    bar:Hide()
-    local thumb = W.Solid(bar, "ARTWORK", GOLD)
-    thumb:SetPoint("TOP")
-    thumb:SetPoint("BOTTOM")
-    thumb:SetWidth(3)
-    thumb:SetAlpha(0.5)
-
-    local function Range() return scroll:GetVerticalScrollRange() end
-    local function PlaceBar()
-        local range, viewH = Range(), scroll:GetHeight()
-        bar:SetShown(range > 0.5)
-        if range <= 0.5 then return end
-        local barH = math.max(20, viewH * viewH / (viewH + range))
-        bar:SetHeight(barH)
-        bar:ClearAllPoints()
-        -- Centered in the right margin (PAGE_PAD).
-        bar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", PAGE_PAD / 2 - 4, -(viewH - barH) * scroll:GetVerticalScroll() / range)
-    end
-    local function ScrollTo(v)
-        scroll:SetVerticalScroll(math.max(0, math.min(Range(), v)))
-        PlaceBar()
-    end
-    local function Refit() ScrollTo(scroll:GetVerticalScroll()) end
-
-    scroll:EnableMouseWheel(true)
-    scroll:SetScript("OnMouseWheel", function(_, delta)
-        if IsControlKeyDown() then return W.ScaleWindow(delta) end
-        W.ClosePopups()
-        ScrollTo(scroll:GetVerticalScroll() - delta * SCROLL_STEP)
-    end)
-    scroll:SetScript("OnScrollRangeChanged", Refit)
-    scroll:SetScript("OnSizeChanged", Refit)
-    scroll:SetScript("OnShow", Refit)
-
-    local function CursorY() return select(2, GetCursorPosition()) / bar:GetEffectiveScale() end
-    local startY, startScroll
-    local function Drag()
-        local track = scroll:GetHeight() - bar:GetHeight()
-        if track > 0 then ScrollTo(startScroll + (startY - CursorY()) * Range() / track) end
-    end
-    bar:SetScript("OnMouseDown", function(self, button)
-        if button ~= "LeftButton" then return end
-        W.ClosePopups()
-        startY, startScroll = CursorY(), scroll:GetVerticalScroll()
-        self:SetScript("OnUpdate", Drag)
-    end)
-    bar:SetScript("OnMouseUp", function(self) self:SetScript("OnUpdate", nil) end)
-    bar:SetScript("OnHide", function(self) self:SetScript("OnUpdate", nil) end)
-    bar:SetScript("OnEnter", function() thumb:SetAlpha(1) end)
-    bar:SetScript("OnLeave", function() thumb:SetAlpha(0.5) end)
+    W.ScrollBar(scroll, PAGE_PAD, W.ScaleWindow)
     return content
 end
 
@@ -760,20 +706,6 @@ local function CreateFooter()
     end
 end
 
--- Child of the title bar and raised above it: as a sibling at the same level,
--- the mouse-enabled drag bar swallowed the clicks.
-local function CreateCloseButton(titleBar)
-    local close = CreateFrame("Button", nil, titleBar)
-    close:SetFrameLevel(titleBar:GetFrameLevel() + 2)
-    close:RegisterForClicks("LeftButtonUp")
-    close:SetSize(32, 32)
-    close:SetPoint("TOPRIGHT", -4, -4)
-    close:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up")
-    close:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down")
-    close:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight", "ADD")
-    close:SetScript("OnClick", function() frame:Hide() end)
-end
-
 -- The height the pages want and the least the sidebar needs; set in Build.
 local wantedH, sidebarH
 
@@ -885,7 +817,7 @@ local function Build()
     version:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 6, 1)
     version:SetText("v" .. AddOns.GetAddOnMetadata("Serene", "Version"))
     version:SetTextColor(TAN[1], TAN[2], TAN[3])
-    CreateCloseButton(titleBar)
+    W.CloseButton(titleBar, frame)
 
     local sidebar = CreateFrame("Frame", nil, frame)
     sidebar:SetPoint("TOPLEFT", INSET, -TITLE_H)
@@ -943,7 +875,16 @@ ns.OnResetAll(function()
     CloseGroups()
 end)
 
+local outside = {}  -- widgets on other addons' windows (W.AddOutside)
+
+-- A widget another Serene addon put on its own window, refreshed with the
+-- options while it shows.
+function W.AddOutside(w) outside[#outside + 1] = w end
+
 function ns.RefreshOptions()
+    for _, w in ipairs(outside) do
+        if w:IsVisible() then w.Refresh() end
+    end
     if not (frame and frame:IsShown()) then return end
     for _, w in ipairs(widgets) do w.Refresh() end
 end

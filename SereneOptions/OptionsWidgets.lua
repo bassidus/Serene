@@ -148,6 +148,88 @@ function W.Panel(frame, style)
 end
 
 -------------------------------------------------------------------------------
+--  Window parts
+-------------------------------------------------------------------------------
+-- Blizzard's close button in a window's top right corner. A child of the
+-- title bar and raised above it: as a sibling at the same level, the
+-- mouse-enabled drag bar swallowed the clicks.
+function W.CloseButton(titleBar, window)
+    local close = CreateFrame("Button", nil, titleBar)
+    close:SetFrameLevel(titleBar:GetFrameLevel() + 2)
+    close:RegisterForClicks("LeftButtonUp")
+    close:SetSize(32, 32)
+    close:SetPoint("TOPRIGHT", -4, -4)
+    close:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up")
+    close:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down")
+    close:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight", "ADD")
+    close:SetScript("OnClick", function() window:Hide() end)
+    return close
+end
+
+local SCROLL_STEP = 40
+
+-- A thin bar centered in the margin right of scroll, shown only while the
+-- content does not fit; the wheel scrolls (with Ctrl it goes to onCtrlWheel)
+-- and the bar can be dragged. Returns ScrollTo(offset).
+function W.ScrollBar(scroll, margin, onCtrlWheel)
+    local bar = CreateFrame("Button", nil, scroll:GetParent())
+    bar:SetWidth(9)
+    bar:Hide()
+    local thumb = W.Solid(bar, "ARTWORK", GOLD)
+    thumb:SetPoint("TOP")
+    thumb:SetPoint("BOTTOM")
+    thumb:SetWidth(3)
+    thumb:SetAlpha(0.5)
+
+    local function Range() return scroll:GetVerticalScrollRange() end
+    local function PlaceBar()
+        local range, viewH = Range(), scroll:GetHeight()
+        bar:SetShown(range > 0.5)
+        if range <= 0.5 then return end
+        local barH = math.max(20, viewH * viewH / (viewH + range))
+        bar:SetHeight(barH)
+        bar:ClearAllPoints()
+        bar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", margin / 2 - 4, -(viewH - barH) * scroll:GetVerticalScroll() / range)
+    end
+    local function ScrollTo(v)
+        scroll:SetVerticalScroll(math.max(0, math.min(Range(), v)))
+        PlaceBar()
+    end
+    local function Refit() ScrollTo(scroll:GetVerticalScroll()) end
+
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(_, delta)
+        if IsControlKeyDown() then
+            if onCtrlWheel then onCtrlWheel(delta) end
+            return
+        end
+        W.ClosePopups()
+        ScrollTo(scroll:GetVerticalScroll() - delta * SCROLL_STEP)
+    end)
+    scroll:SetScript("OnScrollRangeChanged", Refit)
+    scroll:SetScript("OnSizeChanged", Refit)
+    scroll:SetScript("OnShow", Refit)
+
+    local function CursorY() return select(2, GetCursorPosition()) / bar:GetEffectiveScale() end
+    local startY, startScroll
+    local function Drag()
+        local track = scroll:GetHeight() - bar:GetHeight()
+        if track > 0 then ScrollTo(startScroll + (startY - CursorY()) * Range() / track) end
+    end
+    bar:SetScript("OnMouseDown", function(self, button)
+        if button ~= "LeftButton" then return end
+        W.ClosePopups()
+        startY, startScroll = CursorY(), scroll:GetVerticalScroll()
+        self:SetScript("OnUpdate", Drag)
+    end)
+    bar:SetScript("OnMouseUp", function(self) self:SetScript("OnUpdate", nil) end)
+    bar:SetScript("OnHide", function(self) self:SetScript("OnUpdate", nil) end)
+    bar:SetScript("OnEnter", function() thumb:SetAlpha(1) end)
+    bar:SetScript("OnLeave", function() thumb:SetAlpha(0.5) end)
+    return ScrollTo
+end
+
+-------------------------------------------------------------------------------
 --  Blizzard's control art
 -------------------------------------------------------------------------------
 -- The quest log's blue selection bar over a button, hidden; the caller shows

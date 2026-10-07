@@ -2,6 +2,7 @@
 --  Chat Look -- the chat windows' font, and how long a line stays before it
 --  fades. While the font settings match Blizzard's own (its typeface and
 --  outline at size 14) each window keeps the size picked in its tab menu.
+--  The edit boxes can drop their frame and take their window's font.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -9,6 +10,39 @@ local SECTION, CATEGORY = "Chat", "Look"
 local BLIZZARD_SIZE = 14  -- CHAT_FRAME_DEFAULT_FONT_SIZE
 
 local original = {}  -- chat frame -> ns.FontState before the first change
+
+-- The edit box's frame: Blizzard shows and hides the focus half, never
+-- changes their alpha.
+local BORDER = { "Left", "Mid", "Right", "FocusLeft", "FocusMid", "FocusRight" }
+
+local function ApplyBorder()
+    local alpha = ns.Get("chatEditNoFrame") and 0 or 1
+    for _, name in ipairs(CHAT_FRAMES) do
+        for _, part in ipairs(BORDER) do _G[name .. "EditBox" .. part]:SetAlpha(alpha) end
+    end
+end
+
+local editOriginal = {}  -- edit box or one of its texts -> ns.FontState before the first change
+
+-- Follows the window's own font, whether set here or in its tab menu.
+local function ApplyEditFont()
+    local follow = ns.Get("chatEditFont")
+    for _, name in ipairs(CHAT_FRAMES) do
+        local frame, box = _G[name], _G[name .. "EditBox"]
+        for _, fs in ipairs({ box, box.header, box.headerSuffix, box.languageHeader, box.NewcomerHint, box.prompt }) do
+            if follow then
+                editOriginal[fs] = editOriginal[fs] or ns.FontState(fs)
+                fs:SetFont(frame:GetFont())
+                fs:SetShadowColor(frame:GetShadowColor())
+                fs:SetShadowOffset(frame:GetShadowOffset())
+            elseif editOriginal[fs] then
+                ns.RestoreFont(fs, editOriginal[fs])
+            end
+        end
+    end
+end
+
+hooksecurefunc("FCF_SetChatWindowFontSize", ApplyEditFont)
 
 local function ApplyFont()
     local font, size, outline = ns.Get("chatFont"), ns.Get("chatFontSize"), ns.Get("chatOutline")
@@ -25,6 +59,7 @@ local function ApplyFont()
             ns.ApplyFont(frame, original[frame], font, size, outline)
         end
     end)
+    ApplyEditFont()
 end
 
 local function ApplyFade()
@@ -39,7 +74,17 @@ end
 hooksecurefunc("FCF_OpenTemporaryWindow", function()
     ApplyFont()
     ApplyFade()
+    ApplyBorder()
 end)
+
+ns.RegisterFeature({
+    key = "chatEditNoFrame", label = "No frame around the edit box", section = SECTION, category = "Edit box",
+    apply = ApplyBorder,
+})
+ns.RegisterFeature({
+    key = "chatEditFont", label = "Edit box in the chat font", section = SECTION, category = "Edit box",
+    beside = true, apply = ApplyEditFont,
+})
 
 ns.RegisterFontSettings({
     prefix = "chat", label = "Font", section = SECTION, category = CATEGORY, apply = ApplyFont,

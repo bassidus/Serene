@@ -1119,6 +1119,19 @@ function W.ColorField(parent, f)
 end
 
 -------------------------------------------------------------------------------
+--  Button -- a plain button reading f.button that runs f.click.
+-------------------------------------------------------------------------------
+function W.Button(parent, f)
+    local holder, btn, text, arrow = Field(parent, nil, function() f.click() end)
+    AsButton(btn, text, arrow, f.button)
+    AttachTooltip(btn, f)
+    function holder.Refresh()
+        btn:SetEnabled(Available(holder, f))
+    end
+    return holder
+end
+
+-------------------------------------------------------------------------------
 --  Help -- a gold "?" whose click shows help in the tooltip until it is
 --  clicked again, a click lands anywhere else or the popups close.
 --  help = { text, ... }, under title.

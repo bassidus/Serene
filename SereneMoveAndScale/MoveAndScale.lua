@@ -92,22 +92,19 @@ local placed = {}   -- frame -> true while it sits at its moved spot
 local hooked = {}   -- frame -> its window, once its hooks are in
 local anchors = {}  -- frame -> { [point] = { relativeTo, relativePoint, x, y } } at scale 1
 local mouse = {}    -- frame -> true once it can be moved and resized with the mouse
-local moved = {}    -- frame name -> { left, top }; SereneDB.windowPositions while remembered
-local sessionScale = {}  -- window -> percent set by Ctrl + scroll, while not remembered
--- SereneDB.windowScales: window key -> percent other than 100, the sizes that stay
+local moved = {}    -- frame name -> { left, top }; SereneDB.windowPositions from login
+-- SereneDB.windowScales: window key -> percent other than 100
 local pending       -- windows waiting for combat to end
 local busy          -- while Serene sets points or scale, which the hooks skip
 
 -- Windows take the mouse while it drags or resizes them.
-local function Handled() return ns.Get("windowMove") or ns.Get("windowWheel") end
+local function Handled() return ns.Get("moveAndScale") end
 
 local function Locked(frame) return InCombatLockdown() and frame:IsProtected() end
 
 local function Saved(window)
     return SereneDB.windowScales and SereneDB.windowScales[window.key] or 100
 end
-
-local function Percent(window) return sessionScale[window] or Saved(window) end
 
 -- The window the Size slider is set to.
 local function Picked() return byKey[ns.Get("windowSizeWindow")] end
@@ -116,7 +113,7 @@ local function Picked() return byKey[ns.Get("windowSizeWindow")] end
 local function Ratio(frame) return frame:GetEffectiveScale() / UIParent:GetEffectiveScale() end
 
 local function Spot(frame)
-    return ns.Get("windowMove") and moved[frame:GetName()]
+    return Handled() and moved[frame:GetName()]
 end
 
 -- Puts the frame at its moved spot, or back on Blizzard's anchors with the
@@ -148,7 +145,7 @@ local function Scale(window, frame)
         pending[window] = true
         return
     end
-    local pct = Percent(window)
+    local pct = Saved(window)
     if pct ~= 100 or scaled[frame] then
         local scale = pct / 100
         -- No taller than the screen (a maximized world map is the screen).
@@ -222,7 +219,7 @@ local drag  -- { frame =, name =, left =, top =, x =, y =, own = } while a windo
 -- before the drag began. A window Blizzard drags itself (item links, loot
 -- history) is left to that, and only its spot is kept.
 local function StartDrag(frame, x, y)
-    if not ns.Get("windowMove") or Locked(frame) or not frame:GetLeft() then return end
+    if not Handled() or Locked(frame) or not frame:GetLeft() then return end
     local r = Ratio(frame)
     drag = { frame = frame, name = frame:GetName(), left = frame:GetLeft() * r, top = frame:GetTop() * r, x = x, y = y,
              own = Script(frame, "OnDragStart") }
@@ -241,27 +238,20 @@ local function StopDrag()
     Anchor(frame)
 end
 
--- A size that stays; it wins over a Ctrl + scroll size from this session.
 local function SetSaved(window, pct)
     SereneDB.windowScales = SereneDB.windowScales or {}
     SereneDB.windowScales[window.key] = pct ~= 100 and pct or nil
-    sessionScale[window] = nil
     if Picked() == window then SereneDB.windowSize = pct end
     ApplyWindow(window)
     if ns.RefreshOptions then ns.RefreshOptions() end
 end
 
 local function Wheel(frame, delta)
-    if not (ns.Get("windowWheel") and IsControlKeyDown()) or Locked(frame) then return end
+    if not (Handled() and IsControlKeyDown()) or Locked(frame) then return end
     local window = hooked[frame]
-    local pct = math.min(MAX, math.max(MIN, Percent(window) + delta * STEP))
-    if pct == Percent(window) then return end
-    if ns.Get("windowRemember") then
-        SetSaved(window, pct)
-    else
-        sessionScale[window] = pct
-        ApplyWindow(window)
-    end
+    local pct = math.min(MAX, math.max(MIN, Saved(window) + delta * STEP))
+    if pct == Saved(window) then return end
+    SetSaved(window, pct)
     ns.FlashTip(frame, pct .. "%")
 end
 
@@ -344,7 +334,7 @@ watcher:SetScript("OnUpdate", function(self)
 end)
 
 local function MouseDown(button)
-    if button ~= "LeftButton" or not ns.Get("windowMove") then return end
+    if button ~= "LeftButton" or not Handled() then return end
     local frame = WindowAtCursor()
     if not frame then return end
     local x, y = Cursor()
@@ -398,7 +388,7 @@ ctrlWatcher:SetScript("OnUpdate", function(_, elapsed)
 end)
 
 local function WheelOn()
-    local on = ns.Get("windowWheel") and IsControlKeyDown()
+    local on = Handled() and IsControlKeyDown()
     ctrlElapsed = 0.1  -- the first check right away
     ctrlWatcher:SetShown(on)
     if not on then
@@ -436,11 +426,10 @@ local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
 
--- The mouse is only watched while dragging or resizing is on.
+-- The mouse is only watched while Move & Scale is on.
 local function SyncEvents()
-    for event, on in pairs({ GLOBAL_MOUSE_DOWN = Handled(), GLOBAL_MOUSE_UP = Handled(),
-                             MODIFIER_STATE_CHANGED = ns.Get("windowWheel") }) do
-        if on then events:RegisterEvent(event) else events:UnregisterEvent(event) end
+    for _, event in ipairs({ "GLOBAL_MOUSE_DOWN", "GLOBAL_MOUSE_UP", "MODIFIER_STATE_CHANGED" }) do
+        if Handled() then events:RegisterEvent(event) else events:UnregisterEvent(event) end
     end
 end
 events:SetScript("OnEvent", function(_, event, arg)
@@ -464,36 +453,29 @@ events:SetScript("OnEvent", function(_, event, arg)
     for window in pairs(waiting) do ApplyWindow(window) end
 end)
 
--- Turned on, the session's spots become the saved ones (at login: the saved
--- ones are loaded) and Ctrl + scroll sizes go to the sliders.
-local function ApplyRemember()
-    if ns.Get("windowRemember") then
-        moved = SereneDB.windowPositions or moved
-        SereneDB.windowPositions = moved
-        for window, pct in pairs(sessionScale) do SetSaved(window, pct) end
-    else
-        SereneDB.windowPositions = nil
-    end
-end
-
 ns.OnReset(function()
     wipe(moved)
-    wipe(sessionScale)
     SereneDB.windowScales = nil
 end, SECTION)
 
 ns.RegisterFeature({
-    key = "windowMove", label = "Drag windows to move them", section = SECTION, category = "Settings",
-    default = false, apply = function() ApplyAll(); SyncEvents() end,
-    tooltip = "Moving and resizing the game's windows; middle-click resets one",
+    key = "moveAndScale", label = "Enable Move & Scale", section = SECTION, category = "Settings",
+    default = false,
+    apply = function()
+        -- The first apply runs at login, once SereneDB is loaded.
+        SereneDB.windowPositions = SereneDB.windowPositions or moved
+        moved = SereneDB.windowPositions
+        ApplyAll(); SyncEvents(); WheelOn()
+    end,
+    tooltip = "Drag a window to move it, Ctrl + mouse wheel resizes it and middle-click resets it",
 })
 ns.RegisterFeature({
-    key = "windowWheel", label = "Ctrl + mouse wheel resizes windows", section = SECTION, category = "Settings",
-    default = false, apply = function() ApplyAll(); SyncEvents(); WheelOn() end,
-})
-ns.RegisterFeature({
-    key = "windowRemember", label = "Save sizes and positions between sessions", section = SECTION,
-    category = "Settings", apply = ApplyRemember,
+    key = "windowResetPositions", button = "Reset positions", section = SECTION, category = "Settings",
+    type = "button", beside = true,
+    click = function()
+        wipe(moved)
+        ApplyAll()
+    end,
 })
 
 -- In alphabetical order: there are too many to scan for one in any other.

@@ -25,6 +25,7 @@ ns.featureByKey = {}
 --   tooltip    help text under the category's "?" (on hover without a category)
 --   apply      fn run at login and on every change
 --   type       "boolean" (default) | "dropdown" | "slider" | "color" | "outline"
+--              | "button" (no value: `button` is its text, `click` runs on a press)
 --   default    initial value
 --   options    dropdown: fn returning { { value =, label = }, ... }
 --   preview    dropdown: draw entries in their own font

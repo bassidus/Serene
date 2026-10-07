@@ -510,8 +510,7 @@ end
 -- The section's settings in a view with each category's gathered together,
 -- the categories in the page's order (ns.SetCategoryOrder), then in the
 -- order they first appear. A font group is one row,
--- at its first setting, and its color and position go with it; a position
--- pair is one row, at its X.
+-- at its first setting, and its color goes with it.
 local function SectionFeatures(section, view)
     local inGroup = {}
     for _, f in ipairs(ns.features) do
@@ -688,6 +687,8 @@ local function CreatePage(section)
             w = W.ColorField(content, f)
         elseif f.type == "outline" then
             w = W.Outline(content, f)
+        elseif f.type == "button" then
+            w = W.Button(content, f)
         else
             w = W.Checkbox(content, f)
         end

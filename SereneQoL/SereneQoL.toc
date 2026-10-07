@@ -17,6 +17,6 @@ TrainAll.lua
 HideTutorials.lua
 MovieSkip.lua
 CameraZoom.lua
-HideErrors.lua
 QueueTimer.lua
+HideErrors.lua
 ReloadAlias.lua

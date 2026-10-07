@@ -62,7 +62,7 @@ end
 
 ns.RegisterFeature({
     key = "hideErrors", label = "Hide error messages / speech", section = "General", category = "Interface",
-    type = "dropdown", default = "never", apply = Apply,
+    type = "dropdown", default = "never", space = true, apply = Apply,
     options = function()
         return {
             { value = "never",       label = "Never" },

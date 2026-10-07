@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Bar Art -- the action bars, the bag bar, the micro menu and the
---  experience bar in Dark mode.
+--  experience bar.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -66,42 +66,20 @@ local function Collect(frame)
     for _, child in ipairs({ frame:GetChildren() }) do Collect(child) end
 end
 
--- An empty bag slot shows bronze in its icon texture, which turns into the
--- bag's icon once a bag is equipped there.
+-- An empty bag slot shows bronze in its icon texture.
 local EMPTY_BAG = 4760248
 local BAG_SLOTS = { "CharacterBag0Slot", "CharacterBag1Slot", "CharacterBag2Slot", "CharacterBag3Slot", "CharacterReagentBag0Slot" }
 
-local emptySlots = {}  -- [icon texture] = true while it shows EMPTY_BAG
-local painting  -- PaintSlot's own color calls also run its hooks
+local function IsEmptyBag(icon) return icon:GetTexture() == EMPTY_BAG end
 
-local function PaintSlot(tex)
-    if painting then return end
-    painting = true
-    if tex:GetTexture() == EMPTY_BAG then
-        emptySlots[tex] = true
-        Paint(tex)
-    elseif emptySlots[tex] then
-        emptySlots[tex] = nil
-        tex:SetDesaturated(false)
-        tex:SetVertexColor(1, 1, 1)
-    end
-    painting = false
-end
+for _, name in ipairs(BAG_SLOTS) do ns.AddDarkSlot(_G[name .. "IconTexture"], IsEmptyBag) end
 
 local function ApplyArt()
     if ns.Get("darkMode") and not next(bronze) then
         for _, frame in ipairs({ MainActionBar, BagsBar, MicroMenuContainer, StatusTrackingBarManager }) do Collect(frame) end
         EachButton(Collect)
-        -- Blizzard's bag update resets the icon's color after login.
-        for _, name in ipairs(BAG_SLOTS) do
-            local icon = _G[name .. "IconTexture"]
-            hooksecurefunc(icon, "SetTexture", PaintSlot)
-            hooksecurefunc(icon, "SetDesaturated", PaintSlot)
-            hooksecurefunc(icon, "SetVertexColor", PaintSlot)
-        end
     end
     for tex in pairs(bronze) do Paint(tex) end
-    for _, name in ipairs(BAG_SLOTS) do PaintSlot(_G[name .. "IconTexture"]) end
 end
 
 ns.OnDarkMode(ApplyArt)

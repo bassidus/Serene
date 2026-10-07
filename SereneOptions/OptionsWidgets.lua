@@ -200,7 +200,7 @@ local BUTTON_V, BUTTON_CAP = 0.6875, 12
 
 -- Dresses btn (any button, the secure Reload one too) as Blizzard's red
 -- panel button reading label: gold text, white while hovered or locked.
--- opts.small: the small font; opts.fit: as wide as its text. Adds
+-- opts.fit: as wide as its text. Adds
 -- btn.SetLabel(text) and btn.SetLocked(on), which keeps it lit (e.g. armed).
 function W.RedButton(btn, label, opts)
     opts = opts or {}
@@ -231,7 +231,7 @@ function W.RedButton(btn, label, opts)
         end
     end
 
-    local text = btn:CreateFontString(nil, "OVERLAY", opts.small and "GameFontNormalSmall" or "GameFontNormal")
+    local text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     -- Centered on the art's face, which sits a little lower than the middle.
     text:SetPoint("CENTER", 0, -1)
     btn.label = text
@@ -256,7 +256,7 @@ function W.RedButton(btn, label, opts)
     btn:HookScript("OnMouseUp", function() Art(ART.button) end)
     btn:HookScript("OnEnable", function() Art(ART.button); Paint() end)
     btn:HookScript("OnDisable", function() Art(ART.buttonOff); Paint() end)
-    btn:SetHeight(opts.small and 20 or 22)
+    btn:SetHeight(22)
     btn.SetLabel(label)
     Paint()
     return btn

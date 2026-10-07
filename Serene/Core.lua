@@ -88,11 +88,10 @@ ns.RegisterFeature({
 })
 
 -- Extra state a feature wants cleared by Restore defaults (e.g. a moved
--- frame's spot); fn runs before the features re-apply. section: the
--- options page whose own reset also runs it.
+-- frame's spot); fn runs before the features re-apply.
 ns.resetHooks = {}
-function ns.OnReset(fn, section)
-    ns.resetHooks[#ns.resetHooks + 1] = { fn = fn, section = section }
+function ns.OnReset(fn)
+    ns.resetHooks[#ns.resetHooks + 1] = fn
 end
 
 -- State that is not an option, which only /serene reset puts back (e.g.
@@ -102,35 +101,25 @@ function ns.OnResetAll(fn)
     ns.resetAllHooks[#ns.resetAllHooks + 1] = fn
 end
 
--- Puts every option back to its default, or with a section only the
--- options on that page. Window state and the minimap icon's spot are not
--- options and stay (see ns.ResetAll). quiet: no message in chat.
-function ns.ResetDefaults(section, quiet)
-    local function Included(s) return not section or s == section end
+-- Puts every option back to its default. Window state and the minimap
+-- icon's spot are not options and stay (see ns.ResetAll). quiet: no
+-- message in chat.
+function ns.ResetDefaults(quiet)
+    for _, f in ipairs(ns.features) do SereneDB[f.key] = f.default end
+    for _, fn in ipairs(ns.resetHooks) do fn() end
     for _, f in ipairs(ns.features) do
-        if Included(f.section) then SereneDB[f.key] = f.default end
-    end
-    for _, hook in ipairs(ns.resetHooks) do
-        if Included(hook.section) then hook.fn() end
-    end
-    for _, f in ipairs(ns.features) do
-        if Included(f.section) and f.apply then f.apply() end
+        if f.apply then f.apply() end
     end
     if ns.RefreshOptions then ns.RefreshOptions() end
-    if quiet then return end
-    if section then
-        ns.Print(section .. " options are back to their defaults.")
-    else
-        ns.Print("All options are back to their defaults.")
-    end
+    if not quiet then ns.Print("All options are back to their defaults.") end
 end
 
--- /serene reset: every option, the options window's spot, size, page
--- and open categories (SereneOptions, which is load on demand, so cleared
--- here) and the ns.OnResetAll state.
+-- /serene reset: every option, the options window's spot and size
+-- (SereneOptions, which is load on demand, so cleared here) and the
+-- ns.OnResetAll state.
 function ns.ResetAll()
-    ns.ResetDefaults(nil, true)
-    SereneDB.optionsWindow, SereneDB.optionsPage, SereneDB.optionsOpen = nil, nil, nil
+    ns.ResetDefaults(true)
+    SereneDB.optionsWindow = nil
     for _, fn in ipairs(ns.resetAllHooks) do fn() end
     ns.Print("Everything is back to its defaults, the options window and the minimap icon too.")
 end

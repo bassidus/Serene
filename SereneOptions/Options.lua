@@ -3,7 +3,8 @@
 --  a control per registered feature. At the bottom, with the buttons: the
 --  Modules tab, listing every Serene* addon, loaded or not, with a checkbox
 --  to turn it on or off. Built on first open; Ctrl + scroll scales it.
---  Position and scale are saved (SereneDB.optionsWindow).
+--  Position and scale are saved (SereneDB.optionsWindow); the page and
+--  which groups are open last only until the UI reloads.
 -------------------------------------------------------------------------------
 local ns = Serene
 local W = ns.Widgets
@@ -32,6 +33,8 @@ local MAX_SCREEN = 0.45 -- the window's height at most, as a share of the screen
 
 local frame, pagePanel
 local widgets, pages, tabs = {}, {}, {}
+-- "<section>/<category>" (or "/<sub>") = open, for groups clicked this session.
+local opened = {}
 
 local AddOns = C_AddOns
 
@@ -105,7 +108,6 @@ local function ShowPage(section)
     W.ClosePopups()
     for s, page in pairs(pages) do page:SetShown(s == section) end
     for s, tab in pairs(tabs) do tab:SetSelected(s == section) end
-    SereneDB.optionsPage = section
 end
 
 -- A sidebar tab: gold text, white with the quest log's blue bar behind it
@@ -143,13 +145,11 @@ end
 local CONFIRM_TIME = 4
 
 -- Puts every group back as it starts (open unless its first setting has
--- closed = true), or with a section only that page's, as a reset does.
-local function CloseGroups(section)
-    for key in pairs(SereneDB.optionsOpen or {}) do
-        if not section or key:sub(1, #section + 1) == section .. "/" then SereneDB.optionsOpen[key] = nil end
-    end
-    for name, page in pairs(pages) do
-        if page.Layout and (not section or name == section) then page.Layout() end
+-- closed = true), as a reset does.
+local function CloseGroups()
+    wipe(opened)
+    for _, page in pairs(pages) do
+        if page.Layout then page.Layout() end
     end
 end
 
@@ -236,20 +236,6 @@ local function CreatePageFrame(name)
     header:SetText(name)
     page.header = header
     return page
-end
-
--- "Restore page" at a settings page's top right: like Restore defaults, the
--- first click asks for a second, and only the page's own options go back.
-local function CreatePageReset(page, section)
-    local btn = W.RedButton(CreateFrame("Button", nil, page), "Restore page", { small = true, fit = true })
-    btn:SetPoint("TOPRIGHT")
-    TwoClick(btn, function(on)
-        btn.SetLabel(on and "Click again to restore" or "Restore page")
-        btn.SetLocked(on)
-    end, function()
-        ns.ResetDefaults(section)
-        CloseGroups(section)
-    end)
 end
 
 -- Puts a settings page's content in a scroll frame under its title, with a
@@ -452,7 +438,7 @@ local function CreateModulesPage()
     local key = MODULES .. "/" .. ADDONS
     local allOpen  -- while measuring the page open
     local function Open()
-        return allOpen or (SereneDB.optionsOpen or {})[key] ~= false
+        return allOpen or opened[key] ~= false
     end
 
     local group
@@ -476,8 +462,7 @@ local function CreateModulesPage()
         return -y
     end
     group = CreateGroup(content, ADDONS, function()
-        SereneDB.optionsOpen = SereneDB.optionsOpen or {}
-        SereneDB.optionsOpen[key] = not Open()
+        opened[key] = not Open()
         W.ClosePopups()
         Layout()
     end)
@@ -537,14 +522,13 @@ local function Columns(list)
 end
 
 -- Each category opens and closes by its heading; the choice is kept in
--- SereneDB.optionsOpen ("<section>/<category>" = true or false). Until
+-- opened ("<section>/<category>" = true or false). Until
 -- then a category is open, unless its first setting has closed = true. A
 -- subgroup (settings with sub) is a smaller frame inside its category that
 -- opens and closes the same way ("<section>/<category>/<sub>"). A change
 -- lays the page out again.
 local function CreatePage(section)
     local page = CreatePageFrame(section)
-    CreatePageReset(page, section)
     local content = AddScrolling(page)
     local half = (PAGE_W - SPACING) / 2
 
@@ -567,7 +551,7 @@ local function CreatePage(section)
     -- key: a category, or "<category>/<sub>" for a subgroup.
     local function Open(key)
         if allOpen then return true end
-        local saved = (SereneDB.optionsOpen or {})[section .. "/" .. key]
+        local saved = opened[section .. "/" .. key]
         if saved == nil then return startsOpen[key] end
         return saved
     end
@@ -579,11 +563,10 @@ local function CreatePage(section)
         local key = sub and category .. "/" .. sub or category
         if not groups[key] then
             groups[key] = CreateGroup(content, sub or category, function()
-                SereneDB.optionsOpen = SereneDB.optionsOpen or {}
                 local open = not Open(key)
-                SereneDB.optionsOpen[section .. "/" .. key] = open
+                opened[section .. "/" .. key] = open
                 if not sub and partner[category] then
-                    SereneDB.optionsOpen[section .. "/" .. partner[category]] = open
+                    opened[section .. "/" .. partner[category]] = open
                 end
                 W.ClosePopups()
                 Layout()
@@ -971,7 +954,7 @@ local function Build()
         PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE)
     end)
 
-    ShowPage(pages[SereneDB.optionsPage] and SereneDB.optionsPage or first or MODULES)
+    ShowPage(first or MODULES)
     frame:Hide()
 end
 

@@ -457,7 +457,7 @@ end)
 ns.OnReset(function()
     wipe(moved)
     SereneDB.windowScales = nil
-end, SECTION)
+end)
 
 ns.RegisterFeature({
     key = "moveAndScale", label = "Enable Move & Scale", section = SECTION, category = "Mouse",

@@ -78,10 +78,9 @@ end
 --  Plate pieces
 -------------------------------------------------------------------------------
 local function Create(plate)
-    -- Icon just left of the health bar; the progress on the name's row, as far
-    -- right as the bar goes (the name ends where it starts).
+    -- Icon just left of the health bar (NP.StackLeft); the progress on the
+    -- name's row, as far right as the bar goes (the name ends where it starts).
     local q = CreateFrame("Frame", nil, plate.overlay)
-    q:SetPoint("RIGHT", plate.health, "LEFT", -2, 0)
     q:Hide()
     q.icon = q:CreateTexture(nil, "OVERLAY")
     q.icon:SetAllPoints()
@@ -111,6 +110,7 @@ local function Update(plate)
         q:Hide()
         plate.name:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, 3)
     end
+    NP.StackLeft(plate)
 end
 
 NP.RegisterModule({

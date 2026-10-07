@@ -153,6 +153,22 @@ function NP.StackBelow(plate)
     cast.iconFrame:SetWidth(height + GAP + cast:GetHeight())
 end
 
+-- Icons left of the health bar, nearest first; hidden ones take no room, so
+-- the quest icon never moves.
+local LEFT = { "quest", "tapIcon" }
+
+function NP.StackLeft(plate)
+    local anchor, x = plate.health, -2
+    for _, key in ipairs(LEFT) do
+        local icon = plate[key]
+        if icon and icon:IsShown() then
+            icon:ClearAllPoints()
+            icon:SetPoint("RIGHT", anchor, "LEFT", x, 0)
+            anchor, x = icon, -1
+        end
+    end
+end
+
 local OnPlateEvent
 
 local function Layout(plate)
@@ -161,6 +177,8 @@ local function Layout(plate)
     NP.SetFont(plate.healthText, -1)
     local icon = ns.Get("nameplateHeight") + 6
     plate.raidIcon:SetSize(icon, icon)
+    local tap = ns.Get("nameplateFontSize") + 6
+    plate.tapIcon:SetSize(tap, tap)
     RunModules("layout", plate)
     NP.StackBelow(plate)
 end
@@ -202,6 +220,12 @@ local function CreatePlate()
     plate.raidIcon:SetPoint("LEFT", health, "RIGHT", 4, 0)
     plate.raidIcon:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
     plate.raidIcon:Hide()
+
+    -- Tagged by someone outside your group: no XP or loot. An icon, not the
+    -- bar, so threat colors still show who has aggro.
+    plate.tapIcon = overlay:CreateTexture(nil, "OVERLAY")
+    plate.tapIcon:SetTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
+    plate.tapIcon:Hide()
 
     plate:SetScript("OnEvent", OnPlateEvent)
     RunModules("create", plate)
@@ -294,6 +318,10 @@ end
 
 local function UpdateHealthColor(plate)
     local unit = plate.unit
+    -- The tapped icon rides along: it changes on the same events as the color.
+    local tapped = Clean(UnitIsTapDenied(unit))
+    plate.tapIcon:SetShown(tapped and ns.Get("nameplateTapped") or false)
+    NP.StackLeft(plate)
     local c
     -- On its threat list = the mob is fighting you (Blizzard's test).
     local status = Clean(UnitThreatSituation("player", unit))
@@ -302,7 +330,7 @@ local function UpdateHealthColor(plate)
     -- Threat first, then tapped, then quest mobs (NameplateQuest.lua) until
     -- they fight you.
     c = ThreatColor(plate, unit, status)
-        or (Clean(UnitIsTapDenied(unit)) and COLORS.tapped)
+        or (tapped and COLORS.tapped)
         or (not fighting and NP.QuestColor(unit, reaction == 4))
     if not c and Clean(UnitIsPlayer(unit)) then
         local _, class = UnitClass(unit)
@@ -620,4 +648,8 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "nameplateHealthText", label = "Show target health", section = "Nameplates", category = "Settings",
     beside = true, apply = Relayout,
+})
+ns.RegisterFeature({
+    key = "nameplateTapped", label = "Mark enemies tagged by others", section = "Nameplates", category = "Settings",
+    apply = Relayout,
 })

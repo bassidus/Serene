@@ -44,7 +44,7 @@ local GOLD, TAN, WHITE = W.GOLD, W.TAN, W.WHITE
 -- Sections not listed here go under Other.
 local MENU = {
     { "Interface", { "Action Bars", "Nameplates", "Unit frames", "Tooltip", "Move & Scale" } },
-    { "Quality of life", { "General", "Quests", "Social" } },
+    { "Quality of life", { "General", "Quests", "Social", "Chat" } },
 }
 local OTHER = "Other"
 

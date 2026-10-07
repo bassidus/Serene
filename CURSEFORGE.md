@@ -22,6 +22,7 @@
 *   **General:** faster looting, auto repair, sells your grays, a Train All button, skips cinematics, hides tutorials and error spam, more camera zoom
 *   **Quests:** accepts and turns in quests automatically (hold Shift to do it yourself)
 *   **Social:** accepts invites from friends, blocks invites, duels and shared quests from strangers, invites on whisper, says thanks when someone buffs you
+*   **Chat:** arrow keys for sent lines, levels after names, short channel names and loot lines, clickable links, chat font and fade time, copy chat
 
 <hr color="#f65820" style="color: #f65820; border-color: #f65820;">
 

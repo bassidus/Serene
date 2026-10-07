@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Serene Chat
+## Group: Serene
+## Notes: Arrow-key history, levels after names, short channel names and loot lines, clickable links, chat font and fade, copy chat.
+## Version: 1.4.0
+## Dependencies: Serene
+## X-Serene-Section: Chat
+## IconTexture: Interface\AddOns\Serene\Media\Logo
+
+Init.lua
+ChatInput.lua
+ChatMessages.lua
+ChatLook.lua
+ChatCopy.lua

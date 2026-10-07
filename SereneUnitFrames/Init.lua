@@ -5,7 +5,8 @@ setmetatable(ns, { __index = Serene })
 --  Pages -- each frame has settings of its own, a view of the Unit frames
 --  page picked in its dropdown; the target's and focus's targets share one.
 --  The first view, All, holds what several frames share (UnitFrameAll.lua).
---  A page's keys start with its prefix: page.key.Dark is "playerFrameDark".
+--  A page's keys start with its prefix: page.key.HideName is
+--  "playerFrameHideName".
 --  They are built once, since target of target styles itself every frame.
 -------------------------------------------------------------------------------
 local SECTION = "Unit frames"

@@ -874,21 +874,26 @@ local function FooterText()
     return "Hold Shift to skip " .. list .. "."
 end
 
--- The footer: the Shift line, then the minimap icon's checkbox after it.
+-- The footer: the Shift line, then the minimap icon's and Dark mode's
+-- checkboxes after it.
 local function CreateFooter()
     local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     footer:SetPoint("LEFT", frame, "BOTTOMLEFT", PAGE_X + 6, INSET + FOOTER_H / 2)
     footer:SetText(FooterText())
 
-    local box = W.Checkbox(frame, ns.featureByKey.minimapIcon)
-    box.label:SetFontObject("GameFontHighlightSmall")
-    box:SetSize(26 + math.ceil(box.label:GetStringWidth()), 20)
-    if footer:GetText() ~= "" then
-        box:SetPoint("LEFT", footer, "RIGHT", 24, 0)
-    else
-        box:SetPoint("LEFT", frame, "BOTTOMLEFT", PAGE_X + 6, INSET + FOOTER_H / 2)
+    local prev = footer:GetText() ~= "" and footer
+    for _, key in ipairs({ "minimapIcon", "darkMode" }) do
+        local box = W.Checkbox(frame, ns.featureByKey[key])
+        box.label:SetFontObject("GameFontHighlightSmall")
+        box:SetSize(26 + math.ceil(box.label:GetStringWidth()), 20)
+        if prev then
+            box:SetPoint("LEFT", prev, "RIGHT", 24, 0)
+        else
+            box:SetPoint("LEFT", frame, "BOTTOMLEFT", PAGE_X + 6, INSET + FOOTER_H / 2)
+        end
+        widgets[#widgets + 1] = box
+        prev = box
     end
-    widgets[#widgets + 1] = box
 end
 
 -- Child of the title bar and raised above it: as a sibling at the same level,

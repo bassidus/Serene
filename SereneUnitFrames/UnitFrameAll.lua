@@ -9,7 +9,7 @@ local _, ns = ...
 local pageOf = {}  -- [view] = page
 for _, page in ipairs(ns.FramePages()) do pageOf[page.view] = page end
 
--- A setting's name is its key without the page's prefix ("Dark").
+-- A setting's name is its key without the page's prefix ("HideName").
 local names, links, first = {}, {}, {}
 for _, f in ipairs(ns.features) do
     local page = type(f.view) == "string" and pageOf[f.view]

@@ -159,6 +159,19 @@ function ns.AddShiftSkip(what)
     ns.shiftSkips[#ns.shiftSkips + 1] = what
 end
 
+-- Dark mode, the checkbox in the options window's footer: the action bar
+-- art and the unit frames go dark. An addon with something to darken
+-- passes its redraw here.
+local darkModeHooks = {}
+function ns.OnDarkMode(fn)
+    darkModeHooks[#darkModeHooks + 1] = fn
+end
+
+ns.RegisterFeature({
+    key = "darkMode", label = "Dark mode",
+    apply = function() for _, fn in ipairs(darkModeHooks) do fn() end end,
+})
+
 -- Extra state a feature wants cleared by Restore defaults (e.g. a moved
 -- frame's spot); fn runs before the features re-apply. section: the
 -- options page whose own reset also runs it.

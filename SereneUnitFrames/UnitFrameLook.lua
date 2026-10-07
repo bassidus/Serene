@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Unit Frame Look -- dark frame art, name, level and the health/
+--  Unit Frame Look -- dark frame art (Dark mode), name, level and the health/
 --  mana text on Blizzard's unit frames (player, pet, target, focus, their
 --  targets, party), each frame by its own page's settings.
 --
@@ -13,14 +13,14 @@ local _, ns = ...
 
 local Clean = ns.Clean
 
-local DARK = 0.3  -- vertex color of the desaturated frame art in Dark Mode
+local DARK = 0.3  -- vertex color of the desaturated frame art in Dark mode
 
 -------------------------------------------------------------------------------
 --  The parts of each frame, looked up once
 -------------------------------------------------------------------------------
 local parts = {}
 
--- art: darkened in Dark Mode.
+-- art: darkened in Dark mode.
 local function PartsOf(frame)
     local p = parts[frame]
     if p then return p end
@@ -54,7 +54,7 @@ local Frames, FramePage = ns.UnitFrames, ns.FramePage
 local SetHidden = ns.SetHidden
 
 -------------------------------------------------------------------------------
---  Dark Mode: the frame art desaturated and darkened
+--  Dark mode: the frame art desaturated and darkened
 -------------------------------------------------------------------------------
 local darkened = {}  -- [texture] = Blizzard's desaturation
 
@@ -201,7 +201,7 @@ end
 -- Returns false while the frame is not laid out yet.
 local function Style(frame)
     local p, key = PartsOf(frame), FramePage(frame).key
-    local dark = ns.Get(key.Dark)
+    local dark = ns.Get("darkMode")
     for _, tex in pairs(p.art) do SetDark(tex, dark) end
     SetHidden(p.name, ns.Get(key.HideName))
     SetHidden(p.nameBackground, true)  -- the colored bar behind the name, gone like on the player frame
@@ -368,13 +368,10 @@ for _, page in ipairs(ns.FramePages()) do
     if page.frames[1].healthbar.TextString then textViews[#textViews + 1] = page.view end
 end
 
+ns.OnDarkMode(StyleAll)
+
 for _, page in ipairs(ns.FramePages()) do
     local key, section, view = page.key, page.section, page.view
-    ns.RegisterFeature({
-        key = key.Dark, label = "Dark frame", section = section, view = view, category = "Appearance",
-        tooltip = "Colors of the frame",
-        apply = StyleAll,
-    })
     ns.RegisterFeature({
         key = key.HideName, label = "Hide name", section = section, view = view, category = "Name",
         tooltip = "The unit's name",

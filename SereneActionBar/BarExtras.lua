@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
---  Bar Extras -- gray or dark bar art instead of Forever's bronze, zoomed button
---  icons (their rough edges cropped), and the bags bar and micro menu shown
---  only while the mouse is over them. Those two are only made invisible, so
---  they still answer the mouse.
+--  Bar Extras -- dark bar art instead of Forever's bronze in Dark mode, and
+--  zoomed button icons (their rough edges cropped).
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -28,8 +26,8 @@ end
 
 -------------------------------------------------------------------------------
 --  Bar art: Forever's bar art (frame, wyverns, dividers, button rims) is
---  bronze, drawn from these files; desaturated it is the plain gray of the
---  retail bars, and darkened on top of that it recedes behind the icons.
+--  bronze, drawn from these files; desaturated and darkened (Dark mode) it
+--  recedes behind the icons.
 --  The micro menu's sheet also holds its colored icons, so only the button
 --  backgrounds there.
 -------------------------------------------------------------------------------
@@ -40,14 +38,14 @@ local bronze = {}  -- [texture] = true, every bronze texture found
 local DARK = 0.6
 
 local function Paint(tex)
-    local art = ns.Get("barArt")
-    local v = art == "dark" and DARK or 1
-    tex:SetDesaturated(art ~= "bronze")
+    local dark = ns.Get("darkMode")
+    local v = dark and DARK or 1
+    tex:SetDesaturated(dark)
     tex:SetVertexColor(v, v, v)
 end
 
 local function Repaint(tex)
-    if ns.Get("barArt") ~= "bronze" then Paint(tex) end
+    if ns.Get("darkMode") then Paint(tex) end
 end
 
 local function IsBronze(tex)
@@ -68,69 +66,16 @@ local function Collect(frame)
 end
 
 local function ApplyArt()
-    if ns.Get("barArt") ~= "bronze" and not next(bronze) then
+    if ns.Get("darkMode") and not next(bronze) then
         for _, frame in ipairs({ MainActionBar, BagsBar, MicroMenuContainer }) do Collect(frame) end
         EachButton(Collect)
     end
     for tex in pairs(bronze) do Paint(tex) end
 end
 
--------------------------------------------------------------------------------
---  Mouseover bars
--------------------------------------------------------------------------------
-local FADERS = {
-    { key = "bagsBarMouseover",  frame = BagsBar },
-    { key = "microMenuMouseover", frame = MicroMenuContainer },
-}
-
-local watch = CreateFrame("Frame")
-local elapsed = 0
-
-local function Refresh()
-    for _, f in ipairs(FADERS) do
-        local hide = ns.Get(f.key) and not f.frame:IsMouseOver()
-        if hide ~= f.hidden then
-            f.hidden = hide
-            ns.SetHidden(f.frame, hide)
-        end
-    end
-end
-
-watch:SetScript("OnUpdate", function(_, dt)
-    elapsed = elapsed + dt
-    if elapsed < 0.1 then return end
-    elapsed = 0
-    Refresh()
-end)
-
-local function ApplyFaders()
-    local any = false
-    for _, f in ipairs(FADERS) do any = any or ns.Get(f.key) end
-    watch:SetShown(any)
-    Refresh()
-end
-
+-- Loads after ActionBarRange.lua, so this lands beside its range color.
 ns.RegisterFeature({
-    key = "barArt", label = "Bar art", section = SECTION, category = "Look",
-    tooltip = "How the bars look",
-    type = "dropdown", inline = true, default = "dark", apply = ApplyArt,
-    options = function()
-        return {
-            { value = "bronze", label = "Bronze" },
-            { value = "gray",   label = "Gray" },
-            { value = "dark",   label = "Dark" },
-        }
-    end,
+    key = "zoomActionIcons", label = "Zoom button icons", section = SECTION, category = "Settings",
+    beside = true, default = true, apply = ApplyZoom,
 })
-ns.RegisterFeature({
-    key = "zoomActionIcons", label = "Zoom button icons", section = SECTION, category = "Look",
-    default = true, apply = ApplyZoom,
-})
-ns.RegisterFeature({
-    key = "bagsBarMouseover", label = "Bags bar on mouseover", section = SECTION, category = "Look",
-    default = false, apply = ApplyFaders,
-})
-ns.RegisterFeature({
-    key = "microMenuMouseover", label = "Micro menu on mouseover", section = SECTION, category = "Look",
-    default = false, apply = ApplyFaders,
-})
+ns.OnDarkMode(ApplyArt)

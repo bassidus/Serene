@@ -9,12 +9,12 @@ local _, ns = ...
 
 local Clean = ns.Clean
 
-local enabled, color             -- current settings, read by Apply
+local enabled                     -- current setting, read by Apply
 local buttons = {}                -- [action button] = true
 local tinted = {}                 -- [button] = we colored its icon
 
 local function Tint(icon)
-    icon:SetVertexColor(color[1], color[2], color[3])
+    icon:SetVertexColor(1, 0.3, 0.1)
     -- Grayed first, so the tint is not muddied by the icon's own colors.
     icon:SetDesaturated(true)
 end
@@ -107,7 +107,6 @@ hooksecurefunc(PetActionBar, "Update", PetUpdate)
 -------------------------------------------------------------------------------
 local function Apply()
     enabled = ns.Get("rangeColors")
-    color = { ns.ColorRGB(ns.Get("rangeColor")) }
     ActionBarButtonEventsFrame:ForEachFrame(Register)
     for btn in pairs(buttons) do
         if enabled or tinted[btn] then Color(btn, enabled and OutOfRange(btn)) end
@@ -119,12 +118,8 @@ end
 
 local SECTION = "Action Bars"
 
--- Loads after Keybinds.lua, so these come last under Settings.
+-- Loads after Keybinds.lua, so this comes last under Settings (Zoom button
+-- icons from BarExtras.lua sits beside it).
 ns.RegisterFeature({
     key = "rangeColors", label = "Enable out of range color", section = SECTION, category = "Settings", apply = Apply,
-})
-ns.RegisterFeature({
-    key = "rangeColor", label = "Range color", section = SECTION, category = "Settings",
-    type = "color", default = "ff4d1a", button = "Color",
-    requires = "rangeColors", apply = Apply,
 })

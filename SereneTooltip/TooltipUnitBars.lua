@@ -4,7 +4,16 @@
 --  and its tooltip fades. The bars show the frame's unit tooltip instead;
 --  their own OnLeave already hides it. Nothing is written to Blizzard's
 --  frames; the (secure) unit frame's unit is only read.
+--
+--  The pet frame's name and the gap between its bars take no mouse, so
+--  passing over them leaves the frame and its tooltip blinks or goes. On
+--  the pet frame its art decides instead: the tooltip shows while the mouse
+--  is on it.
 -------------------------------------------------------------------------------
+local _, ns = ...
+
+local Clean = ns.Clean
+
 local frameOf = {}  -- bar -> its unit frame
 
 local function OnEnter(bar)
@@ -29,3 +38,28 @@ Hook(TargetFrameToT)
 Hook(FocusFrame)
 Hook(FocusFrameToT)
 for i = 1, 4 do Hook(PartyFrame["MemberFrame" .. i]) end
+
+local function OnPetArt()
+    return PetFrame:IsVisible() and Clean(PetFrameTexture:IsMouseOver())
+end
+
+-- Blizzard's OnLeave has hidden the tooltip; on the art it comes back.
+local function OnPetLeave()
+    if OnPetArt() then OnEnter(PetFrame.healthbar) end
+end
+for _, part in ipairs({ PetFrame, PetFrame.healthbar, PetFrame.manabar }) do
+    part:HookScript("OnLeave", OnPetLeave)
+end
+
+-- Onto the art or off it through a part with no mouse, no OnEnter or
+-- OnLeave fires.
+local onPet
+CreateFrame("Frame"):SetScript("OnUpdate", function()
+    local over = OnPetArt() or false
+    if over and not onPet then
+        OnEnter(PetFrame.healthbar)
+    elseif onPet and not over and GameTooltip:GetOwner() == PetFrame then
+        GameTooltip:Hide()
+    end
+    onPet = over
+end)

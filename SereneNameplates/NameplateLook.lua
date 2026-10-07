@@ -1,29 +1,15 @@
 -------------------------------------------------------------------------------
 --  Nameplate Look -- the nameplate settings that go after every module's
---  toggles on the options page: fading (done by UpdateAlpha in
---  Nameplates.lua), only your own debuffs, size and font. Read by
---  Nameplates.lua and its modules through ns.Get.
+--  toggles on the options page: only your own debuffs, size and font. Read
+--  by Nameplates.lua and its modules through ns.Get.
 -------------------------------------------------------------------------------
 local _, ns = ...
 local NP = ns.NP
 local Relayout = NP.ApplyRelayout
 
-local function UpdateAlphas()
-    for _, plate in pairs(NP.plates) do NP.UpdateAlpha(plate) end
-end
-
-ns.RegisterFeature({
-    key = "nameplateFadeOthers", label = "Fade non-targeted", section = "Nameplates", category = "Settings",
-    apply = UpdateAlphas,
-})
 ns.RegisterFeature({
     key = "nameplateDebuffsMine", label = "Show only own debuffs", section = "Nameplates", category = "Settings",
-    beside = true, default = false, requires = "nameplateDebuffs", apply = NP.ApplyDebuffsMine,
-})
-ns.RegisterFeature({
-    key = "nameplateOtherAlpha", label = "Fade percent", section = "Nameplates", category = "Settings",
-    type = "slider", space = true, min = 0, max = 100, step = 5, default = 20, suffix = "%",
-    requires = "nameplateFadeOthers", apply = UpdateAlphas,
+    default = false, requires = "nameplateDebuffs", apply = NP.ApplyDebuffsMine,
 })
 ns.RegisterFeature({
     key = "nameplateWidth", label = "Plate width", section = "Nameplates", category = "Settings", type = "slider",

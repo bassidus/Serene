@@ -24,9 +24,6 @@ local function Create(plate)
     local cast = CreateFrame("StatusBar", nil, plate)
     cast:SetStatusBarTexture(NP.BAR)
     cast:Hide()
-    -- A casting plate is never faded.
-    cast:SetScript("OnShow", function() NP.UpdateAlpha(plate) end)
-    cast:SetScript("OnHide", function() NP.UpdateAlpha(plate) end)
     NP.Background(cast)
     NP.Border(cast)
 

@@ -369,15 +369,6 @@ end
 
 local hoverPlate
 
--- With an enemy targeted the other plates fade, but not the one under the
--- mouse or one that is casting.
-local function UpdateAlpha(plate)
-    local dim = ns.Get("nameplateFadeOthers") and not plate.lit and plate ~= hoverPlate and not plate.cast:IsShown()
-        and Clean(UnitCanAttack("player", "target"))
-    plate:SetAlpha(dim and ns.Get("nameplateOtherAlpha") / 100 or 1)
-end
-NP.UpdateAlpha = UpdateAlpha
-
 -- UPDATE_MOUSEOVER_UNIT only fires when a mouseover starts, so a watcher
 -- (shown only while a plate is highlighted) checks ten times a second for
 -- it ending.
@@ -387,10 +378,7 @@ local function ClearHover()
     local plate = hoverPlate
     hoverPlate = nil
     hoverWatch:Hide()
-    if plate then
-        plate.hover:Hide()
-        UpdateAlpha(plate)
-    end
+    if plate then plate.hover:Hide() end
 end
 
 local hoverElapsed = 0
@@ -410,7 +398,6 @@ local function UpdateHover()
         if Clean(UnitIsUnit(unit, "mouseover")) then
             hoverPlate = plate
             plate.hover:Show()
-            UpdateAlpha(plate)
             hoverElapsed = 0
             hoverWatch:Show()
             return
@@ -425,7 +412,6 @@ local function UpdateAll(plate)
     UpdateName(plate)
     UpdateRaidIcon(plate)
     UpdateTarget(plate)
-    UpdateAlpha(plate)
 end
 NP.UpdateHealthColor = UpdateHealthColor
 
@@ -579,10 +565,7 @@ manager:SetScript("OnEvent", function(self, event, unit)
             if plate then UpdateHealthColor(plate) end
         end
     elseif event == "PLAYER_TARGET_CHANGED" then
-        for _, plate in pairs(NP.plates) do
-            UpdateTarget(plate)
-            UpdateAlpha(plate)
-        end
+        for _, plate in pairs(NP.plates) do UpdateTarget(plate) end
     elseif event == "UPDATE_MOUSEOVER_UNIT" then
         UpdateHover()
     elseif event == "RAID_TARGET_UPDATE" then

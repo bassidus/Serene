@@ -2,7 +2,8 @@
 --  Chat Look -- the chat windows' font, and how long a line stays before it
 --  fades. While the font settings match Blizzard's own (its typeface and
 --  outline at size 14) each window keeps the size picked in its tab menu.
---  The edit boxes can drop their frame and take their window's font.
+--  The edit boxes can drop their frame, take their window's font and get a
+--  background like the window's.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -19,6 +20,35 @@ local function ApplyBorder()
     local alpha = ns.Get("chatEditNoFrame") and 0 or 1
     for _, name in ipairs(CHAT_FRAMES) do
         for _, part in ipairs(BORDER) do _G[name .. "EditBox" .. part]:SetAlpha(alpha) end
+    end
+end
+
+local background = {}  -- edit box -> { its background, its window's Background }
+
+-- The window's background fades in under the mouse, so the box copies it
+-- while shown rather than once.
+local function CopyBackground(box)
+    local b = background[box]
+    b[1]:SetVertexColor(b[2]:GetVertexColor())
+    b[1]:SetAlpha(b[2]:GetAlpha())
+end
+
+local function ApplyBackground()
+    local on = ns.Get("chatEditBackground")
+    for _, name in ipairs(CHAT_FRAMES) do
+        local box = _G[name .. "EditBox"]
+        if on and not background[box] then
+            local window = _G[name .. "Background"]
+            local tex = box:CreateTexture(nil, "BACKGROUND", nil, -8)
+            tex:SetColorTexture(1, 1, 1)
+            -- As wide as the window's; the box's 32 px less 5 at top and bottom.
+            -- The box sits 4 px above the window background's bottom edge.
+            tex:SetPoint("TOPLEFT", window, "BOTTOMLEFT", 0, -1)
+            tex:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", 0, -23)
+            background[box] = { tex, window }
+            box:HookScript("OnUpdate", CopyBackground)
+        end
+        if background[box] then background[box][1]:SetShown(on) end
     end
 end
 
@@ -75,6 +105,7 @@ hooksecurefunc("FCF_OpenTemporaryWindow", function()
     ApplyFont()
     ApplyFade()
     ApplyBorder()
+    ApplyBackground()
 end)
 
 ns.RegisterFeature({
@@ -84,6 +115,10 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "chatEditFont", label = "Edit box in the chat font", section = SECTION, category = "Edit box",
     beside = true, apply = ApplyEditFont,
+})
+ns.RegisterFeature({
+    key = "chatEditBackground", label = "Edit box background like the chat", section = SECTION,
+    category = "Edit box", apply = ApplyBackground,
 })
 
 ns.RegisterFontSettings({

@@ -52,21 +52,25 @@ local function QuestProgress(unit)
     return result
 end
 
--- The chosen bar color, rebuilt only when the setting changes.
-local barValue, barColor
-local function BarColor()
-    local value = ns.Get("nameplateQuestBarColor")
-    if value ~= barValue then
-        barValue = value
+-- The chosen bar colors, rebuilt only when a setting changes. Neutral quest
+-- mobs get their own, so yellow and red ones stay apart.
+local barColors = {
+    hostile = { key = "nameplateQuestBarColor", default = QUEST_COLOR },
+    neutral = { key = "nameplateQuestNeutralColor", default = { ns.ColorRGB(ns.QUEST_NEUTRAL) } },
+}
+local function BarColor(bar)
+    local value = ns.Get(bar.key)
+    if value ~= bar.value then
+        bar.value = value
         local r, g, b = ns.ColorRGB(value)
-        barColor = r and { r, g, b } or QUEST_COLOR
+        bar.color = r and { r, g, b } or bar.default
     end
-    return barColor
+    return bar.color
 end
 
-function NP.QuestColor(unit)
+function NP.QuestColor(unit, neutral)
     if ns.Get("nameplateQuest") and ns.Get("nameplateQuestColor") and QuestProgress(unit) then
-        return BarColor()
+        return BarColor(neutral and barColors.neutral or barColors.hostile)
     end
 end
 
@@ -161,7 +165,7 @@ end
 -- The settings are on the Quests tab, so SereneQuests registers them (the
 -- TOC loads it first) and shows them dimmed without this addon. Without
 -- SereneQuests they keep their saved values.
-for _, key in ipairs({ "nameplateQuest", "nameplateQuestColor", "nameplateQuestBarColor" }) do
+for _, key in ipairs({ "nameplateQuest", "nameplateQuestColor", "nameplateQuestBarColor", "nameplateQuestNeutralColor" }) do
     local f = ns.featureByKey[key]
     if f then f.apply = Refresh end
 end

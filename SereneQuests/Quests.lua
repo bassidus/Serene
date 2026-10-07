@@ -144,11 +144,20 @@ ns.RegisterFeature({
     addon = "SereneNameplates",
 })
 ns.RegisterFeature({
-    key = "nameplateQuestBarColor", label = "Quest enemy color", section = "Quests", category = "Nameplates",
+    key = "nameplateQuestBarColor", label = "Hostile quest enemy color", section = "Quests", category = "Nameplates",
     type = "color",
-    button = "Color", default = "default", requires = { "nameplateQuest", "nameplateQuestColor" },
+    button = "Hostile color", default = "default", requires = { "nameplateQuest", "nameplateQuestColor" },
     addon = "SereneNameplates",
     specials = {
         { value = "default", label = "Default", swatch = function() return ns.QUEST_GREEN end },
+    },
+})
+ns.RegisterFeature({
+    key = "nameplateQuestNeutralColor", label = "Neutral quest enemy color", section = "Quests", category = "Nameplates",
+    type = "color", beside = true,
+    button = "Neutral color", default = "default", requires = { "nameplateQuest", "nameplateQuestColor" },
+    addon = "SereneNameplates",
+    specials = {
+        { value = "default", label = "Default", swatch = function() return ns.QUEST_NEUTRAL end },
     },
 })

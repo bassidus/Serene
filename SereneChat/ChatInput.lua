@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Chat Input -- the arrow keys step through sent lines without Alt, in
---  every chat box (whisper windows have their own) and across /reload.
+--  every chat box (whisper windows have their own). Always on; no toggle.
 --
 --  Out of Alt arrow mode the edit box hands plain arrows to OnArrowPressed
 --  instead of its history, so the stepping is done here from one list that
@@ -10,13 +10,11 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION, CATEGORY = "Chat", "Edit box"
 local MAX_LINES = 32  -- the edit box's own history length
 
-local lines = {}   -- sent lines, oldest first; SereneDB.chatHistory while kept
+local lines = {}   -- sent lines, oldest first
 local hooked = {}  -- chat box -> true
 local step = {}    -- chat box -> { index =, draft = } while stepping
-local loaded       -- the kept lines are read on the first Setup, at login before chatKeepHistory applies
 
 local function Remember(box, text)
     step[box] = nil
@@ -29,7 +27,7 @@ local function Remember(box, text)
 end
 
 local function OnArrow(box, key)
-    if not ns.Get("chatArrowKeys") or #lines == 0 then return end
+    if #lines == 0 then return end
     -- The name suggestions under "/w Na" step with the arrows too.
     if AutoCompleteBox:IsShown() and AutoCompleteBox.parent == box then return end
     local s = step[box]
@@ -47,14 +45,9 @@ local function OnArrow(box, key)
 end
 
 local function Setup()
-    if not loaded then
-        loaded = true
-        if ns.Get("chatKeepHistory") and SereneDB.chatHistory then lines = SereneDB.chatHistory end
-    end
-    local alt = not ns.Get("chatArrowKeys")
     for _, name in ipairs(CHAT_FRAMES) do
         local box = _G[name .. "EditBox"]
-        box:SetAltArrowKeyMode(alt)
+        box:SetAltArrowKeyMode(false)
         if not hooked[box] then
             hooked[box] = true
             hooksecurefunc(box, "AddHistoryLine", Remember)
@@ -64,16 +57,10 @@ local function Setup()
     end
 end
 
+local login = CreateFrame("Frame")
+login:RegisterEvent("PLAYER_LOGIN")
+login:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    Setup()
+end)
 hooksecurefunc("FCF_OpenTemporaryWindow", Setup)
-
-ns.RegisterFeature({
-    key = "chatArrowKeys", label = "Arrow keys browse sent lines", section = SECTION, category = CATEGORY,
-    apply = Setup,
-})
-ns.RegisterFeature({
-    key = "chatKeepHistory", label = "Keep sent lines after /reload", section = SECTION, category = CATEGORY,
-    beside = true,
-    apply = function()
-        SereneDB.chatHistory = ns.Get("chatKeepHistory") and lines or nil
-    end,
-})

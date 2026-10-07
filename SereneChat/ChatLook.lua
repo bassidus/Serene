@@ -2,8 +2,8 @@
 --  Chat Look -- the chat windows' font, and how long a line stays before it
 --  fades. While the font settings match Blizzard's own (its typeface and
 --  outline at size 14) each window keeps the size picked in its tab menu.
---  The edit boxes can drop their frame, take their window's font and get a
---  background like the window's.
+--  The edit boxes always go without their frame, in their window's font and
+--  on a background like the window's.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -12,16 +12,10 @@ local BLIZZARD_SIZE = 14  -- CHAT_FRAME_DEFAULT_FONT_SIZE
 
 local original = {}  -- chat frame -> ns.FontState before the first change
 
--- The edit box's frame: Blizzard shows and hides the focus half, never
--- changes their alpha.
+-- The edit boxes lose their frame and get a background like their
+-- window's. Blizzard shows and hides the frame's focus half, never changes
+-- the alpha.
 local BORDER = { "Left", "Mid", "Right", "FocusLeft", "FocusMid", "FocusRight" }
-
-local function ApplyBorder()
-    local alpha = ns.Get("chatEditNoFrame") and 0 or 1
-    for _, name in ipairs(CHAT_FRAMES) do
-        for _, part in ipairs(BORDER) do _G[name .. "EditBox" .. part]:SetAlpha(alpha) end
-    end
-end
 
 local background = {}  -- edit box -> { its background, its window's Background }
 
@@ -33,11 +27,11 @@ local function CopyBackground(box)
     b[1]:SetAlpha(b[2]:GetAlpha())
 end
 
-local function ApplyBackground()
-    local on = ns.Get("chatEditBackground")
+local function DressEditBoxes()
     for _, name in ipairs(CHAT_FRAMES) do
         local box = _G[name .. "EditBox"]
-        if on and not background[box] then
+        if not background[box] then
+            for _, part in ipairs(BORDER) do _G[name .. "EditBox" .. part]:SetAlpha(0) end
             local window = _G[name .. "Background"]
             local tex = box:CreateTexture(nil, "BACKGROUND", nil, -8)
             tex:SetColorTexture(1, 1, 1)
@@ -48,31 +42,23 @@ local function ApplyBackground()
             background[box] = { tex, window }
             box:HookScript("OnUpdate", CopyBackground)
         end
-        if background[box] then background[box][1]:SetShown(on) end
     end
 end
 
-local editOriginal = {}  -- edit box or one of its texts -> ns.FontState before the first change
-
--- Follows the window's own font, whether set here or in its tab menu.
-local function ApplyEditFont()
-    local follow = ns.Get("chatEditFont")
+-- The edit boxes' text in their window's font, whether set here or in its
+-- tab menu.
+local function EditBoxFont()
     for _, name in ipairs(CHAT_FRAMES) do
         local frame, box = _G[name], _G[name .. "EditBox"]
         for _, fs in ipairs({ box, box.header, box.headerSuffix, box.languageHeader, box.NewcomerHint, box.prompt }) do
-            if follow then
-                editOriginal[fs] = editOriginal[fs] or ns.FontState(fs)
-                fs:SetFont(frame:GetFont())
-                fs:SetShadowColor(frame:GetShadowColor())
-                fs:SetShadowOffset(frame:GetShadowOffset())
-            elseif editOriginal[fs] then
-                ns.RestoreFont(fs, editOriginal[fs])
-            end
+            fs:SetFont(frame:GetFont())
+            fs:SetShadowColor(frame:GetShadowColor())
+            fs:SetShadowOffset(frame:GetShadowOffset())
         end
     end
 end
 
-hooksecurefunc("FCF_SetChatWindowFontSize", ApplyEditFont)
+hooksecurefunc("FCF_SetChatWindowFontSize", EditBoxFont)
 
 local function ApplyFont()
     local font, size, outline = ns.Get("chatFont"), ns.Get("chatFontSize"), ns.Get("chatOutline")
@@ -89,7 +75,7 @@ local function ApplyFont()
             ns.ApplyFont(frame, original[frame], font, size, outline)
         end
     end)
-    ApplyEditFont()
+    EditBoxFont()
 end
 
 local function ApplyFade()
@@ -104,22 +90,15 @@ end
 hooksecurefunc("FCF_OpenTemporaryWindow", function()
     ApplyFont()
     ApplyFade()
-    ApplyBorder()
-    ApplyBackground()
+    DressEditBoxes()
 end)
 
-ns.RegisterFeature({
-    key = "chatEditNoFrame", label = "No frame around the edit box", section = SECTION, category = "Edit box",
-    apply = ApplyBorder,
-})
-ns.RegisterFeature({
-    key = "chatEditFont", label = "Edit box in the chat font", section = SECTION, category = "Edit box",
-    beside = true, apply = ApplyEditFont,
-})
-ns.RegisterFeature({
-    key = "chatEditBackground", label = "Edit box background like the chat", section = SECTION,
-    category = "Edit box", apply = ApplyBackground,
-})
+local login = CreateFrame("Frame")
+login:RegisterEvent("PLAYER_LOGIN")
+login:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    DressEditBoxes()
+end)
 
 ns.RegisterFontSettings({
     prefix = "chat", label = "Font", section = SECTION, category = CATEGORY, apply = ApplyFont,

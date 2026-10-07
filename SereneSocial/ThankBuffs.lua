@@ -122,11 +122,6 @@ local MESSAGES = {
     { value = "day",         label = "says thanks, that made the day!" },
     { value = "murloc",      label = "gurgles happily. Mrglglgl, thanks!" },
     { value = "zugzug",      label = "says zug zug. Thanks for the buff!" },
-    { value = "tack",        label = "says tack så mycket!" },
-    { value = "danke",       label = "says danke schön for the buff!" },
-    { value = "merci",       label = "says merci beaucoup!" },
-    { value = "gracias",     label = "says muchas gracias for the buff!" },
-    { value = "grazie",      label = "says grazie mille!" },
 }
 
 local function PickMessage()

@@ -29,7 +29,7 @@ W.CONTROL_W = (PAGE_W - 2 * GROUP_PAD - SPACING) / 2
 local HEADER_H = 30   -- a settings page's title, which stays put while the rest scrolls
 local SCROLL_STEP = 40
 local MODULES = "Modules"  -- the page and tab of the addon list
-local MAX_SCREEN = 0.45 -- the window's height at most, as a share of the screen's
+local MAX_SCREEN = 0.45 -- the window's height at most at scale 1, as a share of the screen's
 
 local frame, pagePanel
 local widgets, pages, tabs = {}, {}, {}
@@ -801,11 +801,12 @@ end
 local wantedH, sidebarH
 
 -- As tall as the tallest page, but no taller than MAX_SCREEN of the screen
--- at the current scale: longer pages scroll. Never shorter than the sidebar.
+-- at scale 1: longer pages scroll. Counted at scale 1 so the height scales
+-- with the rest of the window. Never shorter than the sidebar.
 -- EXTRA_H on top gives the bottom of the page and the sidebar some air.
 local EXTRA_H = 10
 local function FitHeight()
-    local screenH = UIParent:GetHeight() * MAX_SCREEN / frame:GetScale()
+    local screenH = UIParent:GetHeight() * MAX_SCREEN
     frame:SetHeight(math.max(sidebarH, math.min(wantedH, screenH)) + EXTRA_H)
 end
 
@@ -846,7 +847,6 @@ local function SetWindowScale(scale)
     local s = frame:GetScale()
     local left, top = frame:GetLeft() * s, frame:GetTop() * s
     frame:SetScale(scale)
-    FitHeight()
     PinTopLeft(left, top, scale)
     SaveWindow()
 end

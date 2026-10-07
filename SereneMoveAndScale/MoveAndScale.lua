@@ -112,8 +112,9 @@ local function Picked() return byKey[ns.Get("windowSizeWindow")] end
 -- Effective scale against UIParent's: UIParent units per frame unit.
 local function Ratio(frame) return frame:GetEffectiveScale() / UIParent:GetEffectiveScale() end
 
+-- Kept while Move & Scale is off: the toggle is only the mouse.
 local function Spot(frame)
-    return Handled() and moved[frame:GetName()]
+    return moved[frame:GetName()]
 end
 
 -- Puts the frame at its moved spot, or back on Blizzard's anchors with the
@@ -459,7 +460,7 @@ ns.OnReset(function()
 end, SECTION)
 
 ns.RegisterFeature({
-    key = "moveAndScale", label = "Enable Move & Scale", section = SECTION, category = "Settings",
+    key = "moveAndScale", label = "Enable Move & Scale", section = SECTION, category = "Mouse",
     default = false,
     apply = function()
         -- The first apply runs at login, once SereneDB is loaded.
@@ -470,7 +471,7 @@ ns.RegisterFeature({
     tooltip = "Drag a window to move it, Ctrl + mouse wheel resizes it and middle-click resets it",
 })
 ns.RegisterFeature({
-    key = "windowResetPositions", button = "Reset positions", section = SECTION, category = "Settings",
+    key = "windowResetPositions", button = "Reset positions", section = SECTION, category = "Mouse",
     type = "button", beside = true,
     click = function()
         wipe(moved)

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --  Chat Messages -- names as "Name (30)", the level colored against yours,
 --  white channel names with or without their number ("[2] [T] Name:", "[Gen]
---  Name:"), gray times, shorter loot, XP and speech lines, and clickable web
---  links.
+--  Name:"), times (gray or not), shorter loot, XP and speech lines, and
+--  clickable web links.
 --
 --  Blizzard runs the message and sender name filters in a securecall, so
 --  whatever fits there goes there: levels, links and the loot and XP lines,
@@ -196,7 +196,11 @@ local function ShortLine(text)
         end
     end
     local time = ns.Get("chatTimestamps")
-    if time ~= "off" then text = "|cff808080" .. date(time) .. "|r " .. text end
+    if time ~= "off" then
+        time = date(time)
+        if ns.Get("chatTimeColor") then time = "|cff808080" .. time .. "|r" end
+        text = time .. " " .. text
+    end
     return text
 end
 
@@ -264,6 +268,10 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "chatHideChannelNumbers", label = "Hide channel numbers", section = SECTION, category = CATEGORY,
     default = false,
+})
+ns.RegisterFeature({
+    key = "chatTimeColor", label = "Color timestamps", section = SECTION, category = CATEGORY,
+    beside = true,
 })
 ns.RegisterFeature({
     key = "chatLevels", label = "Show player levels", section = SECTION, category = CATEGORY,

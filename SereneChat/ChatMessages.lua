@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
---  Chat Messages -- levels after names, short channel names ("[2] [Name]:"
---  or "T. Name:"), shorter loot, XP and speech lines, and clickable web
---  links.
+--  Chat Messages -- levels after names, short channel names ("[2] [Name]:",
+--  "T. Name:", "[2] [T] Name:" or "[1] [Gen] Name:"), shorter loot, XP and
+--  speech lines, and clickable web links.
 --
 --  Blizzard runs the message and sender name filters in a securecall, so
 --  whatever fits there goes there: levels, links and the loot and XP lines,
@@ -133,38 +133,58 @@ EventRegistry:RegisterCallback("SetItemRef", function(_, link)
 end)
 
 -------------------------------------------------------------------------------
---  Whole lines: channel names in one of two styles, and "[Name] says:" ->
+--  Whole lines: channel names in one of four styles, and "[Name] says:" ->
 --  "[Name]:".
---    number: "[2. Trade - City] [Name]:" -> "[2] [Name]:", "[Party Leader]" -> "[PL]"
---    letter: "[2. Trade - City] [Name]:" -> "T. Name:", "[Party Leader]" -> "PL."
+--    number:       "[2. Trade - City] [Name]:" -> "[2] [Name]:",     "[Party Leader]" -> "[PL]"
+--    letter:       "[2. Trade - City] [Name]:" -> "T. Name:",        "[Party Leader]" -> "PL."
+--    numberLetter: "[2. Trade - City] [Name]:" -> "[2] [T] Name:",   "[Party Leader]" -> "[PL]"
+--    numberWord:   "[1. General - City] [Name]:" -> "[1] [Gen] Name:", "[Guild]" -> "[Guild]"
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)"
 local PLAYER = "(|Hplayer[^|]-|h)%[([^%[%]]-)%](|h)"
 
--- Numbered channels by their name without number and zone; any other keeps
--- its number.
+-- Numbered channels by their name without number and zone. A channel not
+-- listed has no letter, and its first five letters as its word.
 local CHANNEL_LETTER = {
     General = "W", Trade = "T", LocalDefense = "LD", WorldDefense = "WD",
     LookingForGroup = "LFG", Services = "S", NewcomerChat = "NC",
+}
+local CHANNEL_WORD = {
+    General = "Gen", Trade = "Trade", LocalDefense = "LDef", WorldDefense = "WDef",
+    LookingForGroup = "LFG", Services = "Serv", NewcomerChat = "New",
 }
 
 local GROUP_LETTER = {
     Guild = "G", Officer = "O", Party = "P", ["Party Leader"] = "PL",
     Raid = "R", ["Raid Leader"] = "RL", Instance = "I", ["Instance Leader"] = "IL",
 }
+local GROUP_WORD = {
+    Guild = "Guild", Officer = "Off", Party = "Party", ["Party Leader"] = "PL",
+    Raid = "Raid", ["Raid Leader"] = "RL", Instance = "Inst", ["Instance Leader"] = "IL",
+}
+
+-- The styles without brackets around the sender's name.
+local BARE_NAME = { letter = true, numberLetter = true, numberWord = true }
+
+local function Tag(style, name)
+    local index, base = name:match("^(%d+)%. (.+)$")
+    if not index then
+        local group = (style == "numberWord" and GROUP_WORD[name] or GROUP_LETTER[name]) or name
+        return style == "letter" and group .. "." or "[" .. group .. "]"
+    end
+    base = base:gsub(" %- .*", "")  -- "General - Undercity"
+    if style == "letter" then return (CHANNEL_LETTER[base] or index) .. "." end
+    local tag
+    if style == "numberLetter" then
+        tag = CHANNEL_LETTER[base]
+    elseif style == "numberWord" then
+        tag = CHANNEL_WORD[base] or base:sub(1, 5)
+    end
+    return "[" .. index .. "]" .. (tag and " [" .. tag .. "]" or "")
+end
 
 local function ShortChannel(open, name, close)
-    local index, base = name:match("^(%d+)%. (.+)$")
-    if ns.Get("chatChannelStyle") == "number" then
-        return open .. "[" .. (index or GROUP_LETTER[name] or name) .. "]" .. close
-    end
-    local short
-    if index then
-        short = CHANNEL_LETTER[base:gsub(" %- .*", "")] or index
-    else
-        short = GROUP_LETTER[name] or name
-    end
-    return open .. short .. "." .. close
+    return open .. Tag(ns.Get("chatChannelStyle"), name) .. close
 end
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
@@ -178,7 +198,7 @@ end
 local function ShortLine(text)
     local style = ns.Get("chatChannelStyle")
     if style ~= "off" then text = text:gsub(CHANNEL, ShortChannel, 1) end
-    if style == "letter" then text = text:gsub(PLAYER, "%1%2%3", 1) end
+    if BARE_NAME[style] then text = text:gsub(PLAYER, "%1%2%3", 1) end
     if ns.Get("chatShortText") then
         for _, p in ipairs(SPEECH) do
             local n
@@ -224,9 +244,11 @@ ns.RegisterFeature({
     type = "dropdown", inline = true, default = "number", apply = ApplyLines,
     options = function()
         return {
-            { value = "off",    label = "Off" },
-            { value = "number", label = "[2] [Name]:" },
-            { value = "letter", label = "T. Name:" },
+            { value = "off",          label = "Off" },
+            { value = "number",       label = "[2] [Name]:" },
+            { value = "letter",       label = "T. Name:" },
+            { value = "numberLetter", label = "[2] [T] Name:" },
+            { value = "numberWord",   label = "[1] [Gen] Name:" },
         }
     end,
 })

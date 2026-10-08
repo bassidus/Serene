@@ -138,20 +138,20 @@ end)
 --    number:       "[2. Trade - City] [Name]:" -> "[2] [Name]:",     "[Party Leader]" -> "[PL]"
 --    letter:       "[2. Trade - City] [Name]:" -> "T. Name:",        "[Party Leader]" -> "PL."
 --    numberLetter: "[2. Trade - City] [Name]:" -> "[2] [T] Name:",   "[Party Leader]" -> "[PL]"
---    numberWord:   "[1. General - City] [Name]:" -> "[1] [Gen] Name:", "[Guild]" -> "[Guild]"
+--    numberWord:   "[1. General - City] [Name]:" -> "[1] [Gen] Name:", "[Party Leader]" -> "[P. Lead]"
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)"
 local PLAYER = "(|Hplayer[^|]-|h)%[([^%[%]]-)%](|h)"
 
 -- Numbered channels by their name without number and zone. A channel not
--- listed has no letter, and its first five letters as its word.
+-- listed has no letter and keeps its name as its word.
 local CHANNEL_LETTER = {
     General = "W", Trade = "T", LocalDefense = "LD", WorldDefense = "WD",
     LookingForGroup = "LFG", Services = "S", NewcomerChat = "NC",
 }
 local CHANNEL_WORD = {
-    General = "Gen", Trade = "Trade", LocalDefense = "LDef", WorldDefense = "WDef",
-    LookingForGroup = "LFG", Services = "Serv", NewcomerChat = "New",
+    General = "Gen", LocalDefense = "L. Def", WorldDefense = "W. Def",
+    LookingForGroup = "LFG", NewcomerChat = "Newcomer",
 }
 
 local GROUP_LETTER = {
@@ -159,8 +159,7 @@ local GROUP_LETTER = {
     Raid = "R", ["Raid Leader"] = "RL", Instance = "I", ["Instance Leader"] = "IL",
 }
 local GROUP_WORD = {
-    Guild = "Guild", Officer = "Off", Party = "Party", ["Party Leader"] = "PL",
-    Raid = "Raid", ["Raid Leader"] = "RL", Instance = "Inst", ["Instance Leader"] = "IL",
+    ["Party Leader"] = "P. Lead", ["Raid Leader"] = "R. Lead", ["Instance Leader"] = "I. Lead",
 }
 
 -- The styles without brackets around the sender's name.
@@ -169,7 +168,7 @@ local BARE_NAME = { letter = true, numberLetter = true, numberWord = true }
 local function Tag(style, name)
     local index, base = name:match("^(%d+)%. (.+)$")
     if not index then
-        local group = (style == "numberWord" and GROUP_WORD[name] or GROUP_LETTER[name]) or name
+        local group = (style == "numberWord" and GROUP_WORD or GROUP_LETTER)[name] or name
         return style == "letter" and group .. "." or "[" .. group .. "]"
     end
     base = base:gsub(" %- .*", "")  -- "General - Undercity"
@@ -178,7 +177,7 @@ local function Tag(style, name)
     if style == "numberLetter" then
         tag = CHANNEL_LETTER[base]
     elseif style == "numberWord" then
-        tag = CHANNEL_WORD[base] or base:sub(1, 5)
+        tag = CHANNEL_WORD[base] or base
     end
     return "[" .. index .. "]" .. (tag and " [" .. tag .. "]" or "")
 end

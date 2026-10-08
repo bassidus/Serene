@@ -27,7 +27,7 @@ ChatFrameUtil.AddSenderNameFilter(function(_, name, ...)
     local level = Clean(select(8, GetPlayerInfoByGUID(guid)))
     if not level or level <= 0 then return end
     local c = GetCreatureDifficultyColor(level)
-    return name .. " |cff" .. ns.RGBToHex(c.r, c.g, c.b) .. "(" .. level .. ")|r"
+    return name .. " (|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. "|r)"
 end)
 
 -------------------------------------------------------------------------------

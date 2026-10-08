@@ -138,7 +138,7 @@ end)
 --    number:       "[2. Trade - City] [Name]:" -> "[2] [Name]:",     "[Party Leader]" -> "[PL]"
 --    letter:       "[2. Trade - City] [Name]:" -> "T. Name:",        "[Party Leader]" -> "PL."
 --    numberLetter: "[2. Trade - City] [Name]:" -> "[2] [T] Name:",   "[Party Leader]" -> "[PL]"
---    numberWord:   "[1. General - City] [Name]:" -> "[1] [Gen] Name:", "[Party Leader]" -> "[P. Lead]"
+--    numberWord:   "[1. General - City] [Name]:" -> "[1] [Gen] Name:", "[Party Leader]" -> "[PL]"
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)"
 local PLAYER = "(|Hplayer[^|]-|h)%[([^%[%]]-)%](|h)"
@@ -150,7 +150,7 @@ local CHANNEL_LETTER = {
     LookingForGroup = "LFG", Services = "S", NewcomerChat = "NC",
 }
 local CHANNEL_WORD = {
-    General = "Gen", LocalDefense = "L. Def", WorldDefense = "W. Def",
+    General = "Gen", LocalDefense = "Local", WorldDefense = "World",
     LookingForGroup = "LFG", NewcomerChat = "Newcomer",
 }
 
@@ -159,7 +159,7 @@ local GROUP_LETTER = {
     Raid = "R", ["Raid Leader"] = "RL", Instance = "I", ["Instance Leader"] = "IL",
 }
 local GROUP_WORD = {
-    ["Party Leader"] = "P. Lead", ["Raid Leader"] = "R. Lead", ["Instance Leader"] = "I. Lead",
+    ["Party Leader"] = "PL", ["Raid Leader"] = "RL", ["Instance Leader"] = "IL",
 }
 
 -- The styles without brackets around the sender's name.

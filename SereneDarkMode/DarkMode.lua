@@ -53,90 +53,38 @@ end
 ns.AddDarkArtNow = Collect
 
 -------------------------------------------------------------------------------
---  Tints: parts Blizzard colors itself (icons by usability or range, a
---  quality border, a background) keep the color they are given, times
---  factor(color) in Dark mode.
---  With isEmpty, the texture is a slot whose empty look is bronze in the
---  icon itself, which turns into the bag's or item's icon once something is
---  put there: while empty it is desaturated and darkened like the art.
---  Blizzard's updates reset the icon's desaturation, so it is painted again
---  whenever Blizzard touches it.
+--  Slots: an empty bag or item slot shows bronze in its icon texture, which
+--  turns into the bag's or item's icon once something is put there. Only the
+--  empty look is darkened. Blizzard's updates reset the icon's color, so it
+--  is painted again whenever Blizzard touches it.
 -------------------------------------------------------------------------------
-local ICON = 0.7  -- items and spells keep their colors, a little darker
+local slots = {}      -- [icon texture] = isEmpty(icon)
+local darkSlots = {}  -- [icon texture] = true while darkened
+local painting  -- PaintSlot's own color calls also run its hooks
 
--- Only an icon in its plain color: the colors Blizzard and Range Coloring
--- give it (out of range, out of mana, unusable) stay as they are, or the
--- dimming muddies them.
-function ns.DimIcon(c)
-    -- A color read back with GetVertexColor need not be exactly 1.
-    return (c[1] > 0.99 and c[2] > 0.99 and c[3] > 0.99) and ICON or 1
-end
-
-local tints = {}  -- [texture] = { color = Blizzard's { r, g, b, a }, factor =, isEmpty =, emptied = }
-local painting  -- Tint's own calls also run its hooks
-
-local function Tint(tex)
+local function PaintSlot(icon)
     if painting then return end
     painting = true
-    local t = tints[tex]
-    local dark = ns.Get("darkMode")
-    local k = dark and t.factor(t.color) or 1
-    if t.isEmpty then
-        if dark and t.isEmpty(tex) then
-            k = DARK
-            t.emptied = true
-            tex:SetDesaturated(true)
-        elseif t.emptied then
-            t.emptied = nil
-            tex:SetDesaturated(false)
-        end
+    if ns.Get("darkMode") and slots[icon](icon) then
+        darkSlots[icon] = true
+        icon:SetDesaturated(true)
+        icon:SetVertexColor(DARK, DARK, DARK)
+    elseif darkSlots[icon] then
+        darkSlots[icon] = nil
+        icon:SetDesaturated(false)
+        icon:SetVertexColor(1, 1, 1)
     end
-    local c = t.color
-    tex:SetVertexColor(c[1] * k, c[2] * k, c[3] * k, c[4])
     painting = false
 end
 
-function ns.AddDarkTint(tex, factor, isEmpty)
-    if tints[tex] then return end
-    tints[tex] = { color = { tex:GetVertexColor() }, factor = factor, isEmpty = isEmpty }
-    hooksecurefunc(tex, "SetVertexColor", function(self, r, g, b, a)
-        if painting then return end
-        tints[self].color = { r, g, b, a or 1 }
-        Tint(self)
-    end)
-    if isEmpty then
-        hooksecurefunc(tex, "SetTexture", Tint)
-        hooksecurefunc(tex, "SetAtlas", Tint)
-        hooksecurefunc(tex, "SetDesaturated", Tint)
-    end
-    Tint(tex)
-end
-
--------------------------------------------------------------------------------
---  Texts: a stack's count keeps the color Blizzard gives it, a little
---  darker.
--------------------------------------------------------------------------------
-local TEXT = 0.8
-
-local texts = {}  -- [font string] = Blizzard's { r, g, b, a }
-
-local function PaintText(fs)
-    local c = texts[fs]
-    local k = ns.Get("darkMode") and TEXT or 1
-    painting = true
-    fs:SetTextColor(c[1] * k, c[2] * k, c[3] * k, c[4])
-    painting = false
-end
-
-function ns.AddDarkText(fs)
-    if texts[fs] then return end
-    texts[fs] = { fs:GetTextColor() }
-    hooksecurefunc(fs, "SetTextColor", function(self, r, g, b, a)
-        if painting then return end
-        texts[self] = { r, g, b, a or 1 }
-        PaintText(self)
-    end)
-    PaintText(fs)
+function ns.AddDarkSlot(icon, isEmpty)
+    if slots[icon] then return end
+    slots[icon] = isEmpty
+    hooksecurefunc(icon, "SetTexture", PaintSlot)
+    hooksecurefunc(icon, "SetAtlas", PaintSlot)
+    hooksecurefunc(icon, "SetDesaturated", PaintSlot)
+    hooksecurefunc(icon, "SetVertexColor", PaintSlot)
+    PaintSlot(icon)
 end
 
 -- Registered after the core's minimap icon, which is then already made.
@@ -148,8 +96,7 @@ ns.RegisterFeature({
             wipe(sources)
         end
         for tex in pairs(art) do Paint(tex) end
-        for tex in pairs(tints) do Tint(tex) end
-        for fs in pairs(texts) do PaintText(fs) end
+        for icon in pairs(slots) do PaintSlot(icon) end
         for _, fn in ipairs(hooks) do fn() end
     end,
 })

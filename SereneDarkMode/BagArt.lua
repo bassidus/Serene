@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 --  Bag Art -- the bag windows, separate bags and combined: the metal frame,
---  the slots' rims, empty slots, dimmed items and counts, gray quality
---  borders, the search box, the money and currency bars with dimmed money,
---  and a darker background. Slot buttons are made and reused as bags open,
---  so new ones are picked up whenever a bag updates.
+--  the slots' rims and empty slots, gray quality borders, the search box,
+--  the money and currency bars, and a darker background. Slot buttons are
+--  made and reused as bags open, so new ones are picked up whenever a bag
+--  updates.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -25,9 +25,11 @@ ns.AddDarkArt("BagItemSearchBox", IsArt)
 ns.AddDarkArt("BackpackTokenFrame", IsArt)
 
 -------------------------------------------------------------------------------
---  Tinted parts: the background is already a dark see-through tint. An
---  item's quality border is gray for poor and common items, which goes
---  dark; the colored ones keep showing the quality.
+--  Tinted parts: Blizzard colors these itself, so they are darkened from the
+--  color Blizzard gives them rather than painted over.
+--  The background is already a dark see-through tint. An item's quality
+--  border is gray for poor and common items, which goes dark; the colored
+--  ones keep showing the quality.
 -------------------------------------------------------------------------------
 local BG = 0.5
 local GRAY_BORDER = 0.4
@@ -39,30 +41,33 @@ local function QualityBorder(c)
     return gray and GRAY_BORDER or 1
 end
 
--- The money bar's coins and amounts, dimmed like the items and their counts.
-local COIN_BUTTON = { "GoldButton$", "SilverButton$", "CopperButton$" }
+local colors = {}   -- [texture] = { r, g, b, a } from Blizzard
+local factors = {}  -- [texture] = fn(color) giving its darkening in Dark mode
+local tinting  -- Tint's own SetVertexColor also runs the hook
 
-local function IsCoinButton(frame)
-    local name = frame:GetName() or ""
-    for _, pattern in ipairs(COIN_BUTTON) do
-        if name:find(pattern) then return true end
-    end
-    return false
+local function Tint(tex)
+    local c = colors[tex]
+    local k = ns.Get("darkMode") and factors[tex](c) or 1
+    tinting = true
+    tex:SetVertexColor(c[1] * k, c[2] * k, c[3] * k, c[4])
+    tinting = false
 end
 
-local function AddMoney(frame)
-    for _, child in ipairs({ frame:GetChildren() }) do
-        if IsCoinButton(child) then
-            ns.AddDarkText(child:GetFontString())
-            for _, r in ipairs({ child:GetRegions() }) do
-                if r:GetObjectType() == "Texture" and (r:GetAtlas() or ""):find("^Coin%-") then
-                    ns.AddDarkTint(r, ns.DimIcon)
-                end
-            end
-        end
-        AddMoney(child)
-    end
+local function AddTint(tex, factor)
+    if colors[tex] then return end
+    colors[tex] = { tex:GetVertexColor() }
+    factors[tex] = factor
+    hooksecurefunc(tex, "SetVertexColor", function(self, r, g, b, a)
+        if tinting then return end
+        colors[self] = { r, g, b, a or 1 }
+        Tint(self)
+    end)
+    Tint(tex)
 end
+
+ns.OnDarkMode(function()
+    for tex in pairs(colors) do Tint(tex) end
+end)
 
 -------------------------------------------------------------------------------
 local searched = {}  -- [bag window or slot button] = true once searched
@@ -71,18 +76,16 @@ local function Update(bag)
     if not searched[bag] then
         searched[bag] = true
         ns.AddDarkArtNow(bag, IsArt)
-        AddMoney(bag)
         for _, r in ipairs({ bag.Bg:GetRegions() }) do
-            if r:GetObjectType() == "Texture" then ns.AddDarkTint(r, Background) end
+            if r:GetObjectType() == "Texture" then AddTint(r, Background) end
         end
     end
     for _, button in ipairs({ bag:GetChildren() }) do
         if button.GetBagID and button.icon and not searched[button] then
             searched[button] = true
             ns.AddDarkArtNow(button, IsArt)
-            ns.AddDarkTint(button.icon, ns.DimIcon, IsEmpty)
-            ns.AddDarkTint(button.IconBorder, QualityBorder)
-            ns.AddDarkText(button.Count)
+            ns.AddDarkSlot(button.icon, IsEmpty)
+            AddTint(button.IconBorder, QualityBorder)
         end
     end
 end

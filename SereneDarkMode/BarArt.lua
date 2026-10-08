@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
---  Bar Art -- the action bars and their icons, the bag bar, the micro menu
---  and the experience bar.
+--  Bar Art -- the action bars, the bag bar, the micro menu and the
+--  experience bar.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -66,19 +66,13 @@ local function Collect(frame)
     for _, child in ipairs({ frame:GetChildren() }) do Collect(child) end
 end
 
--- Spells, their counts and bags are dimmed; an empty bag slot shows bronze
--- in its icon.
+-- An empty bag slot shows bronze in its icon texture.
 local EMPTY_BAG = 4760248
 local BAG_SLOTS = { "CharacterBag0Slot", "CharacterBag1Slot", "CharacterBag2Slot", "CharacterBag3Slot", "CharacterReagentBag0Slot" }
 
 local function IsEmptyBag(icon) return icon:GetTexture() == EMPTY_BAG end
 
-EachButton(function(btn)
-    ns.AddDarkTint(btn.icon, ns.DimIcon)
-    ns.AddDarkText(btn.Count)
-end)
-ns.AddDarkTint(MainMenuBarBackpackButtonIconTexture, ns.DimIcon)
-for _, name in ipairs(BAG_SLOTS) do ns.AddDarkTint(_G[name .. "IconTexture"], ns.DimIcon, IsEmptyBag) end
+for _, name in ipairs(BAG_SLOTS) do ns.AddDarkSlot(_G[name .. "IconTexture"], IsEmptyBag) end
 
 local function ApplyArt()
     if ns.Get("darkMode") and not next(bronze) then

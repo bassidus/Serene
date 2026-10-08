@@ -91,7 +91,7 @@ local function Build()
     icon:SetPoint("LEFT", INSET + 4, 0)
     local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("LEFT", icon, "RIGHT", 8, 0)
-    title:SetText("Copy chat")
+    title:SetText("Ctrl+C to copy")
     title:SetTextColor(ns.ACCENT[1], ns.ACCENT[2], ns.ACCENT[3])
 
     local close = W.CloseButton(titleBar, frame)

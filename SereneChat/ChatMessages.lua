@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
---  Chat Messages -- levels after names, short channel names, shorter loot,
---  XP and speech lines, and clickable web links.
+--  Chat Messages -- levels after names, short channel names ("[2] [Name]:"
+--  or "T. Name:"), shorter loot, XP and speech lines, and clickable web
+--  links.
 --
 --  Blizzard runs the message and sender name filters in a securecall, so
 --  whatever fits there goes there: levels, links and the loot and XP lines,
@@ -132,18 +133,38 @@ EventRegistry:RegisterCallback("SetItemRef", function(_, link)
 end)
 
 -------------------------------------------------------------------------------
---  Whole lines: "[2. Trade - English]" -> "[T]", "[Party Leader]" -> "[PL]",
---  and "[Name] says:" -> "[Name]:".
+--  Whole lines: channel names in one of two styles, and "[Name] says:" ->
+--  "[Name]:".
+--    number: "[2. Trade - City] [Name]:" -> "[2] [Name]:", "[Party Leader]" -> "[PL]"
+--    letter: "[2. Trade - City] [Name]:" -> "T. Name:", "[Party Leader]" -> "PL."
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)"
+local PLAYER = "(|Hplayer[^|]-|h)%[([^%[%]]-)%](|h)"
 
--- The capitals of a channel's name; its number when it has none.
+-- Numbered channels by their name without number and zone; any other keeps
+-- its number.
+local CHANNEL_LETTER = {
+    General = "W", Trade = "T", LocalDefense = "LD", WorldDefense = "WD",
+    LookingForGroup = "LFG", Services = "S", NewcomerChat = "NC",
+}
+
+local GROUP_LETTER = {
+    Guild = "G", Officer = "O", Party = "P", ["Party Leader"] = "PL",
+    Raid = "R", ["Raid Leader"] = "RL", Instance = "I", ["Instance Leader"] = "IL",
+}
+
 local function ShortChannel(open, name, close)
     local index, base = name:match("^(%d+)%. (.+)$")
-    base = (base or name):gsub(" %- .*", "")  -- "General - Undercity"
-    local short = base == "General" and "W" or base:gsub("[^%u]", "")
-    if short == "" then short = index or base end
-    return open .. "[" .. short .. "]" .. close
+    if ns.Get("chatChannelStyle") == "number" then
+        return open .. "[" .. (index or GROUP_LETTER[name] or name) .. "]" .. close
+    end
+    local short
+    if index then
+        short = CHANNEL_LETTER[base:gsub(" %- .*", "")] or index
+    else
+        short = GROUP_LETTER[name] or name
+    end
+    return open .. short .. "." .. close
 end
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
@@ -155,7 +176,9 @@ for _, key in ipairs({ "CHAT_SAY_GET", "CHAT_YELL_GET", "CHAT_WHISPER_GET" }) do
 end
 
 local function ShortLine(text)
-    if ns.Get("chatShortChannels") then text = text:gsub(CHANNEL, ShortChannel, 1) end
+    local style = ns.Get("chatChannelStyle")
+    if style ~= "off" then text = text:gsub(CHANNEL, ShortChannel, 1) end
+    if style == "letter" then text = text:gsub(PLAYER, "%1%2%3", 1) end
     if ns.Get("chatShortText") then
         for _, p in ipairs(SPEECH) do
             local n
@@ -180,7 +203,7 @@ local function Wrap(frame)
 end
 
 local function ApplyLines()
-    if ns.Get("chatShortChannels") or ns.Get("chatShortText") then ChatFrameUtil.ForEachChatFrame(Wrap) end
+    if ns.Get("chatChannelStyle") ~= "off" or ns.Get("chatShortText") then ChatFrameUtil.ForEachChatFrame(Wrap) end
 end
 
 hooksecurefunc("FCF_OpenTemporaryWindow", ApplyLines)
@@ -189,14 +212,21 @@ ns.RegisterFeature({
     key = "chatLevels", label = "Level after names", section = SECTION, category = CATEGORY,
 })
 ns.RegisterFeature({
-    key = "chatShortChannels", label = "Short channel names", section = SECTION, category = CATEGORY,
-    beside = true, apply = ApplyLines,
+    key = "chatLinks", label = "Clickable web links", section = SECTION, category = CATEGORY,
+    beside = true,
 })
 ns.RegisterFeature({
     key = "chatShortText", label = "Shorter loot, XP and speech", section = SECTION, category = CATEGORY,
     apply = ApplyLines,
 })
 ns.RegisterFeature({
-    key = "chatLinks", label = "Clickable web links", section = SECTION, category = CATEGORY,
-    beside = true,
+    key = "chatChannelStyle", label = "Short channel names", section = SECTION, category = CATEGORY,
+    type = "dropdown", inline = true, default = "number", apply = ApplyLines,
+    options = function()
+        return {
+            { value = "off",    label = "Off" },
+            { value = "number", label = "[2] [Name]:" },
+            { value = "letter", label = "T. Name:" },
+        }
+    end,
 })

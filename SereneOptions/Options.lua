@@ -207,7 +207,8 @@ end
 -- A checkbox on the Modules page for a Serene* addon, named after its tab. It
 -- starts out as whether the addon is loaded and then shows the choice made
 -- here; the choice turns the addon on or off for all characters, which the
--- client applies on the next load, and until then a note beside it says so.
+-- client applies on the next load, and until then a note beside it says so
+-- and reloads when clicked.
 -- The client's own enable state is not read back: it does not reliably
 -- answer for this character.
 local function CreateAddonToggle(page, module)
@@ -224,9 +225,24 @@ local function CreateAddonToggle(page, module)
     })
     widgets[#widgets + 1] = box
 
-    local note = box:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    -- A /reload macro button, like the sidebar's Reload UI.
+    local note = CreateFrame("Button", nil, box, "InsecureActionButtonTemplate")
+    note:RegisterForClicks("AnyUp")
+    note:SetAttribute("useOnKeyDown", false)
+    note:SetAttribute("type", "macro")
+    note:SetAttribute("macrotext", "/reload")
+    local text = note:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    text:SetPoint("LEFT")
+    text:SetText("Reload UI to apply")
+    note:SetSize(math.ceil(text:GetStringWidth()), 20)
     note:SetPoint("LEFT", box.label, "RIGHT", 12, 0)
-    note:SetText("Reload UI to apply")
+    local function Paint(hover)
+        local c = hover and WHITE or GOLD
+        text:SetTextColor(c[1], c[2], c[3])
+    end
+    note:SetScript("OnEnter", function() Paint(true) end)
+    note:SetScript("OnLeave", function() Paint(false) end)
+    Paint(false)
     local refresh = box.Refresh
     function box.Refresh()
         refresh()

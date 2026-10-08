@@ -308,7 +308,8 @@ local function CloseGroup(group, y)
 end
 
 -- The Modules page: a group with a checkbox per Serene* addon, which opens
--- and closes like a settings page's.
+-- and closes like a settings page's, and a line under it on why to turn
+-- modules off.
 local ADDONS = "Turns each Serene module on or off for all your characters."
 local function CreateModulesPage()
     local page = CreatePageFrame(MODULES)
@@ -319,6 +320,11 @@ local function CreateModulesPage()
     for _, module in ipairs(Modules()) do
         boxes[#boxes + 1] = CreateAddonToggle(content, module)
     end
+
+    local outro = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    outro:SetWidth(PAGE_W)
+    outro:SetJustifyH("LEFT")
+    outro:SetText("Modules you turn off are never loaded. Turn off the ones you don't use, or the ones another addon already covers.")
 
     local key = MODULES .. "/" .. ADDONS
     local allOpen  -- while measuring the page open
@@ -343,6 +349,9 @@ local function CreateModulesPage()
         end
         -- Closed: the frame ends as far under the heading as it starts above it.
         y = CloseGroup(group, open and y + 2 or group.top - GROUP_PAD * 1.5 - group.headingH)
+        outro:ClearAllPoints()
+        outro:SetPoint("TOPLEFT", 0, y - SPACING)
+        y = y - SPACING - outro:GetStringHeight()
         content:SetHeight(-y)
         return -y
     end

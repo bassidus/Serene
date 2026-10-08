@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Chat Messages -- names as "[30] Name", the level colored against yours,
+--  Chat Messages -- names as "Name (30)", the level colored against yours,
 --  white channel names with or without their number ("[2] [T] Name:", "[Gen]
 --  Name:"), gray times, shorter loot, XP and speech lines, and clickable web
 --  links.
@@ -27,7 +27,7 @@ ChatFrameUtil.AddSenderNameFilter(function(_, name, ...)
     local level = Clean(select(8, GetPlayerInfoByGUID(guid)))
     if not level or level <= 0 then return end
     local c = GetCreatureDifficultyColor(level)
-    return "|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. "[" .. level .. "]|r " .. name
+    return name .. " |cff" .. ns.RGBToHex(c.r, c.g, c.b) .. "(" .. level .. ")|r"
 end)
 
 -------------------------------------------------------------------------------
@@ -148,8 +148,7 @@ end)
 --  every line, Blizzard's own (chat lines only) turned off.
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)( ?)"
--- The name may hold its level's own brackets, "[|cff..[30]|r Name]".
-local PLAYER = "(|Hplayer[^|]-|h)%[(.-)%](|h)"
+local PLAYER = "(|Hplayer[^|]-|h)%[([^%[%]]-)%](|h)"
 
 -- Numbered channels by their name without number and zone. A channel not
 -- listed keeps its name as its word, and as its letter when no number shows.
@@ -246,7 +245,7 @@ local function ApplyTimestamps()
 end
 
 ns.RegisterFeature({
-    key = "chatLevels", label = "Level before names", section = SECTION, category = CATEGORY,
+    key = "chatLevels", label = "Level after names", section = SECTION, category = CATEGORY,
 })
 ns.RegisterFeature({
     key = "chatLinks", label = "Clickable web links", section = SECTION, category = CATEGORY,

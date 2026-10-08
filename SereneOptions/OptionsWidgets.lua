@@ -426,8 +426,10 @@ function W.Checkbox(parent, f)
         if f.set then f.set(not Checked()) else ns.SetValue(f.key, not Checked()) end
     end)
     if f.tooltip then
+        -- The default anchor, so Serene Tooltip's cursor anchor and offsets
+        -- place it like every other tooltip.
         row:HookScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
+            GameTooltip_SetDefaultAnchor(GameTooltip, self)
             GameTooltip:SetText(f.tooltip, 1, 1, 1, 1, true)
             GameTooltip:Show()
         end)

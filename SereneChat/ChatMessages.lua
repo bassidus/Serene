@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
---  Chat Messages -- levels after names, short channel names ("[2] [Name]:",
---  "T. Name:", "[2] [T] Name:" or "[1] [Gen] Name:"), shorter loot, XP and
---  speech lines, and clickable web links.
+--  Chat Messages -- levels after names, channel names with or without their
+--  number ("[2] [T] Name:", "[Gen] Name:"), shorter loot, XP and speech
+--  lines, and clickable web links.
 --
 --  Blizzard runs the message and sender name filters in a securecall, so
 --  whatever fits there goes there: levels, links and the loot and XP lines,
@@ -133,18 +133,19 @@ EventRegistry:RegisterCallback("SetItemRef", function(_, link)
 end)
 
 -------------------------------------------------------------------------------
---  Whole lines: channel names in one of four styles, and "[Name] says:" ->
---  "[Name]:".
---    number:       "[2. Trade - City] [Name]:" -> "[2] [Name]:",     "[Party Leader]" -> "[PL]"
---    letter:       "[2. Trade - City] [Name]:" -> "T. Name:",        "[Party Leader]" -> "PL."
---    numberLetter: "[2. Trade - City] [Name]:" -> "[2] [T] Name:",   "[Party Leader]" -> "[PL]"
---    numberWord:   "[1. General - City] [Name]:" -> "[1] [Gen] Name:", "[Party Leader]" -> "[PL]"
+--  Whole lines: channel names, and "[Name] says:" -> "[Name]:". The name is
+--  one of four styles, each with or without the channel's number:
+--    full:   "[2. Trade - City] [Name]:" or "[Trade - City] [Name]:"
+--    letter: "[2] [T] Name:"             or "[T] Name:"
+--    word:   "[1] [Gen] Name:"           or "[Gen] Name:"
+--    none:   "[2] Name:"                 or "Name:"
+--  Guild, party and raid have no number: "[G]" or "[Guild]", "[PL]".
 -------------------------------------------------------------------------------
-local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)"
+local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)( ?)"
 local PLAYER = "(|Hplayer[^|]-|h)%[([^%[%]]-)%](|h)"
 
 -- Numbered channels by their name without number and zone. A channel not
--- listed has no letter and keeps its name as its word.
+-- listed keeps its name as its word, and as its letter when no number shows.
 local CHANNEL_LETTER = {
     General = "W", Trade = "T", LocalDefense = "LD", WorldDefense = "WD",
     LookingForGroup = "LFG", Services = "S", NewcomerChat = "NC",
@@ -162,28 +163,30 @@ local GROUP_WORD = {
     ["Party Leader"] = "PL", ["Raid Leader"] = "RL", ["Instance Leader"] = "IL",
 }
 
--- The styles without brackets around the sender's name.
-local BARE_NAME = { letter = true, numberLetter = true, numberWord = true }
-
-local function Tag(style, name)
+-- "" drops the channel and the space after it.
+local function Tag(style, numbers, name)
     local index, base = name:match("^(%d+)%. (.+)$")
     if not index then
-        local group = (style == "numberWord" and GROUP_WORD or GROUP_LETTER)[name] or name
-        return style == "letter" and group .. "." or "[" .. group .. "]"
+        if style == "full" then return "[" .. name .. "]" end
+        return "[" .. ((style == "word" and GROUP_WORD or GROUP_LETTER)[name] or name) .. "]"
     end
+    if style == "full" then return "[" .. (numbers and name or base) .. "]" end
     base = base:gsub(" %- .*", "")  -- "General - Undercity"
-    if style == "letter" then return (CHANNEL_LETTER[base] or index) .. "." end
     local tag
-    if style == "numberLetter" then
-        tag = CHANNEL_LETTER[base]
-    elseif style == "numberWord" then
+    if style == "letter" then
+        tag = CHANNEL_LETTER[base] or not numbers and base
+    elseif style == "word" then
         tag = CHANNEL_WORD[base] or base
     end
-    return "[" .. index .. "]" .. (tag and " [" .. tag .. "]" or "")
+    local number = numbers and "[" .. index .. "]"
+    if number and tag then return number .. " [" .. tag .. "]" end
+    return number or tag and "[" .. tag .. "]" or ""
 end
 
-local function ShortChannel(open, name, close)
-    return open .. Tag(ns.Get("chatChannelStyle"), name) .. close
+local function ShortChannel(open, name, close, space)
+    local tag = Tag(ns.Get("chatChannelNames"), ns.Get("chatChannelNumbers"), name)
+    if tag == "" then return "" end
+    return open .. tag .. close .. space
 end
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
@@ -194,10 +197,14 @@ for _, key in ipairs({ "CHAT_SAY_GET", "CHAT_YELL_GET", "CHAT_WHISPER_GET" }) do
     SPEECH[#SPEECH + 1] = "|h" .. tail:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")
 end
 
+-- Full names with numbers are Blizzard's own.
+local function ChannelsChanged()
+    return ns.Get("chatChannelNames") ~= "full" or not ns.Get("chatChannelNumbers")
+end
+
 local function ShortLine(text)
-    local style = ns.Get("chatChannelStyle")
-    if style ~= "off" then text = text:gsub(CHANNEL, ShortChannel, 1) end
-    if BARE_NAME[style] then text = text:gsub(PLAYER, "%1%2%3", 1) end
+    if ChannelsChanged() then text = text:gsub(CHANNEL, ShortChannel, 1) end
+    if ns.Get("chatChannelNames") ~= "full" then text = text:gsub(PLAYER, "%1%2%3", 1) end
     if ns.Get("chatShortText") then
         for _, p in ipairs(SPEECH) do
             local n
@@ -222,7 +229,7 @@ local function Wrap(frame)
 end
 
 local function ApplyLines()
-    if ns.Get("chatChannelStyle") ~= "off" or ns.Get("chatShortText") then ChatFrameUtil.ForEachChatFrame(Wrap) end
+    if ChannelsChanged() or ns.Get("chatShortText") then ChatFrameUtil.ForEachChatFrame(Wrap) end
 end
 
 hooksecurefunc("FCF_OpenTemporaryWindow", ApplyLines)
@@ -239,15 +246,18 @@ ns.RegisterFeature({
     apply = ApplyLines,
 })
 ns.RegisterFeature({
-    key = "chatChannelStyle", label = "Short channel names", section = SECTION, category = CATEGORY,
-    type = "dropdown", inline = true, default = "number", apply = ApplyLines,
+    key = "chatChannelNumbers", label = "Show channel numbers", section = SECTION, category = CATEGORY,
+    beside = true, apply = ApplyLines,
+})
+ns.RegisterFeature({
+    key = "chatChannelNames", label = "Channel names", section = SECTION, category = CATEGORY,
+    type = "dropdown", inline = true, default = "word", apply = ApplyLines,
     options = function()
         return {
-            { value = "off",          label = "Off" },
-            { value = "number",       label = "[2] [Name]:" },
-            { value = "letter",       label = "T. Name:" },
-            { value = "numberLetter", label = "[2] [T] Name:" },
-            { value = "numberWord",   label = "[1] [Gen] Name:" },
+            { value = "full",   label = "Full: [Trade - City]" },
+            { value = "word",   label = "Word: [Gen]" },
+            { value = "letter", label = "Letter: [T]" },
+            { value = "none",   label = "None" },
         }
     end,
 })

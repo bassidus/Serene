@@ -559,7 +559,8 @@ local function CreatePage(section)
         end
 
         -- A setting with beside (not a category's first) sits to the right of the
-        -- one before it: row is that pair's top and the left one's bottom.
+        -- one before it, and more of them stack under it there: row is that
+        -- row's top, the left one's bottom and the right side's bottom so far.
         local row
         local function Beside(f)
             return f and f.beside and group and f.category == group.category and f.sub == (sub and sub.sub)
@@ -606,7 +607,7 @@ local function CreatePage(section)
                 local xr = box and box.right + GROUP_PAD or 0
                 local halfRow = (PAGE_W - x - xr + SPACING) / 2
                 if right then
-                    x, y = x + halfRow, row.top
+                    x, y = x + halfRow, row.right or row.top
                 elseif Beside(list[i + 1]) then
                     xr, row = xr + halfRow, { top = y }
                 else
@@ -627,7 +628,8 @@ local function CreatePage(section)
                     y = y - note:GetStringHeight() - gap
                 end
                 if right then
-                    y, row = math.min(y, row.bottom), nil
+                    row.right, y = y, math.min(y, row.bottom)
+                    if not Beside(list[i + 1]) then row = nil end
                 elseif row then
                     row.bottom = y
                 end

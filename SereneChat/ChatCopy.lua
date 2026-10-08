@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --  Copy Chat -- "Copy chat" in a chat tab's right-click menu opens that
 --  window's lines as plain text, to select and copy. A right click in the
---  window itself does the same.
+--  window itself can do the same.
 --
 --  Chat windows take no clicks (they reach the world behind them), so the
 --  click is read from the global mouse events. A held right button turns
@@ -176,7 +176,6 @@ ns.OnResetAll(function()
 end)
 
 Menu.ModifyMenu("MENU_FCF_TAB", function(tab, root)
-    if not ns.Get("chatCopy") then return end
     root:CreateDivider()
     root:CreateButton("Copy chat", function() Show(_G["ChatFrame" .. tab:GetID()]) end)
 end)
@@ -226,7 +225,7 @@ clicks:SetScript("OnEvent", function(_, event, button)
 end)
 
 local function ApplyClick()
-    if ns.Get("chatCopy") and ns.Get("chatCopyClick") then
+    if ns.Get("chatCopyClick") then
         HookLinks()
         clicks:RegisterEvent("GLOBAL_MOUSE_DOWN")
         clicks:RegisterEvent("GLOBAL_MOUSE_UP")
@@ -248,10 +247,6 @@ ns.RegisterFontSettings({
     end,
 })
 ns.RegisterFeature({
-    key = "chatCopy", label = "Copy chat in the tab menu", section = "Chat", category = "Messages",
+    key = "chatCopyClick", label = "Right click to copy", section = "Chat", category = "Messages",
     apply = ApplyClick,
-})
-ns.RegisterFeature({
-    key = "chatCopyClick", label = "Right click in the chat copies too", section = "Chat", category = "Messages",
-    beside = true, requires = "chatCopy", apply = ApplyClick,
 })

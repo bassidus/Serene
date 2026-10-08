@@ -36,7 +36,7 @@ ns.featureByKey = {}
 --   closed     on a category's (or subgroup's) first setting: it starts closed
 --   beside     on a category's first setting: that category goes right of the
 --              previous one at half width; otherwise: right of the previous
---              setting
+--              setting, or under it when that one is beside too
 --   button     a plain button with this text in place of the field
 --   requires   key (or list) of booleans; dimmed and locked while any is off
 --              ("!key": while it is on)

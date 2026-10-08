@@ -12,3 +12,4 @@ ChatInput.lua
 ChatMessages.lua
 ChatLook.lua
 ChatCopy.lua
+ChatLinks.lua

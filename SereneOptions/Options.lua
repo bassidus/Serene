@@ -307,18 +307,13 @@ local function CloseGroup(group, y)
     return bottom
 end
 
--- The Modules page: a line on what the checkboxes do, then a group with one
--- per Serene* addon, which opens and closes like a settings page's.
-local ADDONS = "Addons"
+-- The Modules page: a group with a checkbox per Serene* addon, which opens
+-- and closes like a settings page's.
+local ADDONS = "Turns each Serene module on or off for all your characters."
 local function CreateModulesPage()
     local page = CreatePageFrame(MODULES)
     local content = AddScrolling(page)
     local top = -(36 - HEADER_H)
-    local intro = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    intro:SetPoint("TOPLEFT", 0, top)
-    intro:SetWidth(PAGE_W)
-    intro:SetJustifyH("LEFT")
-    intro:SetText("Turns each Serene module on or off for all your characters.")
 
     local boxes = {}
     for _, module in ipairs(Modules()) do
@@ -335,7 +330,7 @@ local function CreateModulesPage()
     -- Returns the content's height.
     local function Layout()
         local open = Open()
-        local y = PlaceGroup(group, top - intro:GetStringHeight() - SPACING, 0, 0)
+        local y = PlaceGroup(group, top, 0, 0)
         group.SetOpen(open)
         for _, box in ipairs(boxes) do
             box:SetShown(open)

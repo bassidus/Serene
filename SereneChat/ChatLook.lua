@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
---  Chat Look -- the chat windows' font, and how long a line stays before it
---  fades. While the font settings match Blizzard's own (its typeface and
---  outline at size 14) each window keeps the size picked in its tab menu.
+--  Chat Look -- the chat windows' font and line spacing, and how long a line
+--  stays before it fades. While the font settings match Blizzard's own (its
+--  typeface and outline at size 14) each window keeps the size picked in its
+--  tab menu.
 --  The edit boxes always go without their frame, in their window's font and
 --  on a background like the window's.
 -------------------------------------------------------------------------------
@@ -86,10 +87,16 @@ local function ApplyFade()
     end)
 end
 
+local function ApplySpacing()
+    local spacing = ns.Get("chatLineSpacing")
+    ChatFrameUtil.ForEachChatFrame(function(frame) frame:SetSpacing(spacing) end)
+end
+
 -- A whisper window takes its font from the window it opens from.
 hooksecurefunc("FCF_OpenTemporaryWindow", function()
     ApplyFont()
     ApplyFade()
+    ApplySpacing()
     DressEditBoxes()
 end)
 
@@ -116,4 +123,8 @@ ns.RegisterFeature({
     key = "chatFadeTime", label = "Fade after", section = SECTION, category = CATEGORY, type = "slider",
     min = 10, max = 600, step = 10, default = 120, suffix = " s", requires = "chatFade",
     apply = ApplyFade,
+})
+ns.RegisterFeature({
+    key = "chatLineSpacing", label = "Line spacing", section = SECTION, category = CATEGORY, type = "slider",
+    min = 0, max = 10, step = 1, default = 3, suffix = " px", apply = ApplySpacing,
 })

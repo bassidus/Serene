@@ -1,14 +1,15 @@
 -------------------------------------------------------------------------------
---  Chat Messages -- levels after names, channel names with or without their
---  number ("[2] [T] Name:", "[Gen] Name:"), shorter loot, XP and speech
---  lines, and clickable web links.
+--  Chat Messages -- levels after names, colored against yours, white
+--  channel names with or without their number ("[2] [T] Name:", "[Gen]
+--  Name:"), gray times, shorter loot, XP and speech lines, and clickable web
+--  links.
 --
 --  Blizzard runs the message and sender name filters in a securecall, so
 --  whatever fits there goes there: levels, links and the loot and XP lines,
---  which are the message text alone. Channel names and "says:" are added to
---  the text after the filters, so those two rewrite the whole line in each
---  chat window's AddMessage. That wrapper is the one place a Blizzard method
---  is replaced; it is put on only once one of the two settings is on.
+--  which are the message text alone. Channel names, "says:" and the time
+--  are added to the text after the filters, so those rewrite the whole line
+--  in each chat window's AddMessage. That wrapper is the one place a
+--  Blizzard method is replaced.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -24,7 +25,9 @@ ChatFrameUtil.AddSenderNameFilter(function(_, name, ...)
     local guid = Clean(select(12, ...))
     if not guid or not guid:find("^Player%-") then return end
     local level = Clean(select(8, GetPlayerInfoByGUID(guid)))
-    if level and level > 0 then return name .. " (" .. level .. ")" end
+    if not level or level <= 0 then return end
+    local c = GetCreatureDifficultyColor(level)
+    return name .. " (|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. "|r)"
 end)
 
 -------------------------------------------------------------------------------
@@ -139,7 +142,9 @@ end)
 --    letter: "[2] [T] Name:"             or "[T] Name:"
 --    word:   "[1] [Gen] Name:"           or "[Gen] Name:"
 --    none:   "[2] Name:"                 or "Name:"
---  Guild, party and raid have no number: "[G]" or "[Guild]", "[PL]".
+--  Guild, party and raid have no number: "[G]" or "[Guild]", "[PL]". The
+--  channel shows in white, whatever its own color. The time goes first on
+--  every line, Blizzard's own (chat lines only) turned off.
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)( ?)"
 local PLAYER = "(|Hplayer[^|]-|h)%[([^%[%]]-)%](|h)"
@@ -186,7 +191,7 @@ end
 local function ShortChannel(open, name, close, space)
     local tag = Tag(ns.Get("chatChannelNames"), ns.Get("chatChannelNumbers"), name)
     if tag == "" then return "" end
-    return open .. tag .. close .. space
+    return open .. "|cffffffff" .. tag .. "|r" .. close .. space
 end
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
@@ -197,13 +202,8 @@ for _, key in ipairs({ "CHAT_SAY_GET", "CHAT_YELL_GET", "CHAT_WHISPER_GET" }) do
     SPEECH[#SPEECH + 1] = "|h" .. tail:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")
 end
 
--- Full names with numbers are Blizzard's own.
-local function ChannelsChanged()
-    return ns.Get("chatChannelNames") ~= "full" or not ns.Get("chatChannelNumbers")
-end
-
 local function ShortLine(text)
-    if ChannelsChanged() then text = text:gsub(CHANNEL, ShortChannel, 1) end
+    text = text:gsub(CHANNEL, ShortChannel, 1)
     if ns.Get("chatChannelNames") ~= "full" then text = text:gsub(PLAYER, "%1%2%3", 1) end
     if ns.Get("chatShortText") then
         for _, p in ipairs(SPEECH) do
@@ -212,6 +212,8 @@ local function ShortLine(text)
             if n > 0 then break end
         end
     end
+    local time = ns.Get("chatTimestamps")
+    if time ~= "off" then text = "|cff808080" .. date(time) .. "|r " .. text end
     return text
 end
 
@@ -229,10 +231,17 @@ local function Wrap(frame)
 end
 
 local function ApplyLines()
-    if ChannelsChanged() or ns.Get("chatShortText") then ChatFrameUtil.ForEachChatFrame(Wrap) end
+    ChatFrameUtil.ForEachChatFrame(Wrap)
 end
 
 hooksecurefunc("FCF_OpenTemporaryWindow", ApplyLines)
+
+-- Runs at login too, which is when the windows get their wrapper. Blizzard's
+-- own time would come on top of this one.
+local function ApplyTimestamps()
+    SetCVar("showTimestamps", "none")
+    ApplyLines()
+end
 
 ns.RegisterFeature({
     key = "chatLevels", label = "Level after names", section = SECTION, category = CATEGORY,
@@ -243,21 +252,32 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "chatShortText", label = "Shorter loot, XP and speech", section = SECTION, category = CATEGORY,
-    apply = ApplyLines,
 })
 ns.RegisterFeature({
     key = "chatChannelNumbers", label = "Show channel numbers", section = SECTION, category = CATEGORY,
-    beside = true, apply = ApplyLines,
+    beside = true,
 })
 ns.RegisterFeature({
     key = "chatChannelNames", label = "Channel names", section = SECTION, category = CATEGORY,
-    type = "dropdown", inline = true, default = "word", apply = ApplyLines,
+    type = "dropdown", inline = true, default = "word",
     options = function()
         return {
             { value = "full",   label = "Full: [Trade - City]" },
             { value = "word",   label = "Word: [Gen]" },
             { value = "letter", label = "Letter: [T]" },
             { value = "none",   label = "None" },
+        }
+    end,
+})
+ns.RegisterFeature({
+    key = "chatTimestamps", label = "Time", section = SECTION, category = CATEGORY,
+    type = "dropdown", inline = true, default = "%H:%M", apply = ApplyTimestamps,
+    options = function()
+        return {
+            { value = "off",      label = "Off" },
+            { value = "%H:%M",    label = "14:05" },
+            { value = "%H:%M:%S", label = "14:05:32" },
+            { value = "%I:%M",    label = "02:05" },
         }
     end,
 })

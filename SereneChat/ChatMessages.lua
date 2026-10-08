@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
---  Chat Messages -- names as "[30 Name]" in class colored brackets, the
---  level colored against yours, white channel names with or without their
---  number ("[2] [T] [Name]:", "[Gen] [Name]:"), gray times, shorter loot, XP
---  and speech lines, and clickable web links.
+--  Chat Messages -- names as "[30] Name", the level colored against yours,
+--  white channel names with or without their number ("[2] [T] Name:", "[Gen]
+--  Name:"), gray times, shorter loot, XP and speech lines, and clickable web
+--  links.
 --
 --  Blizzard runs the message and sender name filters in a securecall, so
 --  whatever fits there goes there: levels, links and the loot and XP lines,
---  which are the message text alone. Brackets, channel names, "says:" and
---  the time are added to the text after the filters, so those rewrite the
---  whole line in each chat window's AddMessage. That wrapper is the one place a
+--  which are the message text alone. Channel names, "says:" and the time
+--  are added to the text after the filters, so those rewrite the whole line
+--  in each chat window's AddMessage. That wrapper is the one place a
 --  Blizzard method is replaced.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -18,20 +18,16 @@ local SECTION, CATEGORY = "Chat", "Messages"
 local Clean = ns.Clean
 
 -------------------------------------------------------------------------------
---  Levels, and each sender's class for the brackets around their name,
---  which the filter only sees the inside of.
+--  Levels
 -------------------------------------------------------------------------------
-local classColor = {}  -- sender name, as in their player link -> "ffrrggbb"
-
 ChatFrameUtil.AddSenderNameFilter(function(_, name, ...)
-    local sender, guid = Clean(select(2, ...)), Clean(select(12, ...))
-    if not sender or not guid or not guid:find("^Player%-") then return end
-    local _, class, _, _, _, _, _, level = GetPlayerInfoByGUID(guid)
-    class, level = Clean(class), Clean(level)
-    if class then classColor[sender] = RAID_CLASS_COLORS[class].colorStr end
-    if not ns.Get("chatLevels") or not level or level <= 0 then return end
+    if not ns.Get("chatLevels") then return end
+    local guid = Clean(select(12, ...))
+    if not guid or not guid:find("^Player%-") then return end
+    local level = Clean(select(8, GetPlayerInfoByGUID(guid)))
+    if not level or level <= 0 then return end
     local c = GetCreatureDifficultyColor(level)
-    return "|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. "|r " .. name
+    return "|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. "[" .. level .. "]|r " .. name
 end)
 
 -------------------------------------------------------------------------------
@@ -140,20 +136,20 @@ EventRegistry:RegisterCallback("SetItemRef", function(_, link)
 end)
 
 -------------------------------------------------------------------------------
---  Whole lines: channel names, class colored brackets around the sender,
---  and "[Name] says:" -> "[Name]:". The channel is one of four styles, each
---  with or without its number:
---    full:   "[2. Trade - City] [Name]:" or "[Trade - City] [Name]:"
---    letter: "[2] [T] [Name]:"           or "[T] [Name]:"
---    word:   "[1] [Gen] [Name]:"         or "[Gen] [Name]:"
---    none:   "[2] [Name]:"               or "[Name]:"
+--  Whole lines: channel names, the sender without brackets, and "[Name]
+--  says:" -> "Name:". The channel is one of four styles, each with or
+--  without its number:
+--    full:   "[2. Trade - City] Name:" or "[Trade - City] Name:"
+--    letter: "[2] [T] Name:"           or "[T] Name:"
+--    word:   "[1] [Gen] Name:"         or "[Gen] Name:"
+--    none:   "[2] Name:"               or "Name:"
 --  Guild, party and raid have no number: "[G]" or "[Guild]", "[PL]". The
---  channel shows in white, whatever its own color, and every bracket gets
---  a space inside: "[ 1 ] [ Gen ] [ 30 Name ]:". The time goes first on
+--  channel shows in white, whatever its own color. The time goes first on
 --  every line, Blizzard's own (chat lines only) turned off.
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)( ?)"
-local PLAYER = "(|Hplayer[^|]-|h)%[([^%[%]]-)%](|h)"
+-- The name may hold its level's own brackets, "[|cff..[30]|r Name]".
+local PLAYER = "(|Hplayer[^|]-|h)%[(.-)%](|h)"
 
 -- Numbered channels by their name without number and zone. A channel not
 -- listed keeps its name as its word, and as its letter when no number shows.
@@ -197,14 +193,7 @@ end
 local function ShortChannel(open, name, close, space)
     local tag = Tag(ns.Get("chatChannelNames"), ns.Get("chatChannelNumbers"), name)
     if tag == "" then return "" end
-    tag = tag:gsub("%[", "[ "):gsub("%]", " ]")
     return open .. "|cffffffff" .. tag .. "|r" .. close .. space
-end
-
-local function Brackets(open, name, close)
-    local color = classColor[open:match("^|Hplayer:([^:|]+)")]
-    if not color then return open .. "[ " .. name .. " ]" .. close end
-    return open .. "|c" .. color .. "[ |r" .. name .. "|c" .. color .. " ]|r" .. close
 end
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
@@ -217,7 +206,7 @@ end
 
 local function ShortLine(text)
     text = text:gsub(CHANNEL, ShortChannel, 1)
-    text = text:gsub(PLAYER, Brackets, 1)
+    text = text:gsub(PLAYER, "%1%2%3", 1)
     if ns.Get("chatShortText") then
         for _, p in ipairs(SPEECH) do
             local n

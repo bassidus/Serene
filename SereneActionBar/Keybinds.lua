@@ -248,34 +248,39 @@ f:SetScript("OnEvent", function() Queue() end)
 -------------------------------------------------------------------------------
 local SECTION = "Action Bars"
 
--- Every Settings checkbox is registered here, since the page lists them in
+-- Every Buttons checkbox is registered here, since the page lists them in
 -- registration order and range color and zoom load later; their applies are
 -- looked up when they run.
 ns.RegisterFeature({
-    key = "shortKeybinds", label = "Short keybinds", section = SECTION, category = "Settings",
+    key = "shortKeybinds", label = "Short keybinds", section = SECTION, category = "Buttons",
+    tooltip = "CTRL-2 shows as C2, Mouse Button 4 as M4.",
     requires = "!hideKeybinds",
     apply = ApplySetting,
 })
 ns.RegisterFeature({
-    key = "rangeColors", label = "Enable out of range color", section = SECTION, category = "Settings",
+    key = "rangeColors", label = "Enable out of range color", section = SECTION, category = "Buttons",
+    tooltip = "Icons turn red while your target is out of range.",
     beside = true, apply = function() ns.ApplyRangeColors() end,
 })
 ns.RegisterFeature({
-    key = "hideKeybinds", label = "Hide keybinds", section = SECTION, category = "Settings",
+    key = "hideKeybinds", label = "Hide keybinds", section = SECTION, category = "Buttons",
+    tooltip = "No keybind text on the buttons.",
     default = false,
     apply = ApplySetting,
 })
 ns.RegisterFeature({
-    key = "zoomActionIcons", label = "Zoom button icons", section = SECTION, category = "Settings",
+    key = "zoomActionIcons", label = "Zoom button icons", section = SECTION, category = "Buttons",
+    tooltip = "Crops the rough edges off the icons.",
     beside = true, apply = function() ns.ApplyZoomIcons() end,
 })
 ns.RegisterFeature({
-    key = "hideMacroText", label = "Hide macros", section = SECTION, category = "Settings",
+    key = "hideMacroText", label = "Hide macros", section = SECTION, category = "Buttons",
+    tooltip = "No macro names on the buttons.",
     default = false,
     apply = ApplySetting,
 })
 ns.RegisterFontSettings({
-    prefix = "buttonText", label = "Keybind and macro text", section = SECTION, category = "Settings",
+    prefix = "buttonText", label = "Keybind and macro text", section = SECTION, category = "Buttons",
     size = { 6, 24, DEFAULT_SIZE }, outline = "default", color = "buttonTextColor", button = "Font settings",
     beside = true,
     apply = ApplySetting,
@@ -285,7 +290,7 @@ ns.RegisterFontSettings({
     end,
 })
 ns.RegisterFeature({
-    key = "buttonTextColor", label = "Keybind and macro color", section = SECTION, category = "Settings",
+    key = "buttonTextColor", label = "Keybind and macro color", section = SECTION, category = "Buttons",
     type = "color", default = "default",
     apply = ApplySetting,
     specials = {

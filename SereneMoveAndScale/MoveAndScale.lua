@@ -539,3 +539,5 @@ ns.RegisterFeature({
         SetSaved(Picked(), ns.Get("windowSize"))
     end,
 })
+
+ns.SetOutro(SECTION, "Drag to move. Ctrl + scroll to resize. Middle-click to reset.")

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Type DELETE for You -- types DELETE into the "delete this good item?" popup.
+--  Easier Delete -- types DELETE into the "delete this good item?" popup.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -20,6 +20,7 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "autoFillDelete", label = "Type DELETE for you", section = "General", category = "Loot & items",
+    key = "autoFillDelete", label = "Easier delete", section = "General", category = "Loot & items",
+    tooltip = "Types DELETE for you when deleting a good item.",
     apply = Apply,
 })

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Skip Bind-on-Pickup Warnings -- confirms the "will bind to you" questions when
+--  Skip BoP Warnings -- confirms the "will bind to you" questions when
 --  looting or rolling on a bind-on-pickup item.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -22,8 +22,9 @@ f:SetScript("OnEvent", function(_, event, id, rollType)
 end)
 
 ns.RegisterFeature({
-    key = "skipLootWarnings", label = "Skip bind-on-pickup warnings",
+    key = "skipLootWarnings", label = "Skip BoP warnings",
     section = "General", category = "Loot & items",
+    tooltip = "No \"will bind to you\" popup when looting or rolling.",
     apply = function()
         for _, event in ipairs(EVENTS) do
             if ns.Get("skipLootWarnings") then f:RegisterEvent(event) else f:UnregisterEvent(event) end

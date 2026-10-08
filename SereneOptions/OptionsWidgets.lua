@@ -425,6 +425,14 @@ function W.Checkbox(parent, f)
         PlayClick()
         if f.set then f.set(not Checked()) else ns.SetValue(f.key, not Checked()) end
     end)
+    if f.tooltip then
+        row:HookScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(f.tooltip, 1, 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        row:HookScript("OnLeave", GameTooltip_Hide)
+    end
 
     -- "Requires Serene Nameplates" beside the label; on the parent, so the row's
     -- dimming leaves it readable.

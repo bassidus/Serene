@@ -9,14 +9,17 @@ local SECTION = ns.SECTION
 -- All frames
 ns.RegisterFeature({
     key = "unitFrameClassColors", label = "Show class colors", section = SECTION, category = "All frames",
+    tooltip = "Players' health bars in their class color.",
     default = true, apply = ns.ApplyClassColors,
 })
 ns.RegisterFeature({
     key = "unitFrameSmoothBars", label = "Use smooth bars", section = SECTION, category = "All frames",
+    tooltip = "Health and mana glide instead of jumping.",
     beside = true, default = true, apply = ns.ApplySmoothBars,
 })
 ns.RegisterFeature({
     key = "unitFrameHideHits", label = "Hide damage numbers", section = SECTION, category = "All frames",
+    tooltip = "No damage numbers on the portraits.",
     default = false, apply = ns.ApplyHideHits,
 })
 ns.RegisterNameFont({ section = SECTION, category = "All frames", beside = true })
@@ -24,18 +27,22 @@ ns.RegisterNameFont({ section = SECTION, category = "All frames", beside = true 
 -- Player frame
 ns.RegisterFeature({
     key = "playerFrameHideRestGlow", label = "Hide resting glow", section = SECTION, category = "Player frame",
+    tooltip = "No yellow glow while resting.",
     apply = ns.ApplyRest,
 })
 ns.RegisterFeature({
     key = "playerFrameHideLevel", label = "Hide player level", section = SECTION, category = "Player frame",
+    tooltip = "No level on your frame.",
     beside = true, default = false, apply = ns.ApplyHideLevel,
 })
 ns.RegisterFeature({
     key = "playerFrameHideRestZzz", label = "Hide resting Zzz", section = SECTION, category = "Player frame",
+    tooltip = "No Zzz while resting.",
     default = false, apply = ns.ApplyRest,
 })
 ns.RegisterFeature({
     key = "playerFrameStealth", label = "Use blue glow in stealth", section = SECTION, category = "Player frame",
+    tooltip = "A blue glow around your frame in stealth.",
     beside = true, default = false, apply = ns.ApplyStealth,
 })
 
@@ -66,16 +73,18 @@ ns.RegisterFeature({
 ns.RegisterNumbersFont({ section = SECTION, category = "Status numbers" })
 local HIDE = "Hide numbers on the following units"
 for _, unit in ipairs({
-    { "Player" }, { "Target", true },
-    { "Focus" },  { "Pet", true },
-    { "Party" },
+    { "Player", "the player frame" }, { "Target", "the target frame", true },
+    { "Focus", "the focus frame" },   { "Pet", "the pet frame", true },
+    { "Party", "the party frames" },
 }) do
     ns.RegisterFeature({
         key = "unitFrameNumbersHide" .. unit[1], label = unit[1], section = SECTION, category = "Status numbers",
-        sub = HIDE, closed = true, beside = unit[2], apply = ns.ApplyNumbersHide,
+        tooltip = "No health and mana numbers on " .. unit[2] .. ".",
+        sub = HIDE, closed = true, beside = unit[3], apply = ns.ApplyNumbersHide,
     })
 end
 ns.RegisterFeature({
     key = "unitFrameNumbersHover", label = "Show on mouseover", section = SECTION, category = "Status numbers",
+    tooltip = "Hidden numbers show on mouseover.",
     sub = HIDE, space = true, apply = ns.ApplyNumbersHide,
 })

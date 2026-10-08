@@ -268,24 +268,30 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "chatHideChannelNumbers", label = "Hide channel numbers", section = SECTION, category = CATEGORY,
+    tooltip = "[2] [T] Name: becomes [T] Name:",
     default = false,
 })
 ns.RegisterFeature({
     key = "chatTimeColor", label = "Color timestamps", section = SECTION, category = CATEGORY,
+    tooltip = "Timestamps in gray.",
     beside = true,
 })
 ns.RegisterFeature({
     key = "chatLevels", label = "Show player levels", section = SECTION, category = CATEGORY,
+    tooltip = "Name (30), the level colored by difficulty.",
 })
 -- Copy Chat's, here for its place on the page.
 ns.RegisterFeature({
     key = "chatCopyClick", label = "Right click to copy", section = SECTION, category = CATEGORY,
+    tooltip = "Right click a chat window to copy its text.",
     beside = true, apply = function() ns.ApplyChatCopyClick() end,
 })
 ns.RegisterFeature({
     key = "chatShortText", label = "Shorter messages", section = SECTION, category = CATEGORY,
+    tooltip = "Shorter loot, money, XP and say lines.",
 })
 ns.RegisterFeature({
     key = "chatLinks", label = "Clickable web links", section = SECTION, category = CATEGORY,
+    tooltip = "Click a web address to copy it.",
     beside = true,
 })

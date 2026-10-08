@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  Repair at Vendors -- repairs everything on MERCHANT_SHOW. Personal gold only:
+--  Auto Repair -- repairs everything on MERCHANT_SHOW. Personal gold only:
 --  Forever has no guild bank repairs.
 -------------------------------------------------------------------------------
 local _, ns = ...
@@ -23,6 +23,7 @@ f:SetScript("OnEvent", function()
 end)
 
 ns.RegisterFeature({
-    key = "autoRepair", label = "Repair at vendors", section = "General", category = "Vendors & trainers",
+    key = "autoRepair", label = "Auto repair", section = "General", category = "Vendors & trainers",
+    tooltip = "Repairs your gear when you open a vendor.",
     beside = true,
 })

@@ -135,11 +135,13 @@ ns.RegisterFeature({
 -- Drawn by SereneNameplates (NameplateQuest.lua), which adds the apply.
 ns.RegisterFeature({
     key = "nameplateQuest", label = "Mark quest enemies", section = "Quests", category = "Nameplates",
+    tooltip = "A quest icon with progress (3/8) on enemies you need.",
     beside = true,
     addon = "SereneNameplates",
 })
 ns.RegisterFeature({
     key = "nameplateQuestColor", label = "Color their health bars", section = "Quests", category = "Nameplates",
+    tooltip = "Quest enemies get their own bar color.",
     requires = "nameplateQuest",
     addon = "SereneNameplates",
 })

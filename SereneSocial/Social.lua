@@ -189,7 +189,7 @@ local function Who()
 end
 
 ns.RegisterFeature({
-    key = "partyInviteFrom", label = "Accept group invites from", section = SECTION, category = "Automation",
+    key = "partyInviteFrom", label = "Auto accept group invites from", section = SECTION, category = "Automation",
     type = "dropdown", inline = true, default = "friends", options = Who, apply = Apply,
 })
 ns.RegisterFeature({

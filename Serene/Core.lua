@@ -34,6 +34,7 @@ ns.featureByKey = {}
 --              the palette; swatch returns the hex(es) the word stands for
 --   blizzard   outline: fn returning Blizzard's own flags, shown on "default"
 --   note       text always shown under the control
+--   tooltip    checkbox: a line shown on hover
 --   space      an empty row above the control
 --   closed     on a category's (or subgroup's) first setting: it starts closed
 --   beside     on a category's first setting: that category goes right of the

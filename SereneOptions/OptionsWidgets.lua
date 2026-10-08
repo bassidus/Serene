@@ -937,9 +937,11 @@ local KNOB = 20
 local BAR_INSET = 4  -- the fill's distance from the track's line
 local BAR = { top = { 0.82, 0.53, 0.16, 0.9 }, bottom = { 0.5, 0.27, 0.08, 0.9 } }
 
+-- With hideLabel the row above (a checkbox, or text) is its label, and the
+-- value goes at that row's right end.
 function W.Slider(parent, f)
     local holder = CreateFrame("Frame", nil, parent)
-    holder:SetHeight(48)
+    holder:SetHeight(f.hideLabel and 27 or 48)
 
     local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     label:SetPoint("TOPLEFT", 0, 0)
@@ -951,7 +953,12 @@ function W.Slider(parent, f)
     local slider = CreateFrame("Slider", nil, holder)
     slider:SetOrientation("HORIZONTAL")
     slider:SetSize(W.CONTROL_W, 2 * RADIUS)
-    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -(6 + 12 - RADIUS))
+    if f.hideLabel then
+        label:Hide()
+        slider:SetPoint("TOPLEFT", 0, -1)
+    else
+        slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -(6 + 12 - RADIUS))
+    end
     slider:SetMinMaxValues(f.min, f.max)
     slider:SetValueStep(f.step or 1)
     slider:SetObeyStepOnDrag(true)
@@ -983,8 +990,13 @@ function W.Slider(parent, f)
     slider:SetScript("OnLeave", function() track.SetLineColor() end)
 
     local valueText = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    -- On the label's line.
-    valueText:SetPoint("BOTTOMRIGHT", slider, "TOPRIGHT", 0, 6 + 12 - RADIUS)
+    -- On the label's line; without one, level with the middle of a 26 high
+    -- row 2 above.
+    if f.hideLabel then
+        valueText:SetPoint("RIGHT", slider, "TOPRIGHT", 0, 1 + 2 + 13)
+    else
+        valueText:SetPoint("BOTTOMRIGHT", slider, "TOPRIGHT", 0, 6 + 12 - RADIUS)
+    end
     valueText:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
     local step, suffix = f.step or 1, f.suffix or ""
@@ -1184,6 +1196,20 @@ function W.ColorField(parent, f)
         btn:SetEnabled(Available(holder, f))
         RefreshEditor(f)
     end
+    return holder
+end
+
+-------------------------------------------------------------------------------
+--  Text -- f.label alone, as high as a checkbox row: the label of a setting
+--  under it.
+-------------------------------------------------------------------------------
+function W.Text(parent, f)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(26)
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("LEFT", 0, 0)
+    label:SetText(f.label)
+    function holder.Refresh() Available(holder, f) end
     return holder
 end
 

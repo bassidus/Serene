@@ -1,10 +1,11 @@
 -------------------------------------------------------------------------------
 --  Chat Messages -- names as "Name (30)", the level colored against yours,
 --  white channel names with or without their number ("[2] [T] Name:", "[Gen]
---  Name:"), gray times, and shorter loot, XP and speech lines.
+--  Name:"), gray times, shorter loot, XP and speech lines, and clickable web
+--  links.
 --
 --  Blizzard runs the message and sender name filters in a securecall, so
---  whatever fits there goes there: levels and the loot and XP lines,
+--  whatever fits there goes there: levels, links and the loot and XP lines,
 --  which are the message text alone. Channel names, "says:" and the time
 --  are added to the text after the filters, so those rewrite the whole line
 --  in each chat window's AddMessage. That wrapper is the one place a
@@ -82,6 +83,57 @@ for event, list in pairs(SHORT) do
     for _, p in ipairs(list) do p[1] = Pattern(p[1]) end
     ChatFrameUtil.AddMessageEventFilter(event, ShortText)
 end
+
+-------------------------------------------------------------------------------
+--  Web links: a click opens a box to copy the address from.
+-------------------------------------------------------------------------------
+local PLAYER_CHAT = {
+    "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_EMOTE", "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM",
+    "CHAT_MSG_BN_WHISPER", "CHAT_MSG_BN_WHISPER_INFORM", "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER",
+    "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER",
+    "CHAT_MSG_RAID_WARNING", "CHAT_MSG_INSTANCE_CHAT", "CHAT_MSG_INSTANCE_CHAT_LEADER", "CHAT_MSG_CHANNEL",
+}
+
+-- After whitespace or at the start, so an address already made a link is
+-- not matched again from its "www.".
+local URLS = { "%f[%S]%a[%w+.-]+://%S+", "%f[%S]www%.[%w_-]+%.%a%a+%S*" }
+
+local function Link(url)
+    return "|cff149bfd|Haddon:sereneurl:" .. url .. "|h[" .. url .. "]|h|r"
+end
+
+local function Links(_, _, text, ...)
+    if not ns.Get("chatLinks") or not (text:find("://", 1, true) or text:find("www.", 1, true)) then
+        return false
+    end
+    for _, p in ipairs(URLS) do text = text:gsub(p, Link) end
+    return false, text, ...
+end
+
+for _, event in ipairs(PLAYER_CHAT) do ChatFrameUtil.AddMessageEventFilter(event, Links) end
+
+StaticPopupDialogs.SERENE_CHAT_URL = {
+    text = "Ctrl+C copies the link.",
+    button1 = CLOSE,
+    hasEditBox = true,
+    editBoxWidth = 350,
+    OnShow = function(dialog, url)
+        local box = dialog:GetEditBox()
+        box:SetText(url)
+        box:HighlightText()
+        box:SetFocus()
+    end,
+    EditBoxOnEnterPressed = function() StaticPopup_Hide("SERENE_CHAT_URL") end,
+    EditBoxOnEscapePressed = function() StaticPopup_Hide("SERENE_CHAT_URL") end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+}
+
+EventRegistry:RegisterCallback("SetItemRef", function(_, link)
+    local url = link:match("^addon:sereneurl:(.*)")
+    if url then StaticPopup_Show("SERENE_CHAT_URL", nil, nil, url) end
+end)
 
 -------------------------------------------------------------------------------
 --  Whole lines: channel names, the sender without brackets, and "[Name]
@@ -193,26 +245,8 @@ local function ApplyTimestamps()
 end
 
 ns.RegisterFeature({
-    key = "chatLevels", label = "Show player levels", section = SECTION, category = CATEGORY,
-})
-ns.RegisterFeature({
-    key = "chatTimestamps", label = "Time format", section = SECTION, category = CATEGORY,
-    type = "dropdown", default = "%H:%M", beside = true, apply = ApplyTimestamps,
-    options = function()
-        return {
-            { value = "off",      label = "Off" },
-            { value = "%H:%M",    label = "14:05" },
-            { value = "%H:%M:%S", label = "14:05:32" },
-            { value = "%I:%M",    label = "02:05" },
-        }
-    end,
-})
-ns.RegisterFeature({
-    key = "chatShortText", label = "Shorten messages", section = SECTION, category = CATEGORY,
-})
-ns.RegisterFeature({
     key = "chatChannelNames", label = "Channel format", section = SECTION, category = CATEGORY,
-    type = "dropdown", default = "word", beside = true,
+    type = "dropdown", default = "word",
     -- The examples follow "Hide channel numbers".
     options = function()
         local numbers = not ns.Get("chatHideChannelNumbers")
@@ -229,6 +263,34 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
+    key = "chatTimestamps", label = "Time format", section = SECTION, category = CATEGORY,
+    type = "dropdown", default = "%H:%M", beside = true, apply = ApplyTimestamps,
+    options = function()
+        return {
+            { value = "off",      label = "Off" },
+            { value = "%H:%M",    label = "14:05" },
+            { value = "%H:%M:%S", label = "14:05:32" },
+            { value = "%I:%M",    label = "02:05" },
+        }
+    end,
+})
+ns.RegisterFeature({
     key = "chatHideChannelNumbers", label = "Hide channel numbers", section = SECTION, category = CATEGORY,
-    default = false, beside = true,
+    default = false,
+})
+ns.RegisterFeature({
+    key = "chatLevels", label = "Show player levels", section = SECTION, category = CATEGORY,
+    space = true,
+})
+-- Copy Chat's, here for its place on the page.
+ns.RegisterFeature({
+    key = "chatCopyClick", label = "Right click to copy", section = SECTION, category = CATEGORY,
+    beside = true, apply = function() ns.ApplyChatCopyClick() end,
+})
+ns.RegisterFeature({
+    key = "chatShortText", label = "Shorter messages", section = SECTION, category = CATEGORY,
+})
+ns.RegisterFeature({
+    key = "chatLinks", label = "Clickable web links", section = SECTION, category = CATEGORY,
+    beside = true,
 })

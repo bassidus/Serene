@@ -22,10 +22,12 @@ ns.featureByKey = {}
 --   apply      fn run at login and on every change
 --   type       "boolean" (default) | "dropdown" | "slider" | "color" | "outline"
 --              | "button" (no value: `button` is its text, `click` runs on a press)
+--              | "text" (no value: the label alone, for the setting under it)
 --   default    initial value
 --   options    dropdown: fn returning { { value =, label = }, ... }
 --   preview    dropdown: draw entries in their own font
---   hideLabel  dropdown: no label above the button
+--   hideLabel  dropdown: no label above the button; slider: none either, the
+--              row above is its label and the value goes at that row's end
 --   inline     dropdown: the label on the left, the button in the right half
 --   min, max, step, suffix   slider
 --   specials   color: { { value =, label =, swatch = }, ... } before

@@ -513,6 +513,8 @@ local function CreatePage(section)
             w = W.Outline(content, f)
         elseif f.type == "button" then
             w = W.Button(content, f)
+        elseif f.type == "text" then
+            w = W.Text(content, f)
         else
             w = W.Checkbox(content, f)
         end
@@ -608,6 +610,7 @@ local function CreatePage(section)
                 local halfRow = (PAGE_W - x - xr + SPACING) / 2
                 if right then
                     x, y = x + halfRow, row.right or row.top
+                    if f.space and row.right then y = y - BLANK_ROW end
                 elseif Beside(list[i + 1]) then
                     xr, row = xr + halfRow, { top = y }
                 else
@@ -616,7 +619,7 @@ local function CreatePage(section)
                 w:ClearAllPoints()
                 w:SetPoint("TOPLEFT", x, y)
                 w:SetPoint("TOPRIGHT", -xr, y)
-                gap = f.type == "boolean" and 2 or SPACING
+                gap = (f.type == "boolean" or f.type == "text") and 2 or SPACING
                 y = y - w:GetHeight() - gap
                 if note then
                     -- Under a checkbox it lines up with the label.

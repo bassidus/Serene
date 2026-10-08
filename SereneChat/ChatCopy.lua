@@ -224,7 +224,7 @@ clicks:SetScript("OnEvent", function(_, event, button)
     end)
 end)
 
-local function ApplyClick()
+function ns.ApplyChatCopyClick()
     if ns.Get("chatCopyClick") then
         HookLinks()
         clicks:RegisterEvent("GLOBAL_MOUSE_DOWN")
@@ -235,7 +235,7 @@ local function ApplyClick()
     end
 end
 
-hooksecurefunc("FCF_OpenTemporaryWindow", ApplyClick)
+hooksecurefunc("FCF_OpenTemporaryWindow", ns.ApplyChatCopyClick)
 
 -- Placed on the window itself, not on an options page.
 ns.RegisterFontSettings({
@@ -245,8 +245,4 @@ ns.RegisterFontSettings({
         local o = ns.FontState(ChatFontNormal)
         return ns.OutlineOf(o.flags, o.sx, o.sy)
     end,
-})
-ns.RegisterFeature({
-    key = "chatCopyClick", label = "Right click to copy", section = "Chat", category = "Messages",
-    apply = ApplyClick,
 })

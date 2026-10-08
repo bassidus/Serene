@@ -57,10 +57,10 @@ local function Setup()
     end
 end
 
+-- A new character's chat settings arrive after login and set up the
+-- windows again.
 local login = CreateFrame("Frame")
 login:RegisterEvent("PLAYER_LOGIN")
-login:SetScript("OnEvent", function(self)
-    self:UnregisterAllEvents()
-    Setup()
-end)
+login:RegisterEvent("UPDATE_CHAT_WINDOWS")
+login:SetScript("OnEvent", Setup)
 hooksecurefunc("FCF_OpenTemporaryWindow", Setup)

@@ -126,6 +126,16 @@ login:SetScript("OnEvent", function(self)
     DressEditBoxes()
 end)
 
+-- A new character's chat settings arrive after login and set up the
+-- windows again.
+local windows = CreateFrame("Frame")
+windows:RegisterEvent("UPDATE_CHAT_WINDOWS")
+windows:SetScript("OnEvent", function()
+    ApplyFont()
+    ApplyFade()
+    ApplySpacing()
+end)
+
 ns.RegisterFeature({
     key = "chatFade", label = "Fade old lines", section = SECTION, category = CATEGORY,
     apply = ApplyFade,

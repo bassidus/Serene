@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---  Chat Look -- the chat windows' font and line spacing, and how long a line
---  stays before it fades. While the font settings match Blizzard's own (its
---  typeface and outline at size 14) each window keeps the size picked in its
---  tab menu.
+--  Chat Look -- the chat windows' font, the space between messages, wrapped
+--  lines indented, and how long a line stays before it fades. While the font
+--  settings match Blizzard's own (its typeface and outline at size 14) each
+--  window keeps the size picked in its tab menu.
 --  The edit boxes always go without their frame, in their window's font and
 --  on a background like the window's.
 -------------------------------------------------------------------------------
@@ -87,9 +87,28 @@ local function ApplyFade()
     end)
 end
 
+local spaced = {}  -- chat frame -> true once its layout is hooked
+
+-- Blizzard puts the font's spacing both between a message's wrapped lines
+-- and between messages. The font keeps none, so a message stays together,
+-- and the messages are moved apart after each layout.
+local function SpaceMessages(frame)
+    local gap, lines = ns.Get("chatMessageSpacing"), frame.visibleLines
+    for i = 2, #lines do
+        lines[i]:SetPoint("BOTTOMLEFT", lines[i - 1], "TOPLEFT", 0, gap)
+    end
+end
+
 local function ApplySpacing()
-    local spacing = ns.Get("chatLineSpacing")
-    ChatFrameUtil.ForEachChatFrame(function(frame) frame:SetSpacing(spacing) end)
+    local indent = ns.Get("chatIndent")
+    ChatFrameUtil.ForEachChatFrame(function(frame)
+        if not spaced[frame] then
+            spaced[frame] = true
+            hooksecurefunc(frame, "RefreshLayout", SpaceMessages)
+        end
+        frame:SetIndentedWordWrap(indent)
+        frame:SetSpacing(0)  -- also lays the window out again, with the new gap
+    end)
 end
 
 -- A whisper window takes its font from the window it opens from.
@@ -112,7 +131,7 @@ ns.RegisterFeature({
     apply = ApplyFade,
 })
 ns.RegisterFeature({
-    key = "chatLineSpacingLabel", label = "Line spacing", section = SECTION, category = CATEGORY, type = "text",
+    key = "chatMessageSpacingLabel", label = "Message spacing", section = SECTION, category = CATEGORY, type = "text",
     beside = true,
 })
 ns.RegisterFeature({
@@ -121,13 +140,17 @@ ns.RegisterFeature({
     apply = ApplyFade,
 })
 ns.RegisterFeature({
-    key = "chatLineSpacing", label = "Line spacing", section = SECTION, category = CATEGORY, type = "slider",
-    min = 0, max = 10, step = 1, default = 3, suffix = " px", hideLabel = true,
+    key = "chatMessageSpacing", label = "Message spacing", section = SECTION, category = CATEGORY, type = "slider",
+    min = 0, max = 20, step = 1, default = 6, suffix = " px", hideLabel = true,
     beside = true, apply = ApplySpacing,
+})
+ns.RegisterFeature({
+    key = "chatIndent", label = "Indent wrapped lines", section = SECTION, category = CATEGORY, default = true,
+    space = true, apply = ApplySpacing,
 })
 ns.RegisterFontSettings({
     prefix = "chat", label = "Font", section = SECTION, category = CATEGORY, apply = ApplyFont,
-    beside = true, space = true,
+    beside = true,
     size = { 10, 24, BLIZZARD_SIZE }, outline = "default", button = "Font settings",
     blizzard = function()
         local o = original[ChatFrame1] or ns.FontState(ChatFrame1)

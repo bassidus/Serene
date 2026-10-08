@@ -307,6 +307,22 @@ local function CloseGroup(group, y)
     return bottom
 end
 
+-- A line of text at the bottom of a page, under its last group.
+local function CreateOutro(content, text)
+    local outro = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    outro:SetWidth(PAGE_W)
+    outro:SetJustifyH("LEFT")
+    outro:SetText(text)
+    return outro
+end
+
+-- y is the bottom of the last group. Returns the y below the outro.
+local function PlaceOutro(outro, y)
+    outro:ClearAllPoints()
+    outro:SetPoint("TOPLEFT", 0, y - SPACING)
+    return y - SPACING - outro:GetStringHeight()
+end
+
 -- The Modules page: a group with a checkbox per Serene* addon, which opens
 -- and closes like a settings page's, and a line under it on why to turn
 -- modules off.
@@ -321,10 +337,7 @@ local function CreateModulesPage()
         boxes[#boxes + 1] = CreateAddonToggle(content, module)
     end
 
-    local outro = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    outro:SetWidth(PAGE_W)
-    outro:SetJustifyH("LEFT")
-    outro:SetText("Modules you turn off are never loaded. Turn off the ones you don't use, or the ones another addon already covers.")
+    local outro = CreateOutro(content, "Modules you turn off are never loaded. Turn off the ones you don't use, or the ones another addon already covers.")
 
     local key = MODULES .. "/" .. ADDONS
     local allOpen  -- while measuring the page open
@@ -349,9 +362,7 @@ local function CreateModulesPage()
         end
         -- Closed: the frame ends as far under the heading as it starts above it.
         y = CloseGroup(group, open and y + 2 or group.top - GROUP_PAD * 1.5 - group.headingH)
-        outro:ClearAllPoints()
-        outro:SetPoint("TOPLEFT", 0, y - SPACING)
-        y = y - SPACING - outro:GetStringHeight()
+        y = PlaceOutro(outro, y)
         content:SetHeight(-y)
         return -y
     end
@@ -425,6 +436,7 @@ local function CreatePage(section)
     local page = CreatePageFrame(section)
     local content = AddScrolling(page)
     local half = (PAGE_W - SPACING) / 2
+    local outro = ns.outros[section] and CreateOutro(content, ns.outros[section])
 
     -- Two categories side by side open and close together.
     local list = SectionFeatures(section)
@@ -613,6 +625,7 @@ local function CreatePage(section)
         end
         if sub then CloseSub() end
         if group then y = Close() end
+        if outro then y = PlaceOutro(outro, y) end
         content:SetHeight(-y)
         return -y
     end

@@ -55,3 +55,4 @@ for bar = 2, 8 do
         category = "Bars enabled on all characters", default = false, beside = bar % 2 == 1 or nil, apply = Queue,
     })
 end
+ns.SetOutro(SECTION, "Bars enabled on all characters are mostly for new characters, so they start out with these bars turned on.")

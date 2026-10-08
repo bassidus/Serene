@@ -75,6 +75,13 @@ function ns.AddShiftSkip(what)
     ns.shiftSkips[#ns.shiftSkips + 1] = what
 end
 
+-- SetOutro(section, text) puts a line of text at the bottom of that options
+-- page, under its last category.
+ns.outros = {}
+function ns.SetOutro(section, text)
+    ns.outros[section] = text
+end
+
 -- Blizzard's action buttons: name prefix, binding command prefix, count.
 -- Action Bars styles them, Dark mode darkens their rims.
 ns.ACTION_BUTTONS = {

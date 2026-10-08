@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --  Copy Chat -- "Copy chat" in a chat tab's right-click menu opens that
 --  window's lines as plain text, to select and copy. A right click in the
---  window itself can do the same.
+--  window itself can do the same, and a web link opens it on its address.
 --
 --  Chat windows take no clicks (they reach the world behind them), so the
 --  click is read from the global mouse events. A held right button turns
@@ -155,18 +155,24 @@ local function Build()
     frame:Hide()
 end
 
-local function Show(chatFrame)
+-- The window on text, scrolled to its end; selected, it is ready for Ctrl+C.
+function ns.CopyText(text, selected)
     if not frame then Build() end
     if not frame then return end
+    edit:SetText(text)
+    frame:Show()
+    edit:SetFocus()
+    if selected then edit:HighlightText() end
+    C_Timer.After(0, function() ScrollTo(math.huge) end)
+end
+
+local function Show(chatFrame)
     local lines = {}
     for i = 1, chatFrame:GetNumMessages() do
         local text = Clean((chatFrame:GetMessageInfo(i)))
         if text then lines[#lines + 1] = Plain(text) end
     end
-    edit:SetText(table.concat(lines, "\n"))
-    frame:Show()
-    edit:SetFocus()
-    C_Timer.After(0, function() ScrollTo(math.huge) end)
+    ns.CopyText(table.concat(lines, "\n"))
 end
 
 -- /serene reset: the default size, centered.

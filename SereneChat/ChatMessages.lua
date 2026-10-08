@@ -85,7 +85,7 @@ for event, list in pairs(SHORT) do
 end
 
 -------------------------------------------------------------------------------
---  Web links: a click opens a box to copy the address from.
+--  Web links: a click opens Copy Chat's window on the address.
 -------------------------------------------------------------------------------
 local PLAYER_CHAT = {
     "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_EMOTE", "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM",
@@ -112,27 +112,9 @@ end
 
 for _, event in ipairs(PLAYER_CHAT) do ChatFrameUtil.AddMessageEventFilter(event, Links) end
 
-StaticPopupDialogs.SERENE_CHAT_URL = {
-    text = "Ctrl+C copies the link.",
-    button1 = CLOSE,
-    hasEditBox = true,
-    editBoxWidth = 350,
-    OnShow = function(dialog, url)
-        local box = dialog:GetEditBox()
-        box:SetText(url)
-        box:HighlightText()
-        box:SetFocus()
-    end,
-    EditBoxOnEnterPressed = function() StaticPopup_Hide("SERENE_CHAT_URL") end,
-    EditBoxOnEscapePressed = function() StaticPopup_Hide("SERENE_CHAT_URL") end,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-}
-
 EventRegistry:RegisterCallback("SetItemRef", function(_, link)
     local url = link:match("^addon:sereneurl:(.*)")
-    if url then StaticPopup_Show("SERENE_CHAT_URL", nil, nil, url) end
+    if url then ns.CopyText(url, true) end
 end)
 
 -------------------------------------------------------------------------------
@@ -244,15 +226,21 @@ local function ApplyTimestamps()
     ApplyLines()
 end
 
+-- The options' examples are at 14:05:32.
+local EXAMPLE_TIME = time({ year = 2000, month = 1, day = 1, hour = 14, min = 5, sec = 32 })
+
 ns.RegisterFeature({
     key = "chatChannelNames", label = "Channel format", section = SECTION, category = CATEGORY,
     type = "dropdown", default = "word",
-    -- The examples follow "Hide channel numbers".
+    -- The examples follow "Time format" and "Hide channel numbers".
     options = function()
-        local numbers = not ns.Get("chatHideChannelNumbers")
+        local fmt, numbers = ns.Get("chatTimestamps"), not ns.Get("chatHideChannelNumbers")
         local function Example(style, word, channel)
+            local parts = {}
+            if fmt ~= "off" then parts[#parts + 1] = date(fmt, EXAMPLE_TIME) end
             local tag = Tag(style, numbers, channel)
-            return { value = style, label = tag == "" and word or word .. ": " .. tag }
+            if tag ~= "" then parts[#parts + 1] = tag end
+            return { value = style, label = #parts == 0 and word or word .. ": " .. table.concat(parts, " ") }
         end
         return {
             Example("full",   "Full",   "2. Trade - City"),
@@ -266,12 +254,11 @@ ns.RegisterFeature({
     key = "chatTimestamps", label = "Time format", section = SECTION, category = CATEGORY,
     type = "dropdown", default = "%H:%M", beside = true, apply = ApplyTimestamps,
     options = function()
-        return {
-            { value = "off",      label = "Off" },
-            { value = "%H:%M",    label = "14:05" },
-            { value = "%H:%M:%S", label = "14:05:32" },
-            { value = "%I:%M",    label = "02:05" },
-        }
+        local list = { { value = "off", label = "Off" } }
+        for _, fmt in ipairs({ "%H:%M", "%H:%M:%S", "%I:%M", "%I:%M %p" }) do
+            list[#list + 1] = { value = fmt, label = date(fmt, EXAMPLE_TIME) }
+        end
+        return list
     end,
 })
 ns.RegisterFeature({

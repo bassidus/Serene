@@ -9,8 +9,8 @@ local _, ns = ...
 local SECTION = "Action Bars"
 
 -- Runs from PLAYER_LOGIN on, when the character's bar toggles are in.
--- Showing a protected bar waits for combat to end. The settings apply
--- together at login, so the bars are set once, a frame later.
+-- Showing a protected bar waits for combat to end. A setting change sets
+-- the bars a frame later, so several changes set them once.
 local Sync
 local waiter = CreateFrame("Frame")
 waiter:SetScript("OnEvent", function(self, event)
@@ -39,6 +39,15 @@ function Sync()
     end
     if changed then SetActionBarToggles(unpack(toggles)) end
 end
+
+-- Blizzard shows the toggled bars on SETTINGS_LOADED, right after login,
+-- and not again when the toggles change, so they must be set by then.
+local login = CreateFrame("Frame")
+login:RegisterEvent("PLAYER_LOGIN")
+login:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    Sync()
+end)
 
 for bar = 2, 8 do
     ns.RegisterFeature({

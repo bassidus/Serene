@@ -148,7 +148,8 @@ end)
 --    word:   "[1] [Gen] [Name]:"         or "[Gen] [Name]:"
 --    none:   "[2] [Name]:"               or "[Name]:"
 --  Guild, party and raid have no number: "[G]" or "[Guild]", "[PL]". The
---  channel shows in white, whatever its own color. The time goes first on
+--  channel shows in white, whatever its own color, and every bracket gets
+--  a space inside: "[ 1 ] [ Gen ] [ 30 Name ]:". The time goes first on
 --  every line, Blizzard's own (chat lines only) turned off.
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)( ?)"
@@ -196,13 +197,14 @@ end
 local function ShortChannel(open, name, close, space)
     local tag = Tag(ns.Get("chatChannelNames"), ns.Get("chatChannelNumbers"), name)
     if tag == "" then return "" end
+    tag = tag:gsub("%[", "[ "):gsub("%]", " ]")
     return open .. "|cffffffff" .. tag .. "|r" .. close .. space
 end
 
 local function Brackets(open, name, close)
     local color = classColor[open:match("^|Hplayer:([^:|]+)")]
-    if not color then return open .. "[" .. name .. "]" .. close end
-    return open .. "|c" .. color .. "[|r" .. name .. "|c" .. color .. "]|r" .. close
+    if not color then return open .. "[ " .. name .. " ]" .. close end
+    return open .. "|c" .. color .. "[ |r" .. name .. "|c" .. color .. " ]|r" .. close
 end
 
 -- The text after the name in say, yell and whisper lines (" says: "), right

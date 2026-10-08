@@ -684,7 +684,7 @@ local SWATCH, SWATCH_GAP = 20, 4
 local function Swatch(parent, size)
     local s = CreateFrame("Frame", nil, parent)
     s:SetSize(size, size)
-    ns.Border(s, EDGE)
+    s.edges = ns.Border(s, EDGE)
     local stripes = {}
     function s.SetColors(...)
         local hexes = { ... }
@@ -1180,21 +1180,41 @@ end
 -------------------------------------------------------------------------------
 --  Color field -- the color as a swatch and its name (a special such as
 --  "By class" shows as its name only); its editor holds the palette. With
---  f.button just a button reading that, without a label above it.
+--  f.compact a row as high as a checkbox's: the swatch where the box would
+--  be and f.compact beside it.
 -------------------------------------------------------------------------------
-function W.ColorField(parent, f)
-    local holder, btn, text, arrow = Field(parent, not f.button and f.label, function(self)
-        OpenEditor(self, f, f.label, function(panel) return { W.Color(panel, f) } end)
-    end)
+local function OpenColor(anchor, f)
+    OpenEditor(anchor, f, f.label, function(panel) return { W.Color(panel, f) } end)
+end
 
-    if f.button then
-        AsButton(btn, text, arrow, f.button)
-        function holder.Refresh()
-            btn:SetEnabled(Available(holder, f))
-            RefreshEditor(f)
-        end
-        return holder
+local function CompactColor(parent, f)
+    local row = CreateFrame("Button", nil, parent)
+    row:SetHeight(26)
+    -- Where a checkbox's box shows, so it lines up with the rows above.
+    local swatch = Swatch(row, 16)
+    swatch:SetPoint("LEFT", 0, 0)
+    local label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("LEFT", 26, 0)
+    label:SetText(f.compact)
+
+    row:SetScript("OnClick", function(self)
+        PlayClick()
+        OpenColor(self, f)
+    end)
+    row:SetScript("OnEnter", function() ns.SetBorderColor(swatch.edges, GOLD) end)
+    row:SetScript("OnLeave", function() ns.SetBorderColor(swatch.edges, EDGE) end)
+
+    function row.Refresh()
+        ShowColor(swatch, f)
+        row:SetEnabled(Available(row, f))
+        RefreshEditor(f)
     end
+    return row
+end
+
+function W.ColorField(parent, f)
+    if f.compact then return CompactColor(parent, f) end
+    local holder, btn, text, arrow = Field(parent, f.label, function(self) OpenColor(self, f) end)
 
     local swatch = Swatch(btn, 14)
     swatch:SetPoint("LEFT", 8, 0)

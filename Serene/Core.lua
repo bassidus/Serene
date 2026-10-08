@@ -41,6 +41,8 @@ ns.featureByKey = {}
 --              previous one at half width; otherwise: right of the previous
 --              setting, or under it when that one is beside too
 --   button     a plain button with this text in place of the field
+--   compact    color: a swatch with this text beside it, as high as a
+--              checkbox row, in place of the field
 --   requires   key (or list) of booleans; dimmed and locked while any is off
 --              ("!key": while it is on)
 --   addon      the Serene* addon that does the work; locked while not loaded

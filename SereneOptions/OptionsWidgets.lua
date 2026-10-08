@@ -427,7 +427,7 @@ function W.Checkbox(parent, f)
     end)
     if f.tooltip then
         row:HookScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
             GameTooltip:SetText(f.tooltip, 1, 1, 1, 1, true)
             GameTooltip:Show()
         end)

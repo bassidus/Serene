@@ -24,12 +24,6 @@ local function Plain(text)
         :gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|cn.-:", ""):gsub("|r", ""))
 end
 
-local function ApplyFont()
-    if not edit then return end
-    ns.ApplyFont(edit, ns.FontState(ChatFontNormal), ns.Get("chatCopyFont"), ns.Get("chatCopyFontSize"),
-        ns.Get("chatCopyOutline"))
-end
-
 -- Saved as the top left corner and the size, in UIParent units.
 local function SaveWindow()
     SereneDB.chatCopyWindow = { left = frame:GetLeft(), top = frame:GetTop(),
@@ -55,7 +49,7 @@ local function StopMoving()
     SaveWindow()
 end
 
--- The look and the font settings come from the options window's widgets.
+-- The look comes from the options window's widgets.
 local function Build()
     if not ns.Widgets then C_AddOns.LoadAddOn("SereneOptions") end
     local W = ns.Widgets
@@ -94,12 +88,7 @@ local function Build()
     title:SetText("Ctrl+C to copy")
     title:SetTextColor(ns.ACCENT[1], ns.ACCENT[2], ns.ACCENT[3])
 
-    local close = W.CloseButton(titleBar, frame)
-    local font = W.FontGroup(titleBar, ns.featureByKey.chatCopyFont.group)
-    local fontButton = font:GetChildren()
-    font:SetSize(fontButton:GetWidth(), fontButton:GetHeight())
-    font:SetPoint("RIGHT", close, "LEFT", -2, 0)
-    W.AddOutside(font)
+    W.CloseButton(titleBar, frame)
 
     local panel = CreateFrame("Frame", nil, frame)
     panel:SetPoint("TOPLEFT", INSET, -TITLE_H)
@@ -129,7 +118,6 @@ local function Build()
         local top, at, view = -y, scroll:GetVerticalScroll(), scroll:GetHeight()
         if top < at then ScrollTo(top) elseif top + h > at + view then ScrollTo(top + h - view) end
     end)
-    ApplyFont()
 
     local grip = CreateFrame("Button", nil, frame)
     grip:SetFrameLevel(panel:GetFrameLevel() + 2)
@@ -143,14 +131,8 @@ local function Build()
     end)
     grip:SetScript("OnMouseUp", StopMoving)
 
-    frame:SetScript("OnShow", function()
-        font.Refresh()
-        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
-    end)
-    frame:SetScript("OnHide", function()
-        W.ClosePopups()
-        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE)
-    end)
+    frame:SetScript("OnShow", function() PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN) end)
+    frame:SetScript("OnHide", function() PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE) end)
     PlaceWindow()
     frame:Hide()
 end
@@ -242,13 +224,3 @@ function ns.ApplyChatCopyClick()
 end
 
 hooksecurefunc("FCF_OpenTemporaryWindow", ns.ApplyChatCopyClick)
-
--- Placed on the window itself, not on an options page.
-ns.RegisterFontSettings({
-    prefix = "chatCopy", label = "Font", apply = ApplyFont,
-    size = { 8, 24, 14 }, outline = "default", button = "Font settings",
-    blizzard = function()
-        local o = ns.FontState(ChatFontNormal)
-        return ns.OutlineOf(o.flags, o.sx, o.sy)
-    end,
-})

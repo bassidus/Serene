@@ -215,10 +215,10 @@ ns.RegisterFeature({
     type = "dropdown", default = "word", beside = true,
     options = function()
         return {
-            { value = "full",   label = "Full: [Trade - City]" },
-            { value = "word",   label = "Word: [Gen]" },
-            { value = "letter", label = "Letter: [T]" },
-            { value = "none",   label = "None" },
+            { value = "full",   label = "Full: [2. Trade - City]" },
+            { value = "word",   label = "Word: [1] [Gen]" },
+            { value = "letter", label = "Letter: [2] [T]" },
+            { value = "none",   label = "None: [2]" },
         }
     end,
 })

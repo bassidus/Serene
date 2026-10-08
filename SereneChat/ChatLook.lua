@@ -116,16 +116,16 @@ ns.RegisterFeature({
     min = 10, max = 600, step = 10, default = 120, suffix = " s", requires = "chatFade",
     beside = true, apply = ApplyFade,
 })
-ns.RegisterFeature({
-    key = "chatLineSpacing", label = "Line spacing", section = SECTION, category = CATEGORY, type = "slider",
-    min = 0, max = 10, step = 1, default = 3, suffix = " px", apply = ApplySpacing,
-})
 ns.RegisterFontSettings({
     prefix = "chat", label = "Font", section = SECTION, category = CATEGORY, apply = ApplyFont,
-    beside = true,
     size = { 10, 24, BLIZZARD_SIZE }, outline = "default", button = "Font settings",
     blizzard = function()
         local o = original[ChatFrame1] or ns.FontState(ChatFrame1)
         return ns.OutlineOf(o.flags, o.sx, o.sy)
     end,
+})
+ns.RegisterFeature({
+    key = "chatLineSpacing", label = "Line spacing", section = SECTION, category = CATEGORY, type = "slider",
+    min = 0, max = 10, step = 1, default = 3, suffix = " px",
+    beside = true, apply = ApplySpacing,
 })

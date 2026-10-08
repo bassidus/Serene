@@ -275,7 +275,6 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "chatLevels", label = "Show player levels", section = SECTION, category = CATEGORY,
-    space = true,
 })
 -- Copy Chat's, here for its place on the page.
 ns.RegisterFeature({

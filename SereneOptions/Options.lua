@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --  Options window -- a sidebar tab per feature section, each page stacking
---  a control per registered feature. At the bottom, with the buttons: the
---  Modules tab, listing every Serene* addon, loaded or not, with a checkbox
---  to turn it on or off. Built on first open; Ctrl + scroll scales it.
+--  a control per registered feature. At the top of the sidebar: the Modules
+--  tab, listing every Serene* addon, loaded or not, with a checkbox to turn
+--  it on or off. Built on first open; Ctrl + scroll scales it.
 --  Position and scale are saved (SereneDB.optionsWindow); the page and
 --  which groups are open last only until the UI reloads.
 -------------------------------------------------------------------------------
@@ -16,10 +16,11 @@ local SIDEBAR_W, GAP = 172, 8                  -- the sidebar panel, and the gap
 local PAGE_PAD, PAGE_TOP, PAGE_BOTTOM = 14, 12, 10  -- the page inside its panel
 local PAGE_X = INSET + SIDEBAR_W + GAP         -- the page panel's left edge
 local TAB_H, SPACING = 26, 10
-local MENU_HEADING_H, MENU_GAP, MENU_INDENT = 22, 8, 22  -- the sidebar's group headings
+local TAB_TEXT_X = 9   -- a sidebar tab's text, in line with the buttons' edges
+local DIVIDER_GAP = 6  -- above and below the line under the Modules tab
 local BUTTON_H, BUTTON_GAP = 22, 6             -- Restore defaults and Reload UI
--- Under the Modules tab: the gap, the line, Restore defaults and Reload UI.
-local BOTTOM_H = 10 + 2 * BUTTON_H + BUTTON_GAP + 10 + 1 + 6
+-- Restore defaults and Reload UI, and the gap above them.
+local BOTTOM_H = 10 + 2 * BUTTON_H + BUTTON_GAP + 10
 local GROUP_PAD = 12  -- inside a category's frame, around its heading and settings
 local BLANK_ROW = 16  -- the empty row above a setting with space = true
 local PAGE_W = WIDTH - PAGE_X - INSET - 2 * PAGE_PAD
@@ -39,32 +40,6 @@ local AddOns = C_AddOns
 
 local GOLD, TAN, WHITE = W.GOLD, W.TAN, W.WHITE
 
--- The sidebar's groups: a heading over its settings tabs, in this order.
--- Sections not listed here go under Other.
-local MENU = {
-    { "Interface", { "Action Bars", "Nameplates", "Unit frames", "Tooltip", "Move & Scale" } },
-    { "Quality of life", { "General", "Quests", "Social", "Chat" } },
-}
-local OTHER = "Other"
-
-local menuPlace = {}  -- section -> its place in MENU, counting through the groups
-do
-    local n = 0
-    for _, group in ipairs(MENU) do
-        for _, name in ipairs(group[2]) do
-            n = n + 1
-            menuPlace[name] = n
-        end
-    end
-end
-
--- Menu order, with the unlisted ones last and alphabetical.
-local function TabOrder(a, b)
-    local pa, pb = menuPlace[a] or math.huge, menuPlace[b] or math.huge
-    if pa ~= pb then return pa < pb end
-    return a < b
-end
-
 -- The Serene* addons with a tab, found by the X-Serene-Section line in
 -- their TOC, loaded or not; in tab order.
 local function Modules()
@@ -74,33 +49,21 @@ local function Modules()
         local section = AddOns.GetAddOnMetadata(name, "X-Serene-Section")
         if section then list[#list + 1] = { name = name, tab = section } end
     end
-    table.sort(list, function(a, b) return TabOrder(a.tab, b.tab) end)
+    table.sort(list, function(a, b) return a.tab < b.tab end)
     return list
 end
 
--- The sidebar's groups holding the sections that have settings:
--- { { heading =, names = { section, ... } }, ... }, in menu order.
-local function MenuGroups()
-    local sections = {}
+-- The sections that have settings, in alphabetical order.
+local function Sections()
+    local seen, list = {}, {}
     for _, f in ipairs(ns.features) do
-        if f.section then sections[f.section] = true end
-    end
-    local groups, other = {}, {}
-    for _, group in ipairs(MENU) do
-        local names = {}
-        for _, name in ipairs(group[2]) do
-            if sections[name] then names[#names + 1] = name end
+        if f.section and not seen[f.section] then
+            seen[f.section] = true
+            list[#list + 1] = f.section
         end
-        if #names > 0 then groups[#groups + 1] = { heading = group[1], names = names } end
     end
-    for name in pairs(sections) do
-        if not menuPlace[name] then other[#other + 1] = name end
-    end
-    if #other > 0 then
-        table.sort(other)
-        groups[#groups + 1] = { heading = OTHER, names = other }
-    end
-    return groups
+    table.sort(list)
+    return list
 end
 
 local function ShowPage(section)
@@ -109,21 +72,21 @@ local function ShowPage(section)
     for s, tab in pairs(tabs) do tab:SetSelected(s == section) end
 end
 
--- A sidebar tab: gold text, white with the quest log's blue bar behind it
--- while hovered or selected.
-local function CreateTab(parent, section)
+-- A sidebar tab: text in color (gold if not given), white with the quest
+-- log's blue bar behind it while hovered or selected.
+local function CreateTab(parent, section, color)
     local tab = CreateFrame("Button", nil, parent)
     tab:SetHeight(TAB_H)
     local hl = W.Highlight(tab)
     local text = tab:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    text:SetPoint("LEFT", MENU_INDENT, 0)
+    text:SetPoint("LEFT", TAB_TEXT_X, 0)
     text:SetText(section)
 
     local selected = false
     local function Paint(hover)
         local lit = selected or hover
         hl:SetShown(lit)
-        local c = lit and WHITE or GOLD
+        local c = lit and WHITE or color or GOLD
         text:SetTextColor(c[1], c[2], c[3])
     end
     function tab:SetSelected(on)
@@ -209,20 +172,10 @@ local function CreateReloadButton(sidebar)
     reload:SetPoint("BOTTOMLEFT", 10, 10)
     reload:SetPoint("BOTTOMRIGHT", -10, 10)
 
-    -- Above it, bottom up: Restore defaults, a line, and the Modules tab.
+    -- Restore defaults above it.
     local reset = CreateResetButton(sidebar)
     reset:SetPoint("BOTTOMLEFT", reload, "TOPLEFT", 0, BUTTON_GAP)
     reset:SetPoint("BOTTOMRIGHT", reload, "TOPRIGHT", 0, BUTTON_GAP)
-
-    local line = W.Solid(sidebar, "ARTWORK", TAN, 0.35)
-    line:SetPoint("BOTTOMLEFT", reset, "TOPLEFT", 2, 10)
-    line:SetPoint("BOTTOMRIGHT", reset, "TOPRIGHT", -2, 10)
-    line:SetHeight(1)
-
-    local modules = CreateTab(sidebar, MODULES)
-    modules:SetPoint("BOTTOMLEFT", 3, BOTTOM_H)
-    modules:SetPoint("BOTTOMRIGHT", -3, BOTTOM_H)
-    tabs[MODULES] = modules
 end
 
 local function CreatePageFrame(name)
@@ -654,28 +607,29 @@ local function CreatePage(section)
     return page
 end
 
--- The settings tabs under their group headings. Returns the first section
--- and the height they take.
+-- The sidebar's tabs: Modules, a line, then the settings tabs in alphabetical
+-- order. Returns the height they take.
 local function CreateMenu(parent)
-    local y, first = 0, nil
-    for i, group in ipairs(MenuGroups()) do
-        if i > 1 then y = y - MENU_GAP end
-        local heading = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        heading:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 12, y - MENU_HEADING_H + 5)
-        heading:SetText(group.heading)
-        heading:SetTextColor(TAN[1], TAN[2], TAN[3])
-        y = y - MENU_HEADING_H
-        for _, name in ipairs(group.names) do
-            local tab = CreateTab(parent, name)
-            tab:SetPoint("TOPLEFT", 3, y)
-            tab:SetPoint("TOPRIGHT", -3, y)
-            tabs[name] = tab
-            pages[name] = CreatePage(name)
-            first = first or name
-            y = y - TAB_H
-        end
+    local function AddTab(name, y, color)
+        local tab = CreateTab(parent, name, color)
+        tab:SetPoint("TOPLEFT", 3, y)
+        tab:SetPoint("TOPRIGHT", -3, y)
+        tabs[name] = tab
+        return y - TAB_H
     end
-    return first, -y
+
+    local y = AddTab(MODULES, 0, ns.ACCENT) - DIVIDER_GAP
+    local line = W.Solid(parent, "ARTWORK", TAN, 0.35)
+    line:SetPoint("TOPLEFT", 12, y)
+    line:SetPoint("TOPRIGHT", -12, y)
+    line:SetHeight(1)
+    y = y - 1 - DIVIDER_GAP
+
+    for _, name in ipairs(Sections()) do
+        y = AddTab(name, y)
+        pages[name] = CreatePage(name)
+    end
+    return -y
 end
 
 -- "Hold Shift to skip auto loot and auto quests.", or "" with nothing to skip.
@@ -842,10 +796,9 @@ local function Build()
     CreateReloadButton(sidebar)
 
     -- Pages; the window wants to be as tall as the tallest page, and the
-    -- sidebar needs room for its tabs, the Modules tab, the line and the
-    -- two buttons at the bottom.
-    local first, menuH = CreateMenu(tabList)
-    sidebarH = TITLE_H + 8 + menuH + 8 + TAB_H + BOTTOM_H + INSET
+    -- sidebar needs room for its tabs and the two buttons at the bottom.
+    local menuH = CreateMenu(tabList)
+    sidebarH = TITLE_H + 8 + menuH + BOTTOM_H + INSET
     pages[MODULES] = CreateModulesPage()
     local tallest = 0
     for _, page in pairs(pages) do tallest = math.max(tallest, page.contentHeight) end
@@ -868,7 +821,7 @@ local function Build()
         PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE)
     end)
 
-    ShowPage(first or MODULES)
+    ShowPage(MODULES)
     frame:Hide()
 end
 

@@ -213,12 +213,18 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "chatChannelNames", label = "Channel format", section = SECTION, category = CATEGORY,
     type = "dropdown", default = "word", beside = true,
+    -- The examples follow "Hide channel numbers".
     options = function()
+        local numbers = not ns.Get("chatHideChannelNumbers")
+        local function Example(style, word, channel)
+            local tag = Tag(style, numbers, channel)
+            return { value = style, label = tag == "" and word or word .. ": " .. tag }
+        end
         return {
-            { value = "full",   label = "Full: [2. Trade - City]" },
-            { value = "word",   label = "Word: [1] [Gen]" },
-            { value = "letter", label = "Letter: [2] [T]" },
-            { value = "none",   label = "None: [2]" },
+            Example("full",   "Full",   "2. Trade - City"),
+            Example("word",   "Word",   "1. General - City"),
+            Example("letter", "Letter", "2. Trade - City"),
+            Example("none",   "None",   "2. Trade - City"),
         }
     end,
 })

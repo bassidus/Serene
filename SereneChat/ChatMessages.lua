@@ -236,21 +236,22 @@ local EXAMPLE_TIME = time({ year = 2000, month = 1, day = 1, hour = 14, min = 5,
 ns.RegisterFeature({
     key = "chatChannelNames", label = "Channel format", section = SECTION, category = CATEGORY,
     type = "dropdown", default = "word",
-    -- The examples follow "Time format" and "Hide channel numbers".
+    -- The examples follow "Time format" and "Hide channel numbers". Only
+    -- "none" with both off has nothing to show.
     options = function()
         local fmt, numbers = ns.Get("chatTimestamps"), not ns.Get("chatHideChannelNumbers")
-        local function Example(style, word, channel)
+        local function Example(style, channel)
             local parts = {}
             if fmt ~= "off" then parts[#parts + 1] = date(fmt, EXAMPLE_TIME) end
             local tag = Tag(style, numbers, channel)
             if tag ~= "" then parts[#parts + 1] = tag end
-            return { value = style, label = #parts == 0 and word or word .. ": " .. table.concat(parts, " ") }
+            return { value = style, label = #parts == 0 and "None" or table.concat(parts, " ") }
         end
         return {
-            Example("full",   "Full",   "2. Trade - City"),
-            Example("word",   "Word",   "1. General - City"),
-            Example("letter", "Letter", "2. Trade - City"),
-            Example("none",   "None",   "2. Trade - City"),
+            Example("full",   "2. Trade - City"),
+            Example("word",   "1. General - City"),
+            Example("letter", "2. Trade - City"),
+            Example("none",   "2. Trade - City"),
         }
     end,
 })

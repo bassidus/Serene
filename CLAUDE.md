@@ -32,6 +32,8 @@ Forever runs the retail 12.x API on classic-era content.
 
 When unsure whether something exists, don't guess and don't write a fallback. Add a temporary file that writes what it finds into `SereneDB`, have the user `/reload` twice, and read `WTF/Account/817318#2/SavedVariables/Serene.lua` under the game folder. Remove the file afterwards.
 
+After a client update, check the reports first. `tools/ForeverProbe` is a dev addon (symlinked, never released) that records every API name, Blizzard's API documentation (`/api`, with its secret rules), which unit values are secret and event argument types, per build. `lua tools/probe-report.lua` writes them to `tools/ForeverProbe/reports/<build>/`: `docs/` per system, `docs-secret.md`, and `api-changes.md` against the previous build.
+
 ## How the code is written
 
 - One code path per API. No `if X then` around APIs that exist, no `C_Foo and C_Foo.Bar or Bar`, no pcall around events that exist.

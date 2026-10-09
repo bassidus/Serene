@@ -1,0 +1,3 @@
+# SimpleAnimScaleLineAPI
+
+Environment=All, Predicates={}

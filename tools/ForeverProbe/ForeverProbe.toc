@@ -1,0 +1,6 @@
+## Interface: 16001
+## Title: Forever Probe
+## Notes: Dev tool for Serene: records the client's API, secret values and event arguments per build. tools/probe-report.lua turns it into reports.
+## SavedVariables: ForeverProbeDB
+
+ForeverProbe.lua

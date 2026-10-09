@@ -1,0 +1,3 @@
+# SimpleAnimTranslationLineAPI
+
+Environment=All, Predicates={}

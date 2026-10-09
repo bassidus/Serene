@@ -4,7 +4,7 @@
 --
 --  Only the target gets one, so a single bar moves between plates, like the
 --  combo point row. Power values can be secret: they go to the bar's setters
---  as they are, and only the clean ones decide whether it shows.
+--  as they are, and are never compared.
 -------------------------------------------------------------------------------
 local _, ns = ...
 local NP = ns.NP
@@ -35,9 +35,13 @@ local function Release()
     bar:Hide()
 end
 
--- Most melee mobs have mana as their power type but none of it.
+-- Most melee mobs have mana as their power type but none of it. Their max
+-- is a clean 0; a caster's max is secret (SecretWhenUnitPowerMaxRestricted),
+-- so a secret max means mana.
 local function HasMana()
-    return Clean(UnitPowerType("target")) == MANA and (Clean(UnitPowerMax("target", MANA)) or 0) > 0
+    if Clean(UnitPowerType("target")) ~= MANA then return false end
+    local max = UnitPowerMax("target", MANA)
+    return issecretvalue(max) or max > 0
 end
 
 local function UpdateValue()

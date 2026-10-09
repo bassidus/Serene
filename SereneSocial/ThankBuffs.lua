@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Thank you for the buff -- a /emote in chat when a player outside your
---  group buffs you.
+--  group buffs you, sent on your next key press.
 --
 --  The thanks is not aimed at anyone, so the caster need not be known: a
 --  new aura from the list that you did not cast, from a unit outside the
@@ -13,6 +13,7 @@ local _, ns = ...
 local SECTION = "Social"
 local COOLDOWN = 60      -- seconds before anyone is thanked again
 local SETTLE = 2         -- seconds after a loading screen with no thanks
+local WAIT = 30          -- seconds a thanks waits for a key press
 
 local Clean = ns.Clean
 
@@ -61,7 +62,7 @@ local function Buffs()
 end
 
 -------------------------------------------------------------------------------
---  Messages -- the chat puts your name in front: "Basse bows gratefully."
+--  Messages -- the chat puts your name in front: "Serene bows gratefully."
 -------------------------------------------------------------------------------
 local MESSAGES = {
     { value = "thanks",      label = "says thanks for the buff!" },
@@ -145,14 +146,37 @@ local function InMyGroup(who)
     return party or raid
 end
 
+-- Addons may only send chat on a key press or a click, so the thanks waits
+-- for your next key, which still reaches the game. Unsent after WAIT, it is
+-- dropped: a late thanks would land on no one.
+local keys = CreateFrame("Frame")
+keys:Hide()
+local keysReady = false
+local waitUntil = 0
+
+keys:SetScript("OnKeyDown", function(self)
+    self:Hide()
+    if ns.Get("thankBuffs") then C_ChatInfo.SendChatMessage(PickMessage(), "EMOTE") end
+end)
+keys:SetScript("OnUpdate", function(self)
+    if GetTime() > waitUntil then self:Hide() end
+end)
+
 local function Thank()
     local now = GetTime()
     if now < settleUntil or now < nextThanks then return end
+    -- Both setters are locked in combat; buffs in combat go unthanked anyway.
+    if not keysReady then
+        if InCombatLockdown() then return end
+        keys:EnableKeyboard(true)
+        keys:SetPropagateKeyboardInput(true)
+        keysReady = true
+    end
     nextThanks = now + COOLDOWN
     -- A short, varied pause reads less like a macro than an instant reply.
     C_Timer.After(1.5 + math.random() * 1.5, function()
-        if not ns.Get("thankBuffs") then return end
-        C_ChatInfo.SendChatMessage(PickMessage(), "EMOTE")
+        waitUntil = GetTime() + WAIT
+        keys:Show()
     end)
 end
 

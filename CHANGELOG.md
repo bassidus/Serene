@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.5.0 (2026-10-09)
+
+Two new modules, Serene Chat and Serene Dark Mode, and Serene Performance is gone. If you install by hand, delete the SerenePerformance folder and copy in all the new ones. Many settings were merged or renamed, so some may be back at their defaults.
+
+### New
+- Chat: a new module. Channel and time formats, gray timestamps, levels after names colored by difficulty, shorter loot, money, XP and say lines, clickable web links, right-click a chat window to copy its text, message spacing, fading old lines, indented wrapped lines and a chat font. The arrow keys step through the lines you sent without holding Alt.
+- Dark mode: its own module, turned on with one checkbox at the bottom of the options. It darkens the art of the action bars, bag bar, experience bar, unit frames, minimap, quest tracker and bags, while items, spells and money keep their colors.
+- Nameplates: an icon on enemies tagged by someone outside your group.
+- Nameplates: neutral quest enemies get their own bar color. Quest enemies are orange-red and yellow by default.
+- General: a countdown under the battleground queue popup that turns yellow, then red, with a warning sound near the end.
+- Tooltip: AFK and DND after a player's name, a health bar, and alignment and X/Y offsets at the cursor.
+- Unit frames: smooth bars, a blue glow in stealth, no damage numbers on portraits, hiding your level, and health and mana numbers that show only on mouseover or are hidden on chosen frames.
+- Action bars: hide keybinds, hide macro names and zoomed icons.
+- Thanks for buffs: many more messages to pick from.
+- Selling gray items tells you what they sold for.
+
+### Changed
+- The options window has a new look in Serene's browns with Blizzard's controls. Modules sit at the top of the sidebar, then the pages in alphabetical order. Checkboxes have short tooltips, and Ctrl + scroll resizes the window.
+- Social: one Automation group. Choose who you accept group invites from, who gets an invite by whispering "inv" or "invite", and who can duel you: friends, your guild, anyone or no one. Blocking quests shared by strangers is gone.
+- Move & Scale: one switch, and positions and sizes are always saved. One Size slider with a list of windows, and a Reset Scale & Positions button.
+- Unit frames: one page with fewer settings. Dark frames are now part of Dark mode, and the portrait, name color and level color settings are gone.
+- Action bars: keybind and macro text share one font setting and keep their place, and out-of-range buttons are always red.
+- Tooltip, Nameplates and Social settings are regrouped and renamed.
+- Removed the Performance module. Dedicated profiling addons do this better.
+
+### Fixed
+- Bars enabled on all characters now show on a new character's first login.
+- The pet frame's tooltip no longer blinks when the mouse crosses its bars.
+- The "Current" health and mana format shows only the current value.
+
 ## 1.4.0 (2026-10-06)
 
 The FPS & latency display is now part of Serene Performance, and the Serene Stats addon is gone. If you install by hand, delete the SereneStats folder.

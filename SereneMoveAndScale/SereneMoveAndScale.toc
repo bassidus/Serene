@@ -2,7 +2,7 @@
 ## Title: Serene Move & Scale
 ## Group: Serene
 ## Notes: Move Blizzard's windows (spellbook, character, professions...) with the mouse and make them smaller or bigger.
-## Version: 1.4.0
+## Version: 1.5.0
 ## Dependencies: Serene
 ## X-Serene-Section: Move & Scale
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

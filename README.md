@@ -11,18 +11,19 @@
 
 ## Interface
 
-- **Action Bars:** bars 2-8 shown on every character, out-of-range coloring, shorter keybind text, macro names and fonts
-- **Nameplates:** flat enemy plates with threat colors, cast bars, debuffs, combo points and quest progress
-- **Move & Scale:** drag Blizzard's windows anywhere, Ctrl + scroll to resize them
-- **Tooltip:** follows the cursor, has a cleaner look and adds the target, item level and guild rank
-- **Unit Frames:** class colors, smooth bars, fonts and health text, plus a few player frame tweaks
+- **Action Bars:** bars 2-8 turned on for every character, out-of-range coloring, short or hidden keybinds, hidden macro names, zoomed icons, and the font and color of keybind and macro text
+- **Dark Mode:** dark art in place of the bronze and gold on the action bars, bag bar, experience bar, unit frames, minimap, quest tracker and bags, with one checkbox at the bottom of the options
+- **Nameplates:** flat enemy plates with threat colors for tanks and damage dealers, cast bars, debuffs, combo points, the target's mana and quest progress, plus an icon on enemies tagged by others
+- **Move & Scale:** drag Blizzard's windows anywhere, Ctrl + scroll to resize them, middle-click to reset, or set each window's size in the options
+- **Tooltip:** at the cursor or in Blizzard's spot, with its own scale, opacity, font and border. Pick what it shows: title, guild and rank, faction, item level, target, health bar, AFK and DND, spell and item IDs. The "Press F6" and right-click hints are gone
+- **Unit Frames:** class colors, smooth bars, fonts and health and mana numbers (format, alignment, only on mouseover), no damage numbers on portraits, and player frame tweaks: no resting glow or Zzz, a blue glow in stealth
 
 ## Quality of Life
 
-- **General:** faster looting, auto repair, sells your grays, a Train All button, skips cinematics, hides tutorials and error spam, more camera zoom
-- **Quests:** accepts and turns in quests automatically (hold Shift to do it yourself)
-- **Social:** accepts invites from friends, blocks invites, duels and shared quests from strangers, invites on whisper, says thanks when someone buffs you
-- **Chat:** arrow keys for sent lines, levels after names, short channel names and loot lines, clickable links, chat font and fade time, copy chat
+- **General:** quick loot, no bind-on-pickup popups, types DELETE for you, auto repair, sells your grays, a Train All button, a battleground queue countdown, skips cinematics, hides tutorials and error spam, more camera zoom
+- **Quests:** accepts and turns in quests automatically (hold Shift to do it yourself) and marks quest enemies on their nameplates with your progress
+- **Social:** accepts group invites, invites on a whispered keyword and allows duels, each from friends, your guild, anyone or no one, and says thanks when someone buffs you
+- **Chat:** arrow keys for sent lines, levels after names, channel and time formats, colored timestamps, shorter loot, money and XP lines, clickable web links, right-click to copy a chat window, message spacing, fade and font
 
 ---
 
@@ -30,6 +31,7 @@
 
 - `/serene` opens the options.
 - `/serene reset` resets all settings to default.
+- `/rl` reloads the UI.
 - **Minimap icon:** left-click opens the options, right-click reloads the UI.
 
 ## Installation

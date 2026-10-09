@@ -11,7 +11,7 @@
 
 ## Interface
 
-- **Action Bars:** bars 2-8 turned on for every character, out-of-range coloring, short or hidden keybinds, hidden macro names, zoomed icons, and the font and color of keybind and macro text
+- **Action Bars:** bars 2-8 turned on for every character, an Edit Mode layout for new characters, out-of-range coloring, short or hidden keybinds, hidden macro names, zoomed icons, and the font and color of keybind and macro text
 - **Dark Mode:** dark art in place of the bronze and gold on the action bars, bag bar, experience bar, unit frames, minimap, quest tracker and bags, with one checkbox at the bottom of the options
 - **Nameplates:** flat enemy plates with threat colors for tanks and damage dealers, cast bars, debuffs, combo points, the target's mana and quest progress, plus an icon on enemies tagged by others
 - **Move & Scale:** drag Blizzard's windows anywhere, Ctrl + scroll to resize them, middle-click to reset, or set each window's size in the options

@@ -11,4 +11,5 @@ Init.lua
 Keybinds.lua
 ActionBarRange.lua
 Bars.lua
+EditModeLayout.lua
 BarExtras.lua

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.1 (2026-10-09)
+
+### New
+- Action bars: pick one of your account's Edit Mode layouts for new characters. A character that hasn't chosen a layout yet switches to it at login, and picking one switches the character you're on.
+
+### Changed
+- Action bars: "Bars enabled on all characters" is now the New characters group, together with the Edit Mode layout.
+- Thanks for buffs: the game no longer lets addons send chat on their own, so the thanks goes out on your next key press. With no key press within 30 seconds it is skipped.
+
+### Fixed
+- Nameplates: the target's mana bar shows for casters again after the latest client update.
+
 ## 1.5.0 (2026-10-09)
 
 Two new modules, Serene Chat and Serene Dark Mode, and Serene Performance is gone. If you install by hand, delete the SerenePerformance folder and copy in all the new ones. Many settings were merged or renamed, so some may be back at their defaults.

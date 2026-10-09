@@ -2,7 +2,7 @@
 ## Title: Serene Nameplates
 ## Group: Serene
 ## Notes: Flat enemy nameplates with cast bars, debuffs, combo points and quest mob progress.
-## Version: 1.5.0
+## Version: 1.5.1
 ## Dependencies: Serene
 ## OptionalDeps: SereneQuests
 ## X-Serene-Section: Nameplates

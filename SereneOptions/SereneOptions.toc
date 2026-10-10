@@ -2,7 +2,7 @@
 ## Title: Serene Options
 ## Group: Serene
 ## Notes: The Serene options window (/serene). Loads when first opened.
-## Version: 1.5.2
+## Version: 1.6.0
 ## LoadOnDemand: 1
 ## Dependencies: Serene
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

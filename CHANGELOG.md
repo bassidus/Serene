@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.6.0 (2026-10-10)
+
+### New
+- General: large "+ Combat" and "- Combat" text when a fight starts and ends (off by default).
+- General: a warning when any piece of gear is below 30% durability, after a fight and when you log in.
+- General: items you already know, like pet grimoires, recipes and mounts, are dimmed at vendors.
+- Social: tell your group in chat when you reset instances (off by default).
+- Chat: shorter lines for reputation, accepted quests, skill-ups, discovered places, group and raid XP, items you create, spells and recipes you learn, rested state, friends coming online, players joining or leaving your group, and group loot rolls.
+- Chat: a quest's XP shows on its "completed" line.
+- Chat: whispers read "< Name:" and "> Name:" with orange arrows.
+
+### Changed
+- Chat: loot lines put the count first ("+2 [Silverleaf]", "+1 [Earthroot]"), and every + is green and every - red.
+- Chat: Battle.net names no longer have brackets.
+- Social: "Keyword inv / invite from" now starts on Friends, so friends who whisper "inv" or "invite" get a group invite unless you change it. "Allow duels from" has a tooltip.
+- Thanks for buffs: waits 10 seconds for your key press instead of 30.
+- The pet frame tooltip, unit frame fonts, the chat input box, Dark mode in bags and nameplate cast bars do less work while you play.
+
+### Fixed
+- Nameplates: no Lua error with "Show combo points" turned off.
+- Tooltip: the item level shows the first time you hover an item the game hasn't loaded yet.
+
 ## 1.5.2 (2026-10-10)
 
 ### Changed

@@ -2,9 +2,10 @@
 --  Options window -- a sidebar tab per feature section, each page stacking
 --  a control per registered feature. At the top of the sidebar: the Modules
 --  tab, listing every Serene* addon, loaded or not, with a checkbox to turn
---  it on or off. Built on first open; Ctrl + scroll scales it.
---  Position and scale are saved (SereneDB.optionsWindow); the page and
---  which groups are open last only until the UI reloads.
+--  it on or off. Built on first open; Ctrl + scroll scales it, and on a
+--  small screen all of it shrinks to fit. Position and scale are saved
+--  (SereneDB.optionsWindow); the page and which groups are open last only
+--  until the UI reloads.
 -------------------------------------------------------------------------------
 local ns = Serene
 local W = ns.Widgets
@@ -29,7 +30,8 @@ local PAGE_W = WIDTH - PAGE_X - INSET - 2 * PAGE_PAD
 W.CONTROL_W = (PAGE_W - 2 * GROUP_PAD - SPACING) / 2
 local HEADER_H = 30   -- a settings page's title, which stays put while the rest scrolls
 local MODULES = "Modules"  -- the page and tab of the addon list
-local MAX_SCREEN = 0.45 -- the window's height at most at scale 1, as a share of the screen's
+local MAX_H = 540        -- the window's height at most, in its own units: longer pages scroll
+local MAX_SCREEN = 0.45  -- its height at most at 100%, as a share of the screen's
 
 local frame, pagePanel
 local widgets, pages, tabs = {}, {}, {}
@@ -701,15 +703,9 @@ end
 -- The height the pages want and the least the sidebar needs; set in Build.
 local wantedH, sidebarH
 
--- As tall as the tallest page, but no taller than MAX_SCREEN of the screen
--- at scale 1: longer pages scroll. Counted at scale 1 so the height scales
--- with the rest of the window. Never shorter than the sidebar.
--- EXTRA_H on top gives the bottom of the page and the sidebar some air.
+-- EXTRA_H under the tallest page gives the bottom of the page and the
+-- sidebar some air.
 local EXTRA_H = 10
-local function FitHeight()
-    local screenH = UIParent:GetHeight() * MAX_SCREEN
-    frame:SetHeight(math.max(sidebarH, math.min(wantedH, screenH)) + EXTRA_H)
-end
 
 local function Center()
     frame:ClearAllPoints()
@@ -722,6 +718,13 @@ end
 --  place where a free resize would clip them. The top-left corner stays put.
 -------------------------------------------------------------------------------
 local DEFAULT_SCALE, MIN_SCALE, MAX_SCALE, SCALE_STEP = 1, 0.5, 1.6, 0.05
+local userScale = DEFAULT_SCALE  -- what Ctrl + scroll sets; 100% is the window as laid out
+
+-- Where the window at 100% would take more than MAX_SCREEN of the screen's
+-- height, all of it shrinks, so it keeps its shape instead of getting shorter.
+local function Fit()
+    return math.min(1, UIParent:GetHeight() * MAX_SCREEN / frame:GetHeight())
+end
 
 -- leftUI/topUI are UIParent units; SetPoint offsets are in the frame's own
 -- (scaled) units, so they are divided by the scale being applied.
@@ -730,25 +733,33 @@ local function PinTopLeft(leftUI, topUI, scale)
     frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", leftUI / scale, topUI / scale)
 end
 
--- Saved as the top left corner in UIParent units, and the scale.
+-- Saved as the top left corner in UIParent units, and the scale set by Ctrl + scroll.
 local function SaveWindow()
     local s = frame:GetScale()
-    SereneDB.optionsWindow = { left = frame:GetLeft() * s, top = frame:GetTop() * s, scale = s }
+    SereneDB.optionsWindow = { left = frame:GetLeft() * s, top = frame:GetTop() * s, scale = userScale }
 end
 
 -- Where it was saved, else the default size, centered.
 local function PlaceWindow()
     local saved = SereneDB.optionsWindow
-    frame:SetScale(saved and saved.scale or DEFAULT_SCALE)
-    FitHeight()
-    if saved then PinTopLeft(saved.left, saved.top, saved.scale) else Center() end
+    userScale = saved and saved.scale or DEFAULT_SCALE
+    local scale = userScale * Fit()
+    frame:SetScale(scale)
+    if saved then PinTopLeft(saved.left, saved.top, scale) else Center() end
+end
+
+-- userScale, fitted to the screen, the top-left corner kept where it is.
+local function ApplyScale()
+    local s = frame:GetScale()
+    local left, top = frame:GetLeft() * s, frame:GetTop() * s
+    local scale = userScale * Fit()
+    frame:SetScale(scale)
+    PinTopLeft(left, top, scale)
 end
 
 local function SetWindowScale(scale)
-    local s = frame:GetScale()
-    local left, top = frame:GetLeft() * s, frame:GetTop() * s
-    frame:SetScale(scale)
-    PinTopLeft(left, top, scale)
+    userScale = scale
+    ApplyScale()
     SaveWindow()
 end
 
@@ -758,9 +769,9 @@ function ResetScale() SetWindowScale(DEFAULT_SCALE) end
 -- Also called by the controls that take the wheel themselves (the page's
 -- scrolling, sliders) while Ctrl is down.
 function W.ScaleWindow(delta)
-    local scale = math.floor((frame:GetScale() + delta * SCALE_STEP) * 100 + 0.5) / 100
+    local scale = math.floor((userScale + delta * SCALE_STEP) * 100 + 0.5) / 100
     scale = math.min(MAX_SCALE, math.max(MIN_SCALE, scale))
-    if scale == frame:GetScale() then return end
+    if scale == userScale then return end
     W.ClosePopups()
     SetWindowScale(scale)
     ns.FlashTip(frame, math.floor(scale * 100 + 0.5) .. "%")
@@ -836,7 +847,8 @@ local function Build()
     local tallest = 0
     for _, page in pairs(pages) do tallest = math.max(tallest, page.contentHeight) end
     wantedH = math.max(sidebarH, TITLE_H + PAGE_TOP + tallest + PAGE_BOTTOM + FOOTER_H + INSET)
-    frame:SetWidth(WIDTH)
+    -- As tall as the tallest page, up to MAX_H, never shorter than the sidebar.
+    frame:SetSize(WIDTH, math.max(sidebarH, math.min(wantedH, MAX_H)) + EXTRA_H)
 
     CreateFooter()
 
@@ -845,7 +857,7 @@ local function Build()
     PlaceWindow()
 
     frame:SetScript("OnShow", function()
-        FitHeight()  -- the screen or UI scale may have changed
+        ApplyScale()  -- the screen or UI scale may have changed
         ns.RefreshOptions()
         PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
     end)

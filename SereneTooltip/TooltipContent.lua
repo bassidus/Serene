@@ -30,8 +30,16 @@ local function FindLine(tt, text, pattern)
     end
 end
 
-local function ColorCode(r, g, b)
-    return "|cff" .. ns.RGBToHex(r, g, b)
+-- "|cffrrggbb" for a color table ({ r =, g =, b = }), made once per table:
+-- unit tooltips refresh several times a second.
+local codes = setmetatable({}, { __mode = "k" })
+local function ColorCode(c)
+    local code = codes[c]
+    if not code then
+        code = "|cff" .. ns.RGBToHex(c.r, c.g, c.b)
+        codes[c] = code
+    end
+    return code
 end
 
 -------------------------------------------------------------------------------
@@ -41,29 +49,31 @@ end
 local TARGET_PREFIX = "Targeting "
 local TARGET_PATTERN = "^" .. TARGET_PREFIX
 
+local YOU_COLOR = { r = 1, g = 0.3, b = 0.3 }
+local NAME_COLOR = { r = 0.9, g = 0.9, b = 0.9 }
+local NONE_COLOR = { r = 0.6, g = 0.6, b = 0.6 }
+
 local function TargetLine(tt, unit)
     local tu = unit .. "target"
-    local tName, r, g, b
+    local tName, c
     if UnitExists(tu) then
         if UnitIsUnit(tu, "player") then
-            tName, r, g, b = ">>> YOU <<<", 1, 0.3, 0.3
+            tName, c = ">>> YOU <<<", YOU_COLOR
         else
             local n = Clean(UnitName(tu))
             if n then
-                tName, r, g, b = n, 0.9, 0.9, 0.9
-                local c
                 if UnitIsPlayer(tu) then
                     local _, class = UnitClass(tu)
                     c = RAID_CLASS_COLORS[Clean(class)]
                 else
                     c = FACTION_BAR_COLORS[Clean(UnitReaction(tu, "player"))]
                 end
-                if c then r, g, b = c.r, c.g, c.b end
+                tName, c = n, c or NAME_COLOR
             end
         end
     end
-    if not tName then tName, r, g, b = "-", 0.6, 0.6, 0.6 end
-    local text = TARGET_PREFIX .. ColorCode(r, g, b) .. tName .. "|r"
+    if not tName then tName, c = "-", NONE_COLOR end
+    local text = TARGET_PREFIX .. ColorCode(c) .. tName .. "|r"
     local i = FindLine(tt, TARGET_PATTERN, true)
     if i then
         -- Refresh pass: update the existing row; a new name can be wider.
@@ -154,24 +164,24 @@ local FACTION_COLORS = {
 
 -- Difficulty color of the unit's level relative to yours (gray/green/yellow/
 -- orange/red); level ?? (skull, too high to see) is red.
+local SKULL_COLOR = { r = 1, g = 0.1, b = 0.1 }
 local function LevelColor(unit)
     local level = Clean(UnitLevel(unit))
     if not level then return end
-    if level <= 0 then return 1, 0.1, 0.1 end
-    local c = GetCreatureDifficultyColor(level)
-    return c.r, c.g, c.b
+    if level <= 0 then return SKULL_COLOR end
+    return GetCreatureDifficultyColor(level)
 end
 
 -- A player's "14 Undead Paladin" (level and class colored) for the merged
 -- level line, or nil when a value is secret or missing.
-local function CompactLevelText(unit, className, classColor, lr, lg, lb)
+local function CompactLevelText(unit, className, classColor, levelColor)
     local level, race = Clean(UnitLevel(unit)), Clean(UnitRace(unit))
     if not (level and race) then return end
     local text = level > 0 and tostring(level) or "??"
-    if lr then text = ColorCode(lr, lg, lb) .. text .. "|r" end
+    if levelColor then text = ColorCode(levelColor) .. text .. "|r" end
     text = text .. " " .. race .. " "
     if classColor then
-        return text .. ColorCode(classColor.r, classColor.g, classColor.b) .. className .. "|r"
+        return text .. ColorCode(classColor) .. className .. "|r"
     end
     return text .. className
 end
@@ -182,7 +192,7 @@ end
 -- tooltipFaction. Rewritten text no longer matches, so refresh passes leave
 -- it alone.
 local function ColorBodyLines(tt, unit)
-    local lr, lg, lb = LevelColor(unit)
+    local levelColor = LevelColor(unit)
 
     local className, classColor
     if UnitIsPlayer(unit) then
@@ -203,7 +213,7 @@ local function ColorBodyLines(tt, unit)
         if txt then
             local isLevel = txt:find(LEVEL_PATTERN)
             local compactText = isLevel and className
-                and CompactLevelText(unit, className, classColor, lr, lg, lb)
+                and CompactLevelText(unit, className, classColor, levelColor)
             if factionName and not showFaction and txt == factionName then
                 fs:SetText("")
                 fs:Hide()
@@ -219,8 +229,8 @@ local function ColorBodyLines(tt, unit)
                 hid = true
             elseif classColor and txt == className then
                 fs:SetTextColor(classColor.r, classColor.g, classColor.b)
-            elseif isLevel and lr then
-                fs:SetText((txt:gsub(LEVEL_PATTERN, ColorCode(lr, lg, lb) .. "%1|r", 1)))
+            elseif isLevel and levelColor then
+                fs:SetText((txt:gsub(LEVEL_PATTERN, ColorCode(levelColor) .. "%1|r", 1)))
             end
         end
     end
@@ -385,11 +395,12 @@ local function OnItem(tt, data)
     if tt:IsForbidden() then return end
     local added = false
 
+    -- The comparison tooltips (ShoppingTooltip1/2) have no GetItem.
     if ns.Get("tooltipItemLevel") and tt.GetItem then
         local _, link = tt:GetItem()
         link = Clean(link)
         if link then
-            local equipLoc = select(9, C_Item.GetItemInfo(link))
+            local equipLoc = select(4, C_Item.GetItemInfoInstant(link))
             if equipLoc and not NO_ILVL_SLOTS[equipLoc] and not FindLine(tt, ITEM_LEVEL_PATTERN, true) then
                 local ilvl = C_Item.GetDetailedItemLevelInfo(link)
                 if ilvl and ilvl > 0 then

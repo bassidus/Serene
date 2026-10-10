@@ -39,8 +39,27 @@ end
 
 local orig = {}  -- [font string] = Blizzard's look (ns.FontState)
 
--- The group's settings, read into it once per Apply: target of target
--- restyles every frame.
+-- Target of target passes through UnitFrame_Update every frame, so a string
+-- is styled again only when its settings changed (gen) or Blizzard put
+-- another font on it since.
+local gen = 0
+local done = {}  -- [font string] = { path, size, flags, gen } as we left it
+
+local function StillStyled(fs)
+    local d = done[fs]
+    if not d or d.gen ~= gen then return false end
+    local path, size, flags = fs:GetFont()
+    return path == d[1] and size == d[2] and flags == d[3]
+end
+
+local function MarkStyled(fs)
+    local d = done[fs] or {}
+    d[1], d[2], d[3] = fs:GetFont()
+    d.gen = gen
+    done[fs] = d
+end
+
+-- The group's settings, read into it once per Apply.
 local function ReadSettings(g)
     g.font, g.size, g.outline = ns.Get(g.fontKey), ns.Get(g.sizeKey), ns.Get(g.outlineKey)
     g.isDefault = g.font == "default" and g.size == g.base and g.outline == "default"
@@ -50,12 +69,14 @@ local function StyleString(fs, g)
     if g.isDefault then
         -- Blizzard's again; captured anew on the next change.
         if orig[fs] then ns.RestoreFont(fs, orig[fs]) end
-        orig[fs] = nil
+        orig[fs], done[fs] = nil, nil
         return
     end
+    if StillStyled(fs) then return end
     orig[fs] = orig[fs] or ns.FontState(fs)
     local o = orig[fs]
     ns.ApplyFont(fs, o, g.font, o.size + g.size - g.base, g.outline)
+    MarkStyled(fs)
 end
 
 local function Style(frame)
@@ -68,13 +89,12 @@ local function Style(frame)
 end
 
 local function Apply()
+    gen = gen + 1
     for _, g in ipairs(GROUPS) do ReadSettings(g) end
     for _, frame in ipairs(ns.UnitFrames()) do Style(frame) end
 end
 
-hooksecurefunc("UnitFrame_Update", function(frame)
-    if ns.IsUnitFrame(frame) then Style(frame) end
-end)
+ns.OnUnitFrameUpdate(Style)
 
 -- def: the rest of the group's RegisterFontSettings fields.
 local function Register(g, def)

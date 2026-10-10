@@ -80,7 +80,7 @@ local function Setup(stock)
     end)
 end
 
-hooksecurefunc("UnitFrame_Update", function(frame)
+ns.OnUnitFrameUpdate(function(frame)
     if not enabled[frame.healthbar] then return end
     Snap(frame.healthbar)
     Snap(frame.manabar)

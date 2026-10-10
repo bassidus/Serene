@@ -113,12 +113,12 @@ local CONFIRM_TIME = 4
 local function CloseGroups()
     wipe(opened)
     for _, page in pairs(pages) do
-        if page.Layout then page.Layout() end
+        page.Layout()
     end
 end
 
 -- Makes btn ask for a second click before onConfirm runs. setArmed(on)
--- shows which state it is in. Returns a function telling whether it is armed.
+-- shows which state it is in.
 local function TwoClick(btn, setArmed, onConfirm)
     local armed, timer
     local function Disarm()
@@ -138,7 +138,6 @@ local function TwoClick(btn, setArmed, onConfirm)
     end)
     btn:HookScript("OnHide", Disarm)
     Disarm()
-    return function() return armed end
 end
 
 local ResetScale  -- set with the window's scaling, below
@@ -159,18 +158,12 @@ local function CreateResetButton(sidebar)
 end
 
 -------------------------------------------------------------------------------
---  Reload UI button. The Forever client blocks ReloadUI() from addon code, so
---  the button is a secure macro button running /reload (the click itself is
---  the player's). The protected child makes the whole window protected, which
---  is fine: it is never open in combat (see ns.ToggleOptionsWindow).
+--  Reload UI button (W.ReloadButton). The protected child makes the whole
+--  window protected, which is fine: it is never open in combat (see
+--  ns.ToggleOptionsWindow).
 -------------------------------------------------------------------------------
 local function CreateReloadButton(sidebar)
-    local reload = CreateFrame("Button", nil, sidebar, "InsecureActionButtonTemplate")
-    W.RedButton(reload, "Reload UI")
-    reload:RegisterForClicks("AnyUp")
-    reload:SetAttribute("useOnKeyDown", false)
-    reload:SetAttribute("type", "macro")
-    reload:SetAttribute("macrotext", "/reload")
+    local reload = W.RedButton(W.ReloadButton(sidebar), "Reload UI")
     reload:SetPoint("BOTTOMLEFT", 10, 10)
     reload:SetPoint("BOTTOMRIGHT", -10, 10)
 
@@ -227,12 +220,7 @@ local function CreateAddonToggle(page, module)
     })
     widgets[#widgets + 1] = box
 
-    -- A /reload macro button, like the sidebar's Reload UI.
-    local note = CreateFrame("Button", nil, box, "InsecureActionButtonTemplate")
-    note:RegisterForClicks("AnyUp")
-    note:SetAttribute("useOnKeyDown", false)
-    note:SetAttribute("type", "macro")
-    note:SetAttribute("macrotext", "/reload")
+    local note = W.ReloadButton(box)
     local text = note:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     text:SetPoint("LEFT")
     text:SetText("Reload UI to apply")
@@ -484,7 +472,7 @@ local function CreatePage(section)
         return groups[key]
     end
 
-    local made = {}  -- feature -> { control, note }, made once
+    local made = {}  -- feature -> its control, made once
     local function Made(f)
         if made[f] then return made[f] end
         local w
@@ -506,14 +494,8 @@ local function CreatePage(section)
             w = W.Checkbox(content, f)
         end
         widgets[#widgets + 1] = w
-        local note
-        if f.note then
-            note = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            note:SetJustifyH("LEFT")
-            note:SetText(f.note)
-        end
-        made[f] = { w, note }
-        return made[f]
+        made[f] = w
+        return w
     end
 
     -- Returns the content's height.
@@ -585,10 +567,9 @@ local function CreatePage(section)
                     if not Open(sub.key) then y, gap = sub.top - GROUP_PAD * 1.5 - sub.headingH, 0 end
                 end
             end
-            local w, note = unpack(Made(f))
+            local w = Made(f)
             local shown = not group or Open(group.category) and (not f.sub or Open(f.category .. "/" .. f.sub))
             w:SetShown(shown)
-            if note then note:SetShown(shown) end
             if shown then
                 if f.space and not right then y = y - BLANK_ROW end
                 local box = sub or group
@@ -608,15 +589,6 @@ local function CreatePage(section)
                 w:SetPoint("TOPRIGHT", -xr, y)
                 gap = (f.type == "boolean" or f.type == "text") and 2 or SPACING
                 y = y - w:GetHeight() - gap
-                if note then
-                    -- Under a checkbox it lines up with the label.
-                    local indent = x + (f.type == "boolean" and 26 or 0)
-                    note:ClearAllPoints()
-                    note:SetPoint("TOPLEFT", indent, y + 2)
-                    note:SetWidth(PAGE_W - indent - xr)
-                    gap = SPACING - 2
-                    y = y - note:GetStringHeight() - gap
-                end
                 if right then
                     row.right, y = y, math.min(y, row.bottom)
                     if not Beside(list[i + 1]) then row = nil end
@@ -878,16 +850,7 @@ ns.OnResetAll(function()
     CloseGroups()
 end)
 
-local outside = {}  -- widgets on other addons' windows (W.AddOutside)
-
--- A widget another Serene addon put on its own window, refreshed with the
--- options while it shows.
-function W.AddOutside(w) outside[#outside + 1] = w end
-
 function ns.RefreshOptions()
-    for _, w in ipairs(outside) do
-        if w:IsVisible() then w.Refresh() end
-    end
     if not (frame and frame:IsShown()) then return end
     for _, w in ipairs(widgets) do w.Refresh() end
 end

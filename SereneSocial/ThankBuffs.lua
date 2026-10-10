@@ -13,7 +13,7 @@ local _, ns = ...
 local SECTION = "Social"
 local COOLDOWN = 60      -- seconds before anyone is thanked again
 local SETTLE = 2         -- seconds after a loading screen with no thanks
-local WAIT = 30          -- seconds a thanks waits for a key press
+local WAIT = 10          -- seconds a thanks waits for a key press
 
 local Clean = ns.Clean
 
@@ -152,14 +152,14 @@ end
 local keys = CreateFrame("Frame")
 keys:Hide()
 local keysReady = false
-local waitUntil = 0
+local giveUp  -- hides keys once WAIT has passed
 
 keys:SetScript("OnKeyDown", function(self)
     self:Hide()
     if ns.Get("thankBuffs") then C_ChatInfo.SendChatMessage(PickMessage(), "EMOTE") end
 end)
-keys:SetScript("OnUpdate", function(self)
-    if GetTime() > waitUntil then self:Hide() end
+keys:SetScript("OnHide", function()
+    if giveUp then giveUp:Cancel(); giveUp = nil end
 end)
 
 local function Thank()
@@ -175,7 +175,11 @@ local function Thank()
     nextThanks = now + COOLDOWN
     -- A short, varied pause reads less like a macro than an instant reply.
     C_Timer.After(1.5 + math.random() * 1.5, function()
-        waitUntil = GetTime() + WAIT
+        if giveUp then giveUp:Cancel() end
+        giveUp = C_Timer.NewTimer(WAIT, function()
+            giveUp = nil
+            keys:Hide()
+        end)
         keys:Show()
     end)
 end

@@ -64,6 +64,13 @@ end
 -------------------------------------------------------------------------------
 --  Cast state
 -------------------------------------------------------------------------------
+local function CancelHold(cast)
+    if cast.holdTimer then
+        cast.holdTimer:Cancel()
+        cast.holdTimer = nil
+    end
+end
+
 local function StopCast(plate)
     local cast = plate.cast
     casting[plate] = nil
@@ -93,10 +100,7 @@ local function UpdateCast(plate)
     end
     if type(name) == "nil" then StopCast(plate) return end
 
-    if cast.holdTimer then
-        cast.holdTimer:Cancel()
-        cast.holdTimer = nil
-    end
+    CancelHold(cast)
     cast.icon:SetTexture(texture)
     cast.name:SetText(name)
     cast.name:SetTextColor(1, 1, 1)
@@ -121,7 +125,7 @@ local function ShowInterrupted(plate)
     cast:SetValue(1)
     cast.name:SetText(INTERRUPTED)
     cast.timer:SetText("")
-    if cast.holdTimer then cast.holdTimer:Cancel() end
+    CancelHold(cast)
     cast.holdTimer = C_Timer.NewTimer(INTERRUPT_HOLD, function()
         cast.holdTimer = nil
         if not casting[plate] then cast:Hide() end
@@ -144,46 +148,39 @@ ticker:SetScript("OnUpdate", function(self, elapsed)
 end)
 
 -------------------------------------------------------------------------------
---  Events (one dispatcher for every plate)
+--  Events, registered on each plate for its own unit while the cast bar is on
 -------------------------------------------------------------------------------
--- Cast events come for every unit around (group members included), so the
--- dispatcher listens only while the cast bar is on and Serene draws plates.
 local CAST_EVENTS = {
     "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_FAILED",
     "UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_DELAYED",
     "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_UPDATE", "UNIT_SPELLCAST_CHANNEL_STOP",
     "UNIT_SPELLCAST_INTERRUPTIBLE", "UNIT_SPELLCAST_NOT_INTERRUPTIBLE",
 }
-local dispatcher = CreateFrame("Frame")
-local listening
-NP.OnRefresh(function()
-    local on = ns.Get("nameplateCastBar")
-    if on == listening then return end
-    listening = on
-    for _, ev in ipairs(CAST_EVENTS) do
-        if on then dispatcher:RegisterEvent(ev) else dispatcher:UnregisterEvent(ev) end
-    end
-end)
-dispatcher:SetScript("OnEvent", function(_, event, unit)
-    local plate = NP.plates[unit]
-    if not plate then return end
-    if event == "UNIT_SPELLCAST_INTERRUPTED" then
-        ShowInterrupted(plate)
-    else
-        -- Start, stop and updates all re-read the unit: after a stop a new
-        -- cast may already be running (chain casts).
-        UpdateCast(plate)
-    end
-end)
+local IS_CAST_EVENT = {}
+for _, ev in ipairs(CAST_EVENTS) do IS_CAST_EVENT[ev] = true end
 
 NP.RegisterModule({
     create = Create,
     layout = Layout,
-    attach = function(plate) UpdateCast(plate) end,
+    attach = function(plate, unit)
+        if ns.Get("nameplateCastBar") then
+            for _, ev in ipairs(CAST_EVENTS) do plate:RegisterUnitEvent(ev, unit) end
+        end
+        UpdateCast(plate)
+    end,
     detach = function(plate)
-        local cast = plate.cast
-        if cast.holdTimer then cast.holdTimer:Cancel(); cast.holdTimer = nil end
+        CancelHold(plate.cast)
         StopCast(plate)
+    end,
+    event = function(plate, event)
+        if not IS_CAST_EVENT[event] then return end
+        if event == "UNIT_SPELLCAST_INTERRUPTED" then
+            ShowInterrupted(plate)
+        else
+            -- Start, stop and updates all re-read the unit: after a stop a new
+            -- cast may already be running (chain casts).
+            UpdateCast(plate)
+        end
     end,
 })
 

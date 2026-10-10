@@ -194,10 +194,11 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "whisperInviteFrom", label = "Keyword inv / invite from", section = SECTION, category = "Automation",
-    type = "dropdown", inline = true, default = "none", options = Who, apply = Apply,
+    type = "dropdown", inline = true, default = "friends", options = Who, apply = Apply,
 })
 ns.RegisterFeature({
     key = "duelsFrom", label = "Allow duels from", section = SECTION, category = "Automation",
+    tooltip = "Duels from anyone else are declined.",
     type = "dropdown", inline = true, default = "anyone", options = Who, apply = Apply,
 })
 -- Read by IsFriend, so it needs no apply.

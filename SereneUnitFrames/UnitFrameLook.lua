@@ -62,8 +62,8 @@ end
 
 for _, frame in ipairs(ns.UnitFrames()) do Widen(frame) end
 
-hooksecurefunc("UnitFrame_Update", function(frame)
-    if ns.IsUnitFrame(frame) and not widenedFrames[frame] then Widen(frame) end
+ns.OnUnitFrameUpdate(function(frame)
+    if not widenedFrames[frame] then Widen(frame) end
 end)
 
 -------------------------------------------------------------------------------

@@ -5,7 +5,11 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local function FormatHotkeyText(text)
+local shortText = {}  -- [key] = its short text, made once
+
+local function FormatHotkeyText(key)
+    if shortText[key] then return shortText[key] end
+    local text = key
     -- Gamepad binds resolve to glyph markup (no substitution below matches);
     -- keyboard binds keep the raw tokens the substitutions are written against.
     local resolved = GetBindingText(text, 1)
@@ -27,6 +31,7 @@ local function FormatHotkeyText(text)
     text = text:gsub("NUMPADDIVIDE", "N/")
     text = text:gsub("NUMPAD", "N")
     text = text:gsub("BUTTON", "M")
+    shortText[key] = text
     return text
 end
 
@@ -39,7 +44,6 @@ local BARS = { { "OverrideActionBarButton", "ACTIONBUTTON", 6 }, unpack(ns.ACTIO
 local HOTKEY_METHOD = { PetActionButton = "SetHotkeys", StanceButton = false }
 
 local buttons = {}  -- [button] = binding command
-local hooked = {}
 
 local function BindingKey(btn)
     return GetBindingKey(buttons[btn]) or GetBindingKey("CLICK " .. btn:GetName() .. ":LeftButton")
@@ -188,26 +192,19 @@ local function Button1(t)
     return Original(ActionButton1[t.field], t)
 end
 
-local function CollectButtons()
-    for _, bar in ipairs(BARS) do
-        local prefix, command, count = bar[1], bar[2], bar[3]
-        local method = HOTKEY_METHOD[prefix]
-        if method == nil then method = "UpdateHotkeys" end
-        for i = 1, count do
-            local btn = _G[prefix .. i]
-            buttons[btn] = command .. i
-            if method and not hooked[btn] then
-                hooked[btn] = true
-                hooksecurefunc(btn, method, Update)
-            end
-        end
+for _, bar in ipairs(BARS) do
+    local prefix, command, count = bar[1], bar[2], bar[3]
+    local method = HOTKEY_METHOD[prefix]
+    if method == nil then method = "UpdateHotkeys" end
+    for i = 1, count do
+        local btn = _G[prefix .. i]
+        buttons[btn] = command .. i
+        if method then hooksecurefunc(btn, method, Update) end
     end
 end
 
-
 -- Rewrites every button; settings back on default put Blizzard's look back.
 local function Apply()
-    CollectButtons()
     ReadSettings()
     local enabled = ns.Get("shortKeybinds")
     local hideKeybinds, hideMacros = ns.Get("hideKeybinds"), ns.Get("hideMacroText")

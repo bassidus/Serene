@@ -30,7 +30,6 @@ end
 -- c is the class color when the caller has just looked it up.
 local function Paint(bar, unit, c)
     local s = state[bar]
-    if not s then return end
     if unit then s.unit = unit end
     c = c or ClassColor(s.unit)
     painting = true
@@ -77,7 +76,6 @@ end
 
 local function RefreshAll()
     for _, frame in ipairs(ns.UnitFrames()) do Track(frame.healthbar, frame.healthbar.unit or frame.unit) end
-    for bar in pairs(state) do Paint(bar) end
 end
 
 -- Every Blizzard unit frame bar passes through here when its unit changes.

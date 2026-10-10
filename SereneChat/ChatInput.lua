@@ -12,9 +12,8 @@ local _, ns = ...
 
 local MAX_LINES = 32  -- the edit box's own history length
 
-local lines = {}   -- sent lines, oldest first
-local hooked = {}  -- chat box -> true
-local step = {}    -- chat box -> { index =, draft = } while stepping
+local lines = {}  -- sent lines, oldest first
+local step = {}   -- chat box -> { index =, draft = } while stepping
 
 local function Remember(box, text)
     step[box] = nil
@@ -44,23 +43,21 @@ local function OnArrow(box, key)
     end
 end
 
-local function Setup()
-    for _, name in ipairs(CHAT_FRAMES) do
-        local box = _G[name .. "EditBox"]
-        box:SetAltArrowKeyMode(false)
-        if not hooked[box] then
-            hooked[box] = true
-            hooksecurefunc(box, "AddHistoryLine", Remember)
-            box:HookScript("OnArrowPressed", OnArrow)
-            box:HookScript("OnEditFocusLost", function(self) step[self] = nil end)
-        end
-    end
-end
+ns.EachChatWindow(function(frame)
+    local box = _G[frame:GetName() .. "EditBox"]
+    hooksecurefunc(box, "AddHistoryLine", Remember)
+    box:HookScript("OnArrowPressed", OnArrow)
+    box:HookScript("OnEditFocusLost", function(self) step[self] = nil end)
+end)
 
--- A new character's chat settings arrive after login and set up the
--- windows again.
+-- Every time the windows are set up, Alt arrow mode comes back: at login,
+-- when a new character's chat settings arrive after it, and for a whisper
+-- window.
+local function NoAltArrows()
+    for _, name in ipairs(CHAT_FRAMES) do _G[name .. "EditBox"]:SetAltArrowKeyMode(false) end
+end
 local login = CreateFrame("Frame")
 login:RegisterEvent("PLAYER_LOGIN")
 login:RegisterEvent("UPDATE_CHAT_WINDOWS")
-login:SetScript("OnEvent", Setup)
-hooksecurefunc("FCF_OpenTemporaryWindow", Setup)
+login:SetScript("OnEvent", NoAltArrows)
+hooksecurefunc("FCF_OpenTemporaryWindow", NoAltArrows)

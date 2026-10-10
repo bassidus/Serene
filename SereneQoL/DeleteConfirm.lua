@@ -3,24 +3,17 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local hooked = false
-
-local function Apply()
-    if hooked then return end
-    hooked = true
-    for i = 1, 4 do
-        hooksecurefunc(_G["StaticPopup" .. i], "Show", function(self)
-            if self.which ~= "DELETE_GOOD_ITEM" and self.which ~= "DELETE_GOOD_QUEST_ITEM" then return end
-            if not ns.Get("autoFillDelete") then return end
-            local editBox = self:GetEditBox()
-            editBox:SetText(DELETE_ITEM_CONFIRM_STRING)
-            editBox:SetFocus()
-        end)
-    end
+for i = 1, 4 do
+    hooksecurefunc(_G["StaticPopup" .. i], "Show", function(self)
+        if self.which ~= "DELETE_GOOD_ITEM" and self.which ~= "DELETE_GOOD_QUEST_ITEM" then return end
+        if not ns.Get("autoFillDelete") then return end
+        local editBox = self:GetEditBox()
+        editBox:SetText(DELETE_ITEM_CONFIRM_STRING)
+        editBox:SetFocus()
+    end)
 end
 
 ns.RegisterFeature({
     key = "autoFillDelete", label = "Easier delete", section = "General", category = "Loot & items",
     tooltip = "Types DELETE for you when deleting a good item.",
-    apply = Apply,
 })

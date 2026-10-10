@@ -8,7 +8,6 @@ local DARK = 0.3  -- vertex color of the desaturated frame art
 local darkened = {}  -- [texture] = Blizzard's desaturation
 
 local function SetDark(tex, on)
-    if not tex then return end
     if on then
         if darkened[tex] == nil then darkened[tex] = tex:IsDesaturated() or false end
         tex:SetDesaturated(true)
@@ -35,8 +34,8 @@ local function PaintAll()
     for _, frame in ipairs(ns.UnitFrames()) do Paint(frame) end
 end
 
-hooksecurefunc("UnitFrame_Update", function(frame)
-    if ns.IsUnitFrame(frame) and not painted[frame] then
+ns.OnUnitFrameUpdate(function(frame)
+    if not painted[frame] then
         painted[frame] = true
         Paint(frame)
     end

@@ -17,8 +17,6 @@ local ON_COLOR  = { 1.00, 0.82, 0.00, 1 }
 local OFF_COLOR = { 0.05, 0.05, 0.05, 0.85 }
 local CLASSES = { ROGUE = true, DRUID = true }
 
-local Clean = ns.Clean
-
 local row = CreateFrame("Frame")
 row:Hide()
 row.boxes = {}
@@ -30,8 +28,6 @@ for i = 1, MAX do
     row.boxes[i] = box
 end
 
-local owner  -- the plate the row is on
-
 local function Size()
     local h = math.max(4, math.floor(ns.Get("nameplateHeight") / 3))
     local w = (ns.Get("nameplateWidth") - GAP * (MAX - 1)) / MAX
@@ -42,35 +38,22 @@ local function Size()
     end
 end
 
-local function Release()
-    if not owner then return end
-    owner.comboRow = nil
-    NP.StackBelow(owner)
-    owner = nil
-    row:Hide()
-end
+local Update
+local Move, Owner = NP.MovingRow(row, "comboRow", Size, function() Update() end)
 
-local function Update()
+function Update()
     local plate, points
     if ns.Get("nameplateComboPoints") then
         points = GetComboPoints("player", "target")
         if points > 0 then
             plate = NP.TargetPlate()
         else
-            plate, points = owner, UnitPower("player", Enum.PowerType.ComboPoints)
-            if points == 0 then plate = nil end
+            points = UnitPower("player", Enum.PowerType.ComboPoints)
+            if points > 0 then plate = Owner() end
         end
     end
-    if plate ~= owner then
-        Release()
-        if not plate then return end
-        owner = plate
-        plate.comboRow = row
-        row:SetParent(plate)
-        Size()
-        NP.StackBelow(plate)
-        row:Show()
-    end
+    Move(plate)
+    if not plate then return end
     for i, box in ipairs(row.boxes) do
         local c = i <= points and ON_COLOR or OFF_COLOR
         box.fill:SetColorTexture(c[1], c[2], c[3], c[4])
@@ -95,18 +78,6 @@ local function Sync()
     Update()
 end
 NP.OnRefresh(Sync)
-
-NP.RegisterModule({
-    attach = function(plate, unit)
-        if Clean(UnitIsUnit(unit, "target")) then Update() end
-    end,
-    detach = function(plate)
-        if plate == owner then Release() end
-    end,
-    layout = function(plate)
-        if plate == owner then Size() end
-    end,
-})
 
 ns.RegisterFeature({
     key = "nameplateComboPoints", label = "Show combo points", section = "Nameplates",

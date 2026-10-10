@@ -4,25 +4,12 @@
 --  to "/reload" as it is typed, and Blizzard's own chat code runs it on Enter.
 --  Always on; no toggle.
 -------------------------------------------------------------------------------
-local hooked = {}
+local _, ns = ...
 
 local function OnTextChanged(editBox, userInput)
     if userInput and editBox:GetText():lower() == "/rl" then editBox:SetText("/reload") end
 end
 
-local function HookEditBox(editBox)
-    if hooked[editBox] then return end
-    hooked[editBox] = true
-    editBox:HookScript("OnTextChanged", OnTextChanged)
-end
-
-local f = CreateFrame("Frame")
-f:RegisterEvent("PLAYER_LOGIN")
-f:SetScript("OnEvent", function(self)
-    self:UnregisterAllEvents()
-    for i = 1, Constants.ChatFrameConstants.MaxChatWindows do HookEditBox(_G["ChatFrame" .. i .. "EditBox"]) end
-    -- Whisper/temporary chat windows bring their own edit box.
-    hooksecurefunc("FCF_OpenTemporaryWindow", function()
-        for _, name in ipairs(CHAT_FRAMES) do HookEditBox(_G[name .. "EditBox"]) end
-    end)
+ns.EachChatWindow(function(frame)
+    _G[frame:GetName() .. "EditBox"]:HookScript("OnTextChanged", OnTextChanged)
 end)

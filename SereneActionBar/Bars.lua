@@ -8,25 +8,16 @@ local _, ns = ...
 
 local SECTION = "Action Bars"
 
--- Runs from PLAYER_LOGIN on, when the character's bar toggles are in.
--- Showing a protected bar waits for combat to end. A setting change sets
--- the bars a frame later, so several changes set them once.
+-- Runs from PLAYER_LOGIN on, when the character's bar toggles are in:
+-- Blizzard shows the toggled bars on SETTINGS_LOADED, right after login, and
+-- not again when the toggles change, so they must be set by then. Showing a
+-- protected bar waits for combat to end.
 local Sync
 local waiter = CreateFrame("Frame")
 waiter:SetScript("OnEvent", function(self, event)
     self:UnregisterEvent(event)
     Sync()
 end)
-
-local queued = false
-local function Queue()
-    if queued then return end
-    queued = true
-    C_Timer.After(0, function()
-        queued = false
-        Sync()
-    end)
-end
 
 function Sync()
     if InCombatLockdown() then
@@ -40,18 +31,9 @@ function Sync()
     if changed then SetActionBarToggles(unpack(toggles)) end
 end
 
--- Blizzard shows the toggled bars on SETTINGS_LOADED, right after login,
--- and not again when the toggles change, so they must be set by then.
-local login = CreateFrame("Frame")
-login:RegisterEvent("PLAYER_LOGIN")
-login:SetScript("OnEvent", function(self)
-    self:UnregisterAllEvents()
-    Sync()
-end)
-
 for bar = 2, 8 do
     ns.RegisterFeature({
         key = "showBar" .. bar, label = "Action Bar " .. bar, section = SECTION,
-        category = "New characters", default = false, beside = bar % 2 == 1 or nil, apply = Queue,
+        category = "New characters", default = false, beside = bar % 2 == 1 or nil, apply = Sync,
     })
 end

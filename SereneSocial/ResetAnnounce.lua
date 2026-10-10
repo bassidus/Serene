@@ -7,11 +7,7 @@ local _, ns = ...
 
 local Clean = ns.Clean
 
--- A global string like "%s has been reset." as a pattern for the whole line.
-local function Pattern(fmt)
-    return "^" .. fmt:gsub("[%(%)%.%+%-%*%?%[%]%^%$]", "%%%0"):gsub("%%s", ".+") .. "$"
-end
-local PATTERNS = { Pattern(INSTANCE_RESET_SUCCESS), Pattern(INSTANCE_RESET_FAILED) }
+local PATTERNS = { ns.FormatPattern(INSTANCE_RESET_SUCCESS), ns.FormatPattern(INSTANCE_RESET_FAILED) }
 
 local watcher = CreateFrame("Frame")
 watcher:SetScript("OnEvent", function(_, _, msg)

@@ -18,33 +18,26 @@ local original = {}  -- chat frame -> ns.FontState before the first change
 -- the alpha.
 local BORDER = { "Left", "Mid", "Right", "FocusLeft", "FocusMid", "FocusRight" }
 
-local background = {}  -- edit box -> { its background, its window's Background }
-
--- The window's background fades in under the mouse, so the box copies it
--- while shown rather than once.
-local function CopyBackground(box)
-    local b = background[box]
-    b[1]:SetVertexColor(b[2]:GetVertexColor())
-    b[1]:SetAlpha(b[2]:GetAlpha())
-end
-
-local function DressEditBoxes()
-    for _, name in ipairs(CHAT_FRAMES) do
-        local box = _G[name .. "EditBox"]
-        if not background[box] then
-            for _, part in ipairs(BORDER) do _G[name .. "EditBox" .. part]:SetAlpha(0) end
-            local window = _G[name .. "Background"]
-            local tex = box:CreateTexture(nil, "BACKGROUND", nil, -8)
-            tex:SetColorTexture(1, 1, 1)
-            -- As wide as the window's; the box's 32 px less 5 at top and bottom.
-            -- The box sits 4 px above the window background's bottom edge.
-            tex:SetPoint("TOPLEFT", window, "BOTTOMLEFT", 0, -1)
-            tex:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", 0, -23)
-            background[box] = { tex, window }
-            box:HookScript("OnUpdate", CopyBackground)
-        end
+ns.EachChatWindow(function(frame)
+    local name = frame:GetName()
+    for _, part in ipairs(BORDER) do _G[name .. "EditBox" .. part]:SetAlpha(0) end
+    local window = _G[name .. "Background"]
+    local tex = _G[name .. "EditBox"]:CreateTexture(nil, "BACKGROUND", nil, -8)
+    tex:SetColorTexture(1, 1, 1)
+    -- As wide as the window's; the box's 32 px less 5 at top and bottom.
+    -- The box sits 4 px above the window background's bottom edge.
+    tex:SetPoint("TOPLEFT", window, "BOTTOMLEFT", 0, -1)
+    tex:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", 0, -23)
+    -- The window's background fades in under the mouse and takes the color
+    -- picked in its tab menu; the box follows each change.
+    local function Copy()
+        tex:SetVertexColor(window:GetVertexColor())
+        tex:SetAlpha(window:GetAlpha())
     end
-end
+    hooksecurefunc(window, "SetAlpha", Copy)
+    hooksecurefunc(window, "SetVertexColor", Copy)
+    Copy()
+end)
 
 -- The edit boxes' text in their window's font, whether set here or in its
 -- tab menu.
@@ -125,14 +118,6 @@ hooksecurefunc("FCF_OpenTemporaryWindow", function()
     ApplyFont()
     ApplyFade()
     ApplySpacing()
-    DressEditBoxes()
-end)
-
-local login = CreateFrame("Frame")
-login:RegisterEvent("PLAYER_LOGIN")
-login:SetScript("OnEvent", function(self)
-    self:UnregisterAllEvents()
-    DressEditBoxes()
 end)
 
 -- A new character's chat settings arrive after login and set up the

@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene QoL
 ## Group: Serene
-## Notes: Quick loot, skip BoP warnings, easier delete, auto repair, auto sell, Train All button, low durability warning, hide tutorials, skip cinematics, farther camera zoom, battleground queue timer, combat text, hide errors, /rl.
+## Notes: Quick loot, skip BoP warnings, easier delete, auto repair, auto sell, Train All button, low durability warning, dim known items at vendors, hide tutorials, skip cinematics, farther camera zoom, battleground queue timer, combat text, hide errors, /rl.
 ## Version: 1.5.2
 ## Dependencies: Serene
 ## X-Serene-Section: General
@@ -16,6 +16,7 @@ AutoRepair.lua
 SellJunk.lua
 TrainAll.lua
 DurabilityWarning.lua
+KnownItems.lua
 HideTutorials.lua
 MovieSkip.lua
 CameraZoom.lua

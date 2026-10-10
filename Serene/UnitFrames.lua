@@ -16,8 +16,6 @@ for _, frame in ipairs(FRAMES) do ours[frame] = true end
 
 function ns.UnitFrames() return FRAMES end
 
-function ns.IsUnitFrame(frame) return ours[frame] end
-
 -- The parts of each frame, looked up once. art: the frame's border art,
 -- art[1] the main one.
 local parts = {}
@@ -46,3 +44,15 @@ function ns.UnitFrameParts(frame)
     parts[frame] = p
     return p
 end
+
+-- fn(frame) after Blizzard's UnitFrame_Update on one of these frames. Target
+-- of target passes through it every frame while it shows.
+local updateHandlers = {}
+function ns.OnUnitFrameUpdate(fn)
+    updateHandlers[#updateHandlers + 1] = fn
+end
+
+hooksecurefunc("UnitFrame_Update", function(frame)
+    if not ours[frame] then return end
+    for _, fn in ipairs(updateHandlers) do fn(frame) end
+end)

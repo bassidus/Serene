@@ -24,20 +24,12 @@ local function OnEnter(bar)
     GameTooltip:SetUnit(unit, frame.hideStatusOnTooltip)
 end
 
-local function Hook(frame)
-    for _, bar in ipairs({ frame.healthbar, frame.manabar }) do
+for _, frame in ipairs(ns.UnitFrames()) do
+    for _, bar in ipairs(ns.UnitFrameParts(frame).bars) do
         frameOf[bar] = frame
         bar:HookScript("OnEnter", OnEnter)
     end
 end
-
-Hook(PlayerFrame)
-Hook(PetFrame)
-Hook(TargetFrame)
-Hook(TargetFrameToT)
-Hook(FocusFrame)
-Hook(FocusFrameToT)
-for i = 1, 4 do Hook(PartyFrame["MemberFrame" .. i]) end
 
 local function OnPetArt()
     return PetFrame:IsVisible() and Clean(PetFrameTexture:IsMouseOver())
@@ -52,9 +44,10 @@ for _, part in ipairs({ PetFrame, PetFrame.healthbar, PetFrame.manabar }) do
 end
 
 -- Onto the art or off it through a part with no mouse, no OnEnter or
--- OnLeave fires.
+-- OnLeave fires. A child of the pet frame, so it only watches while that
+-- shows.
 local onPet
-CreateFrame("Frame"):SetScript("OnUpdate", function()
+CreateFrame("Frame", nil, PetFrame):SetScript("OnUpdate", function()
     local over = OnPetArt() or false
     if over and not onPet then
         OnEnter(PetFrame.healthbar)

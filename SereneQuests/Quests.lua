@@ -24,26 +24,24 @@ local function Settings()
     return ns.Get("autoAcceptQuests"), ns.Get("autoTurnInQuests")
 end
 
-local function Gossip()
-    local accept, turnIn = Settings()
+local function Gossip(accept, turnIn)
     if turnIn then
         for _, quest in ipairs(C_GossipInfo.GetActiveQuests()) do
-            if quest.questID and quest.isComplete and not Recent(takenID[quest.questID]) then
+            if quest.isComplete and not Recent(takenID[quest.questID]) then
                 return C_GossipInfo.SelectActiveQuest(quest.questID)
             end
         end
     end
     if accept then
         for _, quest in ipairs(C_GossipInfo.GetAvailableQuests()) do
-            if quest.questID and not quest.isTrivial and not quest.repeatable and not OnQuest(quest.questID) then
+            if not quest.isTrivial and not quest.repeatable and not OnQuest(quest.questID) then
                 return C_GossipInfo.SelectAvailableQuest(quest.questID)
             end
         end
     end
 end
 
-local function Greeting()
-    local accept, turnIn = Settings()
+local function Greeting(accept, turnIn)
     if turnIn then
         for i = 1, GetNumActiveQuests() do
             local title, isComplete = GetActiveTitle(i)
@@ -78,9 +76,9 @@ end
 -- The NPC's list, if it is still (or again) on screen.
 local function Next()
     if GossipFrame:IsShown() then
-        Gossip()
+        Gossip(Settings())
     elseif QuestFrameGreetingPanel:IsShown() then
-        Greeting()
+        Greeting(Settings())
     end
 end
 
@@ -96,10 +94,10 @@ f:SetScript("OnEvent", function(_, event)
     if not (accept or turnIn) then return end
 
     if event == "GOSSIP_SHOW" then
-        Gossip()
+        Gossip(accept, turnIn)
 
     elseif event == "QUEST_GREETING" then
-        Greeting()
+        Greeting(accept, turnIn)
 
     elseif event == "QUEST_DETAIL" then
         if accept then

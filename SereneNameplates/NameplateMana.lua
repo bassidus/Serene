@@ -21,19 +21,12 @@ bar:SetStatusBarColor(MANA_COLOR[1], MANA_COLOR[2], MANA_COLOR[3])
 NP.Background(bar)
 NP.Border(bar)
 
-local owner  -- the plate the bar is on
-
 local function Size()
     bar:SetHeight(math.max(4, math.floor(ns.Get("nameplateHeight") / 3)))
 end
 
-local function Release()
-    if not owner then return end
-    owner.manaBar = nil
-    NP.StackBelow(owner)
-    owner = nil
-    bar:Hide()
-end
+local Update
+local Move, Owner = NP.MovingRow(bar, "manaBar", Size, function() Update() end)
 
 -- Most melee mobs have mana as their power type but none of it. Their max
 -- is a clean 0; a caster's max is secret (SecretWhenUnitPowerMaxRestricted),
@@ -49,26 +42,17 @@ local function UpdateValue()
     bar:SetValue(UnitPower("target", MANA))
 end
 
-local function Update()
+function Update()
     local plate = ns.Get("nameplateMana") and HasMana() and NP.TargetPlate() or nil
-    if plate ~= owner then
-        Release()
-        if not plate then return end
-        owner = plate
-        plate.manaBar = bar
-        bar:SetParent(plate)
-        Size()
-        NP.StackBelow(plate)
-        bar:Show()
-    end
-    UpdateValue()
+    Move(plate)
+    if plate then UpdateValue() end
 end
 
 -- Listens only while the setting is on.
 local watcher = CreateFrame("Frame")
 watcher:SetScript("OnEvent", function(_, event, _, powerType)
     if event == "UNIT_POWER_UPDATE" then
-        if powerType == "MANA" and owner then UpdateValue() end
+        if powerType == "MANA" and Owner() then UpdateValue() end
     else
         Update()
     end
@@ -86,18 +70,6 @@ local function Sync()
     Update()
 end
 NP.OnRefresh(Sync)
-
-NP.RegisterModule({
-    attach = function(plate, unit)
-        if Clean(UnitIsUnit(unit, "target")) then Update() end
-    end,
-    detach = function(plate)
-        if plate == owner then Release() end
-    end,
-    layout = function(plate)
-        if plate == owner then Size() end
-    end,
-})
 
 ns.RegisterFeature({
     key = "nameplateMana", label = "Show target mana bar", section = "Nameplates",

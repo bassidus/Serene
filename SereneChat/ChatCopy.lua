@@ -182,17 +182,9 @@ local function ChatFrameUnderMouse()
     end
 end
 
-local hooked = {}  -- chat frame -> true
-
-local function HookLinks()
-    for _, name in ipairs(CHAT_FRAMES) do
-        local frame = _G[name]
-        if not hooked[frame] then
-            hooked[frame] = true
-            frame:HookScript("OnHyperlinkClick", function() linkClicked = true end)
-        end
-    end
-end
+ns.EachChatWindow(function(chatFrame)
+    chatFrame:HookScript("OnHyperlinkClick", function() linkClicked = true end)
+end)
 
 local clicks = CreateFrame("Frame")
 clicks:SetScript("OnEvent", function(_, event, button)
@@ -214,7 +206,6 @@ end)
 
 function ns.ApplyChatCopyClick()
     if ns.Get("chatCopyClick") then
-        HookLinks()
         clicks:RegisterEvent("GLOBAL_MOUSE_DOWN")
         clicks:RegisterEvent("GLOBAL_MOUSE_UP")
     else
@@ -222,5 +213,3 @@ function ns.ApplyChatCopyClick()
         pressed = nil
     end
 end
-
-hooksecurefunc("FCF_OpenTemporaryWindow", ns.ApplyChatCopyClick)

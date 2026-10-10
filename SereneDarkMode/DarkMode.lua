@@ -13,21 +13,22 @@ end
 
 -------------------------------------------------------------------------------
 --  Art that only needs desaturating and darkening: every texture under the
---  frame named root that isArt(texture) picks out. The search runs the first
---  time Dark mode is on; ns.AddDarkArtNow searches a frame that shows up
---  later right away.
+--  frame named root that isArt(texture) picks out, darkened to DARK or to
+--  what darkness(texture) returns. The search runs the first time Dark mode
+--  is on; ns.AddDarkArtNow searches a frame that shows up later right away.
 -------------------------------------------------------------------------------
 local DARK = 0.4
 local art = {}       -- [texture] = Blizzard's desaturation
-local sources = {}   -- { root, isArt } not searched yet
+local darknessOf = {}  -- [texture] = its darkness function, if it has one
+local sources = {}   -- { root, isArt, darkness } not searched yet
 
-function ns.AddDarkArt(root, isArt)
-    sources[#sources + 1] = { root, isArt }
+function ns.AddDarkArt(root, isArt, darkness)
+    sources[#sources + 1] = { root, isArt, darkness }
 end
 
 local function Paint(tex)
     local dark = ns.Get("darkMode")
-    local v = dark and DARK or 1
+    local v = dark and (darknessOf[tex] and darknessOf[tex](tex) or DARK) or 1
     -- Some art is see-through by its vertex color's alpha (a bag slot's
     -- extended rim).
     local _, _, _, a = tex:GetVertexColor()
@@ -39,15 +40,16 @@ local function Repaint(tex)
     if ns.Get("darkMode") then Paint(tex) end
 end
 
-local function Collect(frame, isArt)
+local function Collect(frame, isArt, darkness)
     for _, r in ipairs({ frame:GetRegions() }) do
         if r:GetObjectType() == "Texture" and art[r] == nil and isArt(r) then
-            art[r] = r:IsDesaturated()
+            art[r], darknessOf[r] = r:IsDesaturated(), darkness
+            -- Blizzard swaps the atlas on some (a bar's empty-slot rims).
             hooksecurefunc(r, "SetAtlas", Repaint)
             Repaint(r)
         end
     end
-    for _, child in ipairs({ frame:GetChildren() }) do Collect(child, isArt) end
+    for _, child in ipairs({ frame:GetChildren() }) do Collect(child, isArt, darkness) end
 end
 
 ns.AddDarkArtNow = Collect
@@ -92,7 +94,7 @@ ns.RegisterFeature({
     key = "darkMode", label = "Dark mode", default = false,
     apply = function()
         if ns.Get("darkMode") then
-            for _, source in ipairs(sources) do Collect(_G[source[1]], source[2]) end
+            for _, source in ipairs(sources) do Collect(_G[source[1]], source[2], source[3]) end
             wipe(sources)
         end
         for tex in pairs(art) do Paint(tex) end

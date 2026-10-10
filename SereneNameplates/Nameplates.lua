@@ -47,8 +47,9 @@ function NP.SetFont(fs, delta)
     ns.SetShadow(fs, shadow)
 end
 
--- Modules: { create(plate), attach(plate, unit), detach(plate), layout(plate) },
--- every hook optional.
+-- Modules: { create(plate), attach(plate, unit), detach(plate), layout(plate),
+-- event(plate, event) }, every hook optional. event gets the unit events a
+-- module registered on the plate in attach; detach unregisters them.
 function NP.RegisterModule(m)
     NP.modules[#NP.modules + 1] = m
 end
@@ -156,6 +157,43 @@ end
 -- Icons left of the health bar, nearest first; hidden ones take no room, so
 -- the quest icon never moves.
 local LEFT = { "quest", "tapIcon" }
+
+-- A frame that hangs under one plate at a time (the combo point row, the
+-- mana bar), at plate[key] for NP.StackBelow. size() fits it to the plate
+-- settings; onTarget() runs when the target's plate is attached. Returns
+-- Move(plate), which puts it on plate (nil takes it off), and Owner().
+function NP.MovingRow(frame, key, size, onTarget)
+    local owner
+    local function Move(plate)
+        if plate == owner then return end
+        if owner then
+            owner[key] = nil
+            NP.StackBelow(owner)
+        end
+        owner = plate
+        if not plate then
+            frame:Hide()
+            return
+        end
+        plate[key] = frame
+        frame:SetParent(plate)
+        size()
+        NP.StackBelow(plate)
+        frame:Show()
+    end
+    NP.RegisterModule({
+        attach = function(_, unit)
+            if Clean(UnitIsUnit(unit, "target")) then onTarget() end
+        end,
+        detach = function(plate)
+            if plate == owner then Move(nil) end
+        end,
+        layout = function(plate)
+            if plate == owner then size() end
+        end,
+    })
+    return Move, function() return owner end
+end
 
 function NP.StackLeft(plate)
     local anchor, x = plate.health, -2
@@ -319,9 +357,11 @@ end
 local function UpdateHealthColor(plate)
     local unit = plate.unit
     -- The tapped icon rides along: it changes on the same events as the color.
-    local tapped = Clean(UnitIsTapDenied(unit))
-    plate.tapIcon:SetShown(tapped or false)
-    NP.StackLeft(plate)
+    local tapped = Clean(UnitIsTapDenied(unit)) or false
+    if plate.tapIcon:IsShown() ~= tapped then
+        plate.tapIcon:SetShown(tapped)
+        NP.StackLeft(plate)
+    end
     local c
     -- On its threat list = the mob is fighting you (Blizzard's test).
     local status = Clean(UnitThreatSituation("player", unit))
@@ -452,6 +492,8 @@ OnPlateEvent = function(plate, event)
         UpdateHealthColor(plate)
     elseif event == "UNIT_NAME_UPDATE" or event == "UNIT_LEVEL" or event == "UNIT_CLASSIFICATION_CHANGED" then
         UpdateName(plate)
+    else
+        RunModules("event", plate, event)
     end
 end
 
@@ -609,6 +651,12 @@ end)
 local function Relayout() if NP.layoutGen then NP.Relayout() end end
 NP.ApplyRelayout = Relayout
 
+-- Settings that only change colors and texts.
+local function Recolor()
+    if not NP.layoutGen then return end
+    for _, plate in pairs(NP.plates) do UpdateAll(plate) end
+end
+
 -- Threat colors first, so their groups head the options page. Font and
 -- sizes are in NameplateLook.lua, after the cast bar and debuff toggles, so
 -- the options page lists every toggle first.
@@ -616,7 +664,7 @@ ns.RegisterFeature({
     key = "nameplateThreat", label = "Select role", section = "Nameplates", category = "Threat colors",
     space = true, closed = true,
     type = "dropdown", default = "auto",
-    apply = Relayout,
+    apply = Recolor,
     options = function()
         return {
             { value = "auto", label = "Auto" },
@@ -638,14 +686,14 @@ for _, c in ipairs({
 }) do
     ns.RegisterFeature({
         key = c[1], label = c[3], section = "Nameplates", category = "Threat colors", sub = c[2], type = "color",
-        default = c[4], beside = c[5], apply = Relayout,
+        default = c[4], beside = c[5], apply = Recolor,
         closed = c[3] == "Your aggro",  -- each role's first color
     })
 end
 ns.RegisterFeature({
-    key = "nameplateLevel", label = "Show target level", section = "Nameplates", category = "Settings", apply = Relayout,
+    key = "nameplateLevel", label = "Show target level", section = "Nameplates", category = "Settings", apply = Recolor,
 })
 ns.RegisterFeature({
     key = "nameplateHealthText", label = "Show target health", section = "Nameplates", category = "Settings",
-    beside = true, apply = Relayout,
+    beside = true, apply = Recolor,
 })

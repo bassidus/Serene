@@ -28,8 +28,20 @@ local function SetCurrent(bar, textString, value)
     textString:SetText(text)
 end
 
+-- Current is picked and Blizzard shows "current / max"; read on every
+-- change of either, not on every bar update.
+local currentOnly = false
+
+local function ReadCurrentOnly()
+    currentOnly = ns.Get(FORMAT) == "current" and GetCVar("statusTextDisplay") == "NUMERIC"
+end
+
+-- Listens from the first apply, once SereneDB is loaded.
+local cvarWatcher = CreateFrame("Frame")
+cvarWatcher:SetScript("OnEvent", ReadCurrentOnly)
+
 local function CurrentOnly(bar, textString, value)
-    if ns.Get(FORMAT) ~= "current" or GetCVar("statusTextDisplay") ~= "NUMERIC" then return end
+    if not currentOnly then return end
     if not textString:IsShown() or bar.isZero or bar.numericDisplayTransformFunc or bar.disableMaxValue then
         return
     end
@@ -38,22 +50,15 @@ local function CurrentOnly(bar, textString, value)
     SetCurrent(bar, textString, value)
 end
 
-local hooked
-
-local function HookBars()
-    if hooked then return end
-    hooked = true
-    for _, frame in ipairs(FRAMES) do
-        for _, bar in ipairs(ns.UnitFrameParts(frame).bars) do
-            hooksecurefunc(bar, "UpdateTextStringWithValues", CurrentOnly)
-        end
+for _, frame in ipairs(FRAMES) do
+    for _, bar in ipairs(ns.UnitFrameParts(frame).bars) do
+        hooksecurefunc(bar, "UpdateTextStringWithValues", CurrentOnly)
     end
 end
 
 local lastFormat
 
 function ns.ApplyNumbersFormat()
-    HookBars()
     local value = ns.Get(FORMAT)
     local mode = TEXT_MODES[value]
     -- Current and Current / max share a CVar value, so the option itself
@@ -62,6 +67,8 @@ function ns.ApplyNumbersFormat()
     local changed = display ~= mode or lastFormat ~= value
     lastFormat = value
     if display ~= mode then SetCVar("statusTextDisplay", mode) end
+    ReadCurrentOnly()
+    cvarWatcher:RegisterEvent("CVAR_UPDATE")
     -- The bars only redraw their text when "statusText" changes or the value
     -- does, so at full health a new mode would not show until a hit.
     -- Changing "statusText" lets Blizzard's own CVAR_UPDATE handler redraw
@@ -110,7 +117,7 @@ end
 local alignDone = {}  -- [frame] = false until its bars follow the setting
 for _, frame in ipairs(FRAMES) do alignDone[frame] = false end
 
-hooksecurefunc("UnitFrame_Update", function(frame)
+ns.OnUnitFrameUpdate(function(frame)
     if alignDone[frame] == false then alignDone[frame] = AlignBars(frame) end
 end)
 
@@ -125,13 +132,14 @@ end
 -------------------------------------------------------------------------------
 local HOVER_KEY = "unitFrameNumbersHover"
 
+local PARTY = { PartyFrame.MemberFrame1, PartyFrame.MemberFrame2, PartyFrame.MemberFrame3, PartyFrame.MemberFrame4 }
+
 local HIDE = {  -- [setting] = its frames
     unitFrameNumbersHidePlayer = { PlayerFrame },
     unitFrameNumbersHideTarget = { TargetFrame },
     unitFrameNumbersHideFocus  = { FocusFrame },
     unitFrameNumbersHidePet    = { PetFrame },
-    unitFrameNumbersHideParty  = { PartyFrame.MemberFrame1, PartyFrame.MemberFrame2,
-                                   PartyFrame.MemberFrame3, PartyFrame.MemberFrame4 },
+    unitFrameNumbersHideParty  = PARTY,
 }
 
 local hideKey = {}  -- [frame] = its setting
@@ -154,10 +162,7 @@ end
 -- frames take the mouse well outside their art, and parts of the pet frame
 -- (its name, the gap between its bars) take none. The pet frame lies inside
 -- the player frame's area and comes first.
-local BY_ART = {
-    PetFrame, PartyFrame.MemberFrame1, PartyFrame.MemberFrame2, PartyFrame.MemberFrame3,
-    PartyFrame.MemberFrame4, PlayerFrame, TargetFrame, FocusFrame,
-}
+local BY_ART = { PetFrame, PARTY[1], PARTY[2], PARTY[3], PARTY[4], PlayerFrame, TargetFrame, FocusFrame }
 
 local function UnitFrameUnderMouse()
     for _, frame in ipairs(BY_ART) do
@@ -165,9 +170,13 @@ local function UnitFrameUnderMouse()
     end
 end
 
--- Watched every frame while Show on mouseover has something to show.
+-- Watched 20 times a second while Show on mouseover has something to show.
 local watcher = CreateFrame("Frame")
-local function Watch()
+local watchElapsed = 0
+local function Watch(_, elapsed)
+    watchElapsed = watchElapsed + elapsed
+    if watchElapsed < 0.05 then return end
+    watchElapsed = 0
     local frame = UnitFrameUnderMouse()
     if frame == hovered then return end
     local old = hovered

@@ -144,8 +144,8 @@ end
 -- offsets divided by the scale.
 local function Anchor(frame)
     if not anchors[frame] then return end  -- scaleOnly
-    if not (scaled[frame] or placed[frame] or Spot(frame)) or Locked(frame) then return end
     local spot = Spot(frame)
+    if not (scaled[frame] or placed[frame] or spot) or Locked(frame) then return end
     busy = true
     if spot then
         local r = Ratio(frame)

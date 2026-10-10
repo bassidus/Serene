@@ -33,8 +33,7 @@ ns.featureByKey = {}
 --   specials   color: { { value =, label =, swatch = }, ... } before
 --              the palette; swatch returns the hex(es) the word stands for
 --   blizzard   outline: fn returning Blizzard's own flags, shown on "default"
---   note       text always shown under the control
---   tooltip    checkbox: a line shown on hover
+--   tooltip    checkbox: a line shown on hover; dropdown: the same over its label
 --   space      an empty row above the control
 --   closed     on a category's (or subgroup's) first setting: it starts closed
 --   beside     on a category's first setting: that category goes right of the
@@ -99,6 +98,45 @@ ns.ACTION_BUTTONS = {
     { "StanceButton",              "SHAPESHIFTBUTTON",      10 },
     { "PetActionButton",           "BONUSACTIONBUTTON",     10 },
 }
+
+-- fn(button) for every button in ns.ACTION_BUTTONS.
+function ns.EachActionButton(fn)
+    for _, bar in ipairs(ns.ACTION_BUTTONS) do
+        for i = 1, bar[3] do fn(_G[bar[1] .. i]) end
+    end
+end
+
+-- fn(chatFrame) once for every chat window, now and for each whisper window
+-- opened later.
+local chatHandlers = {}  -- { fn =, done = { [chat frame] = true } }
+
+local function RunChatHandler(h)
+    for _, name in ipairs(CHAT_FRAMES) do
+        local frame = _G[name]
+        if not h.done[frame] then
+            h.done[frame] = true
+            h.fn(frame)
+        end
+    end
+end
+
+function ns.EachChatWindow(fn)
+    local h = { fn = fn, done = {} }
+    chatHandlers[#chatHandlers + 1] = h
+    RunChatHandler(h)
+end
+
+hooksecurefunc("FCF_OpenTemporaryWindow", function()
+    for _, h in ipairs(chatHandlers) do RunChatHandler(h) end
+end)
+
+-- A global string like "%s has been reset." as a pattern for the whole line:
+-- %s, %d and %.1f become captures, numbered as in the string.
+function ns.FormatPattern(fmt)
+    local p = fmt:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")
+    p = p:gsub("%%%%s", "(.-)"):gsub("%%%%d", "(%%d+)"):gsub("%%%%%%%.%df", "([%%d%%.]+)")
+    return "^" .. p .. "$"
+end
 
 -- Extra state a feature wants cleared by Restore defaults (e.g. a moved
 -- frame's spot); fn runs before the features re-apply.
@@ -263,8 +301,9 @@ function ns.FlashTip(owner, text)
     end)
 end
 
+local PRINT_PREFIX = CreateColor(unpack(ns.ACCENT)):WrapTextInColorCode("Serene:") .. " "
 function ns.Print(msg)
-    DEFAULT_CHAT_FRAME:AddMessage(CreateColor(unpack(ns.ACCENT)):WrapTextInColorCode("Serene:") .. " " .. msg)
+    DEFAULT_CHAT_FRAME:AddMessage(PRINT_PREFIX .. msg)
 end
 
 -------------------------------------------------------------------------------

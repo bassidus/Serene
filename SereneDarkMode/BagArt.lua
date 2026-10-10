@@ -59,20 +59,20 @@ local function AddTint(tex, factor)
     factors[tex] = factor
     hooksecurefunc(tex, "SetVertexColor", function(self, r, g, b, a)
         if tinting then return end
-        colors[self] = { r, g, b, a or 1 }
+        local c = colors[self]
+        c[1], c[2], c[3], c[4] = r, g, b, a or 1
         Tint(self)
     end)
     Tint(tex)
 end
 
-ns.OnDarkMode(function()
-    for tex in pairs(colors) do Tint(tex) end
-end)
-
+-------------------------------------------------------------------------------
+--  Nothing is searched or hooked until Dark mode is on.
 -------------------------------------------------------------------------------
 local searched = {}  -- [bag window or slot button] = true once searched
 
 local function Update(bag)
+    if not ns.Get("darkMode") then return end
     if not searched[bag] then
         searched[bag] = true
         ns.AddDarkArtNow(bag, IsArt)
@@ -90,9 +90,18 @@ local function Update(bag)
     end
 end
 
-hooksecurefunc(ContainerFrameCombinedBags, "UpdateItems", Update)
+local BAGS = { ContainerFrameCombinedBags }
 local i = 1
 while _G["ContainerFrame" .. i] do
-    hooksecurefunc(_G["ContainerFrame" .. i], "UpdateItems", Update)
+    BAGS[#BAGS + 1] = _G["ContainerFrame" .. i]
     i = i + 1
 end
+for _, bag in ipairs(BAGS) do hooksecurefunc(bag, "UpdateItems", Update) end
+
+-- Turned on with bags open: those are searched now, the rest as they open.
+ns.OnDarkMode(function()
+    for _, bag in ipairs(BAGS) do
+        if bag:IsShown() then Update(bag) end
+    end
+    for tex in pairs(colors) do Tint(tex) end
+end)

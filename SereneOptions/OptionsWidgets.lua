@@ -59,7 +59,6 @@ local STYLES = {
     POPUP  = { fill = { 0.09, 0.059, 0.043, 0.98 }, glow = { 0.227, 0.106, 0.063 }, line = { 0.42, 0.24, 0.14, 1 } },
     FIELD  = { fill = { 0, 0, 0, 0.55 }, line = { 0.63, 0.39, 0.24, 0.6 } },
 }
-W.LINE = STYLES.GROUP.line
 
 -- Texcoords turning the top-left quarter into each corner.
 local CORNERS = {
@@ -344,6 +343,17 @@ function W.RedButton(btn, label, opts)
     return btn
 end
 
+-- A button that runs /reload: the Forever client blocks ReloadUI() from
+-- addon code, so it is a secure macro button (the click is the player's).
+function W.ReloadButton(parent)
+    local btn = CreateFrame("Button", nil, parent, "InsecureActionButtonTemplate")
+    btn:RegisterForClicks("AnyUp")
+    btn:SetAttribute("useOnKeyDown", false)
+    btn:SetAttribute("type", "macro")
+    btn:SetAttribute("macrotext", "/reload")
+    return btn
+end
+
 local function PlayClick()
     PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 end
@@ -398,6 +408,14 @@ local function OptionLabel(f, value)
     return s:match("([^\\/]+)$") or s
 end
 
+-- A setting's one-line tooltip, at the default anchor so Serene Tooltip's
+-- cursor anchor and offsets place it like every other tooltip.
+local function ShowTip(owner, text)
+    GameTooltip_SetDefaultAnchor(GameTooltip, owner)
+    GameTooltip:SetText(text, 1, 1, 1, 1, true)
+    GameTooltip:Show()
+end
+
 -------------------------------------------------------------------------------
 --  Checkbox -- bound to f.key, or to f.get()/f.set(on) for state that is not
 --  in SereneDB.
@@ -426,13 +444,7 @@ function W.Checkbox(parent, f)
         if f.set then f.set(not Checked()) else ns.SetValue(f.key, not Checked()) end
     end)
     if f.tooltip then
-        -- The default anchor, so Serene Tooltip's cursor anchor and offsets
-        -- place it like every other tooltip.
-        row:HookScript("OnEnter", function(self)
-            GameTooltip_SetDefaultAnchor(GameTooltip, self)
-            GameTooltip:SetText(f.tooltip, 1, 1, 1, 1, true)
-            GameTooltip:Show()
-        end)
+        row:HookScript("OnEnter", function(self) ShowTip(self, f.tooltip) end)
         row:HookScript("OnLeave", GameTooltip_Hide)
     end
 
@@ -584,27 +596,37 @@ end
 -------------------------------------------------------------------------------
 -- Without labelText the button sits at the top, e.g. right under the
 -- checkbox it belongs to. Inline: the label on the left of the row, level
--- with the button at its right.
-local function Field(parent, labelText, onClick, inline)
+-- with the button at its right. tooltip shows over the label's text.
+local function Field(parent, labelText, onClick, inline, tooltip)
     local holder = CreateFrame("Frame", nil, parent)
     holder:SetHeight(labelText and not inline and 50 or 30)
 
     local btn = CreateFrame("Button", nil, holder)
     btn:SetSize(W.CONTROL_W, 24)
+    local label
     if labelText and inline then
         btn:SetPoint("TOPRIGHT", 0, 0)
-        local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         label:SetPoint("LEFT", holder, "TOPLEFT", 0, -12)
         label:SetPoint("RIGHT", btn, "LEFT", -8, 0)
         label:SetJustifyH("LEFT")
         label:SetText(labelText)
     elseif labelText then
-        local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         label:SetPoint("TOPLEFT", 0, 0)
         label:SetText(labelText)
         btn:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
     else
         btn:SetPoint("TOPLEFT", 0, 0)
+    end
+    if label and tooltip then
+        -- A text takes no mouse, so a frame over the words themselves does.
+        local hover = CreateFrame("Frame", nil, holder)
+        hover:SetPoint("LEFT", label, "LEFT")
+        hover:SetSize(math.ceil(label:GetStringWidth()), math.ceil(label:GetStringHeight()))
+        hover:EnableMouse(true)
+        hover:SetScript("OnEnter", function(self) ShowTip(self, tooltip) end)
+        hover:SetScript("OnLeave", GameTooltip_Hide)
     end
     btn.panel = W.Panel(btn, "FIELD")
 
@@ -646,22 +668,15 @@ local function AsButton(btn, text, arrow, label)
 end
 
 -------------------------------------------------------------------------------
---  Dropdown -- bound to f.key, or to f.get()/f.set(value) for state that is
---  not in SereneDB.
+--  Dropdown
 -------------------------------------------------------------------------------
 function W.Dropdown(parent, f)
-    local function Value()
-        if f.get then return f.get() end
-        return ns.Get(f.key)
-    end
     local holder, btn, text = Field(parent, not f.hideLabel and f.label, function(self)
-        W.OpenMenu(self, f.options(), Value(), function(v)
-            if f.set then f.set(v) else ns.SetValue(f.key, v) end
-        end, f.preview)
-    end, f.inline)
+        W.OpenMenu(self, f.options(), ns.Get(f.key), function(v) ns.SetValue(f.key, v) end, f.preview)
+    end, f.inline, f.tooltip)
 
     function holder.Refresh()
-        local value = Value()
+        local value = ns.Get(f.key)
         if f.preview then SetPreviewFont(text, value) end
         text:SetText(OptionLabel(f, value))
         btn:SetEnabled(Available(holder, f))
@@ -767,7 +782,6 @@ function W.Color(parent, f, labeled)
     end
     holder:SetHeight(SWATCH - top)
 
-    -- Every color setting sits under a category, whose "?" explains it.
     local choices = {}  -- { button, edges, value (special word or hex), [fill] }
     local function Choice(button, value)
         local c = { button = button, value = value }

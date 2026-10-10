@@ -39,14 +39,14 @@ end)
 -- "%s passed") comes first.
 local SHORT = {
     CHAT_MSG_LOOT = {
-        { LOOT_ITEM_SELF_MULTIPLE,        "+ %1x%2" },
-        { LOOT_ITEM_SELF,                 "+ %1" },
-        { LOOT_ITEM_PUSHED_SELF_MULTIPLE, "+ %1x%2" },
-        { LOOT_ITEM_PUSHED_SELF,          "+ %1" },
-        { LOOT_ITEM_CREATED_SELF_MULTIPLE, "+ %1x%2" },
-        { LOOT_ITEM_CREATED_SELF,         "+ %1" },
-        { LOOT_ITEM_MULTIPLE,             "%1: + %2x%3" },
-        { LOOT_ITEM,                      "%1: + %2" },
+        { LOOT_ITEM_SELF_MULTIPLE,        "+%2 %1" },
+        { LOOT_ITEM_SELF,                 "+1 %1" },
+        { LOOT_ITEM_PUSHED_SELF_MULTIPLE, "+%2 %1" },
+        { LOOT_ITEM_PUSHED_SELF,          "+1 %1" },
+        { LOOT_ITEM_CREATED_SELF_MULTIPLE, "+%2 %1" },
+        { LOOT_ITEM_CREATED_SELF,         "+1 %1" },
+        { LOOT_ITEM_MULTIPLE,             "%1: +%3 %2" },
+        { LOOT_ITEM,                      "%1: +1 %2" },
         -- Group loot rolls. Blizzard's [Loot] link in front (loot history)
         -- is left out; the history is still on its own window.
         { LOOT_ROLL_NEED,                 "%2: Need %3" },
@@ -82,12 +82,12 @@ local SHORT = {
         { LOOT_ROLL_STARTED,              "Roll: %2" },
     },
     CHAT_MSG_MONEY = {
-        { YOU_LOOT_MONEY,   "+ %1" },
-        { LOOT_MONEY_SPLIT, "+ %1" },
+        { YOU_LOOT_MONEY,   "+%1" },
+        { LOOT_MONEY_SPLIT, "+%1" },
     },
     CHAT_MSG_CURRENCY = {
-        { CURRENCY_GAINED_MULTIPLE, "+ %1x%2" },
-        { CURRENCY_GAINED,          "+ %1" },
+        { CURRENCY_GAINED_MULTIPLE, "+%2 %1" },
+        { CURRENCY_GAINED,          "+1 %1" },
     },
     -- "(+10 exp Rested bonus)" -> "(+10 Rested)", "(+5 group bonus)" ->
     -- "(+5 group)". EXHAUSTION2 and 5 read the same as 1 and 4.
@@ -108,50 +108,50 @@ local SHORT = {
     },
     CHAT_MSG_SYSTEM = {
         { ERR_QUEST_REWARD_EXP_I,   "+%1 XP" },
-        { ERR_QUEST_REWARD_MONEY_S, "+ %1" },
+        { ERR_QUEST_REWARD_MONEY_S, "+%1" },
         { ERR_ZONE_EXPLORED_XP,     "+%2 XP - Discovered %1" },
-        { ERR_QUEST_ACCEPTED_S,     "+ Quest: %1" },
+        { ERR_QUEST_ACCEPTED_S,     "+Quest: %1" },
         -- Learning
-        { ERR_LEARN_SPELL_S,         "+ Spell: %1" },
-        { ERR_LEARN_ABILITY_S,       "+ Ability: %1" },
-        { ERR_LEARN_PASSIVE_S,       "+ Passive: %1" },
-        { ERR_LEARN_RECIPE_S,        "+ Recipe: %1" },
-        { ERR_LEARN_MOUNT_S,         "+ Mount: %1" },
-        { ERR_LEARN_COMPANION_S,     "+ Pet: %1" },
-        { ERR_LEARN_TOY_S,           "+ Toy: %1" },
-        { ERR_LEARN_TRANSMOG_S,      "+ Appearance: %1" },
-        { ERR_PET_LEARN_SPELL_S,     "+ Pet spell: %1" },
-        { ERR_PET_LEARN_ABILITY_S,   "+ Pet ability: %1" },
-        { ERR_SPELL_UNLEARNED_S,     "- Spell: %1" },
-        { ERR_PET_SPELL_UNLEARNED_S, "- Pet spell: %1" },
-        { ERR_PROFICIENCY_GAINED_S,  "+ Proficiency: %1" },
+        { ERR_LEARN_SPELL_S,         "+Spell: %1" },
+        { ERR_LEARN_ABILITY_S,       "+Ability: %1" },
+        { ERR_LEARN_PASSIVE_S,       "+Passive: %1" },
+        { ERR_LEARN_RECIPE_S,        "+Recipe: %1" },
+        { ERR_LEARN_MOUNT_S,         "+Mount: %1" },
+        { ERR_LEARN_COMPANION_S,     "+Pet: %1" },
+        { ERR_LEARN_TOY_S,           "+Toy: %1" },
+        { ERR_LEARN_TRANSMOG_S,      "+Appearance: %1" },
+        { ERR_PET_LEARN_SPELL_S,     "+Pet spell: %1" },
+        { ERR_PET_LEARN_ABILITY_S,   "+Pet ability: %1" },
+        { ERR_SPELL_UNLEARNED_S,     "-Spell: %1" },
+        { ERR_PET_SPELL_UNLEARNED_S, "-Pet spell: %1" },
+        { ERR_PROFICIENCY_GAINED_S,  "+Proficiency: %1" },
         -- Rest
-        { ERR_EXHAUSTION_WELLRESTED, "+ Well rested" },
-        { ERR_EXHAUSTION_RESTED,     "+ Rested" },
-        { ERR_EXHAUSTION_NORMAL,     "- Rested" },
-        { ERR_EXHAUSTION_TIRED,      "+ Tired" },
-        { ERR_EXHAUSTION_EXHAUSTED,  "+ Exhausted" },
+        { ERR_EXHAUSTION_WELLRESTED, "+Well rested" },
+        { ERR_EXHAUSTION_RESTED,     "+Rested" },
+        { ERR_EXHAUSTION_NORMAL,     "-Rested" },
+        { ERR_EXHAUSTION_TIRED,      "+Tired" },
+        { ERR_EXHAUSTION_EXHAUSTED,  "+Exhausted" },
         -- Friends and group
-        { ERR_FRIEND_ONLINE_SS,      "+ |Hplayer:%1|h[%2]|h online" },
-        { ERR_FRIEND_OFFLINE_S,      "- %1 offline" },
-        { ERR_JOINED_GROUP_S,        "+ %1 (party)" },
-        { ERR_LEFT_GROUP_S,          "- %1 (party)" },
-        { ERR_RAID_MEMBER_ADDED_S,   "+ %1 (raid)" },
-        { ERR_RAID_MEMBER_REMOVED_S, "- %1 (raid)" },
-        { ERR_LEFT_GROUP_YOU,        "- Group" },
+        { ERR_FRIEND_ONLINE_SS,      "+|Hplayer:%1|h[%2]|h online" },
+        { ERR_FRIEND_OFFLINE_S,      "-%1 offline" },
+        { ERR_JOINED_GROUP_S,        "+%1 (party)" },
+        { ERR_LEFT_GROUP_S,          "-%1 (party)" },
+        { ERR_RAID_MEMBER_ADDED_S,   "+%1 (raid)" },
+        { ERR_RAID_MEMBER_REMOVED_S, "-%1 (raid)" },
+        { ERR_LEFT_GROUP_YOU,        "-Group" },
     },
     -- rest: whatever follows the string stays (%3), e.g. " (+10.0 Rested bonus)".
     CHAT_MSG_COMBAT_FACTION_CHANGE = {
-        { FACTION_STANDING_INCREASED,                 "+ %2 rep %1%3", rest = true },
-        { FACTION_STANDING_DECREASED,                 "- %2 rep %1%3", rest = true },
-        { FACTION_STANDING_INCREASED_ACCOUNT_WIDE,    "+ %2 rep %1 (account)%3", rest = true },
-        { FACTION_STANDING_DECREASED_ACCOUNT_WIDE,    "- %2 rep %1 (account)%3", rest = true },
-        { FACTION_STANDING_INCREASED_GENERIC,         "+ rep %1" },
-        { FACTION_STANDING_DECREASED_GENERIC,         "- rep %1" },
+        { FACTION_STANDING_INCREASED,                 "+%2 rep %1%3", rest = true },
+        { FACTION_STANDING_DECREASED,                 "-%2 rep %1%3", rest = true },
+        { FACTION_STANDING_INCREASED_ACCOUNT_WIDE,    "+%2 rep %1 (account)%3", rest = true },
+        { FACTION_STANDING_DECREASED_ACCOUNT_WIDE,    "-%2 rep %1 (account)%3", rest = true },
+        { FACTION_STANDING_INCREASED_GENERIC,         "+rep %1" },
+        { FACTION_STANDING_DECREASED_GENERIC,         "-rep %1" },
     },
     -- One line per point gained.
     CHAT_MSG_SKILL = {
-        { SKILL_RANK_UP, "+ 1 %1 (%2)" },
+        { SKILL_RANK_UP, "+1 %1 (%2)" },
     },
 }
 
@@ -206,18 +206,29 @@ local function ShortBonus(text)
     return text
 end
 
+-- A gain's + in green and a loss's - in red (the palette's Green and Red):
+-- at the start of the line, right after a name ("Name: +[Item]") and before
+-- a number in a bonus ("(+10 rested)", ", -5 raid"). A dash between words
+-- ("+70 XP - Quest completed") stays as it is.
+local SIGN = { ["+"] = "|cff40d940+|r", ["-"] = "|cffff4d1a-|r" }
+local function Signs(text)
+    text = text:gsub("^[%+%-]", SIGN, 1)
+    text = text:gsub("(: )([%+%-])", function(before, sign) return before .. SIGN[sign] end, 1)
+    return (text:gsub("([%(,] ?)([%+%-])(%d)", function(before, sign, digit) return before .. SIGN[sign] .. digit end))
+end
+
 local function ShortText(frame, event, text, ...)
     if not ns.Get("chatShortText") then return false end
     if event == "CHAT_MSG_SYSTEM" then
         local quest = QuestLine(frame, text)
         if quest == true then return true end
-        if quest then return false, quest, ... end
+        if quest then return false, Signs(quest), ... end
     end
     for _, p in ipairs(SHORT[event]) do
         local short, n = text:gsub(p[1], p[2], 1)
         if n > 0 then
             if p.rest then short = ShortBonus(short) end
-            return false, short, ...
+            return false, Signs(short), ...
         end
     end
     return false

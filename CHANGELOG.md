@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.2 (2026-10-10)
+
+### Changed
+- Options: on a small screen the whole window shrinks to fit instead of getting shorter.
+
+### Fixed
+- Chat: the bottom line is no longer cut off, so letters like g, p and y show in full.
+- Action bars: a little more space above the Edit Mode layout line at the bottom of the page.
+
 ## 1.5.1 (2026-10-09)
 
 ### New

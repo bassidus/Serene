@@ -89,11 +89,20 @@ end
 
 local spaced = {}  -- chat frame -> true once its layout is hooked
 
+-- Blizzard sets the newest line on the window's bottom edge, where the
+-- window cuts off the letters that reach below the line.
+local BOTTOM_PAD = 4
+
 -- Blizzard puts the font's spacing both between a message's wrapped lines
 -- and between messages. The font keeps none, so a message stays together,
 -- and the messages are moved apart after each layout.
 local function SpaceMessages(frame)
     local gap, lines = ns.Get("chatMessageSpacing"), frame.visibleLines
+    local first = lines[1]
+    for i = 1, first:GetNumPoints() do
+        local point, relative, relativePoint, x = first:GetPoint(i)
+        first:SetPoint(point, relative, relativePoint, x, BOTTOM_PAD)
+    end
     for i = 2, #lines do
         lines[i]:SetPoint("BOTTOMLEFT", lines[i - 1], "TOPLEFT", 0, gap)
     end

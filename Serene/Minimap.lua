@@ -97,7 +97,12 @@ local function Register()
     })
     DBIcon:Register("Serene", launcher, SereneDB.minimap)
     -- The round logo has its own dark face and fills the border at 20px
-    -- (LibDBIcon uses 17); the offset is checked by eye in game.
+    -- (LibDBIcon uses 17); the offset is checked by eye in game. Border and
+    -- background are pinned too: from minor 57 LibDBIcon sees Forever as
+    -- retail (AddonCompartmentFrame exists) and shrinks the border, and
+    -- another addon's newer copy of the library wins over ours.
+    DBIcon:SetButtonBorder("Serene", nil, 53, "TOPLEFT", 0, 0)
+    DBIcon:SetButtonBackground("Serene", nil, 20, "TOPLEFT", 7, -5)
     DBIcon:SetButtonIcon("Serene", nil, 20, "TOPLEFT", 7, -6)
     iconButton = DBIcon:GetMinimapButton("Serene")
     AttachOverlay()

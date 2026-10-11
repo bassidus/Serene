@@ -16,8 +16,10 @@ local HOVER_CHECK = 0.05
 -- Bars 1-8 are numbered as in GetActionBarToggles.
 local BARS = {
     { id = "1", label = "Action Bar 1", frame = "MainActionBar" },
+    -- EndCaps' own rect sits over the bar; the art is in its two children.
     { id = "caps", label = UnitFactionGroup("player") == "Horde" and "Wyverns" or "Gryphons",
-      frame = "MainActionBar", field = "EndCaps" },
+      frame = "MainActionBar.EndCaps",
+      over = { "MainActionBar.EndCaps.LeftEndCap", "MainActionBar.EndCaps.RightEndCap" } },
     { id = "2", label = "Action Bar 2", frame = "MultiBarBottomLeft" },
     { id = "3", label = "Action Bar 3", frame = "MultiBarBottomRight" },
     { id = "4", label = "Action Bar 4", frame = "MultiBarRight" },
@@ -49,15 +51,23 @@ local watcher = CreateFrame("Frame")
 watcher:Hide()
 local hoverElapsed = 0
 
+-- A global frame, or a field of one as "Parent.Child".
+local function Resolve(path)
+    local frame
+    for name in path:gmatch("[^.]+") do
+        frame = frame and frame[name] or _G[name]
+    end
+    return frame
+end
+
 local function Frame(bar)
-    local frame = _G[bar.frame]
-    return bar.field and frame[bar.field] or frame
+    return Resolve(bar.frame)
 end
 
 local function MouseOver(bar)
     if not bar.over then return Clean(Frame(bar):IsMouseOver()) end
-    for _, name in ipairs(bar.over) do
-        local frame = _G[name]
+    for _, path in ipairs(bar.over) do
+        local frame = Resolve(path)
         if frame:IsShown() and Clean(frame:IsMouseOver()) then return true end
     end
 end

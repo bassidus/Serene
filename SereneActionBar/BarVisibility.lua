@@ -33,6 +33,9 @@ local BARS = {
       over = { "MainStatusTrackingBarContainer", "SecondaryStatusTrackingBarContainer" } },
 }
 
+-- The gryphons are a child of the first bar and would fade with it.
+MainActionBar.EndCaps:SetIgnoreParentAlpha(true)
+
 local ALWAYS = { always = true }
 local KEY = "barVisibility"
 

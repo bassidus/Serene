@@ -142,12 +142,12 @@ local SHORT = {
     },
     -- rest: whatever follows the string stays (%3), e.g. " (+10.0 Rested bonus)".
     CHAT_MSG_COMBAT_FACTION_CHANGE = {
-        { FACTION_STANDING_INCREASED,                 "+%2 rep %1%3", rest = true },
-        { FACTION_STANDING_DECREASED,                 "-%2 rep %1%3", rest = true },
-        { FACTION_STANDING_INCREASED_ACCOUNT_WIDE,    "+%2 rep %1 (account)%3", rest = true },
-        { FACTION_STANDING_DECREASED_ACCOUNT_WIDE,    "-%2 rep %1 (account)%3", rest = true },
-        { FACTION_STANDING_INCREASED_GENERIC,         "+rep %1" },
-        { FACTION_STANDING_DECREASED_GENERIC,         "-rep %1" },
+        { FACTION_STANDING_INCREASED,                 "+%2 %1 reputation%3", rest = true },
+        { FACTION_STANDING_DECREASED,                 "-%2 %1 reputation%3", rest = true },
+        { FACTION_STANDING_INCREASED_ACCOUNT_WIDE,    "+%2 %1 reputation (account)%3", rest = true },
+        { FACTION_STANDING_DECREASED_ACCOUNT_WIDE,    "-%2 %1 reputation (account)%3", rest = true },
+        { FACTION_STANDING_INCREASED_GENERIC,         "+%1 reputation" },
+        { FACTION_STANDING_DECREASED_GENERIC,         "-%1 reputation" },
     },
     -- One line per point gained.
     CHAT_MSG_SKILL = {

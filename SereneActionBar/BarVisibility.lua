@@ -13,7 +13,7 @@ local LINGER = 1   -- seconds a bar stays after the mouse left it
 local FADE = 0.3   -- seconds from hidden to shown and back
 local HOVER_CHECK = 0.05
 
--- Same numbering as GetActionBarToggles.
+-- Bars 1-8 are numbered as in GetActionBarToggles.
 local BARS = {
     { id = "1", label = "Action Bar 1", frame = "MainActionBar" },
     { id = "2", label = "Action Bar 2", frame = "MultiBarBottomLeft" },
@@ -25,6 +25,8 @@ local BARS = {
     { id = "8", label = "Action Bar 8", frame = "MultiBar7" },
     { id = "stance", label = "Stance Bar", frame = "StanceBar" },
     { id = "pet", label = "Pet Bar", frame = "PetActionBar" },
+    { id = "micro", label = "Micro Menu", frame = "MicroMenuContainer" },
+    { id = "bags", label = "Bags Bar", frame = "BagsBar" },
 }
 
 local ALWAYS = { always = true }

@@ -490,6 +490,8 @@ local function CreatePage(section)
             w = W.Button(content, f)
         elseif f.type == "text" then
             w = W.Text(content, f)
+        elseif f.type == "grid" then
+            w = W.Grid(content, f)
         else
             w = W.Checkbox(content, f)
         end

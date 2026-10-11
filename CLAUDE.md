@@ -16,7 +16,7 @@ QoL addon suite for WoW Forever (Interface 16001). Unreleased, one user.
 
 - The options page lists settings in registration order, so TOC file order matters. Some files exist only to register last (`NameplateLook.lua`).
 - `beside = true` puts a category, or a setting, to the right of the previous one.
-- `type = "custom"` with `build(parent)` puts your own frame in a category.
+- `type = "grid"` is a checkbox matrix for one table-valued setting (`rows`, `columns`, `rowDefault`, `exclusive`; see `W.Grid`).
 - Writes go through `ns.SetValue`, which applies the setting and refreshes the window.
 
 ## The client

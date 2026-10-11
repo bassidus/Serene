@@ -955,6 +955,74 @@ function W.Outline(parent, f)
 end
 
 -------------------------------------------------------------------------------
+--  Grid -- a checkbox per row and column for one setting whose value is a
+--  table { [row key] = { [column field] = true } }. f.rows is { { key =,
+--  label = }, ... }, f.columns { { field =, label = }, ... }; a row without
+--  an entry reads as f.rowDefault. f.exclusive names the column that
+--  excludes the others: ticking it clears them, ticking another clears it.
+-------------------------------------------------------------------------------
+local GRID_LABEL_W, GRID_COL_W, GRID_ROW_H = 112, 90, 26
+
+function W.Grid(parent, f)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetHeight(GRID_ROW_H * (#f.rows + 1))
+
+    local function RowValue(key)
+        return ns.Get(f.key)[key] or f.rowDefault
+    end
+
+    for c, col in ipairs(f.columns) do
+        local head = holder:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        head:SetPoint("TOPLEFT", GRID_LABEL_W + (c - 1) * GRID_COL_W, 0)
+        head:SetSize(GRID_COL_W, GRID_ROW_H)
+        head:SetText(col.label)
+    end
+
+    local cells, controls = {}, {}
+    for r, row in ipairs(f.rows) do
+        local y = -r * GRID_ROW_H
+        local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        label:SetPoint("TOPLEFT", 0, y)
+        label:SetSize(GRID_LABEL_W, GRID_ROW_H)
+        label:SetJustifyH("LEFT")
+        label:SetText(row.label)
+        for c, col in ipairs(f.columns) do
+            local btn = CreateFrame("Button", nil, holder)
+            btn:SetSize(GRID_COL_W, GRID_ROW_H)
+            btn:SetPoint("TOPLEFT", GRID_LABEL_W + (c - 1) * GRID_COL_W, y)
+            local box = W.CheckArt(btn, 26)
+            box:SetPoint("CENTER")
+            CheckRow(btn, box)
+            btn:SetScript("OnClick", function()
+                PlayClick()
+                local old, new = RowValue(row.key), {}
+                local on = not old[col.field]
+                if col.field ~= f.exclusive then
+                    for k, v in pairs(old) do new[k] = v end
+                    if f.exclusive then new[f.exclusive] = nil end
+                end
+                new[col.field] = on or nil
+                local value = {}
+                for k, v in pairs(ns.Get(f.key)) do value[k] = v end
+                value[row.key] = new
+                ns.SetValue(f.key, value)
+            end)
+            cells[#cells + 1] = { key = row.key, field = col.field, box = box }
+            controls[#controls + 1] = btn
+        end
+    end
+
+    function holder.Refresh()
+        for _, cell in ipairs(cells) do
+            cell.box.SetChecked(RowValue(cell.key)[cell.field])
+        end
+        local on = Available(holder, f)
+        for _, b in ipairs(controls) do b:SetEnabled(on) end
+    end
+    return holder
+end
+
+-------------------------------------------------------------------------------
 --  Slider
 -------------------------------------------------------------------------------
 local KNOB = 20

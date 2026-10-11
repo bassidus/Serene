@@ -16,6 +16,8 @@ local HOVER_CHECK = 0.05
 -- Bars 1-8 are numbered as in GetActionBarToggles.
 local BARS = {
     { id = "1", label = "Action Bar 1", frame = "MainActionBar" },
+    { id = "caps", label = UnitFactionGroup("player") == "Horde" and "Wyverns" or "Gryphons",
+      frame = "MainActionBar", field = "EndCaps" },
     { id = "2", label = "Action Bar 2", frame = "MultiBarBottomLeft" },
     { id = "3", label = "Action Bar 3", frame = "MultiBarBottomRight" },
     { id = "4", label = "Action Bar 4", frame = "MultiBarRight" },
@@ -33,7 +35,8 @@ local BARS = {
       over = { "MainStatusTrackingBarContainer", "SecondaryStatusTrackingBarContainer" } },
 }
 
--- The gryphons are a child of the first bar and would fade with it.
+-- The art at the bar's ends is a child of the first bar and would fade with
+-- it; it has its own row instead.
 MainActionBar.EndCaps:SetIgnoreParentAlpha(true)
 
 local ALWAYS = { always = true }
@@ -46,8 +49,13 @@ local watcher = CreateFrame("Frame")
 watcher:Hide()
 local hoverElapsed = 0
 
+local function Frame(bar)
+    local frame = _G[bar.frame]
+    return bar.field and frame[bar.field] or frame
+end
+
 local function MouseOver(bar)
-    if not bar.over then return Clean(_G[bar.frame]:IsMouseOver()) end
+    if not bar.over then return Clean(Frame(bar):IsMouseOver()) end
     for _, name in ipairs(bar.over) do
         local frame = _G[name]
         if frame:IsShown() and Clean(frame:IsMouseOver()) then return true end
@@ -74,7 +82,7 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
     local step = elapsed / FADE
 
     for _, bar in ipairs(BARS) do
-        local frame, rule, st = _G[bar.frame], Rule(bar), state[bar.id]
+        local frame, rule, st = Frame(bar), Rule(bar), state[bar.id]
         if frame:IsShown() then
             if checkHover and rule.hover and MouseOver(bar) then st.lastHover = now end
             local target = Target(rule, st, now)
@@ -97,7 +105,7 @@ local function Refresh()
             local st = state[bar.id]
             if st.alpha then
                 st.alpha = nil
-                _G[bar.frame]:SetAlpha(1)
+                Frame(bar):SetAlpha(1)
             end
         else
             watching = true

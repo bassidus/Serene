@@ -5,7 +5,7 @@
 ## <span style="color: #f65820;">Why Serene</span>
 
 *   **Modular:** every module is its own addon. Turn off the ones you don't want in the addon list or on the Modules page in the options.
-*   **Lightweight:** it updates on game events and never runs every frame. Settings you turn off cost next to nothing, and the options window only loads when you open it.
+*   **Lightweight:** it updates on game events and never runs every frame. Settings you turn off cost next to nothing.
 
 <hr color="#f65820" style="color: #f65820; border-color: #f65820;">
 
@@ -13,45 +13,32 @@
 
 *   **Action Bars**
     *   Out of range coloring
-    *   Short or hidden keybinds
-    *   Hidden macro names
+    *   Short or hidden keybinds and macro names
     *   Zoomed icons
-    *   Font and color of keybind and macro text
     *   New character settings
-        *   Choose which of bars 2-8 are turned on from the start
+        *   Choose which bars are turned on from the start
         *   Load an Edit Mode layout automatically
 *   **Dark Mode**
     *   Dark art in place of the bronze and gold on:
         *   Action bars, bag bar and experience bar
         *   Unit frames and minimap
         *   Quest tracker and bags
-    *   One checkbox at the bottom of the options
 *   **Nameplates**
     *   Flat enemy plates
-    *   Threat colors for tanks and damage dealers
+    *   Threat colors
     *   Cast bars, debuffs and combo points
-    *   The target's mana
     *   Quest progress
     *   Icon on enemies tagged by others
 *   **Move & Scale**
     *   Drag Blizzard's windows anywhere
     *   Ctrl + scroll to resize
     *   Middle-click to reset
-    *   Set each window's size in the options
-*   **Tooltip**
-    *   At the cursor or in Blizzard's spot
-    *   Own scale, opacity, font and border
-    *   Pick what it shows
-        *   Title, guild and rank, faction
-        *   Item level, target, health bar
-        *   AFK and DND
-        *   Spell and item IDs
-    *   No "Press F6" and right-click hints
+*   **Tooltip:** customizable position, scale, font and border
 *   **Unit Frames**
     *   Class colors and smooth bars
-    *   Fonts
+    *   Customizable fonts
     *   Health and mana numbers: format, alignment, only on mouseover
-    *   No damage numbers on portraits
+    *   Hide damage numbers on portraits
     *   Player frame
         *   No resting glow or Zzz
         *   Blue glow in stealth
@@ -59,11 +46,11 @@
 ## <span style="color: #f65820;">Quality of Life</span>
 
 *   **General**
-    *   Quick loot
+    *   Quicker auto-loot
     *   No bind-on-pickup popups
-    *   Types DELETE for you
+    *   Easier deleting of items
     *   Auto repair and sells your grays
-    *   Train All button
+    *   Train All button at trainers
     *   Battleground queue countdown
     *   Skips cinematics
     *   Hides tutorials and error spam
@@ -76,13 +63,12 @@
         *   Each from friends, your guild, anyone or no one
     *   Says thanks when someone buffs you
 *   **Chat**
-    *   Arrow keys for sent lines
+    *   Arrow keys to step through sent messages
     *   Levels after names
     *   Channel and time formats, colored timestamps
     *   Shorter loot, money and XP lines
     *   Clickable web links
     *   Right-click to copy a chat window
-    *   Message spacing, fade and font
 
 <hr color="#f65820" style="color: #f65820; border-color: #f65820;">
 
@@ -90,7 +76,6 @@
 
 *   <span style="color: #f65820;">/serene</span> opens the options.
 *   <span style="color: #f65820;">/serene reset</span> resets all settings to default.
-*   <span style="color: #f65820;">/rl</span> reloads the UI.
 *   **Minimap icon:** left-click opens the options, right-click reloads the UI.
 
 ## <span style="color: #f65820;">Installation</span>

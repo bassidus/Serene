@@ -27,7 +27,10 @@ local BARS = {
     { id = "pet", label = "Pet Bar", frame = "PetActionBar" },
     { id = "micro", label = "Micro Menu", frame = "MicroMenuContainer" },
     { id = "bags", label = "Bags Bar", frame = "BagsBar" },
-    { id = "xp", label = "XP Bar", frame = "StatusTrackingBarManager" },
+    -- The manager's own rect is a strip at the screen's bottom edge, behind
+    -- the micro menu; the bars it holds sit above the action bar.
+    { id = "xp", label = "XP Bar", frame = "StatusTrackingBarManager",
+      over = { "MainStatusTrackingBarContainer", "SecondaryStatusTrackingBarContainer" } },
 }
 
 local ALWAYS = { always = true }
@@ -39,6 +42,14 @@ for _, bar in ipairs(BARS) do state[bar.id] = { lastHover = -math.huge } end
 local watcher = CreateFrame("Frame")
 watcher:Hide()
 local hoverElapsed = 0
+
+local function MouseOver(bar)
+    if not bar.over then return Clean(_G[bar.frame]:IsMouseOver()) end
+    for _, name in ipairs(bar.over) do
+        local frame = _G[name]
+        if frame:IsShown() and Clean(frame:IsMouseOver()) then return true end
+    end
+end
 
 local function Rule(bar)
     return ns.Get(KEY)[bar.id] or ALWAYS
@@ -62,7 +73,7 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
     for _, bar in ipairs(BARS) do
         local frame, rule, st = _G[bar.frame], Rule(bar), state[bar.id]
         if frame:IsShown() then
-            if checkHover and rule.hover and Clean(frame:IsMouseOver()) then st.lastHover = now end
+            if checkHover and rule.hover and MouseOver(bar) then st.lastHover = now end
             local target = Target(rule, st, now)
             local alpha = st.alpha or 1
             if alpha ~= target then

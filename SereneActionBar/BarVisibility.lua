@@ -27,6 +27,7 @@ local BARS = {
     { id = "pet", label = "Pet Bar", frame = "PetActionBar" },
     { id = "micro", label = "Micro Menu", frame = "MicroMenuContainer" },
     { id = "bags", label = "Bags Bar", frame = "BagsBar" },
+    { id = "xp", label = "XP Bar", frame = "StatusTrackingBarManager" },
 }
 
 local ALWAYS = { always = true }

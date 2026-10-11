@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.2 (2026-10-11)
+
+### Changed
+- Chat: reputation lines are spelled out, like "+ 25 Undercity reputation" instead of "+25 rep Undercity".
+- Chat: a space after the green + and red - signs, like "+ 3 Silver" and "+ 200 XP".
+- Action bars: shorter text under New characters.
+
 ## 1.6.1 (2026-10-11)
 
 ### Changed

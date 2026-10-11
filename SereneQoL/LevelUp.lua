@@ -30,7 +30,7 @@ watcher:SetScript("OnEvent", function(_, event, a, b)
     local took = start and SecondsToTime(a - start) .. " this level, " or ""
     ns.Print(("Level %d: %s%s total."):format(dingLevel, took, SecondsToTime(a)))
     starts[me], dingLevel = a, nil
-    C_Timer.After(SHOT_DELAY, Screenshot)
+    C_Timer.After(SHOT_DELAY, function() Screenshot() end)
 end)
 
 ns.RegisterFeature({

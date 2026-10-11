@@ -12,8 +12,6 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local Clean = ns.Clean
-
 local frameOf = {}  -- bar -> its unit frame
 
 local function OnEnter(bar)
@@ -32,7 +30,7 @@ for _, frame in ipairs(ns.UnitFrames()) do
 end
 
 local function OnPetArt()
-    return PetFrame:IsVisible() and Clean(PetFrameTexture:IsMouseOver())
+    return ns.HoveredUnitFrame() == PetFrame
 end
 
 -- Blizzard's OnLeave has hidden the tooltip; on the art it comes back.
@@ -44,15 +42,11 @@ for _, part in ipairs({ PetFrame, PetFrame.healthbar, PetFrame.manabar }) do
 end
 
 -- Onto the art or off it through a part with no mouse, no OnEnter or
--- OnLeave fires. A child of the pet frame, so it only watches while that
--- shows.
-local onPet
-CreateFrame("Frame", nil, PetFrame):SetScript("OnUpdate", function()
-    local over = OnPetArt() or false
-    if over and not onPet then
+-- OnLeave fires.
+ns.OnUnitFrameHover(function(frame, old)
+    if frame == PetFrame then
         OnEnter(PetFrame.healthbar)
-    elseif onPet and not over and GameTooltip:GetOwner() == PetFrame then
+    elseif old == PetFrame and GameTooltip:GetOwner() == PetFrame then
         GameTooltip:Hide()
     end
-    onPet = over
 end)

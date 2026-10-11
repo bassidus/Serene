@@ -147,10 +147,8 @@ for key, frames in pairs(HIDE) do
     for _, frame in ipairs(frames) do hideKey[frame] = key end
 end
 
-local hovered  -- the unit frame under the mouse
-
 local function UpdateHide(frame)
-    local on = ns.Get(hideKey[frame]) and not (ns.Get(HOVER_KEY) and hovered == frame)
+    local on = ns.Get(hideKey[frame]) and not (ns.Get(HOVER_KEY) and ns.HoveredUnitFrame() == frame)
     for _, bar in ipairs(ns.UnitFrameParts(frame).bars) do
         ns.SetHidden(bar.TextString, on)
         ns.SetHidden(bar.LeftText, on)
@@ -158,39 +156,12 @@ local function UpdateHide(frame)
     end
 end
 
--- The frame under the mouse goes by its art, not the mouse focus: Blizzard's
--- frames take the mouse well outside their art, and parts of the pet frame
--- (its name, the gap between its bars) take none. The pet frame lies inside
--- the player frame's area and comes first.
-local BY_ART = { PetFrame, PARTY[1], PARTY[2], PARTY[3], PARTY[4], PlayerFrame, TargetFrame, FocusFrame }
-
-local function UnitFrameUnderMouse()
-    for _, frame in ipairs(BY_ART) do
-        if frame:IsVisible() and Clean(ns.UnitFrameParts(frame).art[1]:IsMouseOver()) then return frame end
-    end
-end
-
--- Watched 20 times a second while Show on mouseover has something to show.
-local watcher = CreateFrame("Frame")
-local watchElapsed = 0
-local function Watch(_, elapsed)
-    watchElapsed = watchElapsed + elapsed
-    if watchElapsed < 0.05 then return end
-    watchElapsed = 0
-    local frame = UnitFrameUnderMouse()
-    if frame == hovered then return end
-    local old = hovered
-    hovered = frame
+ns.OnUnitFrameHover(function(frame, old)
+    if not ns.Get(HOVER_KEY) then return end
     if old then UpdateHide(old) end
     if frame then UpdateHide(frame) end
-end
+end)
 
 function ns.ApplyNumbersHide()
-    local watch = false
-    if ns.Get(HOVER_KEY) then
-        for key in pairs(HIDE) do watch = watch or ns.Get(key) end
-    end
-    watcher:SetScript("OnUpdate", watch and Watch or nil)
-    if not watch then hovered = nil end
     for frame in pairs(hideKey) do UpdateHide(frame) end
 end

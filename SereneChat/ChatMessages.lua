@@ -206,11 +206,11 @@ local function ShortBonus(text)
     return text
 end
 
--- A gain's + in green and a loss's - in red (the palette's Green and Red):
--- at the start of the line, right after a name ("Name: +[Item]") and before
+-- A gain's + in green and a loss's - in red (the palette's Green and Red),
+-- with a space after it like the whisper arrows: at the start of the line, right after a name ("Name: +[Item]") and before
 -- a number in a bonus ("(+10 rested)", ", -5 raid"). A dash between words
 -- ("+70 XP - Quest completed") stays as it is.
-local SIGN = { ["+"] = "|cff40d940+|r", ["-"] = "|cffff4d1a-|r" }
+local SIGN = { ["+"] = "|cff40d940+|r ", ["-"] = "|cffff4d1a-|r " }
 local function Signs(text)
     text = text:gsub("^[%+%-]", SIGN, 1)
     text = text:gsub("(: )([%+%-])", function(before, sign) return before .. SIGN[sign] end, 1)

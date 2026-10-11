@@ -11,19 +11,78 @@
 
 ## <span style="color: #f65820;">Interface</span>
 
-*   **Action Bars:** bars 2-8 turned on for every character, an Edit Mode layout for new characters, out-of-range coloring, short or hidden keybinds, hidden macro names, zoomed icons, and the font and color of keybind and macro text
-*   **Dark Mode:** dark art in place of the bronze and gold on the action bars, bag bar, experience bar, unit frames, minimap, quest tracker and bags, with one checkbox at the bottom of the options
-*   **Nameplates:** flat enemy plates with threat colors for tanks and damage dealers, cast bars, debuffs, combo points, the target's mana and quest progress, plus an icon on enemies tagged by others
-*   **Move & Scale:** drag Blizzard's windows anywhere, Ctrl + scroll to resize them, middle-click to reset, or set each window's size in the options
-*   **Tooltip:** at the cursor or in Blizzard's spot, with its own scale, opacity, font and border. Pick what it shows: title, guild and rank, faction, item level, target, health bar, AFK and DND, spell and item IDs. The "Press F6" and right-click hints are gone
-*   **Unit Frames:** class colors, smooth bars, fonts and health and mana numbers (format, alignment, only on mouseover), no damage numbers on portraits, and player frame tweaks: no resting glow or Zzz, a blue glow in stealth
+*   **Action Bars**
+    *   Out of range coloring
+    *   Short or hidden keybinds
+    *   Hidden macro names
+    *   Zoomed icons
+    *   Font and color of keybind and macro text
+    *   New character settings
+        *   Choose which of bars 2-8 are turned on from the start
+        *   Load an Edit Mode layout automatically
+*   **Dark Mode**
+    *   Dark art in place of the bronze and gold on:
+        *   Action bars, bag bar and experience bar
+        *   Unit frames and minimap
+        *   Quest tracker and bags
+    *   One checkbox at the bottom of the options
+*   **Nameplates**
+    *   Flat enemy plates
+    *   Threat colors for tanks and damage dealers
+    *   Cast bars, debuffs and combo points
+    *   The target's mana
+    *   Quest progress
+    *   Icon on enemies tagged by others
+*   **Move & Scale**
+    *   Drag Blizzard's windows anywhere
+    *   Ctrl + scroll to resize
+    *   Middle-click to reset
+    *   Set each window's size in the options
+*   **Tooltip**
+    *   At the cursor or in Blizzard's spot
+    *   Own scale, opacity, font and border
+    *   Pick what it shows
+        *   Title, guild and rank, faction
+        *   Item level, target, health bar
+        *   AFK and DND
+        *   Spell and item IDs
+    *   No "Press F6" and right-click hints
+*   **Unit Frames**
+    *   Class colors and smooth bars
+    *   Fonts
+    *   Health and mana numbers: format, alignment, only on mouseover
+    *   No damage numbers on portraits
+    *   Player frame
+        *   No resting glow or Zzz
+        *   Blue glow in stealth
 
 ## <span style="color: #f65820;">Quality of Life</span>
 
-*   **General:** quick loot, no bind-on-pickup popups, types DELETE for you, auto repair, sells your grays, a Train All button, a battleground queue countdown, skips cinematics, hides tutorials and error spam, more camera zoom
-*   **Quests:** accepts and turns in quests automatically (hold Shift to do it yourself) and marks quest enemies on their nameplates with your progress
-*   **Social:** accepts group invites, invites on a whispered keyword and allows duels, each from friends, your guild, anyone or no one, and says thanks when someone buffs you
-*   **Chat:** arrow keys for sent lines, levels after names, channel and time formats, colored timestamps, shorter loot, money and XP lines, clickable web links, right-click to copy a chat window, message spacing, fade and font
+*   **General**
+    *   Quick loot
+    *   No bind-on-pickup popups
+    *   Types DELETE for you
+    *   Auto repair and sells your grays
+    *   Train All button
+    *   Battleground queue countdown
+    *   Skips cinematics
+    *   Hides tutorials and error spam
+    *   More camera zoom
+*   **Quests**
+    *   Accepts and turns in quests automatically (hold Shift to do it yourself)
+    *   Marks quest enemies on their nameplates with your progress
+*   **Social**
+    *   Accepts group invites, invites on a whispered keyword and allows duels
+        *   Each from friends, your guild, anyone or no one
+    *   Says thanks when someone buffs you
+*   **Chat**
+    *   Arrow keys for sent lines
+    *   Levels after names
+    *   Channel and time formats, colored timestamps
+    *   Shorter loot, money and XP lines
+    *   Clickable web links
+    *   Right-click to copy a chat window
+    *   Message spacing, fade and font
 
 <hr color="#f65820" style="color: #f65820; border-color: #f65820;">
 

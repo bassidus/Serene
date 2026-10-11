@@ -13,14 +13,34 @@ local SHOT_DELAY = 1  -- seconds, so the chat line and the level-up banner are i
 local me
 local dingLevel  -- set while waiting for the /played answer to a ding
 
+-- Blizzard prints every /played answer in the chat windows that show system
+-- messages. Ours stay quiet: those windows skip the event until it is in.
+local muted = {}
+local function RequestQuietly()
+    ChatFrameUtil.ForEachChatFrame(function(frame)
+        if frame:IsEventRegistered("TIME_PLAYED_MSG") then
+            frame:UnregisterEvent("TIME_PLAYED_MSG")
+            muted[#muted + 1] = frame
+        end
+    end)
+    RequestTimePlayed()
+end
+
+-- A frame later, so the answer being handled now doesn't reach them.
+local function Unmute()
+    for _, frame in ipairs(muted) do frame:RegisterEvent("TIME_PLAYED_MSG") end
+    wipe(muted)
+end
+
 local watcher = CreateFrame("Frame")
 watcher:SetScript("OnEvent", function(_, event, a, b)
     if event == "PLAYER_LEVEL_UP" then
         dingLevel = a
-        RequestTimePlayed()
+        RequestQuietly()
         return
     end
     -- TIME_PLAYED_MSG: total, time this level
+    if #muted > 0 then C_Timer.After(0, Unmute) end
     local starts = SereneDB.levelStart
     if not dingLevel then
         starts[me] = a - b
@@ -39,6 +59,7 @@ ns.RegisterFeature({
     apply = function()
         if not ns.Get("levelUpShot") then
             watcher:UnregisterAllEvents()
+            Unmute()
             return
         end
         watcher:RegisterEvent("PLAYER_LEVEL_UP")
@@ -47,7 +68,7 @@ ns.RegisterFeature({
         me = UnitName("player")
         -- Once per character, so the first level after install has a start.
         if not SereneDB.levelStart[me] and UnitLevel("player") < GetMaxPlayerLevel() then
-            RequestTimePlayed()
+            RequestQuietly()
         end
     end,
 })

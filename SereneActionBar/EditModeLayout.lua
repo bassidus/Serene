@@ -67,5 +67,4 @@ ns.RegisterFeature({
         return list
     end,
 })
-ns.SetOutro(SECTION, "The ticked bars are turned on for every character at each login, so new characters start out with them.\n\n"
-    .. "A new character that hasn't chosen an Edit Mode layout yet switches to the one selected above automatically.")
+ns.SetOutro(SECTION, "Ticked bars are turned on for every character at login. New characters also get the layout above.")

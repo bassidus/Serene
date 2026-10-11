@@ -16,10 +16,6 @@ local HOVER_CHECK = 0.05
 -- Bars 1-8 are numbered as in GetActionBarToggles.
 local BARS = {
     { id = "1", label = "Action Bar 1", frame = "MainActionBar" },
-    -- EndCaps' own rect sits over the bar; the art is in its two children.
-    { id = "caps", label = UnitFactionGroup("player") == "Horde" and "Wyverns" or "Gryphons",
-      frame = "MainActionBar.EndCaps",
-      over = { "MainActionBar.EndCaps.LeftEndCap", "MainActionBar.EndCaps.RightEndCap" } },
     { id = "2", label = "Action Bar 2", frame = "MultiBarBottomLeft" },
     { id = "3", label = "Action Bar 3", frame = "MultiBarBottomRight" },
     { id = "4", label = "Action Bar 4", frame = "MultiBarRight" },
@@ -35,6 +31,10 @@ local BARS = {
     -- the micro menu; the bars it holds sit above the action bar.
     { id = "xp", label = "XP Bar", frame = "StatusTrackingBarManager",
       over = { "MainStatusTrackingBarContainer", "SecondaryStatusTrackingBarContainer" } },
+    -- EndCaps' own rect sits over the bar; the art is in its two children.
+    { id = "caps", label = UnitFactionGroup("player") == "Horde" and "Wyverns" or "Gryphons",
+      frame = "MainActionBar.EndCaps",
+      over = { "MainActionBar.EndCaps.LeftEndCap", "MainActionBar.EndCaps.RightEndCap" } },
 }
 
 -- The art at the bar's ends is a child of the first bar and would fade with

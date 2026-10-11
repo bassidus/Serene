@@ -11,7 +11,7 @@ local _, ns = ...
 local SHOT_DELAY = 1  -- seconds, so the chat line and the level-up banner are in the shot
 
 local me
-local dingLevel  -- set while waiting for the /played answer to a ding
+local dinged  -- waiting for the /played answer to a ding
 
 -- Blizzard prints every /played answer in the chat windows that show system
 -- messages. Ours stay quiet: those windows skip the event until it is in.
@@ -35,21 +35,21 @@ end
 local watcher = CreateFrame("Frame")
 watcher:SetScript("OnEvent", function(_, event, a, b)
     if event == "PLAYER_LEVEL_UP" then
-        dingLevel = a
+        dinged = true
         RequestQuietly()
         return
     end
     -- TIME_PLAYED_MSG: total, time this level
     if #muted > 0 then C_Timer.After(0, Unmute) end
     local starts = SereneDB.levelStart
-    if not dingLevel then
+    if not dinged then
         starts[me] = a - b
         return
     end
     local start = starts[me]
-    local took = start and SecondsToTime(a - start) .. " this level, " or ""
-    ns.Print(("Level %d: %s%s total."):format(dingLevel, took, SecondsToTime(a)))
-    starts[me], dingLevel = a, nil
+    if start then ns.Print("Last level took " .. SecondsToTime(a - start)) end
+    ns.Print("Total played time is " .. SecondsToTime(a))
+    starts[me], dinged = a, false
     C_Timer.After(SHOT_DELAY, function() Screenshot() end)
 end)
 

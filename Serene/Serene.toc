@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene
 ## Notes: Lightweight QoL for WoW Forever. Shared settings, fonts and the minimap icon for the Serene addons; /serene opens the options.
-## Version: 1.6.2
+## Version: 1.7.0
 ## SavedVariables: SereneDB
 ## IconTexture: Interface\AddOns\Serene\Media\Logo
 

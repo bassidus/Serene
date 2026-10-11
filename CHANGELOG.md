@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.7.0 (2026-10-11)
+
+### New
+- Action bars: choose per bar when it shows: always, out of combat, in combat or on mouseover. Covers action bars 1 to 8, the stance and pet bars, the micro menu, the bags bar, the XP bar and the gryphons or wyverns.
+- General: on level up, a screenshot and two lines in chat with how long the last level took and your total time played.
+
+### Changed
+- Thanks for buffs: the thanks is now a Blizzard emote aimed at the player who buffed you ("You thank Bob."). It goes out on its own after a short pause, with no key press. Pick the emote (Thank, Bow, Salute, Cheer and more, or Random) in place of the old message list.
+
+### Fixed
+- The minimap icon's logo no longer shifts when another addon brings a newer LibDBIcon.
+
 ## 1.6.2 (2026-10-11)
 
 ### Changed

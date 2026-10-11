@@ -2,7 +2,7 @@
 ## Title: Serene Tooltip
 ## Group: Serene
 ## Notes: Tooltip position, size, font, border, content and hiding the issue and right click hints.
-## Version: 1.6.2
+## Version: 1.7.0
 ## Dependencies: Serene
 ## X-Serene-Section: Tooltip
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1 (2026-10-11)
+
+### Changed
+- The pet frame tooltip and "Show on mouseover" for unit frame numbers only do work while the mouse is on a unit frame.
+
 ## 1.6.0 (2026-10-10)
 
 ### New

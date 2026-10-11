@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --  Level Up -- on a new level, says in chat how long the last level took and
---  the total time played, then takes a screenshot with that line in it.
+--  the total time played, then takes a screenshot with that line in it and
+--  says so once it is saved.
 --
 --  The time a level began is kept per character. Any /played answer gives
 --  it; at the ding it is the new total, so it doesn't matter whether the
@@ -33,10 +34,25 @@ local function Unmute()
 end
 
 local watcher = CreateFrame("Frame")
+
+-- Listens only around our own shot, so the confirmation lands after the
+-- capture and a manual screenshot stays silent.
+local function TakeShot()
+    watcher:RegisterEvent("SCREENSHOT_SUCCEEDED")
+    watcher:RegisterEvent("SCREENSHOT_FAILED")
+    Screenshot()
+end
+
 watcher:SetScript("OnEvent", function(_, event, a, b)
     if event == "PLAYER_LEVEL_UP" then
         dinged = true
         RequestQuietly()
+        return
+    end
+    if event == "SCREENSHOT_SUCCEEDED" or event == "SCREENSHOT_FAILED" then
+        watcher:UnregisterEvent("SCREENSHOT_SUCCEEDED")
+        watcher:UnregisterEvent("SCREENSHOT_FAILED")
+        if event == "SCREENSHOT_SUCCEEDED" then ns.Print("Screenshot taken") end
         return
     end
     -- TIME_PLAYED_MSG: total, time this level
@@ -50,7 +66,7 @@ watcher:SetScript("OnEvent", function(_, event, a, b)
     if start then ns.Print("Last level took " .. SecondsToTime(a - start)) end
     ns.Print("Total played time is " .. SecondsToTime(a))
     starts[me], dinged = a, false
-    C_Timer.After(SHOT_DELAY, function() Screenshot() end)
+    C_Timer.After(SHOT_DELAY, TakeShot)
 end)
 
 ns.RegisterFeature({

@@ -130,7 +130,7 @@ for i, bar in ipairs(BARS) do rows[i] = { key = bar.id, label = bar.label } end
 
 ns.RegisterFeature({
     key = KEY, label = "Visibility", section = SECTION, category = "Visibility",
-    type = "grid", default = {}, apply = Refresh,
+    type = "grid", default = {}, apply = Refresh, closed = true,
     rows = rows, rowDefault = ALWAYS, exclusive = "always",
     columns = {
         { field = "always", label = "Always" },

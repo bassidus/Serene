@@ -1,8 +1,10 @@
 -------------------------------------------------------------------------------
---  Bar Visibility -- per bar, when it shows: always, out of combat, in
---  combat, on mouse over (and a second after), or never when nothing is
---  ticked. Only the bar's alpha changes, so its buttons keep working and
---  the keybinds fire while it is faded out.
+--  Bar Visibility -- per bar, when it shows: out of combat, in combat, or
+--  never with neither ticked. Mouse over narrows those to while the mouse
+--  is over the bar (and a second after). A bar shown in and out of combat
+--  without mouse over is left to Blizzard's settings. A bar linked to another takes its ticks, and the
+--  mouse over either shows both. Only the bar's alpha changes, so its
+--  buttons keep working and the keybinds fire while it is faded out.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -41,11 +43,13 @@ local BARS = {
 -- it; it has its own row instead.
 MainActionBar.EndCaps:SetIgnoreParentAlpha(true)
 
-local ALWAYS = { always = true }
 local KEY = "barVisibility"
+local NO_RULE = {}
 
 local state = {}  -- [bar id] = { alpha =, lastHover = }
 for _, bar in ipairs(BARS) do state[bar.id] = { lastHover = -math.huge } end
+
+local hovered = {}  -- [group] = true while the mouse is over one of its bars
 
 local watcher = CreateFrame("Frame")
 watcher:Hide()
@@ -73,16 +77,64 @@ local function MouseOver(bar)
 end
 
 local function Rule(bar)
-    return ns.Get(KEY)[bar.id] or ALWAYS
+    local all = ns.Get(KEY)
+    local own = all[bar.id] or NO_RULE
+    if own.link then return all[own.link] or NO_RULE end
+    return own
+end
+
+-- Bars linked to one another share the id they link to.
+local function Group(bar)
+    return (ns.Get(KEY)[bar.id] or NO_RULE).link or bar.id
+end
+
+local function Managed(rule)
+    return not (rule.noCombat and rule.combat and not rule.hover)
+end
+
+-- Every bar shows while Edit Mode is open or something is on the cursor.
+local function Forced()
+    return EditModeManagerFrame:IsShown() or GetCursorInfo()
+end
+
+-- Whether the bar may show now, mouse over aside.
+local function Allowed(rule)
+    local inCombat = InCombatLockdown()
+    return inCombat and rule.combat or not inCombat and rule.noCombat
 end
 
 local function Target(rule, st, now)
-    if rule.always or EditModeManagerFrame:IsShown() or GetCursorInfo() then return 1 end
-    if rule.combat and InCombatLockdown() then return 1 end
-    if rule.noCombat and not InCombatLockdown() then return 1 end
-    if rule.hover and now - st.lastHover < LINGER then return 1 end
-    return 0
+    if Forced() then return 1 end
+    if not Allowed(rule) then return 0 end
+    if rule.hover and now - st.lastHover >= LINGER then return 0 end
+    return 1
 end
+
+local function BarOf(frame)
+    for _, bar in ipairs(BARS) do
+        if Frame(bar) == frame then return bar end
+        if bar.over then
+            for _, path in ipairs(bar.over) do
+                if Resolve(path) == frame then return bar end
+            end
+        end
+    end
+end
+
+-- A faded-out bar keeps its mouse so its buttons and keybinds work; its
+-- buttons' tooltips would show too.
+GameTooltip:HookScript("OnShow", function(self)
+    local frame = self:GetOwner()
+    while frame do
+        local bar = BarOf(frame)
+        if bar then
+            local rule = Rule(bar)
+            if Managed(rule) and not Forced() and not Allowed(rule) then self:Hide() end
+            return
+        end
+        frame = frame:GetParent()
+    end
+end)
 
 watcher:SetScript("OnUpdate", function(self, elapsed)
     local now = GetTime()
@@ -91,10 +143,19 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
     if checkHover then hoverElapsed = 0 end
     local step = elapsed / FADE
 
+    if checkHover then
+        wipe(hovered)
+        for _, bar in ipairs(BARS) do
+            if Rule(bar).hover and Frame(bar):IsShown() and MouseOver(bar) then
+                hovered[Group(bar)] = true
+            end
+        end
+    end
+
     for _, bar in ipairs(BARS) do
         local frame, rule, st = Frame(bar), Rule(bar), state[bar.id]
-        if frame:IsShown() then
-            if checkHover and rule.hover and MouseOver(bar) then st.lastHover = now end
+        if frame:IsShown() and Managed(rule) then
+            if checkHover and rule.hover and hovered[Group(bar)] then st.lastHover = now end
             local target = Target(rule, st, now)
             local alpha = st.alpha or 1
             if alpha ~= target then
@@ -106,12 +167,12 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
     end
 end)
 
--- Runs at login and on every change: bars that became Always go back to
--- full alpha right away; the watcher only runs while some bar is not Always.
+-- Runs at login and on every change: bars left to Blizzard go back to full
+-- alpha right away; the watcher only runs while some bar is not.
 local function Refresh()
     local watching = false
     for _, bar in ipairs(BARS) do
-        if Rule(bar).always then
+        if not Managed(Rule(bar)) then
             local st = state[bar.id]
             if st.alpha then
                 st.alpha = nil
@@ -125,15 +186,17 @@ local function Refresh()
     watcher:SetShown(watching)
 end
 
-local rows = {}
-for i, bar in ipairs(BARS) do rows[i] = { key = bar.id, label = bar.label } end
+local rows, default = {}, {}
+for i, bar in ipairs(BARS) do
+    rows[i] = { key = bar.id, label = bar.label }
+    default[bar.id] = { noCombat = true, combat = true }
+end
 
 ns.RegisterFeature({
     key = KEY, label = "Visibility", section = SECTION, category = "Visibility",
-    type = "grid", default = {}, apply = Refresh, closed = true,
-    rows = rows, rowDefault = ALWAYS, exclusive = "always",
+    type = "grid", default = default, apply = Refresh, closed = true,
+    rows = rows, rowLabel = "Bar", link = "Linked to",
     columns = {
-        { field = "always", label = "Always" },
         { field = "noCombat", label = "Out of combat" },
         { field = "combat", label = "In combat" },
         { field = "hover", label = "Mouse over" },

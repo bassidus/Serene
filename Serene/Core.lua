@@ -24,7 +24,7 @@ ns.featureByKey = {}
 --              | "button" (no value: `button` is its text, `click` runs on a press)
 --              | "text" (no value: the label alone, for the setting under it)
 --              | "grid" (a table { [row key] = { [column field] = true } };
---                `rows`, `columns`, `rowDefault`, `exclusive`: see W.Grid)
+--                `rows`, `rowLabel`, `columns`, `link`: see W.Grid)
 --   default    initial value
 --   options    dropdown: fn returning { { value =, label = }, ... }
 --   preview    dropdown: draw entries in their own font

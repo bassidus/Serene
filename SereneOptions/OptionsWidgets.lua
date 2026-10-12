@@ -957,28 +957,77 @@ end
 -------------------------------------------------------------------------------
 --  Grid -- a checkbox per row and column for one setting whose value is a
 --  table { [row key] = { [column field] = true } }. f.rows is { { key =,
---  label = }, ... }, f.columns { { field =, label = }, ... }; a row without
---  an entry reads as f.rowDefault. f.exclusive names the column that
---  excludes the others: ticking it clears them, ticking another clears it.
+--  label = }, ... } under the heading f.rowLabel, f.columns { { field =,
+--  label = }, ... }; a row without an entry reads as empty. f.link, a
+--  heading, adds a dropdown at the end of each row that ties it to another
+--  row (its `link` field): a linked row takes that row's ticks and its own
+--  boxes are dimmed.
 -------------------------------------------------------------------------------
-local GRID_LABEL_W, GRID_COL_W, GRID_ROW_H = 112, 90, 26
+local GRID_LABEL_W, GRID_COL_W, GRID_ROW_H, GRID_LINK_W = 104, 76, 26, 128
+local NO_ROW, NO_LINK = {}, "None"
 
 function W.Grid(parent, f)
     local holder = CreateFrame("Frame", nil, parent)
     holder:SetHeight(GRID_ROW_H * (#f.rows + 1))
+    local linkX = GRID_LABEL_W + #f.columns * GRID_COL_W + 4
 
     local function RowValue(key)
-        return ns.Get(f.key)[key] or f.rowDefault
+        return ns.Get(f.key)[key] or NO_ROW
     end
 
-    for c, col in ipairs(f.columns) do
+    local function Copy()
+        local value = {}
+        for k, v in pairs(ns.Get(f.key)) do value[k] = v end
+        return value
+    end
+
+    local function With(row, field, v)
+        local new = {}
+        for k, old in pairs(row) do new[k] = old end
+        new[field] = v
+        return new
+    end
+
+    local labels = {}
+    for _, row in ipairs(f.rows) do labels[row.key] = row.label end
+
+    local function Heading(text, x, w)
         local head = holder:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        head:SetPoint("TOPLEFT", GRID_LABEL_W + (c - 1) * GRID_COL_W, 0)
-        head:SetSize(GRID_COL_W, GRID_ROW_H)
-        head:SetText(col.label)
+        head:SetPoint("TOPLEFT", x, 0)
+        head:SetSize(w, GRID_ROW_H)
+        head:SetText(text)
+        return head
+    end
+    if f.rowLabel then Heading(f.rowLabel, 0, GRID_LABEL_W):SetJustifyH("LEFT") end
+    for c, col in ipairs(f.columns) do
+        Heading(col.label, GRID_LABEL_W + (c - 1) * GRID_COL_W, GRID_COL_W)
+    end
+    if f.link then Heading(f.link, linkX, GRID_LINK_W) end
+
+    -- Only rows that are not linked themselves, so a link is never a chain.
+    local function LinkOptions(key)
+        local options = { { value = false, label = NO_LINK } }
+        for _, row in ipairs(f.rows) do
+            if row.key ~= key and not RowValue(row.key).link then
+                options[#options + 1] = { value = row.key, label = row.label }
+            end
+        end
+        return options
     end
 
-    local cells, controls = {}, {}
+    -- Rows linked to this one move along to its new target.
+    local function SetLink(key, target)
+        local value = Copy()
+        value[key] = With(RowValue(key), "link", target or nil)
+        if target then
+            for k, row in pairs(value) do
+                if row.link == key then value[k] = With(row, "link", target) end
+            end
+        end
+        ns.SetValue(f.key, value)
+    end
+
+    local cells, rowButtons, links = {}, {}, {}
     for r, row in ipairs(f.rows) do
         local y = -r * GRID_ROW_H
         local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -986,6 +1035,7 @@ function W.Grid(parent, f)
         label:SetSize(GRID_LABEL_W, GRID_ROW_H)
         label:SetJustifyH("LEFT")
         label:SetText(row.label)
+        rowButtons[row.key] = {}
         for c, col in ipairs(f.columns) do
             local btn = CreateFrame("Button", nil, holder)
             btn:SetSize(GRID_COL_W, GRID_ROW_H)
@@ -995,29 +1045,44 @@ function W.Grid(parent, f)
             CheckRow(btn, box)
             btn:SetScript("OnClick", function()
                 PlayClick()
-                local old, new = RowValue(row.key), {}
-                local on = not old[col.field]
-                if col.field ~= f.exclusive then
-                    for k, v in pairs(old) do new[k] = v end
-                    if f.exclusive then new[f.exclusive] = nil end
-                end
-                new[col.field] = on or nil
-                local value = {}
-                for k, v in pairs(ns.Get(f.key)) do value[k] = v end
-                value[row.key] = new
+                local old = RowValue(row.key)
+                local value = Copy()
+                value[row.key] = With(old, col.field, not old[col.field] or nil)
                 ns.SetValue(f.key, value)
             end)
             cells[#cells + 1] = { key = row.key, field = col.field, box = box }
-            controls[#controls + 1] = btn
+            table.insert(rowButtons[row.key], btn)
+        end
+        if f.link then
+            local field, btn, text = Field(holder, nil, function(self)
+                W.OpenMenu(self, LinkOptions(row.key), RowValue(row.key).link or false,
+                    function(v) SetLink(row.key, v) end)
+            end)
+            field:SetPoint("TOPLEFT", linkX, y - 1)
+            field:SetWidth(GRID_LINK_W)
+            links[row.key] = { btn = btn, text = text }
         end
     end
 
     function holder.Refresh()
         for _, cell in ipairs(cells) do
-            cell.box.SetChecked(RowValue(cell.key)[cell.field])
+            local own = RowValue(cell.key)
+            local shown = own.link and RowValue(own.link) or own
+            cell.box.SetChecked(shown[cell.field])
         end
         local on = Available(holder, f)
-        for _, b in ipairs(controls) do b:SetEnabled(on) end
+        for key, buttons in pairs(rowButtons) do
+            local free = on and not RowValue(key).link
+            for _, b in ipairs(buttons) do
+                b:SetEnabled(free)
+                b:SetAlpha((free or not on) and 1 or 0.4)
+            end
+        end
+        for key, link in pairs(links) do
+            local target = RowValue(key).link
+            link.text:SetText(target and labels[target] or NO_LINK)
+            link.btn:SetEnabled(on)
+        end
     end
     return holder
 end

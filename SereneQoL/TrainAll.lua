@@ -23,14 +23,26 @@ local function Affordable(i, money, slots)
     return true, cost, takesSlot
 end
 
-local function Summary()
-    local n, total = 0, 0
+-- What Train All buys: the indices from the bottom, each paid for out of
+-- what the ones before it left. A purchase reindexes the list, but only the
+-- entries already passed move, so none is skipped.
+local function Plan()
+    local list, total = {}, 0
     local money, slots = GetMoney(), FreeProfessionSlots()
-    for i = 1, GetNumTrainerServices() do
-        local ok, cost = Affordable(i, money, slots)
-        if ok then n, total = n + 1, total + cost end
+    for i = GetNumTrainerServices(), 1, -1 do
+        local ok, cost, takesSlot = Affordable(i, money, slots)
+        if ok then
+            list[#list + 1] = i
+            total, money = total + cost, money - cost
+            if takesSlot then slots = slots - 1 end
+        end
     end
-    return n, total
+    return list, total
+end
+
+local function Summary()
+    local list, total = Plan()
+    return #list, total
 end
 
 local function Refresh()
@@ -44,17 +56,7 @@ local function Refresh()
 end
 
 local function TrainAll()
-    local money, slots = GetMoney(), FreeProfessionSlots()
-    -- From the bottom: a purchase reindexes the list, but only the entries
-    -- already passed move, so none is skipped.
-    for i = GetNumTrainerServices(), 1, -1 do
-        local ok, cost, takesSlot = Affordable(i, money, slots)
-        if ok then
-            BuyTrainerService(i)
-            money = money - cost
-            if takesSlot then slots = slots - 1 end
-        end
-    end
+    for _, i in ipairs((Plan())) do BuyTrainerService(i) end
 end
 
 local function Create()

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.8.2 (2026-10-12)
+
+### Changed
+- Action bars: Visibility does no work while no bar is fading or waiting for the mouse.
+
+### Fixed
+- Train All: the tooltip counted every skill you could afford on its own. It now counts only what your money covers together.
+- Quick loot stops when the loot window closes.
+- Level up: if the server never answers /played, chat shows /played lines again after 10 seconds.
+- Nameplates, tooltips and unit frames no longer risk errors when the game hides unit data (combo points, names, "Targeting YOU", a disconnected party member's color).
+
 ## 1.8.1 (2026-10-12)
 
 If you changed anything under Action bars, Visibility, check that page after updating: bars set to Always, or never touched, may now be hidden. Restore defaults brings every bar back.

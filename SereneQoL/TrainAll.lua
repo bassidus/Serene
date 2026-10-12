@@ -17,8 +17,8 @@ end
 local function Affordable(i, money, slots)
     local _, kind = GetTrainerServiceInfo(i)
     if kind ~= "available" then return false end
+    -- The second return is true for a new profession, nil for anything else.
     local cost, takesSlot = GetTrainerServiceCost(i)
-    takesSlot = takesSlot == true  -- not every client returns a boolean there
     if cost > money or (takesSlot and slots <= 0) then return false end
     return true, cost, takesSlot
 end

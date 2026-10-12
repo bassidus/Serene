@@ -70,7 +70,7 @@ watcher:SetScript("OnEvent", function(_, event, a, b)
 end)
 
 ns.RegisterFeature({
-    key = "levelUpShot", label = "Screenshot and time played on level up", section = "General", category = "Leveling",
+    key = "levelUpShot", label = "Screenshot and time played on level up", section = "Other", category = "Leveling",
     tooltip = "Says how long the level took and takes a screenshot.",
     apply = function()
         if not ns.Get("levelUpShot") then

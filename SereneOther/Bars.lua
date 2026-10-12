@@ -6,7 +6,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "Action Bars"
+local SECTION = "Other"
 
 -- Runs from PLAYER_LOGIN on, when the character's bar toggles are in:
 -- Blizzard shows the toggled bars on SETTINGS_LOADED, right after login, and

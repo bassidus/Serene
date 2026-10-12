@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Serene Other
+## Group: Serene
+## Notes: Level-up screenshot and time played, thank players who buff you, action bars and Edit Mode layout for new characters.
+## Version: 1.7.0
+## Dependencies: Serene
+## X-Serene-Section: Other
+## IconTexture: Interface\AddOns\Serene\Media\Logo
+
+Init.lua
+LevelUp.lua
+ThankBuffs.lua
+Bars.lua
+EditModeLayout.lua

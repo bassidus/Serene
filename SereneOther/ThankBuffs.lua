@@ -9,7 +9,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "Social"
+local SECTION = "Other"
 local COOLDOWN = 60      -- seconds before anyone is thanked again
 local SETTLE = 2         -- seconds after a loading screen with no thanks
 

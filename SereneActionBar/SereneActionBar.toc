@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene Action Bar
 ## Group: Serene
-## Notes: Action bars enabled on all characters, short keybind text, range coloring and zoomed icons.
+## Notes: Short keybind text, range coloring and zoomed icons.
 ## Version: 1.7.0
 ## Dependencies: Serene
 ## X-Serene-Section: Action Bars
@@ -11,6 +11,4 @@ Init.lua
 Keybinds.lua
 ActionBarRange.lua
 BarVisibility.lua
-Bars.lua
-EditModeLayout.lua
 BarExtras.lua

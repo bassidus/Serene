@@ -6,7 +6,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local SECTION = "Action Bars"
+local SECTION = "Other"
 
 -- activeLayout counts Blizzard's presets (Modern, Classic, Gamepad) first;
 -- C_EditMode.GetLayouts().layouts holds only the saved layouts after them.

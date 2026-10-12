@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Hide Error Messages / Speech -- takes UI_ERROR_MESSAGE away from
---  UIErrorsFrame while hiding and hands it back after; the errors worth
+--  UIErrorsFrame while on and hands it back when turned off; the errors worth
 --  acting on (bags full, not enough money...) are passed on by hand. Yellow
 --  info messages are never touched.
 -------------------------------------------------------------------------------
@@ -28,47 +28,12 @@ local function SetHiding(on)
     end
 end
 
--- "combat" and "outOfCombat" follow combat; "always" and "never" do not.
-local function ByCombat(when) return when == "combat" or when == "outOfCombat" end
-
-local function Update()
-    local when = ns.Get("hideErrors")
-    if ByCombat(when) then
-        SetHiding(UnitAffectingCombat("player") == (when == "combat"))
-    else
-        SetHiding(when == "always")
-    end
-end
-
-f:SetScript("OnEvent", function(_, event, _, msg)
-    if event == "UI_ERROR_MESSAGE" then
-        msg = ns.Clean(msg)
-        if msg and KEEP[msg] then UIErrorsFrame:AddExternalErrorMessage(msg) end
-        return
-    end
-    Update()  -- entering or leaving combat
+f:SetScript("OnEvent", function(_, _, _, msg)
+    msg = ns.Clean(msg)
+    if msg and KEEP[msg] then UIErrorsFrame:AddExternalErrorMessage(msg) end
 end)
-
-local function Apply()
-    if ByCombat(ns.Get("hideErrors")) then
-        f:RegisterEvent("PLAYER_REGEN_DISABLED")
-        f:RegisterEvent("PLAYER_REGEN_ENABLED")
-    else
-        f:UnregisterEvent("PLAYER_REGEN_DISABLED")
-        f:UnregisterEvent("PLAYER_REGEN_ENABLED")
-    end
-    Update()
-end
 
 ns.RegisterFeature({
     key = "hideErrors", label = "Hide error messages / speech", section = "General", category = "Interface",
-    type = "dropdown", default = "never", space = true, apply = Apply,
-    options = function()
-        return {
-            { value = "never",       label = "Never" },
-            { value = "combat",      label = "In combat" },
-            { value = "outOfCombat", label = "Out of combat" },
-            { value = "always",      label = "Always" },
-        }
-    end,
+    default = false, apply = function() SetHiding(ns.Get("hideErrors")) end,
 })

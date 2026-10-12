@@ -57,7 +57,7 @@ local function TargetLine(tt, unit)
     local tu = unit .. "target"
     local tName, c
     if UnitExists(tu) then
-        if UnitIsUnit(tu, "player") then
+        if Clean(UnitIsUnit(tu, "player")) then
             tName, c = ">>> YOU <<<", YOU_COLOR
         else
             local n = Clean(UnitName(tu))
@@ -313,7 +313,7 @@ local function RequestInspect(unit, guid)
                 retryQueued = false
                 local g, u = TooltipUnitGUID()
                 if g and ns.Get("tooltipPlayerItemLevel") and UnitIsPlayer(u)
-                    and not UnitIsUnit(u, "player") and not CachedItemLevel(g) and not InFlight(g) then
+                    and not Clean(UnitIsUnit(u, "player")) and not CachedItemLevel(g) and not InFlight(g) then
                     RequestInspect(u, g)
                 end
             end)
@@ -327,7 +327,7 @@ end
 
 -- Returns true when a row was added.
 local function PlayerItemLevel(tt, unit)
-    if UnitIsUnit(unit, "player") then
+    if Clean(UnitIsUnit(unit, "player")) then
         local _, equipped = GetAverageItemLevel()
         return equipped > 0 and ItemLevelLine(tt, equipped)
     end

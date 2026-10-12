@@ -22,7 +22,7 @@ local function QuestProgress(unit)
     local result = false
     local LT = Enum.TooltipDataLineType
     -- Players are never quest kills; skip their tooltip data.
-    local info = not Clean(UnitIsPlayer(unit)) and C_TooltipInfo.GetUnit(unit)
+    local info = not UnitIsPlayer(unit) and C_TooltipInfo.GetUnit(unit)
     if info then
         local questID
         for _, line in ipairs(info.lines) do

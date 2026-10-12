@@ -44,11 +44,12 @@ local Move, Owner = NP.MovingRow(row, "comboRow", Size, function() Update() end)
 function Update()
     local plate, points
     if ns.Get("nameplateComboPoints") then
-        points = GetComboPoints("player", "target")
+        -- Both can be secret; a secret count hides the row.
+        points = ns.Clean(GetComboPoints("player", "target")) or 0
         if points > 0 then
             plate = NP.TargetPlate()
         else
-            points = UnitPower("player", Enum.PowerType.ComboPoints)
+            points = ns.Clean(UnitPower("player", Enum.PowerType.ComboPoints)) or 0
             if points > 0 then plate = Owner() end
         end
     end

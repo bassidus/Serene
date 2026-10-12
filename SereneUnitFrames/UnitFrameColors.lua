@@ -22,7 +22,7 @@ local painting  -- set while we color, so our own calls are not taken for Blizza
 
 local function ClassColor(unit)
     if not (unit and ns.Get(KEY)) then return nil end
-    if not Clean(UnitIsPlayer(unit)) or not Clean(UnitIsConnected(unit)) then return nil end
+    if not UnitIsPlayer(unit) or not Clean(UnitIsConnected(unit)) then return nil end
     local _, class = UnitClass(unit)
     return RAID_CLASS_COLORS[Clean(class)]
 end
@@ -86,7 +86,7 @@ local watcher = CreateFrame("Frame")
 watcher:SetScript("OnEvent", function(_, event, unit)
     if event == "UNIT_CONNECTION" then
         for bar, s in pairs(state) do
-            if s.unit and UnitIsUnit(s.unit, unit) then Paint(bar) end
+            if s.unit and Clean(UnitIsUnit(s.unit, unit)) then Paint(bar) end
         end
         return
     end

@@ -295,8 +295,8 @@ local _, CLASS = UnitClass("player")
 local function DetectTank()
     if CLASS == "WARRIOR" then return GetShapeshiftFormID() == 18 end
     if CLASS == "DRUID" then return BEAR_FORMS[GetShapeshiftFormID()] or false end
-    -- A truth test, not a comparison: the aura can be secret in combat.
-    return CLASS == "PALADIN" and C_UnitAuras.GetPlayerAuraBySpellID(RIGHTEOUS_FURY) and true or false
+    -- The aura can be secret in combat; a secret one reads as not tanking.
+    return CLASS == "PALADIN" and Clean(C_UnitAuras.GetPlayerAuraBySpellID(RIGHTEOUS_FURY)) ~= nil
 end
 
 local autoTank = false
@@ -325,7 +325,7 @@ end
 -- it? Kept on the plate, so a mob stays off-tanked while its target flickers.
 local function CheckOfftank(plate, unit, level)
     local target = unit .. "target"
-    if UnitExists(target) and (Clean(UnitIsPlayer(target)) or Clean(UnitPlayerControlled(target))) then
+    if UnitExists(target) and (UnitIsPlayer(target) or Clean(UnitPlayerControlled(target))) then
         if (Clean(UnitThreatSituation(target, unit)) or 0) > 1 then
             plate.offtanked = (GroupRole(target) == "TANK" and not Clean(UnitIsUnit("player", target)))
                 or Clean(UnitIsUnit(target, "pet")) or false
@@ -337,7 +337,7 @@ end
 -- Threat color for a mob that has you (status) on its threat list: alone,
 -- with a pet or in a group alike.
 local function ThreatColor(plate, unit, status)
-    if not status or ns.Get("nameplateThreat") == "off" or Clean(UnitIsPlayer(unit)) then return end
+    if not status or ns.Get("nameplateThreat") == "off" or UnitIsPlayer(unit) then return end
     local level = THREAT_LEVEL[status]
     local role = IsTank() and "tank" or "dps"
     if status >= 2 then
@@ -372,7 +372,7 @@ local function UpdateHealthColor(plate)
     c = ThreatColor(plate, unit, status)
         or (tapped and COLORS.tapped)
         or (not fighting and NP.QuestColor(unit, reaction == 4))
-    if not c and Clean(UnitIsPlayer(unit)) then
+    if not c and UnitIsPlayer(unit) then
         local _, class = UnitClass(unit)
         local cc = RAID_CLASS_COLORS[Clean(class)]
         if cc then
@@ -404,11 +404,12 @@ end
 
 local function UpdateName(plate)
     local unit = plate.unit
+    -- The name can be secret: passed on as it is, never tested.
     local name = UnitName(unit)
     if ns.Get("nameplateLevel") then
-        plate.name:SetFormattedText("%s%s", LevelText(unit), name or "")
+        plate.name:SetFormattedText("%s%s", LevelText(unit), name)
     else
-        plate.name:SetFormattedText("%s", name or "")
+        plate.name:SetFormattedText("%s", name)
     end
 end
 

@@ -145,7 +145,7 @@ end)
 --  Settings
 -------------------------------------------------------------------------------
 ns.RegisterFeature({
-    key = "thankBuffs", label = "Thank players who buff you", section = SECTION, category = "Thanks for buffs",
+    key = "thankBuffs", label = "Thank players who buff you", section = SECTION, category = "Thanks for buffs", default = false,
     apply = function()
         local on = ns.Get("thankBuffs")
         if on then

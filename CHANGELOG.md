@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.1 (2026-10-12)
+
+If you changed anything under Action bars, Visibility, check that page after updating: bars set to Always, or never touched, may now be hidden. Restore defaults brings every bar back.
+
+### New
+- Action bars: link a bar to another in Visibility. The linked bar uses the other bar's boxes, and the mouse over either shows both.
+
+### Changed
+- Action bars: the Always column is gone. Tick both Out of combat and In combat (now the default) to always show a bar, and neither to hide it. Mouse over now only applies in the combat states you ticked.
+
+### Fixed
+- Action bars: buttons on a hidden bar no longer show their tooltips.
+
 ## 1.8.0 (2026-10-12)
 
 A new module, Serene Other, holds the level-up screenshot, thanks for buffs and the New characters settings. When updating by hand, copy the new SereneOther folder into Interface/AddOns as well. Your settings carry over.

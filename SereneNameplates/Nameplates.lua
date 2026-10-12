@@ -583,14 +583,6 @@ function NP.RefreshAll()
     RunRefreshHooks()
 end
 
--- Repaints every plate in place, for settings that change no frames.
-function NP.Repaint()
-    for _, plate in pairs(NP.plates) do
-        UpdateAll(plate)
-        RunModules("attach", plate, plate.unit)
-    end
-end
-
 function NP.Relayout()
     NP.layoutGen = (NP.layoutGen or 0) + 1
     for _, plate in pairs(NP.plates) do

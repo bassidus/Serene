@@ -132,10 +132,15 @@ hooksecurefunc("FCF_OpenTemporaryWindow", function()
     for _, h in ipairs(chatHandlers) do RunChatHandler(h) end
 end)
 
+-- Plain text as a Lua pattern that matches only itself.
+function ns.EscapePattern(s)
+    return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0"))
+end
+
 -- A global string like "%s has been reset." as a pattern for the whole line:
 -- %s, %d and %.1f become captures, numbered as in the string.
 function ns.FormatPattern(fmt)
-    local p = fmt:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")
+    local p = ns.EscapePattern(fmt)
     p = p:gsub("%%%%s", "(.-)"):gsub("%%%%d", "(%%d+)"):gsub("%%%%%%%.%df", "([%%d%%.]+)")
     return "^" .. p .. "$"
 end

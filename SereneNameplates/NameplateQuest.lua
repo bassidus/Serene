@@ -159,7 +159,7 @@ NP.OnRefresh(SyncEvents)
 local function Refresh()
     wipe(cache)
     SyncEvents()
-    if NP.layoutGen then NP.Repaint() end
+    if NP.layoutGen then Repaint() end
 end
 
 -- The settings are on the Quests tab, so SereneQuests registers them (the

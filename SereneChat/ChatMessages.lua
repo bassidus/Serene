@@ -336,7 +336,7 @@ local function ShortChannel(open, name, close, space)
     return open .. "|cffffffff" .. tag .. "|r" .. close .. space
 end
 
-local function Escape(s) return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")) end
+local Escape = ns.EscapePattern
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
 -- after the player link; an NPC's name is no link and stays as it is. A

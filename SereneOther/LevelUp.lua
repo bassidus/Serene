@@ -17,6 +17,13 @@ local dinged  -- waiting for the /played answer to a ding
 -- Blizzard prints every /played answer in the chat windows that show system
 -- messages. Ours stay quiet: those windows skip the event until it is in.
 local muted = {}
+
+-- A frame later, so the answer being handled now doesn't reach them.
+local function Unmute()
+    for _, frame in ipairs(muted) do frame:RegisterEvent("TIME_PLAYED_MSG") end
+    wipe(muted)
+end
+
 local function RequestQuietly()
     ChatFrameUtil.ForEachChatFrame(function(frame)
         if frame:IsEventRegistered("TIME_PLAYED_MSG") then
@@ -25,12 +32,8 @@ local function RequestQuietly()
         end
     end)
     RequestTimePlayed()
-end
-
--- A frame later, so the answer being handled now doesn't reach them.
-local function Unmute()
-    for _, frame in ipairs(muted) do frame:RegisterEvent("TIME_PLAYED_MSG") end
-    wipe(muted)
+    -- The windows hear /played again even if no answer ever comes.
+    C_Timer.After(10, Unmute)
 end
 
 local watcher = CreateFrame("Frame")

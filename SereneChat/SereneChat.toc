@@ -2,7 +2,7 @@
 ## Title: Serene Chat
 ## Group: Serene
 ## Notes: Arrow-key history, levels after names, short channel names and loot lines, clickable links, chat font and fade, copy chat.
-## Version: 1.7.0
+## Version: 1.8.0
 ## Dependencies: Serene
 ## X-Serene-Section: Chat
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

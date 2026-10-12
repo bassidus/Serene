@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.0 (2026-10-12)
+
+A new module, Serene Other, holds the level-up screenshot, thanks for buffs and the New characters settings. When updating by hand, copy the new SereneOther folder into Interface/AddOns as well. Your settings carry over.
+
+### New
+- Other: a new tab for the level-up screenshot, thanks for buffs and the action bars and Edit Mode layout for new characters, moved from General, Social and Action bars.
+- Level up: a line in chat once the screenshot is saved.
+
+### Changed
+- General: hide error messages / speech is now a single checkbox. The in combat and out of combat choices are gone.
+- Thanks for buffs and the level-up screenshot are off by default.
+- Action bars: the Visibility group starts closed.
+
 ## 1.7.0 (2026-10-11)
 
 ### New

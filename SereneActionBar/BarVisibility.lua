@@ -17,26 +17,26 @@ local HOVER_CHECK = 0.05
 
 -- Bars 1-8 are numbered as in GetActionBarToggles.
 local BARS = {
-    { id = "1", label = "Action Bar 1", frame = "MainActionBar" },
-    { id = "2", label = "Action Bar 2", frame = "MultiBarBottomLeft" },
-    { id = "3", label = "Action Bar 3", frame = "MultiBarBottomRight" },
-    { id = "4", label = "Action Bar 4", frame = "MultiBarRight" },
-    { id = "5", label = "Action Bar 5", frame = "MultiBarLeft" },
-    { id = "6", label = "Action Bar 6", frame = "MultiBar5" },
-    { id = "7", label = "Action Bar 7", frame = "MultiBar6" },
-    { id = "8", label = "Action Bar 8", frame = "MultiBar7" },
-    { id = "stance", label = "Stance Bar", frame = "StanceBar" },
-    { id = "pet", label = "Pet Bar", frame = "PetActionBar" },
-    { id = "micro", label = "Micro Menu", frame = "MicroMenuContainer" },
-    { id = "bags", label = "Bags Bar", frame = "BagsBar" },
+    { id = "1", label = "Action Bar 1", frame = MainActionBar },
+    { id = "2", label = "Action Bar 2", frame = MultiBarBottomLeft },
+    { id = "3", label = "Action Bar 3", frame = MultiBarBottomRight },
+    { id = "4", label = "Action Bar 4", frame = MultiBarRight },
+    { id = "5", label = "Action Bar 5", frame = MultiBarLeft },
+    { id = "6", label = "Action Bar 6", frame = MultiBar5 },
+    { id = "7", label = "Action Bar 7", frame = MultiBar6 },
+    { id = "8", label = "Action Bar 8", frame = MultiBar7 },
+    { id = "stance", label = "Stance Bar", frame = StanceBar },
+    { id = "pet", label = "Pet Bar", frame = PetActionBar },
+    { id = "micro", label = "Micro Menu", frame = MicroMenuContainer },
+    { id = "bags", label = "Bags Bar", frame = BagsBar },
     -- The manager's own rect is a strip at the screen's bottom edge, behind
     -- the micro menu; the bars it holds sit above the action bar.
-    { id = "xp", label = "XP Bar", frame = "StatusTrackingBarManager",
-      over = { "MainStatusTrackingBarContainer", "SecondaryStatusTrackingBarContainer" } },
+    { id = "xp", label = "XP Bar", frame = StatusTrackingBarManager,
+      over = { MainStatusTrackingBarContainer, SecondaryStatusTrackingBarContainer } },
     -- EndCaps' own rect sits over the bar; the art is in its two children.
     { id = "caps", label = UnitFactionGroup("player") == "Horde" and "Wyverns" or "Gryphons",
-      frame = "MainActionBar.EndCaps",
-      over = { "MainActionBar.EndCaps.LeftEndCap", "MainActionBar.EndCaps.RightEndCap" } },
+      frame = MainActionBar.EndCaps,
+      over = { MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap } },
 }
 
 -- The art at the bar's ends is a child of the first bar and would fade with
@@ -54,24 +54,11 @@ local hovered = {}  -- [group] = true while the mouse is over one of its bars
 local watcher = CreateFrame("Frame")
 watcher:Hide()
 local hoverElapsed = 0
-
--- A global frame, or a field of one as "Parent.Child".
-local function Resolve(path)
-    local frame
-    for name in path:gmatch("[^.]+") do
-        frame = frame and frame[name] or _G[name]
-    end
-    return frame
-end
-
-local function Frame(bar)
-    return Resolve(bar.frame)
-end
+local watching = false  -- some bar is not left to Blizzard
 
 local function MouseOver(bar)
-    if not bar.over then return Clean(Frame(bar):IsMouseOver()) end
-    for _, path in ipairs(bar.over) do
-        local frame = Resolve(path)
+    if not bar.over then return Clean(bar.frame:IsMouseOver()) end
+    for _, frame in ipairs(bar.over) do
         if frame:IsShown() and Clean(frame:IsMouseOver()) then return true end
     end
 end
@@ -112,10 +99,10 @@ end
 
 local function BarOf(frame)
     for _, bar in ipairs(BARS) do
-        if Frame(bar) == frame then return bar end
+        if bar.frame == frame then return bar end
         if bar.over then
-            for _, path in ipairs(bar.over) do
-                if Resolve(path) == frame then return bar end
+            for _, over in ipairs(bar.over) do
+                if over == frame then return bar end
             end
         end
     end
@@ -146,37 +133,68 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
     if checkHover then
         wipe(hovered)
         for _, bar in ipairs(BARS) do
-            if Rule(bar).hover and Frame(bar):IsShown() and MouseOver(bar) then
+            if Rule(bar).hover and bar.frame:IsShown() and MouseOver(bar) then
                 hovered[Group(bar)] = true
             end
         end
     end
 
+    -- Settled once every bar is where it should be and none waits on the
+    -- mouse; then only the events below wake the watcher.
+    local settled = true
     for _, bar in ipairs(BARS) do
-        local frame, rule, st = Frame(bar), Rule(bar), state[bar.id]
-        if frame:IsShown() and Managed(rule) then
-            if checkHover and rule.hover and hovered[Group(bar)] then st.lastHover = now end
+        local frame, rule, st = bar.frame, Rule(bar), state[bar.id]
+        if Managed(rule) then
             local target = Target(rule, st, now)
             local alpha = st.alpha or 1
-            if alpha ~= target then
-                alpha = target > alpha and math.min(alpha + step, 1) or math.max(alpha - step, 0)
-                st.alpha = alpha
-                frame:SetAlpha(alpha)
+            if not frame:IsShown() then
+                -- No fade for a hidden bar, so it is right when it shows.
+                if alpha ~= target then
+                    st.alpha = target
+                    frame:SetAlpha(target)
+                end
+            else
+                if rule.hover then
+                    settled = false
+                    if checkHover and hovered[Group(bar)] then
+                        st.lastHover = now
+                        target = Target(rule, st, now)
+                    end
+                end
+                if alpha ~= target then
+                    alpha = target > alpha and math.min(alpha + step, 1) or math.max(alpha - step, 0)
+                    st.alpha = alpha
+                    frame:SetAlpha(alpha)
+                    if alpha ~= target then settled = false end
+                end
             end
         end
     end
+    if settled then self:Hide() end
 end)
 
+-- What Target() reads: combat, the cursor and Edit Mode.
+local function Wake()
+    if watching then watcher:Show() end
+end
+watcher:RegisterEvent("PLAYER_REGEN_DISABLED")
+watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
+watcher:RegisterEvent("CURSOR_CHANGED")
+watcher:SetScript("OnEvent", Wake)
+EditModeManagerFrame:HookScript("OnShow", Wake)
+EditModeManagerFrame:HookScript("OnHide", Wake)
+
 -- Runs at login and on every change: bars left to Blizzard go back to full
--- alpha right away; the watcher only runs while some bar is not.
+-- alpha right away; the watcher only runs while some bar is not, and sleeps
+-- while nothing moves.
 local function Refresh()
-    local watching = false
+    watching = false
     for _, bar in ipairs(BARS) do
         if not Managed(Rule(bar)) then
             local st = state[bar.id]
             if st.alpha then
                 st.alpha = nil
-                Frame(bar):SetAlpha(1)
+                bar.frame:SetAlpha(1)
             end
         else
             watching = true

@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.9.0 (2026-10-13)
+
+### New
+- CPU meter: an overlay with every loaded addon's share of the CPU. Right-click the minimap icon or type /cpu to show or hide it, and drag it to move it.
+- Tooltip: the item's icon beside item tooltips and their comparisons.
+- Tooltip: the price per item after the sell price of a stack.
+- Quests: a glowing gold coin marks the quest reward that sells for the most.
+- Pet frame: green, orange and red faces show your pet's happiness (Unit frames, "Use happiness faces").
+- Action bars: the main hand, off hand and ranged swing timers have their own rows in Visibility.
+
+### Changed
+- Minimap icon: reloading the UI moves from right-click to Shift-right-click. Right-click now shows the CPU meter.
+- Pet frame: click anywhere on it to target your pet or open its menu, not just the portrait.
+- Range coloring: quest items in the quest tracker turn red out of range too.
+- Tooltip: a thin outline around the Equipped tab.
+- Action bars: Visibility uses less CPU while bars are faded out.
+
+### Fixed
+- Action bars: tooltips on some buttons no longer go missing when a bar uses mouse over.
+- Train All: hidden at beast trainers, where it could not buy anything.
+
 ## 1.8.2 (2026-10-12)
 
 ### Changed

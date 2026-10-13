@@ -39,6 +39,7 @@ magick -size 128x128 xc:none -fill '#1a0d05' -draw "circle 64,64 64,2" \
 echo "Wrote Serene/Media/Corner.tga, CornerFill.tga, Glow.tga and Knob.tga"
 
 # The pet happiness faces, emoji-like: green, orange and red. 64 px drawn at 256.
+# The green one has the pet health bar's colors, sampled in game.
 faces="$root/SereneUnitFrames/Media"
 mkdir -p "$faces"
 face() {  # face <out> <outline> <light> <dark> <features...>
@@ -52,7 +53,7 @@ face() {  # face <out> <outline> <light> <dark> <features...>
 }
 eyes=(-draw "ellipse 90,100 13,21 0,360" -draw "ellipse 166,100 13,21 0,360")
 line=(-fill none -strokewidth 15 -draw "stroke-linecap round")
-face Happy.tga '#0f3d06' '#9cf06a' '#3fa82a' "${eyes[@]}" "${line[@]}" -draw "path 'M 74,150 Q 128,210 182,150'"
+face Happy.tga '#0f3d00' '#a4e946' '#4caa10' "${eyes[@]}" "${line[@]}" -draw "path 'M 74,150 Q 128,210 182,150'"
 face Content.tga '#5a2600' '#ffc06a' '#ef7a14' "${eyes[@]}" "${line[@]}" -draw "line 86,172 170,172"
 face Unhappy.tga '#4a0a00' '#ff7a52' '#cf2614' \
     -draw "ellipse 92,122 12,17 0,360" -draw "ellipse 164,122 12,17 0,360" \

@@ -278,7 +278,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFontSettings({
     prefix = "buttonText", label = "Keybind and macro text", section = SECTION, category = "Buttons",
-    size = { 6, 24, DEFAULT_SIZE }, outline = "default", color = "buttonTextColor", button = "Font settings",
+    size = { 6, 24, DEFAULT_SIZE }, outline = "default", color = "buttonTextColor", button = "Font",
     beside = true,
     apply = ApplySetting,
     blizzard = function()

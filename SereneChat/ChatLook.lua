@@ -155,7 +155,7 @@ ns.RegisterFeature({
 ns.RegisterFontSettings({
     prefix = "chat", label = "Font", section = SECTION, category = CATEGORY, apply = ApplyFont,
     beside = true,
-    size = { 10, 24, BLIZZARD_SIZE }, outline = "default", button = "Font settings",
+    size = { 10, 24, BLIZZARD_SIZE }, outline = "default", button = "Font",
     blizzard = function()
         local o = original[ChatFrame1] or ns.FontState(ChatFrame1)
         return ns.OutlineOf(o.flags, o.sx, o.sy)

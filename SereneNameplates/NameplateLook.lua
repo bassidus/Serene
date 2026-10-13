@@ -22,5 +22,5 @@ ns.RegisterFeature({
 })
 ns.RegisterFontSettings({
     prefix = "nameplate", label = "Font", section = "Nameplates", category = "Settings", apply = Relayout,
-    size = { 7, 16, 10 }, outline = "OUTLINE", button = "Font settings", space = true,
+    size = { 7, 16, 10 }, outline = "OUTLINE", button = "Font", space = true,
 })

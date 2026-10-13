@@ -99,7 +99,7 @@ ns.OnUnitFrameUpdate(Style)
 -- def: the rest of the group's RegisterFontSettings fields.
 local function Register(g, def)
     def.prefix, def.label, def.apply = g.prefix, g.label, Apply
-    def.size, def.outline, def.button = { 6, 24, g.base }, "default", "Font settings"
+    def.size, def.outline, def.button = { 6, 24, g.base }, "default", "Font"
     def.blizzard = function()
         local fs = strings[PlayerFrame][g][1]
         local o = orig[fs] or ns.FontState(fs)

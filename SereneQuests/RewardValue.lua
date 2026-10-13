@@ -8,7 +8,7 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
-local COIN, GLOW = 22, 48
+local COIN, GLOW = 22, 38
 
 local coins = {}  -- [reward button] = frame holding the coin and its glow
 local active      -- the reward buttons show the quest NPC's quest
@@ -21,7 +21,7 @@ local function Coin(button)
     if not coin then
         coin = CreateFrame("Frame", nil, button)
         coin:SetSize(COIN, COIN)
-        coin:SetPoint("CENTER", _G[button:GetName() .. "IconTexture"], "TOPLEFT", 8, -8)
+        coin:SetPoint("CENTER", _G[button:GetName() .. "IconTexture"], "TOPLEFT", 6, -6)
 
         local icon = coin:CreateTexture(nil, "OVERLAY")
         icon:SetTexture("Interface\\MoneyFrame\\UI-GoldIcon")

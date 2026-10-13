@@ -11,6 +11,7 @@ local _, ns = ...
 local TOOLTIPS = { "FriendsTooltip", unpack(ns.TOOLTIPS) }
 
 local backgrounds = {}
+local tabEdges = {}  -- compare tab -> its outline's four lines
 local faded = {}   -- tooltips whose NineSlice we hid
 local dimmed = {}  -- tooltips whose center we made see-through
 
@@ -23,6 +24,36 @@ local function TabArt(header)
     for _, region in ipairs({ header:GetRegions() }) do
         if region:IsObjectType("Texture") then return region end
     end
+end
+
+-- Without the framed art the flat tab would melt into whatever is behind it,
+-- so it gets a thin outline. The bottom line sits on the tooltip's top edge.
+local TAB_EDGE_COLOR = { 0.5, 0.5, 0.5 }
+
+local function TabEdges(header)
+    local edges = tabEdges[header]
+    if edges then return edges end
+    local function Line()
+        local t = header:CreateTexture(nil, "BORDER")
+        t:SetColorTexture(unpack(TAB_EDGE_COLOR))
+        return t
+    end
+    local top, bottom, left, right = Line(), Line(), Line(), Line()
+    top:SetPoint("TOPLEFT")
+    top:SetPoint("TOPRIGHT")
+    top:SetHeight(1)
+    bottom:SetPoint("BOTTOMLEFT", 0, 1)
+    bottom:SetPoint("BOTTOMRIGHT", 0, 1)
+    bottom:SetHeight(1)
+    left:SetPoint("TOPLEFT")
+    left:SetPoint("BOTTOMLEFT", 0, 1)
+    left:SetWidth(1)
+    right:SetPoint("TOPRIGHT")
+    right:SetPoint("BOTTOMRIGHT", 0, 1)
+    right:SetWidth(1)
+    edges = { top, bottom, left, right }
+    tabEdges[header] = edges
+    return edges
 end
 
 local function StyleTab(header, flat, r, g, b, a, opacity)
@@ -40,10 +71,14 @@ local function StyleTab(header, flat, r, g, b, a, opacity)
         bg:SetColorTexture(r, g, b, a)
         bg:SetAlpha(opacity)
         bg:Show()
+        for _, line in ipairs(TabEdges(header)) do line:Show() end
         art:SetAlpha(0)
     else
         art:SetAlpha(1)
         if backgrounds[header] then backgrounds[header]:Hide() end
+        if tabEdges[header] then
+            for _, line in ipairs(tabEdges[header]) do line:Hide() end
+        end
     end
 end
 

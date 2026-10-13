@@ -45,7 +45,7 @@ Screenshot and time played on level up, thank players who buff you, action bars 
 
 Install with the CurseForge app, or extract every Serene folder into Interface/AddOns. Serene is the core and is required. All other modules are optional.
 
-<span style="color: #f65820;">Minimap icon</span> left-click opens the options, right-click reloads the UI.  
+<span style="color: #f65820;">Minimap icon</span> left-click opens the options, right-click shows the CPU meter, Shift-right-click reloads the UI.  
 <span style="color: #f65820;">/serene</span> opens the options.  
 <span style="color: #f65820;">/serene</span> reset resets all settings to default.
 

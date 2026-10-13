@@ -1,18 +1,19 @@
 -------------------------------------------------------------------------------
 --  Minimap Icon -- LibDBIcon launcher: left-click opens the options window,
---  right-click reloads the UI, middle-click shows or hides the CPU meter,
---  drag moves it around the minimap. Position lives in SereneDB.minimap.
+--  right-click shows or hides the CPU meter, Shift-right-click reloads the
+--  UI, drag moves it around the minimap. Position lives in SereneDB.minimap.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
 -------------------------------------------------------------------------------
---  Right-click reload. The Forever client blocks ReloadUI() from addon code,
---  so an invisible secure macro button (/reload on right-click) covers the
---  icon; everything else it receives is passed on to the LibDBIcon button
---  (left-click, drag, tooltip, highlight). A protected child would lock the
---  icon (LibDBIcon's Show/Hide) in combat, so on entering combat the overlay
---  is detached and right-click falls through to the icon, which then only
---  explains. PLAYER_REGEN_DISABLED still runs before the lockdown starts.
+--  Shift-right-click reload. The Forever client blocks ReloadUI() from addon
+--  code, so an invisible secure macro button (/reload on Shift-right-click)
+--  covers the icon; everything else it receives is passed on to the
+--  LibDBIcon button (other clicks, drag, tooltip, highlight). A protected
+--  child would lock the icon (LibDBIcon's Show/Hide) in combat, so on
+--  entering combat the overlay is detached and every click falls through to
+--  the icon, which then only explains the reload. PLAYER_REGEN_DISABLED
+--  still runs before the lockdown starts.
 -------------------------------------------------------------------------------
 local iconButton, overlay
 
@@ -30,12 +31,12 @@ local function AttachOverlay()
         overlay:RegisterForClicks("AnyUp")
         overlay:RegisterForDrag("LeftButton")
         overlay:SetAttribute("useOnKeyDown", false)
-        overlay:SetAttribute("type2", "macro")
-        overlay:SetAttribute("macrotext2", "/reload")
+        overlay:SetAttribute("shift-type2", "macro")
+        overlay:SetAttribute("shift-macrotext2", "/reload")
         overlay:HookScript("OnClick", function(_, button)
             if button == "LeftButton" then
                 ns.ToggleOptions()
-            elseif button == "MiddleButton" then
+            elseif button == "RightButton" and not IsShiftKeyDown() then
                 ns.ToggleCPUMeter()
             end
         end)
@@ -84,22 +85,22 @@ local function Register()
         text = "Serene",
         icon = ns.LOGO,
         -- Reached for left-click only while the overlay is attached; in
-        -- combat right- and middle-click land here too.
+        -- combat right-click lands here too.
         OnClick = function(_, button)
-            if button == "RightButton" then
-                ns.Print("Cannot reload from the icon during combat. Type /reload instead.")
-            elseif button == "MiddleButton" then
-                ns.ToggleCPUMeter()
-            else
+            if button ~= "RightButton" then
                 ns.ToggleOptions()  -- refuses during combat itself
+            elseif IsShiftKeyDown() then
+                ns.Print("Cannot reload from the icon during combat. Type /reload instead.")
+            else
+                ns.ToggleCPUMeter()
             end
         end,
         OnTooltipShow = function(tt)
             tt:AddLine("Serene", unpack(ns.ACCENT))
             tt:AddLine("|cffffffffLeft-click|r to open the options.", 0.8, 0.8, 0.8)
-            tt:AddLine("|cffffffffRight-click|r to reload the UI.", 0.8, 0.8, 0.8)
-            tt:AddLine(("|cffffffffMiddle-click|r to %s the CPU meter."):format(
+            tt:AddLine(("|cffffffffRight-click|r to %s the CPU meter."):format(
                 ns.Get("cpuMeter") and "hide" or "show"), 0.8, 0.8, 0.8)
+            tt:AddLine("|cffffffffShift-right-click|r to reload the UI.", 0.8, 0.8, 0.8)
             tt:AddLine("|cffffffffDrag|r to move this icon.", 0.8, 0.8, 0.8)
         end,
     })

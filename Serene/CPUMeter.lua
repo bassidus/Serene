@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --  CPU Meter -- the game menu's CPU numbers in an overlay that stays up:
 --  every loaded addon's recent average as a share of the whole client's
---  frame time, highest first. Middle-click on the minimap icon or /cpu
+--  frame time, highest first. Right-click on the minimap icon or /cpu
 --  shows or hides it; drag it to move it. Its spot lives in
 --  SereneDB.cpuMeterPoint.
 --

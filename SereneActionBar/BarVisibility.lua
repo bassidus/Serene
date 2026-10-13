@@ -34,8 +34,10 @@ local BARS = {
     { id = "xp", label = "XP Bar", frame = StatusTrackingBarManager,
       over = { MainStatusTrackingBarContainer, SecondaryStatusTrackingBarContainer } },
     -- EndCaps' own rect sits over the bar; the art is in its two children.
+    -- They are textures, which get no OnEnter, so the mouse over them is
+    -- only seen by polling.
     { id = "caps", label = UnitFactionGroup("player") == "Horde" and "Wyverns" or "Gryphons",
-      frame = MainActionBar.EndCaps,
+      frame = MainActionBar.EndCaps, polled = true,
       over = { MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap } },
 }
 
@@ -114,7 +116,8 @@ GameTooltip:HookScript("OnShow", function(self)
 end)
 
 -- Runs every frame only while a bar fades; otherwise it does nothing
--- between the mouse checks.
+-- between the mouse checks. A bar faded out for the mouse lets it sleep,
+-- and entering one of its frames wakes it (HookEnter below).
 watcher:SetScript("OnUpdate", function(self, elapsed)
     hoverElapsed = hoverElapsed + elapsed
     local checkHover = hoverElapsed >= HOVER_CHECK
@@ -132,8 +135,8 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
         end
     end
 
-    -- Settled once every bar is where it should be and none waits on the
-    -- mouse; then only the events below wake the watcher.
+    -- Settled once every bar is where it should be and none is shown for
+    -- the mouse; then only the events and hooks below wake the watcher.
     local settled = true
     fading = false
     for _, bar in ipairs(BARS) do
@@ -149,11 +152,12 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
                 end
             else
                 if rule.hover then
-                    settled = false
                     if checkHover and hovered[groups[bar.id]] then
                         st.lastHover = now
                         target = Target(rule, st, now, forced)
                     end
+                    -- Shown, it waits for the mouse to leave.
+                    if target == 1 or bar.polled then settled = false end
                 end
                 if alpha ~= target then
                     alpha = target > alpha and math.min(alpha + step, 1) or math.max(alpha - step, 0)
@@ -182,6 +186,18 @@ watcher:RegisterEvent("CURSOR_CHANGED")
 watcher:SetScript("OnEvent", Wake)
 EditModeManagerFrame:HookScript("OnShow", Wake)
 EditModeManagerFrame:HookScript("OnHide", Wake)
+
+-- Every frame in a bar, so the mouse coming in over a button, a bag slot
+-- or the XP bar wakes the watcher.
+local function HookEnter(frame)
+    frame:HookScript("OnEnter", Wake)
+    for _, child in ipairs({ frame:GetChildren() }) do HookEnter(child) end
+end
+for _, bar in ipairs(BARS) do
+    if not bar.polled then
+        for _, frame in ipairs(bar.over or { bar.frame }) do HookEnter(frame) end
+    end
+end
 
 -- Runs at login and on every change: bars left to Blizzard go back to full
 -- alpha right away; the watcher only runs while some bar is not, and sleeps

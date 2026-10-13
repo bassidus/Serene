@@ -5,7 +5,7 @@
 #   CornerFill.tga  the quarter disc that line closes, white, for the fills
 #   Glow.tga        a soft white radial falloff in alpha, the window's glow
 #   Knob.tga        the sliders' knob: a gold bead in a dark ring, in color
-# and the pet happiness faces and the pet bar mask into SereneUnitFrames/Media.
+# and the pet happiness faces and the pet frame masks into SereneUnitFrames/Media.
 # Everything is drawn at 4x and scaled down, which anti-aliases the curves.
 #   tools/textures/make.sh
 set -euo pipefail
@@ -61,11 +61,26 @@ face Unhappy.tga '#4a0a00' '#ff7a52' '#cf2614' \
 
 echo "Wrote SereneUnitFrames/Media/Happy.tga, Content.tga and Unhappy.tga"
 
-# The pet frame's one tall health bar: square on the left, where the portrait
-# ring covers it, rounded on the right. About the bar's 74x18 shape; the
-# corner radius is 5 px here, about 3 on the bar. 128x32 drawn at 512x128.
-magick -size 512x128 xc:none -fill white -draw "roundrectangle 0,0 511,127 20,20" \
-    -draw "rectangle 0,0 255,127" -resize 128x32 \
+# The pet frame's one tall health bar, 75x18 units at 256x64 drawn at
+# 1024x256: the left edge cut along the outside of the portrait ring (a circle
+# of radius 20.5 units centred 15.3 left of the bar and 5 below its top, an
+# ellipse here as the pixels aren't square), the right corners cut off at
+# 45 degrees like the frame art's, the right edge half a unit in.
+magick -size 1024x256 xc:black -fill white \
+    -draw "polygon 0,0 1003,0 1017,14 1017,242 1003,256 0,256" \
+    -fill black -draw "ellipse -208.9,71.1 279.9,291.6 0,360" \
+    -resize 256x64 -background white -alpha shape \
     -define tga:compression=none -type TrueColorAlpha "$faces/PetBarMask.tga"
 
-echo "Wrote SereneUnitFrames/Media/PetBarMask.tga"
+# The pet frame art's line between the health and power bars and the shadow
+# under it at the top of the power bar's place, cut out over the art's
+# 120x49 units at 2 px each: from the ring to the right edge, short of the
+# soft shadow on its inside. The line reaches into that shadow, so it is
+# thinned there to the shadow's own darkness, measured in game.
+magick -size 241x98 xc:white -fill black -draw "rectangle 92,49 226,63" \
+    -fill gray50 -draw "rectangle 227,52 227,56" -fill gray65 -draw "rectangle 228,52 228,56" \
+    -fill gray75 -draw "rectangle 227,57 227,60" -fill gray85 -draw "rectangle 228,57 228,60" \
+    -background white -alpha shape \
+    -define tga:compression=none -type TrueColorAlpha "$faces/PetArtMask.tga"
+
+echo "Wrote SereneUnitFrames/Media/PetBarMask.tga and PetArtMask.tga"

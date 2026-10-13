@@ -62,62 +62,34 @@ function ns.ApplyHappinessFaces()
 end
 
 -------------------------------------------------------------------------------
---  One bar: the power bar hidden and the health bar over both bars' place,
---  the 1px gap included. Health grows from its top, since Blizzard anchors
---  it by its bottom. Blizzard's mask only fits a 10px bar, so it takes our
---  shape instead: square on the left, under the portrait ring, rounded on
---  the right. Heal prediction and Smooth bars go through the same mask.
+--  One bar: the power bar hidden and the health bar over both bars' place.
+--  Blizzard's mask only fits a 10px bar, so it takes our shape instead: cut
+--  along the outside of the portrait ring on the left, so the bar meets the
+--  ring rather than lying over it, and with the art's cut corners on the
+--  right. Heal prediction and Smooth bars go through the same mask.
 --
---  Blizzard's bars lie over the ring's edge, which shows on one tall green
---  bar, so a copy of the frame art cut to the ring lies on top, and the left
---  text moves out from under it. The art behind the bars is see-through and
---  has a line (red in combat) where they met, which showed in the empty part
---  of the bar; a solid background covers it.
+--  The art has a line where the two bars met, with a shadow under it, which
+--  would show in the empty part of the bar, so a mask cuts them out of the
+--  art and of its combat glows.
 -------------------------------------------------------------------------------
 local health, power = PetFrame.healthbar, PetFrame.manabar
 local MASK = PetFrameHealthBarMask
 local MASK_FILE = "Interface\\AddOns\\SereneUnitFrames\\Media\\PetBarMask"
-local EXTRA = power:GetHeight() + 1
--- Further left, the bar shows in the ring's hole beside the portrait.
-local WIDER = 2.5
-local TEXT_IN = 2.5  -- the left text's distance from the bar's edge, clear of the ring
+local ART_MASK_FILE = "Interface\\AddOns\\SereneUnitFrames\\Media\\PetArtMask"
+-- The art's box, from the ring to its right edge; PetBarMask is drawn for it.
+local WIDTH, HEIGHT = 75, 18
+local LEFT, BOTTOM = -2, -11  -- from the portrait's right edge, as Blizzard anchors it
+local TEXT_IN = 7  -- the left text's distance from the bar's edge, clear of the ring
 local healthWidth, healthHeight = health:GetSize()
 local maskAtlas = MASK:GetAtlas()
-local shaped  -- set once our shape is on, so Blizzard's mask is only put back after it
+local shaped  -- set while our masks are on, so Blizzard's mask is only put back after them
 
-local background = health:CreateTexture(nil, "BACKGROUND", nil, -8)
-background:SetColorTexture(0.06, 0.06, 0.06)
-background:SetAllPoints()
-background:AddMaskTexture(MASK)
-background:Hide()
-
--- Above the bars and Smooth bars' copies of them.
-local ringFrame = CreateFrame("Frame", nil, PetFrame)
-ringFrame:SetAllPoints()
-ringFrame:SetFrameLevel(health:GetFrameLevel() + 1)
-local ring = ringFrame:CreateTexture(nil, "BORDER")
-ring:SetAllPoints(PetFrameTexture)
--- Sized by eye: any larger and the dark background behind the bars, which
--- is art too, covers their start.
-local ringMask = ringFrame:CreateMaskTexture()
--- Blank outside the circle; clamped, its edge reached across the bar as a
--- stripe of frame art.
-ringMask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-ringMask:SetSize(44, 44)
-ringMask:SetPoint("CENTER", PetPortrait)
-ring:AddMaskTexture(ringMask)
-ringFrame:Hide()
-
--- The art's look as Blizzard and Dark mode set it.
-local function SyncRing()
-    ring:SetAtlas(PetFrameTexture:GetAtlas(), false)
-    ring:SetDesaturated(PetFrameTexture:IsDesaturated())
-    ring:SetVertexColor(PetFrameTexture:GetVertexColor())
-end
-for _, method in ipairs({ "SetAtlas", "SetDesaturated", "SetVertexColor" }) do
-    hooksecurefunc(PetFrameTexture, method, function()
-        if ringFrame:IsShown() then SyncRing() end
-    end)
+local artMasks = {}
+for _, art in ipairs({ PetFrameTexture, PetFrameFlash, PetAttackModeTexture }) do
+    local mask = art:GetParent():CreateMaskTexture()
+    mask:SetTexture(ART_MASK_FILE)
+    mask:SetAllPoints(PetFrameTexture)
+    artMasks[art] = mask
 end
 
 function ns.ApplyPetOneBar()
@@ -125,24 +97,29 @@ function ns.ApplyPetOneBar()
     ns.SetHidden(power, on)
     -- Its mouseover text would show over nothing.
     power:SetMouseMotionEnabled(not on)
-    local wider, extra = on and WIDER or 0, on and EXTRA or 0
-    health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", 2 - wider, -3.5 - extra)
-    health:SetSize(healthWidth + wider, healthHeight + extra)
+    if on then
+        health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", LEFT, BOTTOM)
+        health:SetSize(WIDTH, HEIGHT)
+    else
+        -- As in Blizzard's PetFrame.xml.
+        health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", 2, -3.5)
+        health:SetSize(healthWidth, healthHeight)
+    end
     -- Blizzard's anchor at 0 otherwise.
     health.LeftText:SetPoint("LEFT", on and TEXT_IN or 0, 0)
     if on then
         MASK:SetTexture(MASK_FILE, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
         MASK:ClearAllPoints()
         MASK:SetAllPoints(health)
+        if not shaped then
+            for art, mask in pairs(artMasks) do art:AddMaskTexture(mask) end
+        end
         shaped = true
     elseif shaped then
-        -- As in Blizzard's PetFrame.xml.
         MASK:SetAtlas(maskAtlas, true)
         MASK:ClearAllPoints()
         MASK:SetPoint("TOPLEFT", -29, 3)
+        for art, mask in pairs(artMasks) do art:RemoveMaskTexture(mask) end
         shaped = nil
     end
-    background:SetShown(on)
-    ringFrame:SetShown(on)
-    if on then SyncRing() end
 end

@@ -52,6 +52,11 @@ ns.RegisterFeature({
     tooltip = "No mana or focus bar; the health bar takes its place.",
     default = false, apply = ns.ApplyPetOneBar,
 })
+ns.RegisterFeature({
+    key = "petFrameHappinessFaces", label = "Use happiness faces", section = SECTION, category = "Pet frame",
+    tooltip = "Green, orange and red faces for your pet's mood.",
+    beside = true, apply = ns.ApplyHappinessFaces,
+})
 
 -- Status numbers
 ns.RegisterFeature({
@@ -78,11 +83,6 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterNumbersFont({ section = SECTION, category = "Status numbers" })
-ns.RegisterFeature({
-    key = "petFrameHappinessFaces", label = "Use happiness faces", section = SECTION, category = "Status numbers",
-    tooltip = "Green, orange and red faces for your pet's mood.",
-    beside = true, apply = ns.ApplyHappinessFaces,
-})
 local HIDE = "Hide numbers on the following units"
 for _, unit in ipairs({
     { "Player", "the player frame" }, { "Target", "the target frame", true },

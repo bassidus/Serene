@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 --  Tooltip Content -- class, level, faction and guild colors, titles, guild rank,
---  target, AFK/DND, item level, IDs and the health bar. Every value read from
---  a unit goes through ns.Clean (secret values). Lines are added, recolored
---  or hidden, and tooltip refreshes update them in place instead of adding
---  twice.
+--  target, AFK/DND, item level, price per item, IDs and the health bar. Every
+--  value read from a unit goes through ns.Clean (secret values). Lines are
+--  added, recolored or hidden, and tooltip refreshes update them in place
+--  instead of adding twice.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -391,9 +391,38 @@ local function AddID(tt, label, id)
     return true
 end
 
+-- The Sell Price line shows the whole stack's price; one item's goes after
+-- it on the same line: "Sell Price: 1s 40c (14c each)".
+local SELL_PRICE_LINE = Enum.TooltipDataLineType.SellPrice
+local SELL_PRICE_PREFIX = SELL_PRICE .. ":"
+local EACH_SUFFIX = " each)"
+
+local function UnitPrice(tt, data)
+    local id = Clean(data.id)
+    if not id then return false end
+    local each = Clean(select(11, C_Item.GetItemInfo(id)))
+    if not each or each <= 0 then return false end
+    local price
+    for _, line in ipairs(data.lines) do
+        if line.type == SELL_PRICE_LINE then price = Clean(line.price) break end
+    end
+    if not price or price <= each then return false end
+    local i = FindLine(tt, "^" .. SELL_PRICE_PREFIX, true)
+    if not i then return false end
+    local fs, txt = LineText(tt, "Left", i)
+    if txt:sub(-#EACH_SUFFIX) == EACH_SUFFIX then return false end
+    fs:SetText(txt .. "  (" .. C_CurrencyInfo.GetCoinTextureString(each) .. EACH_SUFFIX)
+    return true
+end
+
 local function OnItem(tt, data)
     if tt:IsForbidden() then return end
     local added = false
+
+    -- Comparison tooltips leave out the sell price.
+    if ns.Get("tooltipUnitPrice") and not tt.isShopping then
+        added = UnitPrice(tt, data)
+    end
 
     -- The comparison tooltips (ShoppingTooltip1/2) have no GetItem.
     if ns.Get("tooltipItemLevel") and tt.GetItem then
@@ -451,6 +480,7 @@ for _, def in ipairs({
     { key = "tooltipTarget",          label = "Target of target" },
     { key = "tooltipDND",             label = "DND", beside = true },
     { key = "tooltipIDs",             label = "Spell & Item ID", default = false },
+    { key = "tooltipUnitPrice",       label = "Price per item", beside = true },
 }) do
     def.section, def.category = "Tooltip", "Content"
     ns.RegisterFeature(def)

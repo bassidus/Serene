@@ -1,0 +1,6 @@
+## Interface: 16001
+## Title: CPU Meter
+## Notes: Dev tool for Serene: a movable overlay with every loaded addon's CPU, as in the game menu's tooltip. /cpu shows or hides it.
+## SavedVariables: CPUMeterDB
+
+CPUMeter.lua

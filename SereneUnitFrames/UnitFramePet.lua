@@ -21,3 +21,42 @@ clicks:SetAttribute("type", "click")
 clicks:SetAttribute("clickbutton", PetFrame)
 -- The pet frame keeps its tooltip and highlight.
 clicks:SetPropagateMouseMotion(true)
+
+-------------------------------------------------------------------------------
+--  Happiness: our own faces in place of Blizzard's icon, which keeps its
+--  tooltip and shows and hides as before.
+-------------------------------------------------------------------------------
+local FACES = {
+    "Interface\\AddOns\\SereneUnitFrames\\Media\\Unhappy",
+    "Interface\\AddOns\\SereneUnitFrames\\Media\\Content",
+    "Interface\\AddOns\\SereneUnitFrames\\Media\\Happy",
+}
+
+-- Read before ours exists, which would be among them.
+local regions = {}
+for _, region in ipairs({ PetFrameHappiness:GetRegions() }) do
+    if region:IsObjectType("Texture") then regions[#regions + 1] = region end
+end
+local face = PetFrameHappiness:CreateTexture(nil, "ARTWORK")
+-- Raised to sit level with the middle of the bars.
+face:SetPoint("TOPLEFT", regions[1], 0, 4)
+face:SetPoint("BOTTOMRIGHT", regions[1], 0, 4)
+
+local happiness = CreateFrame("Frame")
+happiness:SetScript("OnEvent", function()
+    face:SetTexture(FACES[ns.Clean(C_PetInfo.GetPetHappiness())])
+end)
+
+function ns.ApplyHappinessFaces()
+    local on = ns.Get("petFrameHappinessFaces")
+    for _, region in ipairs(regions) do ns.SetHidden(region, on) end
+    face:SetShown(on)
+    if on then
+        happiness:RegisterUnitEvent("UNIT_HAPPINESS", "pet")
+        happiness:RegisterUnitEvent("UNIT_PET", "player")
+        happiness:RegisterEvent("PLAYER_ENTERING_WORLD")
+        happiness:GetScript("OnEvent")()
+    else
+        happiness:UnregisterAllEvents()
+    end
+end

@@ -187,10 +187,11 @@ watcher:SetScript("OnEvent", Wake)
 EditModeManagerFrame:HookScript("OnShow", Wake)
 EditModeManagerFrame:HookScript("OnHide", Wake)
 
--- Every frame in a bar, so the mouse coming in over a button, a bag slot
--- or the XP bar wakes the watcher.
+-- Every frame in a bar that takes the mouse, so the mouse coming in over a
+-- button, a bag slot or the XP bar wakes the watcher. Hooking OnEnter on any
+-- other frame turns its mouse on, and it would cover the buttons' tooltips.
 local function HookEnter(frame)
-    frame:HookScript("OnEnter", Wake)
+    if frame:IsMouseMotionEnabled() then frame:HookScript("OnEnter", Wake) end
     for _, child in ipairs({ frame:GetChildren() }) do HookEnter(child) end
 end
 for _, bar in ipairs(BARS) do

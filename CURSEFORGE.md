@@ -47,7 +47,7 @@ Install with the CurseForge app, or extract every Serene folder into Interface/A
 
 <span style="color: #f65820;">Minimap icon</span> left-click opens the options, right-click shows the CPU meter, Shift-right-click reloads the UI.  
 <span style="color: #f65820;">/serene</span> opens the options.  
-<span style="color: #f65820;">/serene</span> reset resets all settings to default.
+<span style="color: #f65820;">/serene reset</span> resets all settings to default.
 
 <br>
 ## <span style="color: #f65820;">AI Disclaimer</span>

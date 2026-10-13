@@ -79,7 +79,8 @@ local ART_MASK_FILE = "Interface\\AddOns\\SereneUnitFrames\\Media\\PetArtMask"
 -- The art's box, from the ring to its right edge; PetBarMask is drawn for it.
 local WIDTH, HEIGHT = 75, 18
 local LEFT, BOTTOM = -2, -11  -- from the portrait's right edge, as Blizzard anchors it
-local TEXT_IN = 7  -- the left text's distance from the bar's edge, clear of the ring
+-- The texts' distance from the bar's edges; the left one clear of the ring.
+local LEFT_TEXT_IN, RIGHT_TEXT_IN = 6, 2
 local healthWidth, healthHeight = health:GetSize()
 local maskAtlas = MASK:GetAtlas()
 local shaped  -- set while our masks are on, so Blizzard's mask is only put back after them
@@ -105,8 +106,9 @@ function ns.ApplyPetOneBar()
         health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", 2, -3.5)
         health:SetSize(healthWidth, healthHeight)
     end
-    -- Blizzard's anchor at 0 otherwise.
-    health.LeftText:SetPoint("LEFT", on and TEXT_IN or 0, 0)
+    -- Blizzard's anchors at 0 otherwise.
+    health.LeftText:SetPoint("LEFT", on and LEFT_TEXT_IN or 0, 0)
+    health.RightText:SetPoint("RIGHT", on and -RIGHT_TEXT_IN or 0, 0)
     if on then
         MASK:SetTexture(MASK_FILE, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
         MASK:ClearAllPoints()

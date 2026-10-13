@@ -9,3 +9,4 @@
 
 Init.lua
 Quests.lua
+RewardValue.lua

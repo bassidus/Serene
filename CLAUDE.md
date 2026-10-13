@@ -34,8 +34,6 @@ When unsure whether something exists, don't guess and don't write a fallback. Ad
 
 After a client update, check the reports first. `tools/ForeverProbe` is a dev addon (symlinked, never released) that records every API name, Blizzard's API documentation (`/api`, with its secret rules), which unit values are secret and event argument types, per build. `lua tools/probe-report.lua` writes them to `tools/ForeverProbe/reports/<build>/`: `docs/` per system, `docs-secret.md`, and `api-changes.md` against the previous build.
 
-`tools/CPUMeter` is another dev addon (symlinked, never released): an overlay with every loaded addon's CPU share, as in the game menu's tooltip. `/cpu` shows or hides it.
-
 ## How the code is written
 
 - One code path per API. No `if X then` around APIs that exist, no `C_Foo and C_Foo.Bar or Bar`, no pcall around events that exist.

@@ -5,7 +5,7 @@
 #   CornerFill.tga  the quarter disc that line closes, white, for the fills
 #   Glow.tga        a soft white radial falloff in alpha, the window's glow
 #   Knob.tga        the sliders' knob: a gold bead in a dark ring, in color
-# and the pet happiness faces into SereneUnitFrames/Media.
+# and the pet happiness faces and the pet bar mask into SereneUnitFrames/Media.
 # Everything is drawn at 4x and scaled down, which anti-aliases the curves.
 #   tools/textures/make.sh
 set -euo pipefail
@@ -60,3 +60,12 @@ face Unhappy.tga '#4a0a00' '#ff7a52' '#cf2614' \
     -draw "path 'M 82,190 Q 128,148 174,190'"
 
 echo "Wrote SereneUnitFrames/Media/Happy.tga, Content.tga and Unhappy.tga"
+
+# The pet frame's one tall health bar: square on the left, where the portrait
+# ring covers it, rounded on the right. About the bar's 74x18 shape; the
+# corner radius is 5 px here, about 3 on the bar. 128x32 drawn at 512x128.
+magick -size 512x128 xc:none -fill white -draw "roundrectangle 0,0 511,127 20,20" \
+    -draw "rectangle 0,0 255,127" -resize 128x32 \
+    -define tga:compression=none -type TrueColorAlpha "$faces/PetBarMask.tga"
+
+echo "Wrote SereneUnitFrames/Media/PetBarMask.tga"

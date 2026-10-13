@@ -62,56 +62,34 @@ function ns.ApplyHappinessFaces()
 end
 
 -------------------------------------------------------------------------------
---  One bar: the power bar hidden and the health bar reaching down over its
---  place, the 1px gap included. Health grows from its top, since Blizzard
---  anchors it by its bottom. Its mask only fits the upper part (the cutout
---  for the ring, the rounded corner), so the lower part is drawn a second
---  time through a copy of the power bar's mask, where that mask sat; between
---  them they take Blizzard's own shape. The copy starts 4px further left,
---  like the power bar did.
+--  One bar: the power bar hidden and the health bar over both bars' place,
+--  the 1px gap included. Health grows from its top, since Blizzard anchors
+--  it by its bottom. Blizzard's mask only fits a 10px bar, so it takes our
+--  shape instead: square on the left, under the portrait ring, rounded on
+--  the right. Heal prediction and Smooth bars go through the same mask.
 --
---  Blizzard's bars lie over the portrait ring's edge, which shows on one
---  tall green bar, so a copy of the frame art cut to the ring lies on top.
+--  Blizzard's bars lie over the ring's edge, which shows on one tall green
+--  bar, so a copy of the frame art cut to the ring lies on top, and the left
+--  text moves out from under it. The art behind the bars is see-through and
+--  has a line (red in combat) where they met, which showed in the empty part
+--  of the bar; a solid background covers it.
 -------------------------------------------------------------------------------
 local health, power = PetFrame.healthbar, PetFrame.manabar
+local MASK = PetFrameHealthBarMask
+local MASK_FILE = "Interface\\AddOns\\SereneUnitFrames\\Media\\PetBarMask"
 local EXTRA = power:GetHeight() + 1
-local healthHeight = health:GetHeight()
+-- Further left, the bar shows in the ring's hole beside the portrait.
+local WIDER = 2.5
+local TEXT_IN = 2.5  -- the left text's distance from the bar's edge, clear of the ring
+local healthWidth, healthHeight = health:GetSize()
+local maskAtlas = MASK:GetAtlas()
+local shaped  -- set once our shape is on, so Blizzard's mask is only put back after it
 
--- Both masks fade out at the old gap between the bars, which left a dark
--- line there, so this one reaches 2px higher; its bottom stays put.
-local SEAM = 2
-local lowerMask = health:CreateMaskTexture()
-lowerMask:SetAtlas(PetFrameManaBarMask:GetAtlas(), true)
-lowerMask:SetHeight(lowerMask:GetHeight() + SEAM)
--- The power bar's mask at (-27, 4) from the power bar, which sat at (-4, -1)
--- from the bottom of the 10px health bar.
-lowerMask:SetPoint("TOPLEFT", health, "TOPLEFT", -31, 4 - 1 - healthHeight + SEAM)
-local lower = health:CreateTexture()
-lower:AddMaskTexture(lowerMask)
-lower:Hide()
-
--- The copy follows whichever fill shows: Blizzard's, or Smooth bars' on top.
-local hooked = {}
-local function SyncLower()
-    local bar = ns.ShownBar(health)
-    local fill = bar:GetStatusBarTexture()
-    lower:SetParent(bar)
-    lower:SetPoint("TOPLEFT", fill, -4, 0)
-    lower:SetPoint("BOTTOMRIGHT", fill)
-    local atlas = fill:GetAtlas()
-    if atlas then lower:SetAtlas(atlas, false) else lower:SetTexture(fill:GetTexture()) end
-    lower:SetDrawLayer(fill:GetDrawLayer())
-    lower:SetVertexColor(fill:GetVertexColor())
-    lower:SetDesaturated(fill:IsDesaturated())
-    if not hooked[bar] then
-        hooked[bar] = true
-        for _, method in ipairs({ "SetStatusBarColor", "SetStatusBarDesaturated", "SetStatusBarTexture" }) do
-            hooksecurefunc(bar, method, function(self)
-                if lower:IsShown() and self == ns.ShownBar(health) then SyncLower() end
-            end)
-        end
-    end
-end
+local background = health:CreateTexture(nil, "BACKGROUND", nil, -8)
+background:SetColorTexture(0.06, 0.06, 0.06)
+background:SetAllPoints()
+background:AddMaskTexture(MASK)
+background:Hide()
 
 -- Above the bars and Smooth bars' copies of them.
 local ringFrame = CreateFrame("Frame", nil, PetFrame)
@@ -144,16 +122,27 @@ end
 
 function ns.ApplyPetOneBar()
     local on = ns.Get("petFrameOneBar")
-    local extra = on and EXTRA or 0
     ns.SetHidden(power, on)
     -- Its mouseover text would show over nothing.
     power:SetMouseMotionEnabled(not on)
-    health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", 2, -3.5 - extra)
-    health:SetHeight(healthHeight + extra)
-    lower:SetShown(on)
-    ringFrame:SetShown(on)
+    local wider, extra = on and WIDER or 0, on and EXTRA or 0
+    health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", 2 - wider, -3.5 - extra)
+    health:SetSize(healthWidth + wider, healthHeight + extra)
+    -- Blizzard's anchor at 0 otherwise.
+    health.LeftText:SetPoint("LEFT", on and TEXT_IN or 0, 0)
     if on then
-        SyncLower()
-        SyncRing()
+        MASK:SetTexture(MASK_FILE, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        MASK:ClearAllPoints()
+        MASK:SetAllPoints(health)
+        shaped = true
+    elseif shaped then
+        -- As in Blizzard's PetFrame.xml.
+        MASK:SetAtlas(maskAtlas, true)
+        MASK:ClearAllPoints()
+        MASK:SetPoint("TOPLEFT", -29, 3)
+        shaped = nil
     end
+    background:SetShown(on)
+    ringFrame:SetShown(on)
+    if on then SyncRing() end
 end

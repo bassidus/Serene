@@ -86,11 +86,6 @@ ns.OnUnitFrameUpdate(function(frame)
     Snap(frame.manabar)
 end)
 
--- The bar whose fill shows: ours while it lies on top, else Blizzard's.
-function ns.ShownBar(stock)
-    return enabled[stock] and overlays[stock] or stock
-end
-
 function ns.ApplySmoothBars()
     local on = ns.Get(KEY) or nil
     for _, frame in ipairs(FRAMES) do
@@ -107,6 +102,4 @@ function ns.ApplySmoothBars()
             end
         end
     end
-    -- The pet frame's lower health copy follows the fill that shows.
-    ns.ApplyPetOneBar()
 end

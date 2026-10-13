@@ -1,9 +1,10 @@
 -------------------------------------------------------------------------------
 --  Range Coloring -- event based: follows Blizzard's own range and usability
 --  refreshes instead of polling. Only usable abilities get the range color;
---  out of mana and unusable keep Blizzard's blue and gray. Icons are only
---  recolored, never the buttons (they are secure). While it is on, the
---  keybind text no longer turns red as well (Keybinds.lua).
+--  out of mana and unusable keep Blizzard's blue and gray. Quest items in the
+--  tracker get it too. Icons are only recolored, never the buttons (they are
+--  secure). While it is on, the keybind text no longer turns red as well
+--  (Keybinds.lua).
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -105,6 +106,47 @@ end
 hooksecurefunc(PetActionBar, "Update", PetUpdate)
 
 -------------------------------------------------------------------------------
+--  Quest tracker items -- Blizzard checks their range on its own timer and
+--  repaints the range dot (HotKey) after each check, so the icon follows that.
+-------------------------------------------------------------------------------
+local items = {}       -- [item button] = true
+local itemTinted = {}  -- [item button] = true
+
+local function ItemColor(btn)
+    if not (enabled or itemTinted[btn]) then return end
+    local index = btn:GetAttribute("questLogIndex")
+    if enabled and Clean(IsQuestLogSpecialItemInRange(index)) == 0 then
+        Tint(btn.icon)
+        itemTinted[btn] = true
+    elseif itemTinted[btn] then
+        itemTinted[btn] = nil
+        btn.icon:SetDesaturated(false)
+        -- Blizzard's own look (UpdateCooldown): gray while the cooldown waits to start.
+        local _, duration, enable = GetQuestLogSpecialItemCooldown(index)
+        if Clean(duration) and duration > 0 and enable == 0 then
+            btn.icon:SetVertexColor(0.4, 0.4, 0.4)
+        else
+            btn.icon:SetVertexColor(1, 1, 1)
+        end
+    end
+end
+
+local function RegisterItem(btn)
+    if items[btn] or not btn.HotKey then return end  -- the find group button has no HotKey
+    items[btn] = true
+    hooksecurefunc(btn.HotKey, "SetVertexColor", function() ItemColor(btn) end)
+    hooksecurefunc(btn.HotKey, "Hide", function() ItemColor(btn) end)
+    -- It resets the icon color.
+    hooksecurefunc(btn, "UpdateCooldown", ItemColor)
+end
+
+-- Item buttons come from a pool shared by the tracker, so they are picked up
+-- as the quest tracker hands them out.
+hooksecurefunc(QuestObjectiveTracker, "GetRightEdgeFrame", function(tracker)
+    for _, frame in pairs(tracker.usedRightEdgeFrames) do RegisterItem(frame) end
+end)
+
+-------------------------------------------------------------------------------
 local function Apply()
     enabled = ns.Get("rangeColors")
     ActionBarButtonEventsFrame:ForEachFrame(Register)
@@ -112,6 +154,9 @@ local function Apply()
         if enabled or tinted[btn] then Color(btn, enabled and OutOfRange(btn)) end
     end
     if PetHasActionBar() then PetUpdate(PetActionBar) end
+    for btn in pairs(items) do
+        if btn:IsShown() or itemTinted[btn] then ItemColor(btn) end
+    end
     -- The keybind text stops turning red while the icon shows range.
     ns.RefreshKeybinds()
 end

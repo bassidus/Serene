@@ -49,30 +49,31 @@ local NO_RULE = {}
 local state = {}  -- [bar id] = { alpha =, lastHover = }
 for _, bar in ipairs(BARS) do state[bar.id] = { lastHover = -math.huge } end
 
+-- Read from the setting in Refresh, so the watcher and the tooltip hook
+-- don't look it up on every frame.
+local rules, groups = {}, {}  -- [bar id] = rule, id of the bar it links to
+
+local barOf = {}  -- [frame] = bar, for the frames whose tooltip it hides
+for _, bar in ipairs(BARS) do
+    barOf[bar.frame] = bar
+    if bar.over then
+        for _, frame in ipairs(bar.over) do barOf[frame] = bar end
+    end
+end
+
 local hovered = {}  -- [group] = true while the mouse is over one of its bars
 
 local watcher = CreateFrame("Frame")
 watcher:Hide()
 local hoverElapsed = 0
 local watching = false  -- some bar is not left to Blizzard
+local fading = false    -- some bar's alpha is on its way to its target
 
 local function MouseOver(bar)
     if not bar.over then return Clean(bar.frame:IsMouseOver()) end
     for _, frame in ipairs(bar.over) do
         if frame:IsShown() and Clean(frame:IsMouseOver()) then return true end
     end
-end
-
-local function Rule(bar)
-    local all = ns.Get(KEY)
-    local own = all[bar.id] or NO_RULE
-    if own.link then return all[own.link] or NO_RULE end
-    return own
-end
-
--- Bars linked to one another share the id they link to.
-local function Group(bar)
-    return (ns.Get(KEY)[bar.id] or NO_RULE).link or bar.id
 end
 
 local function Managed(rule)
@@ -90,22 +91,11 @@ local function Allowed(rule)
     return inCombat and rule.combat or not inCombat and rule.noCombat
 end
 
-local function Target(rule, st, now)
-    if Forced() then return 1 end
+local function Target(rule, st, now, forced)
+    if forced then return 1 end
     if not Allowed(rule) then return 0 end
     if rule.hover and now - st.lastHover >= LINGER then return 0 end
     return 1
-end
-
-local function BarOf(frame)
-    for _, bar in ipairs(BARS) do
-        if bar.frame == frame then return bar end
-        if bar.over then
-            for _, over in ipairs(bar.over) do
-                if over == frame then return bar end
-            end
-        end
-    end
 end
 
 -- A faded-out bar keeps its mouse so its buttons and keybinds work; its
@@ -113,9 +103,9 @@ end
 GameTooltip:HookScript("OnShow", function(self)
     local frame = self:GetOwner()
     while frame do
-        local bar = BarOf(frame)
+        local bar = barOf[frame]
         if bar then
-            local rule = Rule(bar)
+            local rule = rules[bar.id]
             if Managed(rule) and not Forced() and not Allowed(rule) then self:Hide() end
             return
         end
@@ -123,18 +113,21 @@ GameTooltip:HookScript("OnShow", function(self)
     end
 end)
 
+-- Runs every frame only while a bar fades; otherwise it does nothing
+-- between the mouse checks.
 watcher:SetScript("OnUpdate", function(self, elapsed)
-    local now = GetTime()
     hoverElapsed = hoverElapsed + elapsed
     local checkHover = hoverElapsed >= HOVER_CHECK
-    if checkHover then hoverElapsed = 0 end
+    if not checkHover and not fading then return end
     local step = elapsed / FADE
+    if checkHover then hoverElapsed = 0 end
+    local now, forced = GetTime(), Forced()
 
     if checkHover then
         wipe(hovered)
         for _, bar in ipairs(BARS) do
-            if Rule(bar).hover and bar.frame:IsShown() and MouseOver(bar) then
-                hovered[Group(bar)] = true
+            if rules[bar.id].hover and bar.frame:IsShown() and MouseOver(bar) then
+                hovered[groups[bar.id]] = true
             end
         end
     end
@@ -142,10 +135,11 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
     -- Settled once every bar is where it should be and none waits on the
     -- mouse; then only the events below wake the watcher.
     local settled = true
+    fading = false
     for _, bar in ipairs(BARS) do
-        local frame, rule, st = bar.frame, Rule(bar), state[bar.id]
+        local frame, rule, st = bar.frame, rules[bar.id], state[bar.id]
         if Managed(rule) then
-            local target = Target(rule, st, now)
+            local target = Target(rule, st, now, forced)
             local alpha = st.alpha or 1
             if not frame:IsShown() then
                 -- No fade for a hidden bar, so it is right when it shows.
@@ -156,16 +150,19 @@ watcher:SetScript("OnUpdate", function(self, elapsed)
             else
                 if rule.hover then
                     settled = false
-                    if checkHover and hovered[Group(bar)] then
+                    if checkHover and hovered[groups[bar.id]] then
                         st.lastHover = now
-                        target = Target(rule, st, now)
+                        target = Target(rule, st, now, forced)
                     end
                 end
                 if alpha ~= target then
                     alpha = target > alpha and math.min(alpha + step, 1) or math.max(alpha - step, 0)
                     st.alpha = alpha
                     frame:SetAlpha(alpha)
-                    if alpha ~= target then settled = false end
+                    if alpha ~= target then
+                        settled = false
+                        fading = true
+                    end
                 end
             end
         end
@@ -175,7 +172,9 @@ end)
 
 -- What Target() reads: combat, the cursor and Edit Mode.
 local function Wake()
-    if watching then watcher:Show() end
+    if not watching then return end
+    hoverElapsed = HOVER_CHECK
+    watcher:Show()
 end
 watcher:RegisterEvent("PLAYER_REGEN_DISABLED")
 watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -188,9 +187,15 @@ EditModeManagerFrame:HookScript("OnHide", Wake)
 -- alpha right away; the watcher only runs while some bar is not, and sleeps
 -- while nothing moves.
 local function Refresh()
+    local all = ns.Get(KEY)
+    for _, bar in ipairs(BARS) do
+        local own = all[bar.id] or NO_RULE
+        rules[bar.id] = own.link and (all[own.link] or NO_RULE) or own
+        groups[bar.id] = own.link or bar.id
+    end
     watching = false
     for _, bar in ipairs(BARS) do
-        if not Managed(Rule(bar)) then
+        if not Managed(rules[bar.id]) then
             local st = state[bar.id]
             if st.alpha then
                 st.alpha = nil

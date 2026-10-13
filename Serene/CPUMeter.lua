@@ -6,7 +6,9 @@
 --  SereneDB.cpuMeterPoint.
 --
 --  Nothing exists until it is first shown, so while it is off it costs
---  nothing; once hidden the frame has no OnUpdate running and no events.
+--  nothing; once hidden its ticker is cancelled. While it shows, its own
+--  updates count towards Serene's number, so they run once per INTERVAL on
+--  a ticker rather than an OnUpdate and reuse their tables.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -57,16 +59,17 @@ local function Create()
         local app = C_AddOnProfiler.GetApplicationMetric(METRIC.RecentAverageTime)
         local appPeak = C_AddOnProfiler.GetApplicationMetric(METRIC.PeakTime)
 
-        wipe(rows)
+        local n = 0
         for i = 1, C_AddOns.GetNumAddOns() do
             if C_AddOns.IsAddOnLoaded(i) then
-                local name = C_AddOns.GetAddOnInfo(i)
-                rows[#rows + 1] = {
-                    name = name,
-                    value = Percent(C_AddOnProfiler.GetAddOnMetric(name, METRIC.RecentAverageTime), app),
-                }
+                n = n + 1
+                local row = rows[n] or {}
+                rows[n] = row
+                row.name = C_AddOns.GetAddOnInfo(i)
+                row.value = Percent(C_AddOnProfiler.GetAddOnMetric(row.name, METRIC.RecentAverageTime), app)
             end
         end
+        for i = n + 1, #rows do rows[i] = nil end
         table.sort(rows, ByValue)
 
         wipe(lines)
@@ -83,14 +86,15 @@ local function Create()
         frame:SetSize(text:GetStringWidth() + 12, text:GetStringHeight() + 12)
     end
 
-    local elapsedSince = 0
-    frame:SetScript("OnUpdate", function(_, elapsed)
-        elapsedSince = elapsedSince + elapsed
-        if elapsedSince < INTERVAL then return end
-        elapsedSince = 0
+    local ticker
+    frame:SetScript("OnShow", function()
         Update()
+        ticker = C_Timer.NewTicker(INTERVAL, Update)
     end)
-    frame:SetScript("OnShow", Update)
+    frame:SetScript("OnHide", function()
+        ticker:Cancel()
+        ticker = nil
+    end)
 
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", function(self)

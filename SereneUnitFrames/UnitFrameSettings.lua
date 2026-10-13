@@ -46,6 +46,13 @@ ns.RegisterFeature({
     beside = true, default = false, apply = ns.ApplyStealth,
 })
 
+-- Pet frame
+ns.RegisterFeature({
+    key = "petFrameOneBar", label = "Hide power bar", section = SECTION, category = "Pet frame",
+    tooltip = "No mana or focus bar; the health bar takes its place.",
+    default = false, apply = ns.ApplyPetOneBar,
+})
+
 -- Status numbers
 ns.RegisterFeature({
     key = "unitFrameNumbersFormat", label = "Format", section = SECTION, category = "Status numbers",

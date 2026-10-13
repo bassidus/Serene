@@ -60,3 +60,25 @@ function ns.ApplyHappinessFaces()
         happiness:UnregisterAllEvents()
     end
 end
+
+-------------------------------------------------------------------------------
+--  One bar: the power bar hidden and the health bar reaching down over its
+--  place, the 1px gap included. Health grows from its top, since Blizzard
+--  anchors it by its bottom. Its mask (rounded ends) is stretched with it,
+--  or the lower part would be cut off.
+-------------------------------------------------------------------------------
+local health, power = PetFrame.healthbar, PetFrame.manabar
+local EXTRA = power:GetHeight() + 1
+local healthHeight = health:GetHeight()
+local maskHeight = PetFrameHealthBarMask:GetHeight()
+
+function ns.ApplyPetOneBar()
+    local on = ns.Get("petFrameOneBar")
+    local extra = on and EXTRA or 0
+    ns.SetHidden(power, on)
+    -- Its mouseover text would show over nothing.
+    power:SetMouseMotionEnabled(not on)
+    health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", 2, -3.5 - extra)
+    health:SetHeight(healthHeight + extra)
+    PetFrameHealthBarMask:SetHeight(maskHeight + extra)
+end

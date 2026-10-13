@@ -47,7 +47,8 @@ end
 
 local function Refresh()
     if not button then return end
-    if not ns.Get("trainAllButton") then
+    -- Forever makes BuyTrainerService protected at beast trainers.
+    if not ns.Get("trainAllButton") or C_Trainer.GetTrainerType() == Enum.TrainerType.Pet then
         button:Hide()
         return
     end

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
---  Bar Visibility -- per bar, when it shows: out of combat, in combat, or
---  never with neither ticked. Mouse over narrows those to while the mouse
---  is over the bar (and a second after). A bar shown in and out of combat
+--  Bar Visibility -- per bar (and swing timer), when it shows: out of
+--  combat, in combat, or never with neither ticked. Mouse over narrows
+--  those to while the mouse is over the bar (and a second after). A bar shown in and out of combat
 --  without mouse over is left to Blizzard's settings. A bar linked to another takes its ticks, and the
 --  mouse over either shows both. Only the bar's alpha changes, so its
 --  buttons keep working and the keybinds fire while it is faded out.
@@ -39,6 +39,11 @@ local BARS = {
     { id = "caps", label = UnitFactionGroup("player") == "Horde" and "Wyverns" or "Gryphons",
       frame = MainActionBar.EndCaps, polled = true,
       over = { MainActionBar.EndCaps.LeftEndCap, MainActionBar.EndCaps.RightEndCap } },
+    -- Blizzard only shows and hides these, so their alpha is free. Whether
+    -- they take the mouse is Edit Mode's business, so the mouse is polled.
+    { id = "swingMain", label = "Swing Main Hand", frame = SwingTimerMainHandFrame, polled = true },
+    { id = "swingOff", label = "Swing Off Hand", frame = SwingTimerOffHandFrame, polled = true },
+    { id = "swingRanged", label = "Swing Ranged", frame = SwingTimerRangedFrame, polled = true },
 }
 
 -- The art at the bar's ends is a child of the first bar and would fade with

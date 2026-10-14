@@ -2,7 +2,7 @@
 ## Title: Serene Unit Frames
 ## Group: Serene
 ## Notes: Class colors, smooth bars, fonts and health/mana text on the unit frames, and a few player frame tweaks.
-## Version: 1.10.0
+## Version: 1.10.1
 ## Dependencies: Serene
 ## X-Serene-Section: Unit frames
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

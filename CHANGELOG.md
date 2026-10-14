@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.10.1 (2026-10-14)
+
+### Fixed
+- Auto sell: sold gray items show up in the vendor's buyback tab, so you can buy them back. Buyback keeps the last 12 items sold, so the cheapest grays are sold first and the most valuable ones stay there.
+
 ## 1.10.0 (2026-10-14)
 
 If you use Social's auto accept or keyword invites: "Count guild mates as friends" is gone. "Friends" now means only your friends and "Guild" only your guild, so pick "Friends & guild" wherever guild members should get in.

@@ -17,9 +17,14 @@ local BRONZE = {
     [8143695] = { "ExperienceBar-Frame", "ExperienceBar-Divider" },
 }
 
--- The bag slots' rims are a brighter gold than the rest and need more to
--- match.
-local DARK_BAGS = 0.25
+-- The rims around action buttons and bag slots and the micro menu's frame
+-- go almost black; the micro buttons' own rims a little less.
+local DARK_RIMS = 0.1
+local DARK_MICRO_BUTTONS = 0.25
+local MICRO_SHEET = 8200846
+
+local buttonRims = {}  -- [texture] = true
+ns.EachActionButton(function(btn) buttonRims[btn.NormalTexture] = true end)
 
 local function IsBronze(tex)
     local file = BRONZE[tex:GetTexture()]
@@ -32,13 +37,29 @@ local function IsBronze(tex)
 end
 
 local function Darkness(tex)
-    if (tex:GetAtlas() or ""):lower():find("iconframe-bags", 1, true) then return DARK_BAGS end
+    if buttonRims[tex] or (tex:GetAtlas() or ""):lower():find("iconframe-bags", 1, true) then return DARK_RIMS end
 end
 
-for _, name in ipairs({ "MainActionBar", "BagsBar", "MicroMenuContainer", "StatusTrackingBarManager" }) do
+local function MicroDarkness(tex)
+    return tex:GetTexture() == MICRO_SHEET and DARK_MICRO_BUTTONS or DARK_RIMS
+end
+
+for _, name in ipairs({ "MainActionBar", "BagsBar", "StatusTrackingBarManager" }) do
     ns.AddDarkArt(name, IsBronze, Darkness)
 end
+ns.AddDarkArt("MicroMenuContainer", IsBronze, MicroDarkness)
 ns.EachActionButton(function(btn) ns.AddDarkArt(btn:GetName(), IsBronze, Darkness) end)
+
+-- The micro menu's background art is see-through in the image itself, so
+-- whatever is behind the menu shows through. A dark gray fill under it,
+-- inside the frame, closes it; black was darker than the bars beside it.
+local MICRO_INSET = 4
+local MICRO_FILL = 0.15
+local microFill = MicroMenu:CreateTexture(nil, "BACKGROUND", nil, -8)
+microFill:SetColorTexture(MICRO_FILL, MICRO_FILL, MICRO_FILL)
+microFill:SetPoint("TOPLEFT", MicroMenu.BorderArt, MICRO_INSET, -MICRO_INSET)
+microFill:SetPoint("BOTTOMRIGHT", MicroMenu.BorderArt, -MICRO_INSET, MICRO_INSET)
+ns.OnDarkMode(function() microFill:SetShown(ns.Get("darkMode")) end)
 
 -- An empty bag slot shows bronze in its icon texture.
 local EMPTY_BAG = 4760248

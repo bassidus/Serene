@@ -1,8 +1,10 @@
 -------------------------------------------------------------------------------
 --  Auto Sell -- gray items at vendors.
---  SellAllJunkItems() is fire-and-forget: the server drops sell requests past
+--  One UseContainerItem per slot, not SellAllJunkItems(): what that sells never
+--  reaches the buyback tab. Buyback keeps only the last 12 sales, so the
+--  cheapest go first. Sales are fire-and-forget: the server drops requests past
 --  its rate limit, and uncached item data at MERCHANT_SHOW is skipped, so one
---  call routinely strands grays -- re-count after each pass and fire again,
+--  pass routinely strands grays -- re-count after each pass and fire again,
 --  backing off while the count stands still. Gated on MERCHANT_SHOW/CLOSED,
 --  not MerchantFrame:IsShown(): the interaction (not the frame) allows selling.
 -------------------------------------------------------------------------------
@@ -16,9 +18,14 @@ local merchantOpen = false
 local pending, lastCount, stalls, delay, running
 -- Value of every gray slot seen this visit: what is gone from them was sold.
 local seen = {}
+-- This pass's unlocked gray slots, as bag * 100 + slot.
+local toSell = {}
+
+local function ByWorth(a, b) return seen[a] < seen[b] end
 
 local function CountJunk()
     local junk, unknown, left = 0, 0, 0
+    wipe(toSell)
     for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local info = C_Container.GetContainerItemInfo(bag, slot)
@@ -30,6 +37,7 @@ local function CountJunk()
                     local worth = (select(11, C_Item.GetItemInfo(info.itemID)) or 0) * info.stackCount
                     left = left + worth
                     seen[bag * 100 + slot] = worth
+                    if not info.isLocked then toSell[#toSell + 1] = bag * 100 + slot end
                 end
             end
         end
@@ -72,7 +80,10 @@ local function Pass()
     end
 
     lastCount = junk
-    if junk > 0 then C_MerchantFrame.SellAllJunkItems() end
+    sort(toSell, ByWorth)
+    for _, key in ipairs(toSell) do
+        C_Container.UseContainerItem(floor(key / 100), key % 100)
+    end
     pending = C_Timer.NewTimer(delay, Pass)
 end
 

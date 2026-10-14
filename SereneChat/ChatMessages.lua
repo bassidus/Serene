@@ -284,8 +284,8 @@ end)
 --    word:   "[1] [Gen] Name:"         or "[Gen] Name:"
 --    none:   "[2] Name:"               or "Name:"
 --  Guild, party and raid have no number: "[G]" or "[Guild]", "[PL]". A
---  joined, left or changed notice keeps the zone after the channel:
---  "Changed Channel: [1] [Gen] Elwynn Forest". The
+--  joined, left or changed notice keeps Blizzard's channel as it is, zone
+--  and all: "Changed Channel: [1. General - Elwynn Forest]". The
 --  channel shows in white, whatever its own color. The time goes first on
 --  every line, Blizzard's own (chat lines only) turned off.
 -------------------------------------------------------------------------------
@@ -340,15 +340,6 @@ local function ShortChannel(open, name, close, space)
     return open .. "|cffffffff" .. tag .. "|r" .. close .. space
 end
 
--- The full style already has the zone in it.
-local function NoticeChannel(open, name, close)
-    local channel = ShortChannel(open, name, close, "")
-    local zone = ns.Get("chatChannelNames") ~= "full" and name:match(" %- (.+)$")
-    if not zone then return channel end
-    if channel == "" then return zone end
-    return channel .. " " .. zone
-end
-
 local Escape = ns.EscapePattern
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
@@ -365,9 +356,7 @@ local ARROW_COLOR = "|cff" .. ns.RGBToHex(unpack(ns.ACCENT))
 local SENT, RECEIVED = ARROW_COLOR .. ">|r ", ARROW_COLOR .. "<|r "
 
 local function ShortLine(text)
-    local notice
-    text, notice = text:gsub(NOTICE, NoticeChannel, 1)
-    if notice == 0 then text = text:gsub(CHANNEL, ShortChannel, 1) end
+    if not text:find(NOTICE) then text = text:gsub(CHANNEL, ShortChannel, 1) end
     text = text:gsub(PLAYER, "%1%2%3", 1)
     if ns.Get("chatShortText") then
         local sent

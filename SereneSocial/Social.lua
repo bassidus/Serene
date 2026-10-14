@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --  Social -- accepting group invites, inviting on a whispered keyword and
---  declining duels, each for friends, your guild, anyone or no one. Friends
---  are your friends list, Battle.net friends and, if set, your guild.
+--  declining duels, each for friends, your guild, both, anyone or no one.
+--  Friends are your friends list and Battle.net friends.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -21,7 +21,6 @@ local function IsFriend(name, guid)
     if guid and guid ~= "" and (C_FriendList.IsFriend(guid) or C_BattleNet.GetGameAccountInfoByGUID(guid)) then
         return true
     end
-    if ns.Get("socialGuildFriends") and IsGuildMate(name, guid) then return true end
     if not name or name == "" then return false end
     name = Ambiguate(name, "none")
     if C_FriendList.GetFriendInfo(name) then return true end
@@ -33,14 +32,15 @@ local function IsFriend(name, guid)
     return false
 end
 
--- Whether a setting's choice ("friends", "guild" = friends and guild,
+-- Whether a setting's choice ("friends", "guild", "friendsGuild" = both,
 -- "anyone", "none") lets this player in.
 local function Allowed(key, name, guid)
     local who = ns.Get(key)
     if who == "anyone" then return true end
     if who == "none" then return false end
     name, guid = Clean(name), Clean(guid)
-    return IsFriend(name, guid) or who == "guild" and IsGuildMate(name, guid)
+    if who ~= "guild" and IsFriend(name, guid) then return true end
+    return who ~= "friends" and IsGuildMate(name, guid)
 end
 
 -------------------------------------------------------------------------------
@@ -107,8 +107,8 @@ local function OnWhisper(text, sender, guid)
     ns.Print("Invited " .. sender .. " (whispered the invite keyword).")
 end
 
--- Battle.net whisper: the friend's WoW character gets the invite (they are
--- a friend by definition, so every choice but "none" lets them in).
+-- Battle.net whisper: the friend's WoW character gets the invite. They are
+-- a friend by definition; with "guild" their character must be in yours.
 local function OnBNetWhisper(text, accountID)
     accountID = Clean(accountID)
     if not accountID or not IsKeyword(text) then return end
@@ -116,6 +116,7 @@ local function OnBNetWhisper(text, accountID)
     local account = index and C_BattleNet.GetFriendAccountInfo(index)
     local game = account and account.gameAccountInfo
     if not (game and game.isOnline and game.clientProgram == BNET_CLIENT_WOW) then return end
+    if not Allowed("whisperInviteFrom", game.characterName) then return end
     -- No cross-faction groups: say why instead of sending an invite that fails.
     local myFaction = UnitFactionGroup("player")
     if game.factionName and game.factionName ~= myFaction then
@@ -181,27 +182,24 @@ end
 -------------------------------------------------------------------------------
 local function Who()
     return {
-        { value = "friends", label = "Friends" },
-        { value = "guild",   label = "Guild" },
-        { value = "anyone",  label = "Anyone" },
-        { value = "none",    label = "None" },
+        { value = "friends",      label = "Friends" },
+        { value = "guild",        label = "Guild" },
+        { value = "friendsGuild", label = "Friends & guild" },
+        { value = "anyone",       label = "Anyone" },
+        { value = "none",         label = "None" },
     }
 end
 
 ns.RegisterFeature({
     key = "partyInviteFrom", label = "Auto accept group invites from", section = SECTION, category = "Automation",
-    type = "dropdown", inline = true, default = "friends", options = Who, apply = Apply,
+    type = "dropdown", inline = true, default = "friendsGuild", options = Who, apply = Apply,
 })
 ns.RegisterFeature({
     key = "whisperInviteFrom", label = "Keyword inv / invite from", section = SECTION, category = "Automation",
-    type = "dropdown", inline = true, default = "friends", options = Who, apply = Apply,
+    type = "dropdown", inline = true, default = "friendsGuild", options = Who, apply = Apply,
 })
 ns.RegisterFeature({
     key = "duelsFrom", label = "Allow duels from", section = SECTION, category = "Automation",
     tooltip = "Duels from anyone else are declined.",
     type = "dropdown", inline = true, default = "anyone", options = Who, apply = Apply,
-})
--- Read by IsFriend, so it needs no apply.
-ns.RegisterFeature({
-    key = "socialGuildFriends", label = "Count guild mates as friends", section = SECTION, category = "Automation",
 })

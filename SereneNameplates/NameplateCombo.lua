@@ -6,7 +6,7 @@
 --  reads the target, so the plate that last showed points keeps them after a
 --  target switch, counted by UnitPower, which keeps its count until you build
 --  on another enemy. Only one enemy holds them, so a single row moves between
---  plates, and NP.StackBelow fits it in under the health bar.
+--  plates (NP.MovingRow), which fits it in under the health bar.
 -------------------------------------------------------------------------------
 local _, ns = ...
 local NP = ns.NP

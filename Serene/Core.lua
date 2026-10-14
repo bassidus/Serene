@@ -147,24 +147,24 @@ end
 
 -- Extra state a feature wants cleared by Restore defaults (e.g. a moved
 -- frame's spot); fn runs before the features re-apply.
-ns.resetHooks = {}
+local resetHooks = {}
 function ns.OnReset(fn)
-    ns.resetHooks[#ns.resetHooks + 1] = fn
+    resetHooks[#resetHooks + 1] = fn
 end
 
 -- State that is not an option, which only /serene reset puts back (e.g.
 -- the minimap icon's spot); fn runs after the options are reset.
-ns.resetAllHooks = {}
+local resetAllHooks = {}
 function ns.OnResetAll(fn)
-    ns.resetAllHooks[#ns.resetAllHooks + 1] = fn
+    resetAllHooks[#resetAllHooks + 1] = fn
 end
 
 -- Puts every option back to its default. Window state and the minimap
--- icon's spot are not options and stay (see ns.ResetAll). quiet: no
+-- icon's spot are not options and stay (see ResetAll). quiet: no
 -- message in chat.
 function ns.ResetDefaults(quiet)
     for _, f in ipairs(ns.features) do SereneDB[f.key] = f.default end
-    for _, fn in ipairs(ns.resetHooks) do fn() end
+    for _, fn in ipairs(resetHooks) do fn() end
     for _, f in ipairs(ns.features) do
         if f.apply then f.apply() end
     end
@@ -175,10 +175,10 @@ end
 -- /serene reset: every option, the options window's spot and size
 -- (SereneOptions, which is load on demand, so cleared here) and the
 -- ns.OnResetAll state.
-function ns.ResetAll()
+local function ResetAll()
     ns.ResetDefaults(true)
     SereneDB.optionsWindow = nil
-    for _, fn in ipairs(ns.resetAllHooks) do fn() end
+    for _, fn in ipairs(resetAllHooks) do fn() end
     ns.Print("Everything is back to its defaults, the options window and the minimap icon too.")
 end
 
@@ -315,7 +315,7 @@ end
 -------------------------------------------------------------------------------
 --  /serene opens or closes the options window. The window lives in the
 --  load-on-demand SereneOptions, which sets ns.ToggleOptionsWindow.
---  /serene reset puts everything back to its defaults (ns.ResetAll).
+--  /serene reset puts everything back to its defaults (ResetAll).
 -------------------------------------------------------------------------------
 function ns.ToggleOptions()
     if not ns.ToggleOptionsWindow then
@@ -339,7 +339,7 @@ SlashCmdList["SERENE"] = function(msg)
     elseif InCombatLockdown() then
         ns.Print("Cannot reset during combat.")
     else
-        ns.ResetAll()
+        ResetAll()
     end
 end
 

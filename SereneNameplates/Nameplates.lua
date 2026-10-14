@@ -128,9 +128,9 @@ function NP.Background(bar)
 end
 
 -- Rows other modules hang under the health bar, top to bottom. A module puts
--- its row on the plate (plate.manaBar, plate.comboRow) and calls
--- NP.StackBelow; the cast bar goes under the last one and its icon grows to
--- stay square.
+-- its row on the plate (plate.manaBar, plate.comboRow) through NP.MovingRow,
+-- which stacks them; the cast bar goes under the last one and its icon grows
+-- to stay square.
 local BELOW = { "manaBar", "comboRow" }
 local GAP = 3  -- the rows' borders sit outside them; 3 leaves a 1px gap
 
@@ -140,7 +140,7 @@ local function Below(frame, above)
     frame:SetPoint("TOPRIGHT", above, "BOTTOMRIGHT", 0, -GAP)
 end
 
-function NP.StackBelow(plate)
+local function StackBelow(plate)
     local above, height = plate.health, ns.Get("nameplateHeight")
     for _, key in ipairs(BELOW) do
         local row = plate[key]
@@ -159,7 +159,7 @@ end
 local LEFT = { "quest", "tapIcon" }
 
 -- A frame that hangs under one plate at a time (the combo point row, the
--- mana bar), at plate[key] for NP.StackBelow. size() fits it to the plate
+-- mana bar), at plate[key] for StackBelow. size() fits it to the plate
 -- settings; onTarget() runs when the target's plate is attached. Returns
 -- Move(plate), which puts it on plate (nil takes it off), and Owner().
 function NP.MovingRow(frame, key, size, onTarget)
@@ -168,7 +168,7 @@ function NP.MovingRow(frame, key, size, onTarget)
         if plate == owner then return end
         if owner then
             owner[key] = nil
-            NP.StackBelow(owner)
+            StackBelow(owner)
         end
         owner = plate
         if not plate then
@@ -178,7 +178,7 @@ function NP.MovingRow(frame, key, size, onTarget)
         plate[key] = frame
         frame:SetParent(plate)
         size()
-        NP.StackBelow(plate)
+        StackBelow(plate)
         frame:Show()
     end
     NP.RegisterModule({
@@ -218,7 +218,7 @@ local function Layout(plate)
     local tap = ns.Get("nameplateFontSize") + 6
     plate.tapIcon:SetSize(tap, tap)
     RunModules("layout", plate)
-    NP.StackBelow(plate)
+    StackBelow(plate)
 end
 
 local function CreatePlate()

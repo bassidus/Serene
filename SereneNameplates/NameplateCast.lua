@@ -39,8 +39,8 @@ local function Create(plate)
     cast.timer:SetJustifyH("RIGHT")
     cast.name:SetPoint("RIGHT", cast.timer, "LEFT", -4, 0)
 
-    -- Icon left of the bar, as tall as health + cast together; NP.StackBelow
-    -- places the bar and sets the icon's width.
+    -- Icon left of the bar, as tall as health + cast together; StackBelow
+    -- (Nameplates.lua) places the bar and sets the icon's width.
     local iconFrame = CreateFrame("Frame", nil, cast)
     iconFrame:SetPoint("TOPRIGHT", plate.health, "TOPLEFT", -3, 0)
     iconFrame:SetPoint("BOTTOMRIGHT", cast, "BOTTOMLEFT", -3, 0)

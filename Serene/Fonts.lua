@@ -19,7 +19,7 @@ local fontList
 
 function ns.ForgetFontOptions() fontList = nil end
 
-function ns.FontOptions()
+local function FontOptions()
     if fontList then return fontList end
     local list = { { value = "default", label = "Blizzard default" } }
     local seen = {}
@@ -64,7 +64,7 @@ function ns.RegisterFontSettings(def)
     group.font = {
         key = def.prefix .. "Font", label = "Font", section = def.section,
         category = def.category, type = "dropdown",
-        default = "default", preview = true, apply = def.apply, options = ns.FontOptions, group = group,
+        default = "default", preview = true, apply = def.apply, options = FontOptions, group = group,
         requires = def.requires, beside = def.beside, space = def.space,
     }
     group.size = {
@@ -163,14 +163,14 @@ function ns.FontState(fs)
     return o
 end
 
-function ns.RestoreShadow(fs, o)
+local function RestoreShadow(fs, o)
     fs:SetShadowColor(unpack(o.shadow))
     fs:SetShadowOffset(o.sx, o.sy)
 end
 
 function ns.RestoreFont(fs, o)
     fs:SetFont(o.path, o.size, o.flags)
-    ns.RestoreShadow(fs, o)
+    RestoreShadow(fs, o)
 end
 
 -- Font settings on a text whose own look is o (ns.FontState): an outline of
@@ -178,7 +178,7 @@ end
 function ns.ApplyFont(fs, o, font, size, outline)
     if outline == "default" then
         ns.SetFont(fs, font, size, o.flags, o.path)
-        ns.RestoreShadow(fs, o)
+        RestoreShadow(fs, o)
     else
         local flags, shadow = ns.FontFlags(outline)
         ns.SetFont(fs, font, size, flags, o.path)

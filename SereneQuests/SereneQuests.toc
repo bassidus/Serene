@@ -2,7 +2,7 @@
 ## Title: Serene Quests
 ## Group: Serene
 ## Notes: Auto accept and turn in quests; hold Shift to skip.
-## Version: 1.9.0
+## Version: 1.10.0
 ## Dependencies: Serene
 ## X-Serene-Section: Quests
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

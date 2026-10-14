@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.10.0 (2026-10-14)
+
+If you use Social's auto accept or keyword invites: "Count guild mates as friends" is gone. "Friends" now means only your friends and "Guild" only your guild, so pick "Friends & guild" wherever guild members should get in.
+
+### New
+- Pet frame: hide the power bar and let the health bar take its place (Unit frames, "Hide power bar").
+- Social: a "Friends & guild" choice for group invites, keyword invites and duels. It is the default for invites.
+- Serene in the addon compartment: left-click opens the options, right-click shows or hides the CPU meter.
+
+### Changed
+- Social: "Guild" lets in only your guild.
+- Dark mode: the quest tracker's section headers go dark too, and its quest icons are darkened.
+- Dark mode: the zone name, clock, calendar and addon count above the minimap are toned down.
+- Dark mode: the rims of action buttons, bag slots and the micro menu are almost black, and the micro menu's background is no longer see-through.
+- Dark mode: the see-through background behind unit frame names is filled in.
+- Unit frames: the target and focus names no longer sit on a bar colored by reaction.
+- Pet frame: the green happiness face takes the pet health bar's colors.
+- Dark mode and tooltips do less work while you quest and hover over players.
+
+### Fixed
+- Chat: notices for joining, leaving or changing a channel show it as Blizzard writes it, zone included.
+
 ## 1.9.0 (2026-10-13)
 
 ### New

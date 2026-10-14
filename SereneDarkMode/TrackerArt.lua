@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Tracker Art -- the quest tracker's header bars and buttons and the quest
---  timer's frame, and dimmer quest texts and icons.
+--  timer's frame, and darker quest icons.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -23,12 +23,10 @@ ns.AddDarkArt("ObjectiveTrackerFrame", IsArt)
 --  The modules: only put under ObjectiveTrackerFrame after login, later than
 --  Dark mode's first search, and their quest rows and icons are made as
 --  quests show up, so each module is searched again after every layout.
---  Quest titles carry their own color codes, so texts are dimmed by alpha.
---  The quest icons are darkened instead and keep their colors.
+--  The quest icons are darkened and keep their colors.
 -------------------------------------------------------------------------------
-local DIM = 0.7
 local ICON = 0.6
-local dimmed = {}  -- [font string or icon texture] = true
+local icons = {}  -- [icon texture] = true
 
 local MODULES = {}
 for _, name in ipairs({
@@ -48,36 +46,30 @@ local function IsIcon(tex)
         and not (tex:GetAtlas() or ""):find("Glow", 1, true)
 end
 
-local function Dim(region)
-    local dark = ns.Get("darkMode")
-    if region:GetObjectType() == "FontString" then
-        region:SetAlpha(dark and DIM or 1)
-    else
-        local v = dark and ICON or 1
-        region:SetVertexColor(v, v, v)
-    end
+local function PaintIcon(tex)
+    local v = ns.Get("darkMode") and ICON or 1
+    tex:SetVertexColor(v, v, v)
 end
 
-local function CollectDimmed(frame)
+local function CollectIcons(frame)
     for _, r in ipairs({ frame:GetRegions() }) do
-        local t = r:GetObjectType()
-        if not dimmed[r] and (t == "FontString" or (t == "Texture" and IsIcon(r))) then
-            dimmed[r] = true
-            Dim(r)
+        if r:GetObjectType() == "Texture" and not icons[r] and IsIcon(r) then
+            icons[r] = true
+            PaintIcon(r)
         end
     end
-    for _, child in ipairs({ frame:GetChildren() }) do CollectDimmed(child) end
+    for _, child in ipairs({ frame:GetChildren() }) do CollectIcons(child) end
 end
 
 local function Update(module)
     if not ns.Get("darkMode") then return end
     ns.AddDarkArtNow(module, IsArt)
-    CollectDimmed(module.ContentsFrame)
+    CollectIcons(module.ContentsFrame)
 end
 
 for _, module in ipairs(MODULES) do hooksecurefunc(module, "EndLayout", Update) end
 
 ns.OnDarkMode(function()
     for _, module in ipairs(MODULES) do Update(module) end
-    for region in pairs(dimmed) do Dim(region) end
+    for tex in pairs(icons) do PaintIcon(tex) end
 end)

@@ -124,6 +124,29 @@ local function Apply()
     if SereneDB.minimap.hide then DBIcon:Hide("Serene") else DBIcon:Show("Serene") end
 end
 
+-------------------------------------------------------------------------------
+--  Addon compartment: always there, so the options stay a click away with
+--  the icon hidden. Its menu rows aren't secure buttons, so it can't reload.
+-------------------------------------------------------------------------------
+AddonCompartmentFrame:RegisterAddon({
+    text = "Serene",
+    icon = ns.LOGO,
+    notCheckable = true,
+    registerForAnyClick = true,
+    func = function(_, input)
+        if input.buttonName == "RightButton" then ns.ToggleCPUMeter() else ns.ToggleOptions() end
+    end,
+    funcOnEnter = function(button)
+        GameTooltip:SetOwner(button, "ANCHOR_LEFT")
+        GameTooltip:AddLine("Serene", unpack(ns.ACCENT))
+        GameTooltip:AddLine("|cffffffffLeft-click|r to open the options.", 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(("|cffffffffRight-click|r to %s the CPU meter."):format(
+            ns.Get("cpuMeter") and "hide" or "show"), 0.8, 0.8, 0.8)
+        GameTooltip:Show()
+    end,
+    funcOnLeave = function() GameTooltip:Hide() end,
+})
+
 -- /serene reset: the icon goes back to LibDBIcon's default spot.
 ns.OnResetAll(function()
     SereneDB.minimap.minimapPos = nil

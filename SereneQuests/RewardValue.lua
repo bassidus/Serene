@@ -12,7 +12,13 @@ local COIN, GLOW = 22, 38
 
 local coins = {}  -- [reward button] = frame holding the coin and its glow
 local active      -- the reward buttons show the quest NPC's quest
-local waiting     -- a reward's price is not loaded yet
+
+-- Item data arrives all session long, so it is only listened to while a
+-- reward's price is not loaded yet.
+local loader = CreateFrame("Frame")
+local function Wait(on)
+    if on then loader:RegisterEvent("GET_ITEM_INFO_RECEIVED") else loader:UnregisterAllEvents() end
+end
 
 -- The glow is drawn as light (ADD), as its atlas has a black background.
 -- It is the mage's arcane glow, made gray and then tinted gold.
@@ -60,7 +66,7 @@ end
 
 local function Mark()
     for _, coin in pairs(coins) do coin:Hide() end
-    waiting = false
+    Wait(false)
     local n = GetNumQuestChoices()
     if not active or n < 2 or not ns.Get("bestQuestReward") then return end
 
@@ -68,7 +74,7 @@ local function Mark()
     for i = 1, n do
         local v = Value(i)
         if not v then
-            waiting = true
+            Wait(true)
             return
         end
         values[i] = v
@@ -91,10 +97,8 @@ hooksecurefunc("QuestInfo_Display", function(_, parentFrame)
     Mark()
 end)
 
-local f = CreateFrame("Frame")
-f:RegisterEvent("GET_ITEM_INFO_RECEIVED")
-f:SetScript("OnEvent", function()
-    if waiting and QuestFrame:IsShown() then Mark() end
+loader:SetScript("OnEvent", function()
+    if QuestFrame:IsShown() then Mark() else Wait(false) end
 end)
 
 ns.RegisterFeature({

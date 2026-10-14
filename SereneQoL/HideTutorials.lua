@@ -35,22 +35,14 @@ local function HideOpenTips()
     end
 end
 
--- Some Blizzard frame trees refuse GetChildren from insecure code; this walk
--- runs inside a ShowUIPanel hook, so pcall per node keeps an error from
--- aborting the panel's caller -- a refusing frame skips only its subtree.
--- Callers make sure the fingerprint exists.
-local HideButtonsUnder
-local function ScanChildren(...)
-    for i = 1, select("#", ...) do
-        HideButtonsUnder((select(i, ...)))
-    end
-end
-local function ScanFrame(root)
-    ScanChildren(root:GetChildren())
-end
-function HideButtonsUnder(root)
+-- A forbidden frame refuses insecure code, and this walk runs inside a
+-- ShowUIPanel hook, where an error would reach the panel's caller; such a
+-- frame is skipped with everything under it. Callers make sure the
+-- fingerprint exists.
+local function HideButtonsUnder(root)
+    if root:IsForbidden() then return end
     if root.ShowTooltip == fingerprint then HideButton(root) end
-    pcall(ScanFrame, root)
+    for _, child in ipairs({ root:GetChildren() }) do HideButtonsUnder(child) end
 end
 
 -- Panels already walked: their (i) buttons are made with the panel, so a

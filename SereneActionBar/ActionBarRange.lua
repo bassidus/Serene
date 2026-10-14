@@ -123,7 +123,7 @@ local function ItemColor(btn)
         btn.icon:SetDesaturated(false)
         -- Blizzard's own look (UpdateCooldown): gray while the cooldown waits to start.
         local _, duration, enable = GetQuestLogSpecialItemCooldown(index)
-        if Clean(duration) and duration > 0 and enable == 0 then
+        if Clean(duration) and duration > 0 and Clean(enable) == 0 then
             btn.icon:SetVertexColor(0.4, 0.4, 0.4)
         else
             btn.icon:SetVertexColor(1, 1, 1)

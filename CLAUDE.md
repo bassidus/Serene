@@ -16,7 +16,7 @@ QoL addon suite for WoW Forever (Interface 16001). Unreleased, one user.
 
 - The options page lists settings in registration order, so TOC file order matters. Some files exist only to register last (`NameplateLook.lua`).
 - `beside = true` puts a category, or a setting, to the right of the previous one.
-- `type = "grid"` is a checkbox matrix for one table-valued setting (`rows`, `columns`, `rowDefault`, `exclusive`; see `W.Grid`).
+- `type = "grid"` is a checkbox matrix for one table-valued setting (`rows`, `rowLabel`, `columns`, `link`; see `W.Grid`).
 - Writes go through `ns.SetValue`, which applies the setting and refreshes the window.
 
 ## The client
@@ -30,7 +30,7 @@ Forever runs the retail 12.x API on classic-era content.
 - The UI frames are retail ones: `PlayerSpellsFrame` (spellbook and talents), `ProfessionsFrame`, `PartyFrame.MemberFrame1..4` and `.healthbar` / `.manabar` on unit frames. There is no `QuestLogFrame`, because the quest log sits in the world map.
 - `RegisterForDrag` does nothing on a window that is already shown. Move & Scale drags via `GLOBAL_MOUSE_DOWN/UP` instead.
 
-When unsure whether something exists, don't guess and don't write a fallback. Add a temporary file that writes what it finds into `SereneDB`, have the user `/reload` twice, and read `WTF/Account/817318#2/SavedVariables/Serene.lua` under the game folder. Remove the file afterwards.
+When unsure whether something exists, don't guess and don't write a fallback. Add a temporary file that writes what it finds into `SereneDB`, have the user `/reload` twice, and read `WTF/Account/817318#2/SavedVariables/Serene.lua` under the game folder. Remove the file afterwards, and its key from `SereneDB` (with the game closed), since nothing else clears it.
 
 After a client update, check the reports first. `tools/ForeverProbe` is a dev addon (symlinked, never released) that records every API name, Blizzard's API documentation (`/api`, with its secret rules), which unit values are secret and event argument types, per build. `lua tools/probe-report.lua` writes them to `tools/ForeverProbe/reports/<build>/`: `docs/` per system, `docs-secret.md`, and `api-changes.md` against the previous build.
 

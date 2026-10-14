@@ -135,16 +135,12 @@ end
 -- Effective scale against UIParent's: UIParent units per frame unit.
 local function Ratio(frame) return frame:GetEffectiveScale() / UIParent:GetEffectiveScale() end
 
--- Kept while Move & Scale is off: the toggle is only the mouse.
-local function Spot(frame)
-    return moved[frame:GetName()]
-end
-
 -- Puts the frame at its moved spot, or back on Blizzard's anchors with the
--- offsets divided by the scale.
+-- offsets divided by the scale. A moved spot holds while Move & Scale is
+-- off too: the toggle is only the mouse.
 local function Anchor(frame)
     if not anchors[frame] then return end  -- scaleOnly
-    local spot = Spot(frame)
+    local spot = moved[frame:GetName()]
     if not (scaled[frame] or placed[frame] or spot) or Locked(frame) then return end
     busy = true
     if spot then
@@ -498,10 +494,7 @@ ns.RegisterFeature({
     type = "button", beside = true,
     click = function()
         wipe(moved)
-        SereneDB.windowScales = nil
-        SereneDB.windowSize = 100
-        ApplyAll()
-        if ns.RefreshOptions then ns.RefreshOptions() end
+        SetSaved(WINDOWS, 100)  -- also places every window and refreshes the options
     end,
 })
 

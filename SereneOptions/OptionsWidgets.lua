@@ -3,21 +3,20 @@
 --  through ns.SetValue and has a Refresh() that re-reads SereneDB. The
 --  surfaces are the CurseForge banner's browns, in rounded panels drawn from
 --  Serene's own textures (Media: Corner, CornerFill, Glow); the controls
---  wear Blizzard's classic art, except the sliders (Media: Knob), whose
---  grey bar stood out. No Blizzard templates.
+--  wear Blizzard's classic art, except the sliders (Media: Knob).
 -------------------------------------------------------------------------------
 local ns = Serene
 
 local W = {}
 ns.Widgets = W
 
-W.GOLD      = { 1, 0.82, 0 }
-W.WHITE     = { 1, 1, 1 }
-W.TAN       = { 0.69, 0.6, 0.47 }
-W.EDGE      = { 0.4, 0.27, 0.19 }     -- 1px borders of swatches and chips
-W.HIGHLIGHT = { 0.196, 0.388, 0.8 }   -- the quest log's selection blue
+W.GOLD  = { 1, 0.82, 0 }
+W.WHITE = { 1, 1, 1 }
+W.TAN   = { 0.69, 0.6, 0.47 }
 
-local GOLD, EDGE, WHITE = W.GOLD, W.EDGE, W.WHITE
+local GOLD, WHITE = W.GOLD, W.WHITE
+local EDGE = { 0.4, 0.27, 0.19 }          -- 1px borders of swatches and chips
+local HIGHLIGHT = { 0.196, 0.388, 0.8 }   -- the quest log's selection blue
 local GRAY = { 0.5, 0.5, 0.5 }  -- a disabled button's text
 local DARK = { 0, 0, 0, 0.6 }  -- behind chips and swatches
 
@@ -237,7 +236,7 @@ function W.Highlight(btn, file)
     local t = btn:CreateTexture(nil, "BORDER")
     t:SetTexture(file or ART.titleHl)
     t:SetBlendMode("ADD")
-    t:SetVertexColor(W.HIGHLIGHT[1], W.HIGHLIGHT[2], W.HIGHLIGHT[3])
+    t:SetVertexColor(HIGHLIGHT[1], HIGHLIGHT[2], HIGHLIGHT[3])
     t:SetAllPoints()
     t:Hide()
     return t
@@ -246,7 +245,7 @@ end
 -- A checkbox's box drawn on parent, size across (the art has a margin
 -- around the box it shows). Returns it with SetChecked(on), SetHover(on)
 -- and SetPushed(on).
-function W.CheckArt(parent, size)
+local function CheckArt(parent, size)
     local box = CreateFrame("Frame", nil, parent)
     box:SetSize(size, size)
     local up = box:CreateTexture(nil, "ARTWORK")
@@ -430,7 +429,7 @@ function W.Checkbox(parent, f)
     row:SetHeight(26)
 
     -- The art's box shows about 16 across in the middle, at the row's left.
-    local box = W.CheckArt(row, 26)
+    local box = CheckArt(row, 26)
     box:SetPoint("LEFT", -5, 0)
     CheckRow(row, box)
 
@@ -565,7 +564,7 @@ local function CloseMenu()
     if menu then menu:Hide() end
 end
 
-function W.OpenMenu(anchor, options, selected, onSelect, preview)
+local function OpenMenu(anchor, options, selected, onSelect, preview)
     GetMenu()
     if menu:IsShown() and state.anchor == anchor then
         menu:Hide()
@@ -672,7 +671,7 @@ end
 -------------------------------------------------------------------------------
 function W.Dropdown(parent, f)
     local holder, btn, text = Field(parent, not f.hideLabel and f.label, function(self)
-        W.OpenMenu(self, f.options(), ns.Get(f.key), function(v) ns.SetValue(f.key, v) end, f.preview)
+        OpenMenu(self, f.options(), ns.Get(f.key), function(v) ns.SetValue(f.key, v) end, f.preview)
     end, f.inline, f.tooltip)
 
     function holder.Refresh()
@@ -693,36 +692,20 @@ end
 -------------------------------------------------------------------------------
 local SWATCH, SWATCH_GAP = 20, 4
 
--- A small bordered square showing hex colors, several side by side (e.g.
--- "By value": green, yellow, red). SetColors(hex, ...) hides it when given
--- none and returns whether it shows.
+-- A small bordered square showing a hex color. SetColors(hex) hides it when
+-- given none and returns whether it shows.
 local function Swatch(parent, size)
     local s = CreateFrame("Frame", nil, parent)
     s:SetSize(size, size)
     s.edges = ns.Border(s, EDGE)
-    local stripes = {}
-    function s.SetColors(...)
-        local hexes = { ... }
-        local n, inner = #hexes, size - 2
-        for i = 1, math.max(n, #stripes) do
-            local t = stripes[i]
-            if i <= n then
-                if not t then
-                    t = s:CreateTexture(nil, "ARTWORK")
-                    stripes[i] = t
-                end
-                local r, g, b = ns.ColorRGB(hexes[i])
-                t:SetColorTexture(r or 1, g or 1, b or 1, 1)
-                t:ClearAllPoints()
-                t:SetPoint("TOPLEFT", 1 + (i - 1) * inner / n, -1)
-                t:SetSize(inner / n, inner)
-                t:Show()
-            elseif t then
-                t:Hide()
-            end
-        end
-        s:SetShown(n > 0)
-        return n > 0
+    local fill = s:CreateTexture(nil, "ARTWORK")
+    fill:SetPoint("TOPLEFT", 1, -1)
+    fill:SetPoint("BOTTOMRIGHT", -1, 1)
+    function s.SetColors(hex)
+        local r, g, b = ns.ColorRGB(hex)
+        if r then fill:SetColorTexture(r, g, b, 1) end
+        s:SetShown(r ~= nil)
+        return r ~= nil
     end
     return s
 end
@@ -771,7 +754,26 @@ local function OpenColorPicker(value, onChange)
     picker:Raise()
 end
 
-function W.Color(parent, f, labeled)
+-- A dark button framed in EDGE, white while hovered; onLeave repaints it.
+-- Returns its edges for PaintChip.
+local function Chip(button, onLeave)
+    W.Solid(button, "BACKGROUND", DARK):SetAllPoints()
+    local edges = ns.Border(button, EDGE)
+    button:SetScript("OnEnter", function() ns.SetBorderColor(edges, WHITE) end)
+    button:SetScript("OnLeave", onLeave)
+    return edges
+end
+
+-- A picked chip is framed in gold, its text too.
+local function PaintChip(edges, text, on)
+    ns.SetBorderColor(edges, on and GOLD or EDGE)
+    if text then
+        local c = on and GOLD or WHITE
+        text:SetTextColor(c[1], c[2], c[3])
+    end
+end
+
+local function Color(parent, f, labeled)
     local holder = CreateFrame("Frame", nil, parent)
     local top = 0
     if labeled then
@@ -782,13 +784,9 @@ function W.Color(parent, f, labeled)
     end
     holder:SetHeight(SWATCH - top)
 
-    local choices = {}  -- { button, edges, value (special word or hex), [fill] }
+    local choices = {}  -- { button, edges, value (special word or hex), [text] }
     local function Choice(button, value)
-        local c = { button = button, value = value }
-        W.Solid(button, "BACKGROUND", DARK):SetAllPoints()
-        c.edges = ns.Border(button, EDGE)
-        button:SetScript("OnEnter", function() ns.SetBorderColor(c.edges, WHITE) end)
-        button:SetScript("OnLeave", function() holder.Refresh() end)
+        local c = { button = button, value = value, edges = Chip(button, function() holder.Refresh() end) }
         choices[#choices + 1] = c
         return c
     end
@@ -805,7 +803,7 @@ function W.Color(parent, f, labeled)
         local text = chip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         text:SetText(s.label)
         local width = math.ceil(text:GetStringWidth()) + 14
-        -- The color(s) the choice stands for, before its name.
+        -- The color the choice stands for, before its name.
         local swatch = s.swatch and Swatch(chip, 10)
         if swatch and swatch.SetColors(s.swatch()) then
             swatch:SetPoint("LEFT", 6, 0)
@@ -855,10 +853,7 @@ function W.Color(parent, f, labeled)
         for _, c in ipairs(choices) do
             local on = c.value ~= nil and c.value == selected
             matched = matched or on
-            ns.SetBorderColor(c.edges, on and GOLD or EDGE)
-            if c.text then
-                if on then c.text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) else c.text:SetTextColor(1, 1, 1) end
-            end
+            PaintChip(c.edges, c.text, on)
         end
         -- A color off the palette lives on the "+" swatch.
         local r, g, b = ns.ColorRGB(value)
@@ -866,7 +861,7 @@ function W.Color(parent, f, labeled)
         custom.fill:SetShown(own)
         custom.plus:SetShown(not own)
         if own then custom.fill:SetColorTexture(r, g, b, 1) end
-        ns.SetBorderColor(custom.edges, own and GOLD or EDGE)
+        PaintChip(custom.edges, nil, own)
         local on = Available(holder, f)
         for _, c in ipairs(choices) do c.button:SetEnabled(on) end
     end
@@ -900,8 +895,7 @@ function W.Outline(parent, f)
     local chip
     if f.default == "default" then
         local button = CreateFrame("Button", nil, holder)
-        W.Solid(button, "BACKGROUND", DARK):SetAllPoints()
-        local edges = ns.Border(button, EDGE)
+        local edges = Chip(button, function() holder.Refresh() end)
         local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         text:SetPoint("CENTER")
         text:SetText("Default")
@@ -910,8 +904,6 @@ function W.Outline(parent, f)
         button:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
         x = width + 16
         button:SetScript("OnClick", function() PlayClick(); ns.SetValue(f.key, "default") end)
-        button:SetScript("OnEnter", function() ns.SetBorderColor(edges, WHITE) end)
-        button:SetScript("OnLeave", function() holder.Refresh() end)
         chip = { button = button, edges = edges, text = text }
         controls[#controls + 1] = button
     end
@@ -919,7 +911,7 @@ function W.Outline(parent, f)
     local boxes = {}
     for _, o in ipairs(ns.OUTLINE_FLAGS) do
         local row = CreateFrame("Button", nil, holder)
-        local box = W.CheckArt(row, 24)
+        local box = CheckArt(row, 24)
         box:SetPoint("LEFT", -4, 0)
         CheckRow(row, box)
         local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -943,11 +935,7 @@ function W.Outline(parent, f)
     function holder.Refresh()
         local set = ShownOutline(f)
         for _, b in ipairs(boxes) do b.box.SetChecked(set[b.flag]) end
-        if chip then
-            local on = ns.Get(f.key) == "default"
-            ns.SetBorderColor(chip.edges, on and GOLD or EDGE)
-            if on then chip.text:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) else chip.text:SetTextColor(1, 1, 1) end
-        end
+        if chip then PaintChip(chip.edges, chip.text, ns.Get(f.key) == "default") end
         local on = Available(holder, f)
         for _, c in ipairs(controls) do c:SetEnabled(on) end
     end
@@ -1040,7 +1028,7 @@ function W.Grid(parent, f)
             local btn = CreateFrame("Button", nil, holder)
             btn:SetSize(GRID_COL_W, GRID_ROW_H)
             btn:SetPoint("TOPLEFT", GRID_LABEL_W + (c - 1) * GRID_COL_W, y)
-            local box = W.CheckArt(btn, 26)
+            local box = CheckArt(btn, 26)
             box:SetPoint("CENTER")
             CheckRow(btn, box)
             btn:SetScript("OnClick", function()
@@ -1055,7 +1043,7 @@ function W.Grid(parent, f)
         end
         if f.link then
             local field, btn, text = Field(holder, nil, function(self)
-                W.OpenMenu(self, LinkOptions(row.key), RowValue(row.key).link or false,
+                OpenMenu(self, LinkOptions(row.key), RowValue(row.key).link or false,
                     function(v) SetLink(row.key, v) end)
             end)
             field:SetPoint("TOPLEFT", linkX, y - 1)
@@ -1292,7 +1280,7 @@ function W.FontGroup(parent, group)
     local holder, btn, text, arrow = Field(parent, not group.button and group.label, function(self)
         OpenEditor(self, group, group.label, function(panel)
             local list = { W.Dropdown(panel, group.font), W.Slider(panel, group.size), W.Outline(panel, group.outline) }
-            if color then list[#list + 1] = W.Color(panel, color, true) end
+            if color then list[#list + 1] = Color(panel, color, true) end
             return list
         end)
     end)
@@ -1325,13 +1313,13 @@ function W.FontGroup(parent, group)
 end
 
 -------------------------------------------------------------------------------
---  Color field -- the color as a swatch and its name (a special such as
---  "By class" shows as its name only); its editor holds the palette. With
+--  Color field -- the color as a swatch and its name (a special without a
+--  swatch shows as its name only); its editor holds the palette. With
 --  f.compact a row as high as a checkbox's: the swatch where the box would
 --  be and f.compact beside it.
 -------------------------------------------------------------------------------
 local function OpenColor(anchor, f)
-    OpenEditor(anchor, f, f.label, function(panel) return { W.Color(panel, f) } end)
+    OpenEditor(anchor, f, f.label, function(panel) return { Color(panel, f) } end)
 end
 
 local function CompactColor(parent, f)

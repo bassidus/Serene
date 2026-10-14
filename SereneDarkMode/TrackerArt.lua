@@ -39,10 +39,12 @@ for _, name in ipairs({
 end
 
 -- A quest icon is a POI button with its art on itself or on its Display.
--- Its glows keep their strength.
+-- Its glows keep their strength. A module's own art has no grandparent
+-- while the module is not yet under ObjectiveTrackerFrame.
 local function IsIcon(tex)
     local frame = tex:GetParent()
-    return (frame.IsPOIButton or frame:GetParent().IsPOIButton)
+    local outer = frame:GetParent()
+    return (frame.IsPOIButton or outer and outer.IsPOIButton)
         and not (tex:GetAtlas() or ""):find("Glow", 1, true)
 end
 
@@ -51,20 +53,18 @@ local function PaintIcon(tex)
     tex:SetVertexColor(v, v, v)
 end
 
-local function CollectIcons(frame)
-    for _, r in ipairs({ frame:GetRegions() }) do
-        if r:GetObjectType() == "Texture" and not icons[r] and IsIcon(r) then
-            icons[r] = true
-            PaintIcon(r)
-        end
+-- One search for both, the module's art and its quest icons.
+local function Take(r)
+    ns.AddDarkTexture(r, IsArt)
+    if r:GetObjectType() == "Texture" and not icons[r] and IsIcon(r) then
+        icons[r] = true
+        PaintIcon(r)
     end
-    for _, child in ipairs({ frame:GetChildren() }) do CollectIcons(child) end
 end
 
 local function Update(module)
     if not ns.Get("darkMode") then return end
-    ns.AddDarkArtNow(module, IsArt)
-    CollectIcons(module.ContentsFrame)
+    ns.EachRegion(module, Take)
 end
 
 for _, module in ipairs(MODULES) do hooksecurefunc(module, "EndLayout", Update) end

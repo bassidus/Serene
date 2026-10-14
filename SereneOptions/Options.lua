@@ -832,6 +832,7 @@ local function Build()
 
     frame:SetScript("OnShow", function()
         ApplyScale()  -- the screen or UI scale may have changed
+        ns.ForgetFontOptions()  -- an addon loaded since may have brought fonts
         ns.RefreshOptions()
         PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
     end)

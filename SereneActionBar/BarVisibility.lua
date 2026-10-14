@@ -1,10 +1,11 @@
 -------------------------------------------------------------------------------
 --  Bar Visibility -- per bar (and swing timer), when it shows: out of
 --  combat, in combat, or never with neither ticked. Mouse over narrows
---  those to while the mouse is over the bar (and a second after). A bar shown in and out of combat
---  without mouse over is left to Blizzard's settings. A bar linked to another takes its ticks, and the
---  mouse over either shows both. Only the bar's alpha changes, so its
---  buttons keep working and the keybinds fire while it is faded out.
+--  those to while the mouse is over the bar (and a second after). A bar
+--  shown in and out of combat without mouse over is left to Blizzard's
+--  settings. A bar linked to another takes its ticks, and the mouse over
+--  either shows both. Only the bar's alpha changes, so its buttons keep
+--  working and the keybinds fire while it is faded out.
 -------------------------------------------------------------------------------
 local _, ns = ...
 

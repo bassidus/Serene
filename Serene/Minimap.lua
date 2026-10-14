@@ -79,6 +79,14 @@ end)
 -------------------------------------------------------------------------------
 local DBIcon = LibStub("LibDBIcon-1.0")
 
+-- The lines the icon's tooltip and the addon compartment's share.
+local function TipLines(tt)
+    tt:AddLine("Serene", unpack(ns.ACCENT))
+    tt:AddLine("|cffffffffLeft-click|r to open the options.", 0.8, 0.8, 0.8)
+    tt:AddLine(("|cffffffffRight-click|r to %s the CPU meter."):format(
+        ns.Get("cpuMeter") and "hide" or "show"), 0.8, 0.8, 0.8)
+end
+
 local function Register()
     local launcher = LibStub("LibDataBroker-1.1"):NewDataObject("Serene", {
         type = "launcher",
@@ -96,10 +104,7 @@ local function Register()
             end
         end,
         OnTooltipShow = function(tt)
-            tt:AddLine("Serene", unpack(ns.ACCENT))
-            tt:AddLine("|cffffffffLeft-click|r to open the options.", 0.8, 0.8, 0.8)
-            tt:AddLine(("|cffffffffRight-click|r to %s the CPU meter."):format(
-                ns.Get("cpuMeter") and "hide" or "show"), 0.8, 0.8, 0.8)
+            TipLines(tt)
             tt:AddLine("|cffffffffShift-right-click|r to reload the UI.", 0.8, 0.8, 0.8)
             tt:AddLine("|cffffffffDrag|r to move this icon.", 0.8, 0.8, 0.8)
         end,
@@ -138,10 +143,7 @@ AddonCompartmentFrame:RegisterAddon({
     end,
     funcOnEnter = function(button)
         GameTooltip:SetOwner(button, "ANCHOR_LEFT")
-        GameTooltip:AddLine("Serene", unpack(ns.ACCENT))
-        GameTooltip:AddLine("|cffffffffLeft-click|r to open the options.", 0.8, 0.8, 0.8)
-        GameTooltip:AddLine(("|cffffffffRight-click|r to %s the CPU meter."):format(
-            ns.Get("cpuMeter") and "hide" or "show"), 0.8, 0.8, 0.8)
+        TipLines(GameTooltip)
         GameTooltip:Show()
     end,
     funcOnLeave = function() GameTooltip:Hide() end,

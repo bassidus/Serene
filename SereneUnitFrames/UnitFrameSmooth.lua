@@ -44,7 +44,8 @@ local function Mirror(stock)
     -- Not the alpha: once Blizzard's fill is hidden it reads back as 0.
     local r, g, b = stock:GetStatusBarColor()
     ov:SetStatusBarColor(r, g, b)
-    ns.SetHidden(src, enabled[stock])
+    -- Only runs while ours lies on top.
+    ns.SetHidden(src, true)
 end
 
 -- Straight to Blizzard's current value, without gliding.
@@ -89,17 +90,16 @@ end)
 function ns.ApplySmoothBars()
     local on = ns.Get(KEY) or nil
     for _, frame in ipairs(FRAMES) do
-        for _, stock in ipairs({ frame.healthbar, frame.manabar }) do
+        for _, stock in ipairs(ns.UnitFrameParts(frame).bars) do
             enabled[stock] = on
             if on then
                 Setup(stock)
-                Mirror(stock)
+                Mirror(stock)  -- also hides Blizzard's fill
                 Snap(stock)
+            elseif overlays[stock] then
+                ns.SetHidden(stock:GetStatusBarTexture(), false)
             end
-            if overlays[stock] then
-                overlays[stock]:SetShown(on == true)
-                ns.SetHidden(stock:GetStatusBarTexture(), on)
-            end
+            if overlays[stock] then overlays[stock]:SetShown(on == true) end
         end
     end
 end

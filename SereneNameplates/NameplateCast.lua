@@ -64,6 +64,20 @@ end
 -------------------------------------------------------------------------------
 --  Cast state
 -------------------------------------------------------------------------------
+-- Time left, ten times a second, for every running bar.
+local ticker = CreateFrame("Frame")
+ticker:Hide()
+local elapsedSince = 0
+ticker:SetScript("OnUpdate", function(self, elapsed)
+    if not next(casting) then self:Hide() return end
+    elapsedSince = elapsedSince + elapsed
+    if elapsedSince < 0.1 then return end
+    elapsedSince = 0
+    for plate in pairs(casting) do
+        plate.cast.timer:SetFormattedText("%.1f", plate.cast.duration:GetRemainingDuration())
+    end
+end)
+
 local function CancelHold(cast)
     if cast.holdTimer then
         cast.holdTimer:Cancel()
@@ -113,7 +127,7 @@ local function UpdateCast(plate)
         or Enum.StatusBarTimerDirection.ElapsedTime)
     cast:Show()
     casting[plate] = true
-    NP.castTicker:Show()
+    ticker:Show()
 end
 
 local function ShowInterrupted(plate)
@@ -131,21 +145,6 @@ local function ShowInterrupted(plate)
         if not casting[plate] then cast:Hide() end
     end)
 end
-
--- Time left, ten times a second, for every running bar.
-local ticker = CreateFrame("Frame")
-ticker:Hide()
-NP.castTicker = ticker
-local elapsedSince = 0
-ticker:SetScript("OnUpdate", function(self, elapsed)
-    if not next(casting) then self:Hide() return end
-    elapsedSince = elapsedSince + elapsed
-    if elapsedSince < 0.1 then return end
-    elapsedSince = 0
-    for plate in pairs(casting) do
-        plate.cast.timer:SetFormattedText("%.1f", plate.cast.duration:GetRemainingDuration())
-    end
-end)
 
 -------------------------------------------------------------------------------
 --  Events, registered on each plate for its own unit while the cast bar is on

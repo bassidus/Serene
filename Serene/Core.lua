@@ -182,10 +182,9 @@ function ns.ResetAll()
     ns.Print("Everything is back to its defaults, the options window and the minimap icon too.")
 end
 
--- The quest green of the nameplates' quest marks (SereneNameplates), whose
--- settings SereneQuests registers, and the default bar colors of quest mobs.
--- Neutral ones get their own, so they stay apart from hostile ones.
-ns.QUEST_GREEN = "28da79"
+-- The default bar colors of quest mobs on the nameplates (SereneNameplates),
+-- whose settings SereneQuests registers. Neutral ones get their own, so they
+-- stay apart from hostile ones.
 ns.QUEST_HOSTILE = "ff4d1a"
 ns.QUEST_NEUTRAL = "ffd100"
 

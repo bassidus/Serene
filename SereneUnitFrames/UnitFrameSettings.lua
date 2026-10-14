@@ -10,12 +10,12 @@ local SECTION = ns.SECTION
 ns.RegisterFeature({
     key = "unitFrameClassColors", label = "Show class colors", section = SECTION, category = "All frames",
     tooltip = "Players' health bars in their class color.",
-    default = true, apply = ns.ApplyClassColors,
+    apply = ns.ApplyClassColors,
 })
 ns.RegisterFeature({
     key = "unitFrameSmoothBars", label = "Use smooth bars", section = SECTION, category = "All frames",
     tooltip = "Health and mana glide instead of jumping.",
-    beside = true, default = true, apply = ns.ApplySmoothBars,
+    beside = true, apply = ns.ApplySmoothBars,
 })
 ns.RegisterFeature({
     key = "unitFrameHideHits", label = "Hide damage numbers", section = SECTION, category = "All frames",

@@ -22,12 +22,12 @@ local function Strip(tt, name)
     if tt:IsForbidden() then return end
     local n = tt:NumLines()
     for i = n, math.max(2, n - LAST + 1), -1 do
-        local left = _G[name .. "TextLeft" .. i]
+        local left = ns.TooltipLine(name, "Left", i)
         local txt = ns.Clean(left:GetText())
         if txt and IsHint(txt) then
             Blank(left)
-            Blank(_G[name .. "TextRight" .. i])
-            local prev = _G[name .. "TextLeft" .. (i - 1)]
+            Blank(ns.TooltipLine(name, "Right", i))
+            local prev = ns.TooltipLine(name, "Left", i - 1)
             local prevText = ns.Clean(prev:GetText())
             if prevText and strtrim(prevText) == "" then Blank(prev) end
             -- Re-layout without the blanked lines; the hint is gone now, so the

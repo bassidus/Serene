@@ -11,7 +11,8 @@ local _, ns = ...
 local TOOLTIPS = { "FriendsTooltip", unpack(ns.TOOLTIPS) }
 
 local backgrounds = {}
-local tabEdges = {}  -- compare tab -> its outline's four lines
+local tabArt = {}      -- compare tab -> its framed art
+local tabOutline = {}  -- compare tab -> the frame holding its outline
 local faded = {}   -- tooltips whose NineSlice we hid
 local dimmed = {}  -- tooltips whose center we made see-through
 
@@ -21,8 +22,13 @@ end
 
 -- The compare tab's framed atlas is its only texture and has no parentKey.
 local function TabArt(header)
+    local art = tabArt[header]
+    if art then return art end
     for _, region in ipairs({ header:GetRegions() }) do
-        if region:IsObjectType("Texture") then return region end
+        if region:IsObjectType("Texture") then
+            tabArt[header] = region
+            return region
+        end
     end
 end
 
@@ -30,30 +36,16 @@ end
 -- so it gets a thin outline. The bottom line sits on the tooltip's top edge.
 local TAB_EDGE_COLOR = { 0.5, 0.5, 0.5 }
 
-local function TabEdges(header)
-    local edges = tabEdges[header]
-    if edges then return edges end
-    local function Line()
-        local t = header:CreateTexture(nil, "BORDER")
-        t:SetColorTexture(unpack(TAB_EDGE_COLOR))
-        return t
+local function TabOutline(header)
+    local outline = tabOutline[header]
+    if not outline then
+        outline = CreateFrame("Frame", nil, header)
+        outline:SetPoint("TOPLEFT")
+        outline:SetPoint("BOTTOMRIGHT", 0, 1)
+        ns.Border(outline, TAB_EDGE_COLOR)
+        tabOutline[header] = outline
     end
-    local top, bottom, left, right = Line(), Line(), Line(), Line()
-    top:SetPoint("TOPLEFT")
-    top:SetPoint("TOPRIGHT")
-    top:SetHeight(1)
-    bottom:SetPoint("BOTTOMLEFT", 0, 1)
-    bottom:SetPoint("BOTTOMRIGHT", 0, 1)
-    bottom:SetHeight(1)
-    left:SetPoint("TOPLEFT")
-    left:SetPoint("BOTTOMLEFT", 0, 1)
-    left:SetWidth(1)
-    right:SetPoint("TOPRIGHT")
-    right:SetPoint("BOTTOMRIGHT", 0, 1)
-    right:SetWidth(1)
-    edges = { top, bottom, left, right }
-    tabEdges[header] = edges
-    return edges
+    return outline
 end
 
 local function StyleTab(header, flat, r, g, b, a, opacity)
@@ -71,14 +63,12 @@ local function StyleTab(header, flat, r, g, b, a, opacity)
         bg:SetColorTexture(r, g, b, a)
         bg:SetAlpha(opacity)
         bg:Show()
-        for _, line in ipairs(TabEdges(header)) do line:Show() end
+        TabOutline(header):Show()
         art:SetAlpha(0)
     else
         art:SetAlpha(1)
         if backgrounds[header] then backgrounds[header]:Hide() end
-        if tabEdges[header] then
-            for _, line in ipairs(tabEdges[header]) do line:Hide() end
-        end
+        if tabOutline[header] then tabOutline[header]:Hide() end
     end
 end
 

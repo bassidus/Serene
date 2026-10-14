@@ -40,16 +40,33 @@ local function Repaint(tex)
     if ns.Get("darkMode") then Paint(tex) end
 end
 
+-- fn(region) for every region under frame. The regions and children are
+-- passed along as they come, not put in tables: the quest tracker is
+-- searched again after every layout.
+local EachChild
+local function EachOf(fn, ...)
+    for i = 1, select("#", ...) do fn((select(i, ...))) end
+end
+local function EachRegion(frame, fn)
+    EachOf(fn, frame:GetRegions())
+    EachChild(fn, frame:GetChildren())
+end
+function EachChild(fn, ...)
+    for i = 1, select("#", ...) do EachRegion((select(i, ...)), fn) end
+end
+ns.EachRegion = EachRegion
+
+-- A texture that isArt(texture) picks out, unless it is in already.
+function ns.AddDarkTexture(r, isArt, darkness)
+    if r:GetObjectType() ~= "Texture" or art[r] ~= nil or not isArt(r) then return end
+    art[r], darknessOf[r] = r:IsDesaturated(), darkness
+    -- Blizzard swaps the atlas on some (a bar's empty-slot rims).
+    hooksecurefunc(r, "SetAtlas", Repaint)
+    Repaint(r)
+end
+
 local function Collect(frame, isArt, darkness)
-    for _, r in ipairs({ frame:GetRegions() }) do
-        if r:GetObjectType() == "Texture" and art[r] == nil and isArt(r) then
-            art[r], darknessOf[r] = r:IsDesaturated(), darkness
-            -- Blizzard swaps the atlas on some (a bar's empty-slot rims).
-            hooksecurefunc(r, "SetAtlas", Repaint)
-            Repaint(r)
-        end
-    end
-    for _, child in ipairs({ frame:GetChildren() }) do Collect(child, isArt, darkness) end
+    EachRegion(frame, function(r) ns.AddDarkTexture(r, isArt, darkness) end)
 end
 
 ns.AddDarkArtNow = Collect

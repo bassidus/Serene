@@ -13,7 +13,7 @@ local function FormatHotkeyText(key)
     -- Gamepad binds resolve to glyph markup (no substitution below matches);
     -- keyboard binds keep the raw tokens the substitutions are written against.
     local resolved = GetBindingText(text, 1)
-    if resolved and resolved:find("|A:", 1, true) then
+    if resolved:find("|A:", 1, true) then
         text = resolved
     end
     text = text:gsub("CTRL%-", "C")

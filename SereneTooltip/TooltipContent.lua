@@ -9,10 +9,10 @@ local _, ns = ...
 
 local Clean = ns.Clean
 
--- A line's font string (<name>TextLeft<i> / <name>TextRight<i>) and its text.
+-- A line's font string and its text.
 local function LineText(tt, side, i)
     local name = tt:GetName()  -- nil for an unnamed tooltip
-    local fs = name and _G[name .. "Text" .. side .. i]
+    local fs = name and ns.TooltipLine(name, side, i)
     return fs, fs and Clean(fs:GetText())
 end
 

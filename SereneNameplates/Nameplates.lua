@@ -583,8 +583,11 @@ function NP.RefreshAll()
     RunRefreshHooks()
 end
 
-function NP.Relayout()
-    NP.layoutGen = (NP.layoutGen or 0) + 1
+-- After a size or font setting; pooled plates catch up when they are next
+-- attached. Nothing to do before login.
+function NP.ApplyRelayout()
+    if not NP.layoutGen then return end
+    NP.layoutGen = NP.layoutGen + 1
     for _, plate in pairs(NP.plates) do
         Layout(plate)
         plate.layoutGen = NP.layoutGen
@@ -641,9 +644,6 @@ end)
 -------------------------------------------------------------------------------
 --  Settings
 -------------------------------------------------------------------------------
-local function Relayout() if NP.layoutGen then NP.Relayout() end end
-NP.ApplyRelayout = Relayout
-
 -- Settings that only change colors and texts.
 local function Recolor()
     if not NP.layoutGen then return end

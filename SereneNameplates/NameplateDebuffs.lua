@@ -150,7 +150,7 @@ ns.RegisterFeature({
     beside = true,
     apply = function() if NP.layoutGen then NP.RefreshAll() end end,
 })
--- nameplateDebuffsMine registers in NameplateLook.lua, beside the fading.
+-- nameplateDebuffsMine registers in NameplateLook.lua.
 function NP.ApplyDebuffsMine()
     for _, plate in pairs(NP.plates) do
         local c = plate.debuffs

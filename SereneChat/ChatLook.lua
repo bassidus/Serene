@@ -113,22 +113,20 @@ local function ApplySpacing()
     end)
 end
 
--- A whisper window takes its font from the window it opens from.
-hooksecurefunc("FCF_OpenTemporaryWindow", function()
+local function ApplyAll()
     ApplyFont()
     ApplyFade()
     ApplySpacing()
-end)
+end
+
+-- A whisper window takes its font from the window it opens from.
+hooksecurefunc("FCF_OpenTemporaryWindow", ApplyAll)
 
 -- A new character's chat settings arrive after login and set up the
 -- windows again.
 local windows = CreateFrame("Frame")
 windows:RegisterEvent("UPDATE_CHAT_WINDOWS")
-windows:SetScript("OnEvent", function()
-    ApplyFont()
-    ApplyFade()
-    ApplySpacing()
-end)
+windows:SetScript("OnEvent", ApplyAll)
 
 ns.RegisterFeature({
     key = "chatFade", label = "Fade old lines", section = SECTION, category = CATEGORY,
@@ -149,7 +147,7 @@ ns.RegisterFeature({
     beside = true, apply = ApplySpacing,
 })
 ns.RegisterFeature({
-    key = "chatIndent", label = "Indent wrapped lines", section = SECTION, category = CATEGORY, default = true,
+    key = "chatIndent", label = "Indent wrapped lines", section = SECTION, category = CATEGORY,
     space = true, apply = ApplySpacing,
 })
 ns.RegisterFontSettings({

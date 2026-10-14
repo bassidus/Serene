@@ -12,8 +12,15 @@ local BUILTIN = {
 }
 
 -- "Blizzard default", Blizzard's fonts, then LibSharedMedia's. Each font is
--- listed once, matched by path, file name and name.
+-- listed once, matched by path, file name and name. Built once per opening
+-- of the options window (ns.ForgetFontOptions): every change there refreshes
+-- every font field, and each of them reads this list.
+local fontList
+
+function ns.ForgetFontOptions() fontList = nil end
+
 function ns.FontOptions()
+    if fontList then return fontList end
     local list = { { value = "default", label = "Blizzard default" } }
     local seen = {}
     local function Key(path) return path:lower():match("([^\\/]+)$") end
@@ -33,6 +40,7 @@ function ns.FontOptions()
         table.sort(extra, function(a, b) return a.label < b.label end)
         for _, o in ipairs(extra) do list[#list + 1] = o end
     end
+    fontList = list
     return list
 end
 

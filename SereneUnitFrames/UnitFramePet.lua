@@ -42,10 +42,11 @@ local face = PetFrameHappiness:CreateTexture(nil, "ARTWORK")
 face:SetPoint("TOPLEFT", regions[1], 0, 4)
 face:SetPoint("BOTTOMRIGHT", regions[1], 0, 4)
 
-local happiness = CreateFrame("Frame")
-happiness:SetScript("OnEvent", function()
+local function UpdateFace()
     face:SetTexture(FACES[ns.Clean(C_PetInfo.GetPetHappiness())])
-end)
+end
+local happiness = CreateFrame("Frame")
+happiness:SetScript("OnEvent", UpdateFace)
 
 function ns.ApplyHappinessFaces()
     local on = ns.Get("petFrameHappinessFaces")
@@ -55,7 +56,7 @@ function ns.ApplyHappinessFaces()
         happiness:RegisterUnitEvent("UNIT_HAPPINESS", "pet")
         happiness:RegisterUnitEvent("UNIT_PET", "player")
         happiness:RegisterEvent("PLAYER_ENTERING_WORLD")
-        happiness:GetScript("OnEvent")()
+        UpdateFace()
     else
         happiness:UnregisterAllEvents()
     end

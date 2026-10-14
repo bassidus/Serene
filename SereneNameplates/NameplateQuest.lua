@@ -10,7 +10,7 @@
 local _, ns = ...
 local NP = ns.NP
 
-local QUEST_COLOR = { ns.ColorRGB(ns.QUEST_GREEN) }
+local QUEST_COLOR = { 0.157, 0.855, 0.475 }  -- the quest marks' green
 local cache = {}  -- unit -> false, or the progress text ("" when it has none)
 
 local Clean = ns.Clean

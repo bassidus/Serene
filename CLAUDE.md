@@ -30,7 +30,7 @@ Forever runs the retail 12.x API on classic-era content.
 - The UI frames are retail ones: `PlayerSpellsFrame` (spellbook and talents), `ProfessionsFrame`, `PartyFrame.MemberFrame1..4` and `.healthbar` / `.manabar` on unit frames. There is no `QuestLogFrame`, because the quest log sits in the world map.
 - `RegisterForDrag` does nothing on a window that is already shown. Move & Scale drags via `GLOBAL_MOUSE_DOWN/UP` instead.
 
-When unsure whether something exists, don't guess and don't write a fallback. Add a temporary file that writes what it finds into `SereneDB`, have the user `/reload` twice, and read `WTF/Account/817318#2/SavedVariables/Serene.lua` under the game folder. Remove the file afterwards, and its key from `SereneDB` (with the game closed), since nothing else clears it.
+When unsure whether something exists, don't guess and don't write a fallback. Add a temporary file that writes what it finds into `SereneDB`, have the user `/reload` twice, and read `WTF/Account/817318#2/SavedVariables/Serene.lua` under the game folder. Remove the file afterwards, and its key from `SereneDB` with `lua tools/sv-clean.lua --apply` (game closed), since nothing else clears it.
 
 After a client update, check the reports first. `tools/ForeverProbe` is a dev addon (symlinked, never released) that records every API name, Blizzard's API documentation (`/api`, with its secret rules), which unit values are secret and event argument types, per build. `lua tools/probe-report.lua` writes them to `tools/ForeverProbe/reports/<build>/`: `docs/` per system, `docs-secret.md`, and `api-changes.md` against the previous build.
 
@@ -45,6 +45,10 @@ After a client update, check the reports first. `tools/ForeverProbe` is a dev ad
 ## Workflow
 
 - Commit straight to `main`.
-- There are no tests. Check syntax with `luac -p` on the files you change (delete `luac.out` afterwards), then the user tests in game.
+- There are no tests. Check syntax with `luac5.1 -p` on the files you change (plain `luac` here is 5.5), then the user tests in game.
+- Before a release, ask the user whether to run the release checks:
+  - `tools/check.sh` reads the code and changes nothing: TOCs, versions, symlinks, syntax, globals, unused `ns.`/`NP.`/`W.` members, leftovers, `pcall` sites and stale SereneDB keys. FAIL is fixed before the release; WARN and INFO get a look. A new Blizzard frame or table the code reads goes into `tools/known-globals.txt` once it is checked in game.
+  - `lua tools/sv-clean.lua` lists SereneDB keys no code reads. `--apply` removes them; it refuses while the game runs and backs the file up first.
+  - From the files `check.sh` lists as changed since the last tag, write the user an in-game test list, and release only after they have tested.
 - `tools/release.sh <version>` bumps `## Version` in every TOC, writes the CHANGELOG section and zips every `Serene*` folder into `dist/`. It refuses to run if `## Interface` differs between TOCs. `tools/release.sh --check` only checks that Interface and Version match everywhere.
 - Every release gets a written summary. After `release.sh`, replace the generated commit list under the new version in CHANGELOG.md with a short summary for players: an intro if something affects installing or updating, then `### New`, `### Changed` and `### Fixed` as needed. No internal changes (README, CLAUDE.md, tooling, refactors). Then commit and tag. Don't push unless asked.

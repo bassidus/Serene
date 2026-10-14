@@ -23,3 +23,28 @@ ns.AddDarkArt("MinimapCluster", IsArt)
 local ICON_BORDER = 136430
 
 ns.AddDarkArt("LibDBIcon10_Serene", function(tex) return tex:GetTexture() == ICON_BORDER end)
+
+-------------------------------------------------------------------------------
+--  Above the minimap: the zone name, the clock and the addon count are
+--  dimmed by alpha, since Blizzard colors the zone name by its PvP status.
+--  The calendar keeps its colors and is darkened; its highlight keeps its
+--  strength.
+-------------------------------------------------------------------------------
+local DIM = 0.7
+local CALENDAR = 0.6
+
+local function IsCalendar(r)
+    local atlas = r:GetObjectType() == "Texture" and r:GetAtlas() or ""
+    return atlas:find("UI-HUD-Calendar", 1, true) and not atlas:find("Mouseover", 1, true)
+end
+
+ns.OnDarkMode(function()
+    local dark = ns.Get("darkMode")
+    MinimapZoneText:SetAlpha(dark and DIM or 1)
+    TimeManagerClockTicker:SetAlpha(dark and DIM or 1)
+    AddonCompartmentFrame.Text:SetAlpha(dark and DIM or 1)
+    local v = dark and CALENDAR or 1
+    for _, r in ipairs({ GameTimeFrame:GetRegions() }) do
+        if IsCalendar(r) then r:SetVertexColor(v, v, v) end
+    end
+end)

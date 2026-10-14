@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
---  Unit Frame Look -- longer names and hidden portrait damage numbers on
---  Blizzard's unit frames.
+--  Unit Frame Look -- longer names, hidden portrait damage numbers and no
+--  reaction color behind the target's name on Blizzard's unit frames.
 --
 --  Everything is painted from outside: regions are hidden with alpha
 --  (Blizzard keeps calling Show/Hide on them), and no fields are written to
@@ -73,4 +73,17 @@ local HITS = { PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HitIndicato
 
 function ns.ApplyHideHits()
     for _, region in ipairs(HITS) do ns.SetHidden(region, ns.Get("unitFrameHideHits")) end
+end
+
+-------------------------------------------------------------------------------
+--  Target and focus color the bar behind the name by reaction; without it
+--  their names sit on the same background as the player's. A texture's
+--  alpha is its vertex color's, so each new color shows it again.
+-------------------------------------------------------------------------------
+local function HideNameBar(tex) tex:SetAlpha(0) end
+
+for _, frame in ipairs({ TargetFrame, FocusFrame }) do
+    local bar = frame.TargetFrameContent.TargetFrameContentMain.ReputationColor
+    hooksecurefunc(bar, "SetVertexColor", HideNameBar)
+    HideNameBar(bar)
 end

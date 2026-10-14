@@ -19,9 +19,30 @@ local function SetDark(tex, on)
     end
 end
 
+-- The name's background in the frame art is see-through, so the world shows
+-- through it. A black copy of the art under it fills that in; where the art
+-- is solid the copy is hidden.
+local backings = {}  -- [main frame art] = its black copy
+
+local function Backing(tex)
+    local b = backings[tex]
+    if not b then
+        b = tex:GetParent():CreateTexture(nil, "BACKGROUND", nil, -8)
+        b:SetAllPoints(tex)
+        backings[tex] = b
+    end
+    return b
+end
+
 local function Paint(frame)
     local dark = ns.Get("darkMode")
-    for _, tex in pairs(ns.UnitFrameParts(frame).art) do SetDark(tex, dark) end
+    local art = ns.UnitFrameParts(frame).art
+    for _, tex in pairs(art) do SetDark(tex, dark) end
+    -- Target and focus swap the art's atlas (rare, elite...).
+    local b = Backing(art[1])
+    b:SetAtlas(art[1]:GetAtlas())
+    b:SetVertexColor(0, 0, 0)
+    b:SetShown(dark and art[1]:IsShown())
 end
 
 -- [frame] = true once painted again on its first UnitFrame_Update after

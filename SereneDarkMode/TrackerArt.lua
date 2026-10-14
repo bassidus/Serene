@@ -18,3 +18,14 @@ local function IsArt(tex)
 end
 
 ns.AddDarkArt("ObjectiveTrackerFrame", IsArt)
+
+-- The modules are only put under ObjectiveTrackerFrame after login, later
+-- than Dark mode's first search.
+for _, module in ipairs({
+    "QuestObjectiveTracker", "CampaignQuestObjectiveTracker", "AchievementObjectiveTracker",
+    "BonusObjectiveTracker", "WorldQuestObjectiveTracker", "ScenarioObjectiveTracker",
+    "ProfessionsRecipeTracker", "MonthlyActivitiesObjectiveTracker", "AdventureObjectiveTracker",
+    "InitiativeTasksObjectiveTracker", "UIWidgetObjectiveTracker",
+}) do
+    ns.AddDarkArt(module, IsArt)
+end

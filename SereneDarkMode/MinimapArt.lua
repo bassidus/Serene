@@ -33,6 +33,13 @@ ns.AddDarkArt("LibDBIcon10_Serene", function(tex) return tex:GetTexture() == ICO
 local DIM = 0.7
 local CALENDAR = 0.6
 
+-- The addon count is its button's own text, whose font the button applies
+-- again on hover, so the font itself is a dim copy.
+local COUNT_FONT = GameFontHighlightSmall
+local dimCount = CreateFont("SereneDimCount")
+dimCount:CopyFontObject(COUNT_FONT)
+dimCount:SetAlpha(DIM)
+
 local function IsCalendar(r)
     local atlas = r:GetObjectType() == "Texture" and r:GetAtlas() or ""
     return atlas:find("UI-HUD-Calendar", 1, true) and not atlas:find("Mouseover", 1, true)
@@ -42,7 +49,7 @@ ns.OnDarkMode(function()
     local dark = ns.Get("darkMode")
     MinimapZoneText:SetAlpha(dark and DIM or 1)
     TimeManagerClockTicker:SetAlpha(dark and DIM or 1)
-    AddonCompartmentFrame.Text:SetAlpha(dark and DIM or 1)
+    AddonCompartmentFrame:SetNormalFontObject(dark and dimCount or COUNT_FONT)
     local v = dark and CALENDAR or 1
     for _, r in ipairs({ GameTimeFrame:GetRegions() }) do
         if IsCalendar(r) then r:SetVertexColor(v, v, v) end

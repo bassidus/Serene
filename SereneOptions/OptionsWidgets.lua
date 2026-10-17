@@ -431,7 +431,8 @@ end
 
 -------------------------------------------------------------------------------
 --  Checkbox -- bound to f.key, or to f.get()/f.set(on) for state that is not
---  in SereneDB.
+--  in SereneDB. f.color (a color setting's key) adds its swatch after the
+--  label (W.CheckboxColor).
 -------------------------------------------------------------------------------
 function W.Checkbox(parent, f)
     local function Checked()
@@ -451,6 +452,7 @@ function W.Checkbox(parent, f)
     label:SetPoint("LEFT", 26, 0)
     label:SetText(f.label)
     row.label = label
+    local RefreshColor = f.color and W.CheckboxColor(row, f)
 
     row:SetScript("OnClick", function()
         PlayClick()
@@ -473,6 +475,7 @@ function W.Checkbox(parent, f)
         local missing, conflicting = MissingAddon(f), Conflicting(f)
         box.SetChecked(Checked() and not conflicting)
         row:SetEnabled(Available(row, f))
+        if RefreshColor then RefreshColor() end
         if note then
             note:SetText(missing and "Requires " .. missing
                 or conflicting and "Off while " .. conflicting .. " is loaded" or "")
@@ -1360,6 +1363,32 @@ local function CompactColor(parent, f)
         RefreshEditor(f)
     end
     return row
+end
+
+-- A checkbox's color: a swatch after its label that opens the color's
+-- editor, dimmed while the box is off. Returns its refresh.
+function W.CheckboxColor(row, f)
+    local color = ns.featureByKey[f.color]
+    local btn = CreateFrame("Button", nil, row)
+    btn:SetSize(16, 16)
+    btn:SetPoint("LEFT", row.label, "RIGHT", 8, 0)
+    local swatch = Swatch(btn, 16)
+    swatch:SetPoint("CENTER")
+
+    btn:SetScript("OnClick", function(self)
+        PlayClick()
+        OpenColor(self, color)
+    end)
+    btn:SetScript("OnEnter", function() ns.SetBorderColor(swatch.edges, GOLD) end)
+    btn:SetScript("OnLeave", function() ns.SetBorderColor(swatch.edges, EDGE) end)
+
+    return function()
+        ShowColor(swatch, color)
+        local on = ns.Get(f.key) and true or false
+        btn:SetEnabled(on)
+        btn:SetAlpha(on and 1 or 0.4)
+        RefreshEditor(color)
+    end
 end
 
 function W.ColorField(parent, f)

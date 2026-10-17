@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene Chat
 ## Group: Serene
-## Notes: Arrow-key history, levels after names, short channel names and loot lines, clickable links, chat colors, font and fade, copy chat.
+## Notes: Arrow-key history, levels after names, short channel names and loot lines, clickable links, chat font and fade, copy chat.
 ## Version: 1.11.0
 ## Dependencies: Serene
 ## X-Serene-Section: Chat

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---  Chat Messages -- names as "Name (30)", short channel names with or
---  without their number ("[2] [T] Name:", "[Gen] Name:"), times, colors of
---  their own for the time, channel, name, level and message text, shorter loot,
---  XP, skill and speech lines, and clickable web links.
+--  Chat Messages -- names as "Name (30)", in their class color or not, the
+--  level colored against yours or not, channels short or long, with or
+--  without number and name ("[2] [Gen] Name:", "[2] Name:"), times (gray or
+--  not), shorter loot, XP, skill and speech lines, and clickable web links.
 --
 --  Blizzard runs the message and sender name filters in a securecall, so
 --  whatever fits there goes there: levels, links and the loot, XP and skill
@@ -17,36 +17,23 @@ local SECTION, CATEGORY = "Chat", "Messages"
 
 local Clean = ns.Clean
 
--- s in a color setting's color; a special word ("default", the line's own
--- color) leaves it as it is.
-local function Paint(key, s)
-    local hex = ns.ColorHex(ns.Get(key))
-    return hex and "|cff" .. hex .. s .. "|r" or s
-end
-
 -------------------------------------------------------------------------------
 --  Names and levels. Blizzard hands the name over in its class color where
---  the chat settings color that chat type by class; it is taken off and the
---  name gets Serene's color, class or not, on every chat type.
+--  the chat settings color that chat type by class; it is taken off, and
+--  the name gets its class color on every chat type or on none.
 -------------------------------------------------------------------------------
 ChatFrameUtil.AddSenderNameFilter(function(_, name, ...)
     local guid = Clean(select(12, ...))
     if not guid or not guid:find("^Player%-") then return end
     local _, class, _, _, _, _, _, level = GetPlayerInfoByGUID(guid)
     name = name:match("^|c%x%x%x%x%x%x%x%x(.*)|r$") or name
-    if ns.Get("chatNameColor") == "class" then
-        local c = RAID_CLASS_COLORS[Clean(class)]
-        if c then name = c:WrapTextInColorCode(name) end
-    else
-        name = Paint("chatNameColor", name)
-    end
+    local c = ns.Get("chatClassColors") and RAID_CLASS_COLORS[Clean(class)]
+    if c then name = c:WrapTextInColorCode(name) end
     level = Clean(level)
     if not ns.Get("chatLevels") or not level or level <= 0 then return name end
-    if ns.Get("chatLevelColor") == "difficulty" then
-        local c = GetCreatureDifficultyColor(level)
-        return name .. " (|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. "|r)"
-    end
-    return name .. " (" .. Paint("chatLevelColor", level) .. ")"
+    if not ns.Get("chatLevelColors") then return name .. " (" .. level .. ")" end
+    c = GetCreatureDifficultyColor(level)
+    return name .. " (|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. "|r)"
 end)
 
 -------------------------------------------------------------------------------
@@ -281,26 +268,12 @@ local function Link(url)
 end
 
 local function Links(_, _, text, ...)
-    if not ns.Get("chatLinks") or not (text:find("://", 1, true) or text:find("www.", 1, true)) then
-        return false
-    end
+    if not (text:find("://", 1, true) or text:find("www.", 1, true)) then return false end
     for _, p in ipairs(URLS) do text = text:gsub(p, Link) end
     return false, text, ...
 end
 
 for _, event in ipairs(PLAYER_CHAT) do ChatFrameUtil.AddMessageEventFilter(event, Links) end
-
--- The message text in its own color, after the links so theirs stays. A
--- link's |r ends its color; the text's starts again after it.
-local function TextColor(_, _, text, ...)
-    local hex = ns.ColorHex(ns.Get("chatTextColor"))
-    text = Clean(text)
-    if not hex or not text then return false end
-    local code = "|cff" .. hex
-    return false, code .. text:gsub("|r", "|r" .. code) .. "|r", ...
-end
-
-for _, event in ipairs(PLAYER_CHAT) do ChatFrameUtil.AddMessageEventFilter(event, TextColor) end
 
 EventRegistry:RegisterCallback("SetItemRef", function(_, link)
     local url = link:match("^addon:sereneurl:(.*)")
@@ -309,17 +282,16 @@ end)
 
 -------------------------------------------------------------------------------
 --  Whole lines: channel names, the sender without brackets, and "[Name]
---  says:" -> "Name:". The channel is one of four styles, each with or
---  without its number:
---    full:   "[2. Trade - City] Name:" or "[Trade - City] Name:"
---    letter: "[2] [T] Name:"           or "[T] Name:"
---    word:   "[1] [Gen] Name:"         or "[Gen] Name:"
---    none:   "[2] Name:"               or "Name:"
---  Guild, party and raid have no number: "[G]" or "[Guild]", "[PL]". A
---  joined, left or changed notice keeps Blizzard's channel as it is, zone
---  and all: "Changed Channel: [1. General - Elwynn Forest]". The number
---  and the name take their own colors. The time goes first on every line,
---  Blizzard's own (chat lines only) turned off.
+--  says:" -> "Name:". A channel is long or short, with or without its
+--  number, or the number alone:
+--    long:   "[2. Trade - City] Name:" or "[Trade - City] Name:"
+--    short:  "[1] [Gen] Name:"         or "[Gen] Name:"
+--    hidden: "[1] Name:"               or "Name:"
+--  Guild, party and raid have no number: "[Guild]", "[PL]", and with the
+--  names hidden "[G]", so their lines still tell apart. A joined, left or
+--  changed notice keeps Blizzard's channel as it is, zone and all:
+--  "Changed Channel: [1. General - Elwynn Forest]". The time goes first
+--  on every line, Blizzard's own (chat lines only) turned off.
 -------------------------------------------------------------------------------
 local CHANNEL = "(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)( ?)"
 -- A notice ends with its channel; a chat line has the sender after it.
@@ -328,55 +300,38 @@ local NOTICE = CHANNEL .. "$"
 local PLAYER = "(|H%a-player.-|h)%[([^%[%]]-)%](|h)"
 
 -- Numbered channels by their name without number and zone. A channel not
--- listed keeps its name as its word, and as its letter when no number shows.
-local CHANNEL_LETTER = {
-    General = "W", Trade = "T", LocalDefense = "LD", WorldDefense = "WD",
-    LookingForGroup = "LFG", Services = "S", NewcomerChat = "NC",
-}
-local CHANNEL_WORD = {
+-- listed keeps its name.
+local CHANNEL_SHORT = {
     General = "Gen", LocalDefense = "Local", WorldDefense = "World",
     LookingForGroup = "LFG", NewcomerChat = "Newcomer",
 }
 
+local GROUP_SHORT = {
+    ["Party Leader"] = "PL", ["Raid Leader"] = "RL", ["Instance Leader"] = "IL",
+}
 local GROUP_LETTER = {
     Guild = "G", Officer = "O", Party = "P", ["Party Leader"] = "PL",
     Raid = "R", ["Raid Leader"] = "RL", Instance = "I", ["Instance Leader"] = "IL",
 }
-local GROUP_WORD = {
-    ["Party Leader"] = "PL", ["Raid Leader"] = "RL", ["Instance Leader"] = "IL",
-}
 
-local NUMBER, NAME = "chatChannelNumberColor", "chatChannelNameColor"
-
-local function NoPaint(_, s) return s end
-
--- "" drops the channel and the space after it. paint(key, s) colors the
--- number and the name.
-local function Tag(style, numbers, name, paint)
+-- "" drops the channel and the space after it.
+local function Tag(name)
+    local numbers, names = not ns.Get("chatHideChannelNumbers"), not ns.Get("chatHideChannelNames")
+    local short = ns.Get("chatShortChannels")
     local index, base = name:match("^(%d+)%. (.+)$")
     if not index then
-        if style == "full" then return paint(NAME, "[" .. name .. "]") end
-        return paint(NAME, "[" .. ((style == "word" and GROUP_WORD or GROUP_LETTER)[name] or name) .. "]")
+        if not names then return "[" .. (GROUP_LETTER[name] or name) .. "]" end
+        return "[" .. (short and GROUP_SHORT[name] or name) .. "]"
     end
-    if style == "full" then
-        if not numbers then return paint(NAME, "[" .. base .. "]") end
-        return paint(NAME, "[") .. paint(NUMBER, index .. ".") .. paint(NAME, " " .. base .. "]")
-    end
+    if not names then return numbers and "[" .. index .. "]" or "" end
+    if not short then return "[" .. (numbers and name or base) .. "]" end
     base = base:gsub(" %- .*", "")  -- "General - Undercity"
-    local tag
-    if style == "letter" then
-        tag = CHANNEL_LETTER[base] or not numbers and base
-    elseif style == "word" then
-        tag = CHANNEL_WORD[base] or base
-    end
-    local number = numbers and paint(NUMBER, "[" .. index .. "]")
-    tag = tag and paint(NAME, "[" .. tag .. "]")
-    if number and tag then return number .. " " .. tag end
-    return number or tag or ""
+    local tag = "[" .. (CHANNEL_SHORT[base] or base) .. "]"
+    return numbers and "[" .. index .. "] " .. tag or tag
 end
 
 local function ShortChannel(open, name, close, space)
-    local tag = Tag(ns.Get("chatChannelNames"), not ns.Get("chatHideChannelNumbers"), name, Paint)
+    local tag = Tag(name)
     if tag == "" then return "" end
     return open .. tag .. close .. space
 end
@@ -415,7 +370,9 @@ local function ShortLine(text)
     end
     local time = ns.Get("chatTimestamps")
     if time ~= "off" then
-        text = Paint("chatTimestampColor", date(time)) .. " " .. text
+        time = date(time)
+        if ns.Get("chatTimeColor") then time = "|cff" .. ns.Get("chatTimeHex") .. time .. "|r" end
+        text = time .. " " .. text
     end
     return text
 end
@@ -438,30 +395,8 @@ end
 local EXAMPLE_TIME = time({ year = 2000, month = 1, day = 1, hour = 14, min = 5, sec = 32 })
 
 ns.RegisterFeature({
-    key = "chatChannelNames", label = "Channel format", section = SECTION, category = CATEGORY,
-    type = "dropdown", default = "word",
-    -- The examples follow "Time format" and "Hide channel numbers". Only
-    -- "none" with both off has nothing to show.
-    options = function()
-        local fmt, numbers = ns.Get("chatTimestamps"), not ns.Get("chatHideChannelNumbers")
-        local function Example(style, channel)
-            local parts = {}
-            if fmt ~= "off" then parts[#parts + 1] = date(fmt, EXAMPLE_TIME) end
-            local tag = Tag(style, numbers, channel, NoPaint)
-            if tag ~= "" then parts[#parts + 1] = tag end
-            return { value = style, label = #parts == 0 and "None" or table.concat(parts, " ") }
-        end
-        return {
-            Example("full",   "2. Trade - City"),
-            Example("word",   "1. General - City"),
-            Example("letter", "2. Trade - City"),
-            Example("none",   "2. Trade - City"),
-        }
-    end,
-})
-ns.RegisterFeature({
     key = "chatTimestamps", label = "Time format", section = SECTION, category = CATEGORY,
-    type = "dropdown", default = "%H:%M", beside = true, apply = ApplyTimestamps,
+    type = "dropdown", default = "%H:%M", apply = ApplyTimestamps,
     options = function()
         local list = { { value = "off", label = "Off" } }
         for _, fmt in ipairs({ "%H:%M", "%H:%M:%S", "%I:%M", "%I:%M %p" }) do
@@ -470,23 +405,47 @@ ns.RegisterFeature({
         return list
     end,
 })
+-- Two columns, row by row: the time and names on the left, channels and
+-- message text on the right.
+ns.RegisterFeature({
+    key = "chatTimeColor", label = "Colored timestamp", section = SECTION, category = CATEGORY,
+    color = "chatTimeHex",
+})
+-- The swatch after "Colored timestamp".
+ns.RegisterFeature({
+    key = "chatTimeHex", label = "Timestamp color", type = "color", default = "808080",
+})
 ns.RegisterFeature({
     key = "chatHideChannelNumbers", label = "Hide channel numbers", section = SECTION, category = CATEGORY,
-    tooltip = "[2] [T] Name: becomes [T] Name:",
-    default = false,
+    tooltip = "[1] [Gen] Name: becomes [Gen] Name:",
+    default = false, beside = true,
+})
+ns.RegisterFeature({
+    key = "chatClassColors", label = "Class colored names", section = SECTION, category = CATEGORY,
+    tooltip = "Names in their class color in every chat.",
+})
+ns.RegisterFeature({
+    key = "chatHideChannelNames", label = "Hide channel names", section = SECTION, category = CATEGORY,
+    tooltip = "[1] [Gen] Name: becomes [1] Name:",
+    default = false, beside = true,
 })
 ns.RegisterFeature({
     key = "chatLevels", label = "Show player levels", section = SECTION, category = CATEGORY,
     tooltip = "Name (30) after a player's name.",
-    beside = true,
 })
 ns.RegisterFeature({
-    key = "chatShortText", label = "Shorter messages", section = SECTION, category = CATEGORY,
+    key = "chatShortChannels", label = "Short channel names", section = SECTION, category = CATEGORY,
+    tooltip = "[1. General - Elwynn Forest] becomes [1] [Gen].",
+    beside = true, requires = "!chatHideChannelNames",
+})
+ns.RegisterFeature({
+    key = "chatLevelColors", label = "Color levels after difficulty", section = SECTION, category = CATEGORY,
+    tooltip = "The level colored against yours.",
+    requires = "chatLevels",
+})
+ns.RegisterFeature({
+    key = "chatShortText", label = "Short messages (loot, XP etc)", section = SECTION, category = CATEGORY,
     tooltip = "Shorter loot, XP, rep, quest, skill, group and chat lines.",
-})
-ns.RegisterFeature({
-    key = "chatLinks", label = "Clickable web links", section = SECTION, category = CATEGORY,
-    tooltip = "Click a web address to copy it.",
     beside = true,
 })
 -- Copy Chat's, here for its place on the page.
@@ -495,32 +454,3 @@ ns.RegisterFeature({
     tooltip = "Right click a chat window to copy its text.",
     apply = function() ns.ApplyChatCopyClick() end,
 })
-
--- Read for each new line; lines already in the windows keep their colors.
--- "Chat color" is each chat type's own, its swatch say's or General's.
-local function ChatColor(chatType)
-    return { value = "default", label = "Chat color", swatch = function()
-        local c = ChatTypeInfo[chatType]
-        return ns.RGBToHex(c.r, c.g, c.b)
-    end }
-end
-local CLASS = { value = "class", label = "Class", swatch = ns.PlayerClassHex }
-local DIFFICULTY = { value = "difficulty", label = "Difficulty", swatch = function()
-    local c = GetCreatureDifficultyColor(UnitLevel("player"))
-    return ns.RGBToHex(c.r, c.g, c.b)
-end }
-for _, c in ipairs({
-    { "chatTimestampColor",     "Time",           "999999", "SAY" },
-    { "chatTextColor",          "Text",           "default", "SAY", beside = true },
-    { "chatChannelNumberColor", "Channel number", "ffffff", "CHANNEL1", requires = "!chatHideChannelNumbers" },
-    { "chatChannelNameColor",   "Channel name",   "ffffff", "CHANNEL1", beside = true },
-    { "chatNameColor",          "Name",           "class", "SAY", first = CLASS },
-    { "chatLevelColor",         "Level",          "difficulty", "SAY", first = DIFFICULTY, beside = true,
-      requires = "chatLevels" },
-}) do
-    ns.RegisterFeature({
-        key = c[1], label = c[2] .. " color", section = SECTION, category = "Colors", type = "color",
-        compact = c[2], default = c[3], beside = c.beside, requires = c.requires,
-        specials = c.first and { c.first, ChatColor(c[4]) } or { ChatColor(c[4]) },
-    })
-end

@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Serene Vendors
 ## Group: Serene
-## Notes: Mark junk with Space (a cross over the icon), auto sell junk, auto repair, dim known items at vendors. The settings are under Quality of Life.
+## Notes: Mark junk with Spacebar (a cross over the icon), auto sell junk, auto repair, dim known items at vendors. The settings are under Quality of Life.
 ## Version: 1.11.0
 ## Dependencies: Serene
 ## OptionalDeps: Crossmark, Baganator, EllesmereUIBags, ArkInventory, Bagnon, Bagnonium, BetterBags, ElvUI

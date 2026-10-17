@@ -5,6 +5,7 @@
 --  window keeps the size picked in its tab menu.
 --  The edit boxes always go without their frame, in their window's font and
 --  on a background like the window's.
+--  The buttons beside the windows can be hidden.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -113,6 +114,22 @@ local function ApplySpacing()
     end)
 end
 
+-- Each window's button frame holds the chat menu, channel and minimize
+-- buttons; the text to speech button sits in ChatAlertFrame above it.
+-- Blizzard shows the button frames again with every fade in.
+local function ApplyButtons()
+    local hide = ns.Get("chatHideButtons")
+    for _, name in ipairs(CHAT_FRAMES) do _G[name].buttonFrame:SetShown(not hide) end
+    ChatAlertFrame:SetShown(not hide)
+end
+
+ns.EachChatWindow(function(frame)
+    hooksecurefunc(frame.buttonFrame, "Show", function(self)
+        if ns.Get("chatHideButtons") then self:Hide() end
+    end)
+    if ns.Get("chatHideButtons") then frame.buttonFrame:Hide() end
+end)
+
 local function ApplyAll()
     ApplyFont()
     ApplyFade()
@@ -158,4 +175,9 @@ ns.RegisterFontSettings({
         local o = original[ChatFrame1] or ns.FontState(ChatFrame1)
         return ns.OutlineOf(o.flags, o.sx, o.sy)
     end,
+})
+ns.RegisterFeature({
+    key = "chatHideButtons", label = "Hide chat buttons", section = SECTION, category = CATEGORY,
+    tooltip = "Hide the buttons beside the chat windows.",
+    default = false, apply = ApplyButtons,
 })

@@ -2,7 +2,7 @@
 ## Title: Serene Social
 ## Group: Serene
 ## Notes: Invite and duel filters, invite on whisper, announce instance resets and thank players who buff you.
-## Version: 1.10.1
+## Version: 1.11.0
 ## Dependencies: Serene
 ## X-Serene-Section: Social
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

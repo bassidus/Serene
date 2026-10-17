@@ -2,7 +2,7 @@
 ## Title: Serene QoL
 ## Group: Serene
 ## Notes: Quick loot, skip BoP warnings, easier delete, Train All button, low durability warning, hide tutorials, skip cinematics, farther camera zoom, battleground queue timer, combat text, no error speech, /rl.
-## Version: 1.10.1
+## Version: 1.11.0
 ## Dependencies: Serene
 ## X-Serene-Section: Quality of Life
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

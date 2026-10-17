@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.11.0 (2026-10-17)
+
+Auto repair, auto sell and dim known items have moved to a new addon folder, SereneVendors. Install it along with the others to keep them. Their settings are still under Quality of Life, in "Vendors & trainers".
+
+### New
+- Chat: colors of your own for the time, channel number, channel name, player names, levels and message text (Chat, "Colors"). Names can drop their class colors.
+- Mark junk: press Space over an item in your bags to mark it as junk (a red cross, grayed out), and Auto sell sells it with the grays. Works in Blizzard's bags, ArkInventory, Baganator, Bagnon, BetterBags, Ellesmere and ElvUI. Off while Crossmark is loaded.
+- Pet happiness: pick the icon style (Blizzard, faces, medallions, paws, gems or wolves). Paws by default.
+
+### Changed
+- The General tab is now Quality of Life, its categories at full width. Loot & items and Interface are one category, General, with the durability warning.
+- Hide error messages is now No error speech: error messages show again, only the voice lines are silent.
+- Thanks for buffs has moved from Other to Social.
+- Pet frame settings show only on hunters and warlocks, and the happiness icons only on hunters.
+- Unit frames: Status numbers comes first on the page.
+
+### Fixed
+- Pet frame: "One bar" fits Forever's new pet frame art.
+- Dark mode: the zone name, calendar, tracking and addon count above the minimap go dark again after Forever's update.
+
 ## 1.10.1 (2026-10-14)
 
 ### Fixed

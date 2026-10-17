@@ -61,9 +61,7 @@ MultiBarRight
 NamePlateDriverFrame
 PartyFrame
 PetActionBar
-PetAttackModeTexture
 PetFrame
-PetFrameFlash
 PetFrameHappiness
 PetFrameHealthBarMask
 PetFrameTexture
@@ -95,7 +93,6 @@ TargetFrame
 TargetFrameToT
 TimeManagerClockTicker
 TooltipDataProcessor
-UIErrorsFrame
 UIParent
 UISpecialFrames
 WorldFrame

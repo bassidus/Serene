@@ -212,10 +212,10 @@ ns.RegisterFontSettings({
 ns.RegisterFeature({
     key = "chatHideButtons", label = "Hide chat buttons", section = SECTION, category = CATEGORY,
     tooltip = "Hide the buttons beside the chat windows.",
-    default = false, apply = ApplyButtons,
+    apply = ApplyButtons,
 })
 ns.RegisterFeature({
     key = "chatEditBoxTop", label = "Chat message on top", section = SECTION, category = CATEGORY,
     tooltip = "Type chat messages above the chat tabs.",
-    default = false, beside = true, apply = ApplyEditBoxes,
+    beside = true, apply = ApplyEditBoxes,
 })

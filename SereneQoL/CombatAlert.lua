@@ -15,7 +15,6 @@ end)
 ns.RegisterFeature({
     key = "combatAlert", label = "Combat in/out text", section = "Quality of Life", category = "General",
     tooltip = "Display a text in the middle of the screen when you enter/exit combat.",
-    default = false,
     apply = function()
         if ns.Get("combatAlert") then
             watcher:RegisterEvent("PLAYER_REGEN_DISABLED")

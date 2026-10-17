@@ -3,10 +3,14 @@
 ## 1.12.0 (2026-10-17)
 
 ### New
-- Chat: Hide chat buttons hides the buttons beside the chat windows (chat menu, channels, minimize and text to speech). In Edit Mode the chat window then goes all the way to the left edge of the screen.
-- Chat: Chat message on top moves the box you type in above the chat tabs.
+- Chat: Hide chat buttons (on by default) hides the buttons beside the chat windows (chat menu, channels, minimize and text to speech). In Edit Mode the chat window then goes all the way to the left edge of the screen.
+- Chat: Chat message on top (on by default) moves the box you type in above the chat tabs.
 
 ### Changed
+- New defaults. Settings you have already changed keep your choice; the others follow the new defaults:
+  - On: Combat in/out text, Announce instance resets, Screenshot and time played on level up, Hide damage numbers and the pet frame's Hide power bar.
+  - Off: Quicker auto-loot, Skip BoP warnings, Easier delete, Accept quests automatically and Turn in quests automatically.
+  - Keybind and macro text uses Friz Quadrata.
 - Chat: with Short messages on, whispers read "From Name: text" and "To Name: text", with From and To in Serene's orange. They used to read "< Name:" and "> Name:".
 
 ## 1.11.1 (2026-10-17)

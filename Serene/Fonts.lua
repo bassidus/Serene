@@ -46,9 +46,9 @@ end
 
 -- Registers a feature's font, size and outline settings ("<prefix>Font",
 -- "<prefix>FontSize", "<prefix>Outline") as one group: the options window
--- shows it as a single row that opens an editor for all three. The typeface
--- starts on "default", Blizzard's.
+-- shows it as a single row that opens an editor for all three.
 -- def = { prefix =, label = row name, section =, category =, apply =,
+--         font = default typeface (none: "default", Blizzard's),
 --         size = { min, max, default },
 --         outline = default outline value ("default" offers Blizzard's own look),
 --         blizzard = see type "outline" in Core.lua,
@@ -64,7 +64,7 @@ function ns.RegisterFontSettings(def)
     group.font = {
         key = def.prefix .. "Font", label = "Font", section = def.section,
         category = def.category, type = "dropdown",
-        default = "default", preview = true, apply = def.apply, options = FontOptions, group = group,
+        default = def.font or "default", preview = true, apply = def.apply, options = FontOptions, group = group,
         requires = def.requires, beside = def.beside, space = def.space,
     }
     group.size = {

@@ -37,4 +37,5 @@ end
 ns.RegisterFeature({
     key = "quickLoot", label = "Quicker auto-loot", section = "Quality of Life", category = "General", apply = Apply,
     tooltip = "Like Blizzard's auto-loot, but quicker.",
+    default = false,
 })

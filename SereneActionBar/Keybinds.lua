@@ -278,6 +278,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFontSettings({
     prefix = "buttonText", label = "Keybind and macro text", section = SECTION, category = "Buttons",
+    font = "Fonts\\FRIZQT__.TTF",
     size = { 6, 24, DEFAULT_SIZE }, outline = "default", color = "buttonTextColor", button = "Font",
     beside = true,
     apply = ApplySetting,

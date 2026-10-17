@@ -63,7 +63,7 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "unitFrameHideHits", label = "Hide damage numbers", section = SECTION, category = "All frames",
     tooltip = "No damage numbers on the portraits.",
-    default = false, apply = ns.ApplyHideHits,
+    apply = ns.ApplyHideHits,
 })
 ns.RegisterNameFont({ section = SECTION, category = "All frames", beside = true })
 
@@ -94,7 +94,7 @@ if ns.ApplyPetOneBar then
     ns.RegisterFeature({
         key = "petFrameOneBar", label = "Hide power bar", section = SECTION, category = "Pet frame",
         tooltip = "Bigger health bar instead.",
-        default = false, apply = ns.ApplyPetOneBar,
+        apply = ns.ApplyPetOneBar,
     })
 end
 -- A hunter's only (UnitFrameHappiness.lua).

@@ -16,4 +16,5 @@ end
 ns.RegisterFeature({
     key = "autoFillDelete", label = "Easier delete", section = "Quality of Life", category = "General",
     tooltip = "Types DELETE for you when deleting a good item.",
+    default = false,
 })

@@ -125,9 +125,11 @@ end)
 
 ns.RegisterFeature({
     key = "autoAcceptQuests", label = "Accept quests automatically", section = "Quests", category = "Automation",
+    default = false,
 })
 ns.RegisterFeature({
     key = "autoTurnInQuests", label = "Turn in quests automatically", section = "Quests", category = "Automation",
+    default = false,
 })
 
 -- Drawn by SereneNameplates (NameplateQuest.lua), which adds the apply.

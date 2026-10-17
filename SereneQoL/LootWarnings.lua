@@ -26,6 +26,7 @@ ns.RegisterFeature({
     section = "Quality of Life", category = "General",
     beside = true,
     tooltip = "No \"will bind to you\" popup when looting or rolling.",
+    default = false,
     apply = function()
         for _, event in ipairs(EVENTS) do
             if ns.Get("skipLootWarnings") then f:RegisterEvent(event) else f:UnregisterEvent(event) end

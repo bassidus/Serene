@@ -24,7 +24,6 @@ end)
 ns.RegisterFeature({
     key = "resetAnnounce", label = "Announce instance resets", section = "Social", category = "Automation",
     tooltip = "Tells your group in chat when you reset instances.",
-    default = false,
     apply = function()
         if ns.Get("resetAnnounce") then
             watcher:RegisterEvent("CHAT_MSG_SYSTEM")

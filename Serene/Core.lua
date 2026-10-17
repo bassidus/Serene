@@ -47,6 +47,7 @@ ns.featureByKey = {}
 --   requires   key (or list) of booleans; dimmed and locked while any is off
 --              ("!key": while it is on)
 --   addon      the Serene* addon that does the work; locked while not loaded
+--   conflict   an addon that does the same; locked, and off, while it is loaded
 --   group      set by RegisterFontSettings
 function ns.RegisterFeature(def)
     def.type = def.type or "boolean"

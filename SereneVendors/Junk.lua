@@ -15,16 +15,24 @@ local function List()
     return SereneVendorsDB
 end
 
+-- Crossmark marks with Space too, so marking here stays off beside it. It is
+-- an optional dependency, so it has loaded by now.
+local crossmark = C_AddOns.IsAddOnLoaded("Crossmark")
+
+local function Marking()
+    return ns.Get("junkMarking") and not crossmark
+end
+
 -- With marking off, only grays are junk, which Auto sell then sells.
 function ns.IsJunk(itemID, quality)
-    local mark = ns.Get("junkMarking") and List()[itemID]
+    local mark = Marking() and List()[itemID]
     if mark == nil then return quality == Enum.ItemQuality.Poor end
     return mark
 end
 
 -- What the bags cross out: nothing while marking is off.
 function ns.IsCrossed(itemID, quality)
-    return ns.Get("junkMarking") and ns.IsJunk(itemID, quality)
+    return Marking() and ns.IsJunk(itemID, quality)
 end
 
 ns.repaints = {}
@@ -153,7 +161,7 @@ keys:SetScript("OnEvent", keys.Hide)
 
 hooksecurefunc(GameTooltip, "SetBagItem", function(_, bag, slot)
     hoveredBag, hoveredSlot = bag, slot
-    if ns.Get("junkMarking") and not InCombatLockdown() then keys:Show() end
+    if Marking() and not InCombatLockdown() then keys:Show() end
 end)
 -- SetBagItem clears the tooltip before the hook above runs.
 GameTooltip:HookScript("OnTooltipCleared", function() keys:Hide() end)
@@ -164,7 +172,7 @@ ns.RegisterFeature({
     key = "junkMarking", label = "Mark junk with Space",
     section = "Quality of Life", category = "Vendors & trainers",
     tooltip = "Space over a bag item marks it as junk or clears the mark.",
-    beside = true,
+    beside = true, conflict = "Crossmark",
     apply = function()
         -- Login's apply: the bags paint their marks as they open.
         if not loaded then loaded = true; return end

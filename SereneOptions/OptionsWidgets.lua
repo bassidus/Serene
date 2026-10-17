@@ -366,15 +366,29 @@ local function MissingAddon(f)
     end
 end
 
--- Dims a widget whose setting depends on a toggle that is off or an addon
--- that is not loaded; returns whether it can be used.
+-- The title of the addon that a setting gives way to (f.conflict), while
+-- that addon is loaded.
+local function Conflicting(f)
+    if f.conflict and C_AddOns.IsAddOnLoaded(f.conflict) then
+        return C_AddOns.GetAddOnMetadata(f.conflict, "Title") or f.conflict
+    end
+end
+
+-- A toggle that gives way to another addon counts as off.
+local function On(key)
+    local f = ns.featureByKey[key]
+    return ns.Get(key) and not (f and Conflicting(f))
+end
+
+-- Dims a widget whose setting depends on a toggle that is off, an addon
+-- that is not loaded or one that does the same; returns whether it can be used.
 local function Met(key)
-    if key:sub(1, 1) == "!" then return not ns.Get(key:sub(2)) end
-    return ns.Get(key) and true or false
+    if key:sub(1, 1) == "!" then return not On(key:sub(2)) end
+    return On(key) and true or false
 end
 
 local function Available(holder, f)
-    local on = not MissingAddon(f)
+    local on = not MissingAddon(f) and not Conflicting(f)
     local req = f.requires
     if type(req) == "table" then
         for _, key in ipairs(req) do on = on and Met(key) end
@@ -447,21 +461,22 @@ function W.Checkbox(parent, f)
         row:HookScript("OnLeave", GameTooltip_Hide)
     end
 
-    -- "Requires Serene Nameplates" beside the label; on the parent, so the row's
-    -- dimming leaves it readable.
+    -- "Requires Serene Nameplates" or "Off while Crossmark is loaded" beside
+    -- the label; on the parent, so the row's dimming leaves it readable.
     local note
-    if f.addon then
+    if f.addon or f.conflict then
         note = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         note:SetPoint("LEFT", label, "RIGHT", 12, 0)
     end
 
     function row.Refresh()
-        box.SetChecked(Checked())
+        local missing, conflicting = MissingAddon(f), Conflicting(f)
+        box.SetChecked(Checked() and not conflicting)
         row:SetEnabled(Available(row, f))
         if note then
-            local missing = MissingAddon(f)
-            note:SetText(missing and "Requires " .. missing or "")
-            note:SetShown(missing ~= nil)
+            note:SetText(missing and "Requires " .. missing
+                or conflicting and "Off while " .. conflicting .. " is loaded" or "")
+            note:SetShown(missing ~= nil or conflicting ~= nil)
         end
     end
     return row

@@ -10,6 +10,8 @@
 ## IconTexture: Interface\AddOns\Serene\Media\Logo
 
 Init.lua
+# First, so Dim known items comes right after SereneQoL's Train All and sits beside it.
+KnownItems.lua
 AutoRepair.lua
 SellJunk.lua
 Junk.lua
@@ -20,4 +22,3 @@ Bags\ArkInventory.lua
 Bags\Bagnon.lua
 Bags\BetterBags.lua
 Bags\ElvUI.lua
-KnownItems.lua

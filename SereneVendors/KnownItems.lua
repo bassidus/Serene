@@ -37,6 +37,7 @@ hooksecurefunc("MerchantFrame_UpdateBuybackInfo", Undim)
 ns.RegisterFeature({
     key = "dimKnownItems", label = "Dim known items", section = "Quality of Life", category = "Vendors & trainers",
     tooltip = "Items you already know fade out at vendors.",
+    beside = true,
     apply = function()
         if MerchantFrame:IsShown() then MerchantFrame_Update() end
     end,

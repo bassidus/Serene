@@ -63,36 +63,53 @@ function ns.ApplyHappinessFaces()
 end
 
 -------------------------------------------------------------------------------
---  One bar: the power bar hidden and the health bar over both bars' place.
---  Blizzard's mask only fits a 10px bar, so it takes our shape instead: cut
---  along the outside of the portrait ring on the left, so the bar meets the
---  ring rather than lying over it, and with the art's cut corners on the
---  right. Heal prediction and Smooth bars go through the same mask.
+--  One bar: the power bar hidden and the health bar over both bars' slots
+--  in the art. Blizzard's mask only fits a 10px bar, so it takes our shape
+--  instead, the inside of the two slots with their rounded corners. Heal
+--  prediction and Smooth bars go through the same mask.
 --
---  The art has a line where the two bars met, with a shadow under it, which
---  would show in the empty part of the bar, so a mask cuts them out of the
---  art and of its combat glows.
+--  The art has a bronze line between the slots, which would show in the
+--  empty part of the bar, so a mask cuts it out of the art and a copy of
+--  the art, moved down to put the health slot's inside there, fills it in.
+--  The glows don't reach it.
 -------------------------------------------------------------------------------
 local health, power = PetFrame.healthbar, PetFrame.manabar
 local MASK = PetFrameHealthBarMask
 local MASK_FILE = "Interface\\AddOns\\SereneUnitFrames\\Media\\PetBarMask"
 local ART_MASK_FILE = "Interface\\AddOns\\SereneUnitFrames\\Media\\PetArtMask"
--- The art's box, from the ring to its right edge; PetBarMask is drawn for it.
-local WIDTH, HEIGHT = 75, 18
-local LEFT, BOTTOM = -2, -11  -- from the portrait's right edge, as Blizzard anchors it
--- The texts' distance from the bar's edges; the left one clear of the ring.
-local LEFT_TEXT_IN, RIGHT_TEXT_IN = 6, 2
+-- The slots' inside; PetBarMask is drawn for it.
+local WIDTH, HEIGHT = 68, 16.5
+local LEFT, BOTTOM = 4, -12  -- from the portrait's right edge, as Blizzard anchors it
+-- PetArtMask's cut, in units from the art's top left corner.
+local CUT_LEFT, CUT_TOP, CUT_RIGHT, CUT_BOTTOM = 45, 26.5, 118, 31.5
+local PATCH_DOWN = 5  -- the health slot's inside, clear of its rims
+local TEXT_IN = 2  -- the texts' distance from the bar's edges
 local healthWidth, healthHeight = health:GetSize()
+local healthPoint = { health:GetPoint(1) }
 local maskAtlas = MASK:GetAtlas()
-local shaped  -- set while our masks are on, so Blizzard's mask is only put back after them
+local maskPoint = { MASK:GetPoint(1) }
 
-local artMasks = {}
-for _, art in ipairs({ PetFrameTexture, PetFrameFlash, PetAttackModeTexture }) do
-    local mask = art:GetParent():CreateMaskTexture()
-    mask:SetTexture(ART_MASK_FILE)
-    mask:SetAllPoints(PetFrameTexture)
-    artMasks[art] = mask
-end
+local artMask = PetFrame:CreateMaskTexture()
+artMask:SetTexture(ART_MASK_FILE)
+artMask:SetAllPoints(PetFrameTexture)
+
+local patch = PetFrame:CreateTexture(nil, "BORDER", nil, 1)
+patch:SetAtlas(PetFrameTexture:GetAtlas())
+patch:SetPoint("TOPLEFT", PetFrameTexture, 0, -PATCH_DOWN)
+patch:SetPoint("BOTTOMRIGHT", PetFrameTexture, 0, -PATCH_DOWN)
+local patchMask = PetFrame:CreateMaskTexture()
+patchMask:SetTexture("Interface\\Buttons\\WHITE8X8", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+patchMask:SetPoint("TOPLEFT", PetFrameTexture, "TOPLEFT", CUT_LEFT, -CUT_TOP)
+patchMask:SetPoint("BOTTOMRIGHT", PetFrameTexture, "TOPLEFT", CUT_RIGHT, -CUT_BOTTOM)
+patch:AddMaskTexture(patchMask)
+patch:Hide()
+-- Dark mode darkens the art.
+patch:SetDesaturated(PetFrameTexture:IsDesaturated())
+patch:SetVertexColor(PetFrameTexture:GetVertexColor())
+hooksecurefunc(PetFrameTexture, "SetDesaturated", function(_, on) patch:SetDesaturated(on) end)
+hooksecurefunc(PetFrameTexture, "SetVertexColor", function(_, ...) patch:SetVertexColor(...) end)
+
+local shaped  -- set while our masks are on, so Blizzard's mask is only put back after them
 
 function ns.ApplyPetOneBar()
     local on = ns.Get("petFrameOneBar")
@@ -103,26 +120,24 @@ function ns.ApplyPetOneBar()
         health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", LEFT, BOTTOM)
         health:SetSize(WIDTH, HEIGHT)
     else
-        -- As in Blizzard's PetFrame.xml.
-        health:SetPoint("BOTTOMLEFT", PetPortrait, "RIGHT", 2, -3.5)
+        health:SetPoint(unpack(healthPoint))
         health:SetSize(healthWidth, healthHeight)
     end
     -- Blizzard's anchors at 0 otherwise.
-    health.LeftText:SetPoint("LEFT", on and LEFT_TEXT_IN or 0, 0)
-    health.RightText:SetPoint("RIGHT", on and -RIGHT_TEXT_IN or 0, 0)
+    health.LeftText:SetPoint("LEFT", on and TEXT_IN or 0, 0)
+    health.RightText:SetPoint("RIGHT", on and -TEXT_IN or 0, 0)
+    patch:SetShown(on)
     if on then
         MASK:SetTexture(MASK_FILE, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
         MASK:ClearAllPoints()
         MASK:SetAllPoints(health)
-        if not shaped then
-            for art, mask in pairs(artMasks) do art:AddMaskTexture(mask) end
-        end
+        if not shaped then PetFrameTexture:AddMaskTexture(artMask) end
         shaped = true
     elseif shaped then
         MASK:SetAtlas(maskAtlas, true)
         MASK:ClearAllPoints()
-        MASK:SetPoint("TOPLEFT", -29, 3)
-        for art, mask in pairs(artMasks) do art:RemoveMaskTexture(mask) end
+        MASK:SetPoint(unpack(maskPoint))
+        PetFrameTexture:RemoveMaskTexture(artMask)
         shaped = nil
     end
 end

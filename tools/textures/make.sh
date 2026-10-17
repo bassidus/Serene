@@ -62,25 +62,17 @@ face Unhappy.tga '#4a0a00' '#ff7a52' '#cf2614' \
 
 echo "Wrote SereneUnitFrames/Media/Happy.tga, Content.tga and Unhappy.tga"
 
-# The pet frame's one tall health bar, 75x18 units at 256x64 drawn at
-# 1024x256: the left edge cut along the outside of the portrait ring (a circle
-# of radius 20.5 units centred 15.3 left of the bar and 5 below its top, an
-# ellipse here as the pixels aren't square), the right corners cut off at
-# 45 degrees like the frame art's, the right edge half a unit in.
-magick -size 1024x256 xc:black -fill white \
-    -draw "polygon 0,0 1003,0 1017,14 1017,242 1003,256 0,256" \
-    -fill black -draw "ellipse -208.9,71.1 279.9,291.6 0,360" \
+# The pet frame's one tall health bar, 68x16.5 units at 256x64 drawn at
+# 1024x256: the inside of the art's health and power slots together, with
+# their corners rounded by a unit.
+magick -size 1024x256 xc:black -fill white -draw "roundrectangle 0,0 1023,255 15,15" \
     -resize 256x64 -background white -alpha shape \
     -define tga:compression=none -type TrueColorAlpha "$faces/PetBarMask.tga"
 
-# The pet frame art's line between the health and power bars and the shadow
-# under it at the top of the power bar's place, cut out over the art's
-# 120x49 units at 2 px each: from the ring to the right edge, short of the
-# soft shadow on its inside. The line reaches into that shadow, so it is
-# thinned there to the shadow's own darkness, measured in game.
-magick -size 241x98 xc:white -fill black -draw "rectangle 92,49 226,63" \
-    -fill gray50 -draw "rectangle 227,52 227,56" -fill gray65 -draw "rectangle 228,52 228,56" \
-    -fill gray75 -draw "rectangle 227,57 227,60" -fill gray85 -draw "rectangle 228,57 228,60" \
+# The pet frame art's line between the health and power slots, with the
+# slots' rims and rounded corners on either side of it and its joint in the
+# frame's right edge, cut out over the art's 120x49 units at 2 px each.
+magick -size 240x98 xc:white -fill black -draw "rectangle 90,53 235,62" \
     -background white -alpha shape \
     -define tga:compression=none -type TrueColorAlpha "$faces/PetArtMask.tga"
 

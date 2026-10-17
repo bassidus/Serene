@@ -29,6 +29,5 @@ end
 ns.RegisterFeature({
     key = "fasterMovieSkip", label = "Skip cinematics without asking",
     section = "Quality of Life", category = "Camera & cinematics",
-    beside = true,
     apply = function() if On() then Hook() end end,
 })

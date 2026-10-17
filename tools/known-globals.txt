@@ -11,6 +11,7 @@ AuraContainerSortMethod
 AutoCompleteBox
 Baganator
 BagsBar
+ChatAlertFrame
 ChatFontNormal
 ChatFrame1
 ChatFrameUtil

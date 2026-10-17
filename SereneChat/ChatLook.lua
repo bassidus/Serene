@@ -117,10 +117,17 @@ end
 -- Each window's button frame holds the chat menu, channel and minimize
 -- buttons; the text to speech button sits in ChatAlertFrame above it.
 -- Blizzard shows the button frames again with every fade in.
+-- Edit Mode keeps the main window as far from the screen's edge as its
+-- selection box reaches past it, 32 px on the left for the buttons; without
+-- them the box ends at the window.
+local SELECTION_LEFT, SELECTION_TOP = -32, 60  -- EditModeChatFrameSystemTemplate
+
 local function ApplyButtons()
     local hide = ns.Get("chatHideButtons")
     for _, name in ipairs(CHAT_FRAMES) do _G[name].buttonFrame:SetShown(not hide) end
     ChatAlertFrame:SetShown(not hide)
+    ChatFrame1.Selection:SetPoint("TOPLEFT", hide and 0 or SELECTION_LEFT, SELECTION_TOP)
+    ChatFrame1:UpdateClampOffsets()
 end
 
 ns.EachChatWindow(function(frame)

@@ -343,14 +343,16 @@ local Escape = ns.EscapePattern
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
 -- after the player link; an NPC's name is no link and stays as it is. A
--- whisper (Battle.net ones too) gets an arrow in its place: "Name < text".
+-- whisper (Battle.net ones too) gets "From" in front: "From Name: text".
 local SPEECH = {}
 for _, key in ipairs({ "CHAT_SAY_GET", "CHAT_YELL_GET", "CHAT_WHISPER_GET" }) do
     SPEECH[#SPEECH + 1] = { "|h" .. Escape(_G[key]:match("^%%s(.+)$")), whisper = key == "CHAT_WHISPER_GET" }
 end
--- "To Name: text", a whisper you sent, becomes "Name > text".
-local WHISPER_TO = "^" .. Escape(CHAT_WHISPER_INFORM_GET:match("^(.-)%%s")) .. "(|H%a-player.-|h.-|h)"
-    .. Escape(CHAT_WHISPER_INFORM_GET:match("%%s(.*)$"))
+-- "To Name: text", a whisper you sent, keeps its words.
+local WHISPER_TO = "^" .. Escape(CHAT_WHISPER_INFORM_GET:match("^(.-)%%s")) .. "(|H)"
+-- "From" and "To" in Serene's orange.
+local WORD_COLOR = "|cff" .. ns.RGBToHex(unpack(ns.ACCENT))
+local SENT, RECEIVED = WORD_COLOR .. "To|r ", WORD_COLOR .. "From|r "
 
 -- Sent and received whispers share one chat color. A received one is drawn
 -- paler and a sent one deeper (more saturated, a little darker), so the two
@@ -373,15 +375,15 @@ local function ShortLine(text)
     local shade
     if ns.Get("chatShortText") then
         local sent
-        text, sent = text:gsub(WHISPER_TO, "%1 > ", 1)
+        text, sent = text:gsub(WHISPER_TO, SENT .. "%1", 1)
         if sent > 0 then
             shade = Deeper
         else
             for _, p in ipairs(SPEECH) do
                 local n
-                text, n = text:gsub(p[1], p.whisper and "|h < " or "|h: ", 1)
+                text, n = text:gsub(p[1], "|h: ", 1)
                 if n > 0 then
-                    if p.whisper then shade = Paler end
+                    if p.whisper then text, shade = RECEIVED .. text, Paler end
                     break
                 end
             end

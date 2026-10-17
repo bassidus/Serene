@@ -19,6 +19,6 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "noErrorSpeech", label = "No error speech", section = "General", category = "Interface",
+    key = "noErrorSpeech", label = "No error speech", section = "Quality of Life", category = "Interface",
     apply = Apply,
 })

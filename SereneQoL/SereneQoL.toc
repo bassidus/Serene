@@ -4,7 +4,7 @@
 ## Notes: Quick loot, skip BoP warnings, easier delete, auto repair, auto sell, Train All button, low durability warning, dim known items at vendors, hide tutorials, skip cinematics, farther camera zoom, battleground queue timer, combat text, no error speech, /rl.
 ## Version: 1.10.1
 ## Dependencies: Serene
-## X-Serene-Section: General
+## X-Serene-Section: Quality of Life
 ## IconTexture: Interface\AddOns\Serene\Media\Logo
 
 Init.lua

@@ -20,6 +20,6 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "maxCameraZoom", label = "Farther camera zoom", section = "General", category = "Camera & cinematics",
+    key = "maxCameraZoom", label = "Farther camera zoom", section = "Quality of Life", category = "Camera & cinematics",
     apply = Apply,
 })

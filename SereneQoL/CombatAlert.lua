@@ -13,7 +13,7 @@ watcher:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "combatAlert", label = "Combat in/out text", section = "General", category = "Interface",
+    key = "combatAlert", label = "Combat in/out text", section = "Quality of Life", category = "Interface",
     tooltip = "Large text when a fight starts and ends.",
     default = false,
     apply = function()

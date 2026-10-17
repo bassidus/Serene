@@ -64,6 +64,6 @@ local function Apply()
 end
 
 ns.RegisterFeature({
-    key = "queueTimer", label = "Battleground queue timer", section = "General", category = "Interface",
+    key = "queueTimer", label = "Battleground queue timer", section = "Quality of Life", category = "Interface",
     apply = Apply,
 })

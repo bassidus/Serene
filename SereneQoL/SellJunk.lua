@@ -104,6 +104,6 @@ end)
 
 ns.RegisterFeature({
     key = "autoSellJunk", label = "Auto sell",
-    section = "General", category = "Vendors & trainers",
+    section = "Quality of Life", category = "Vendors & trainers",
     tooltip = "Sells your gray items when you open a vendor.",
 })

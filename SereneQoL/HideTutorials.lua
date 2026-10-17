@@ -118,6 +118,6 @@ f:SetScript("OnEvent", function(_, _, addonName)
 end)
 
 ns.RegisterFeature({
-    key = "hideTutorials", label = "Hide tutorial pop-ups", section = "General", category = "Interface",
+    key = "hideTutorials", label = "Hide tutorial pop-ups", section = "Quality of Life", category = "Interface",
     apply = Apply,
 })

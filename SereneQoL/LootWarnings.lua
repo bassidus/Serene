@@ -23,7 +23,7 @@ end)
 
 ns.RegisterFeature({
     key = "skipLootWarnings", label = "Skip BoP warnings",
-    section = "General", category = "Loot & items",
+    section = "Quality of Life", category = "Loot & items",
     tooltip = "No \"will bind to you\" popup when looting or rolling.",
     apply = function()
         for _, event in ipairs(EVENTS) do

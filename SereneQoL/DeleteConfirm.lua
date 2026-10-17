@@ -14,6 +14,6 @@ for i = 1, 4 do
 end
 
 ns.RegisterFeature({
-    key = "autoFillDelete", label = "Easier delete", section = "General", category = "Loot & items",
+    key = "autoFillDelete", label = "Easier delete", section = "Quality of Life", category = "Loot & items",
     tooltip = "Types DELETE for you when deleting a good item.",
 })

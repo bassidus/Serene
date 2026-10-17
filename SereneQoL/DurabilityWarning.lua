@@ -32,7 +32,7 @@ watcher:SetScript("OnEvent", function(_, event)
 end)
 
 ns.RegisterFeature({
-    key = "durabilityWarning", label = "Low durability warning", section = "General", category = "Vendors & trainers",
+    key = "durabilityWarning", label = "Low durability warning", section = "Quality of Life", category = "Vendors & trainers",
     tooltip = "Warns after a fight when any gear is below 30% durability.",
     apply = function()
         if ns.Get("durabilityWarning") then

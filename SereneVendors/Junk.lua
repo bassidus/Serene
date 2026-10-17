@@ -57,7 +57,7 @@ local function LayOut(mark)
     local w, h = mark:GetSize()
     if w == 0 then return end
     local size, left, top = 1, 0, 0
-    if ns.Get("junkCross") == "small" then size, left, top = SMALL, 1 - MARGIN - SMALL, MARGIN end
+    if ns.Get("junkSmallCross") then size, left, top = SMALL, 1 - MARGIN - SMALL, MARGIN end
     local n = 0
     for _, stroke in ipairs(STROKES) do
         local x1, y1, x2, y2 = unpack(stroke)
@@ -167,14 +167,9 @@ ns.RegisterFeature({
     end,
 })
 ns.RegisterFeature({
-    key = "junkCross", label = "Cross", section = "Quality of Life", category = "Vendors & trainers",
-    type = "dropdown", default = "full", requires = "junkMarking",
-    options = function()
-        return {
-            { value = "full", label = "Over the icon" },
-            { value = "small", label = "Small, in the corner" },
-        }
-    end,
+    key = "junkSmallCross", label = "Smaller cross", section = "Quality of Life", category = "Vendors & trainers",
+    tooltip = "A small cross in the icon's top-right corner.",
+    default = false, requires = "junkMarking",
     apply = function()
         for _, mark in ipairs(made) do LayOut(mark) end
     end,

@@ -4,6 +4,7 @@
 
 ### New
 - Chat: Hide chat buttons hides the buttons beside the chat windows (chat menu, channels, minimize and text to speech). In Edit Mode the chat window then goes all the way to the left edge of the screen.
+- Chat: Chat message on top moves the box you type in above the chat tabs.
 
 ### Changed
 - Chat: with Short messages on, whispers read "From Name: text" and "To Name: text", with From and To in Serene's orange. They used to read "< Name:" and "> Name:".

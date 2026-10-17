@@ -5,7 +5,8 @@
 --  window keeps the size picked in its tab menu.
 --  The edit boxes always go without their frame, in their window's font and
 --  on a background like the window's.
---  The buttons beside the windows can be hidden.
+--  The buttons beside the windows can be hidden, and the edit boxes moved
+--  above the tabs.
 -------------------------------------------------------------------------------
 local _, ns = ...
 
@@ -19,16 +20,37 @@ local original = {}  -- chat frame -> ns.FontState before the first change
 -- the alpha.
 local BORDER = { "Left", "Mid", "Right", "FocusLeft", "FocusMid", "FocusRight" }
 
+local boxBackground = {}  -- edit box -> its background
+
+-- At the bottom the box sits 4 px above the window background's bottom
+-- edge; on top it sits on the tabs, which are 32 px tall on the window
+-- background. Its background is as wide as the window's and 5 px shorter
+-- than the box at top and bottom.
+local function PlaceEditBox(frame)
+    local box, window = frame.editBox, _G[frame:GetName() .. "Background"]
+    local tex = boxBackground[box]
+    box:ClearAllPoints()
+    tex:ClearAllPoints()
+    if ns.Get("chatEditBoxTop") then
+        box:SetPoint("BOTTOMLEFT", window, "TOPLEFT", -3, 32)
+        tex:SetPoint("BOTTOMLEFT", window, "TOPLEFT", 0, 37)
+        tex:SetPoint("TOPRIGHT", window, "TOPRIGHT", 0, 59)
+    else
+        box:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", -5, -2)  -- Blizzard's
+        tex:SetPoint("TOPLEFT", window, "BOTTOMLEFT", 0, -1)
+        tex:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", 0, -23)
+    end
+    box:SetPoint("RIGHT", frame.ScrollBar, "RIGHT", 8, 0)
+end
+
 ns.EachChatWindow(function(frame)
     local name = frame:GetName()
     for _, part in ipairs(BORDER) do _G[name .. "EditBox" .. part]:SetAlpha(0) end
     local window = _G[name .. "Background"]
     local tex = _G[name .. "EditBox"]:CreateTexture(nil, "BACKGROUND", nil, -8)
     tex:SetColorTexture(1, 1, 1)
-    -- As wide as the window's; the box's 32 px less 5 at top and bottom.
-    -- The box sits 4 px above the window background's bottom edge.
-    tex:SetPoint("TOPLEFT", window, "BOTTOMLEFT", 0, -1)
-    tex:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", 0, -23)
+    boxBackground[frame.editBox] = tex
+    PlaceEditBox(frame)
     -- The window's background fades in under the mouse and takes the color
     -- picked in its tab menu; the box follows each change.
     local function Copy()
@@ -130,6 +152,10 @@ local function ApplyButtons()
     ChatFrame1:UpdateClampOffsets()
 end
 
+local function ApplyEditBoxes()
+    for _, name in ipairs(CHAT_FRAMES) do PlaceEditBox(_G[name]) end
+end
+
 ns.EachChatWindow(function(frame)
     hooksecurefunc(frame.buttonFrame, "Show", function(self)
         if ns.Get("chatHideButtons") then self:Hide() end
@@ -187,4 +213,9 @@ ns.RegisterFeature({
     key = "chatHideButtons", label = "Hide chat buttons", section = SECTION, category = CATEGORY,
     tooltip = "Hide the buttons beside the chat windows.",
     default = false, apply = ApplyButtons,
+})
+ns.RegisterFeature({
+    key = "chatEditBoxTop", label = "Chat message on top", section = SECTION, category = CATEGORY,
+    tooltip = "Type chat messages above the chat tabs.",
+    default = false, beside = true, apply = ApplyEditBoxes,
 })

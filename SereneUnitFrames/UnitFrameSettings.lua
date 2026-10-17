@@ -52,7 +52,7 @@ ns.RegisterFeature({
 -- All frames
 ns.RegisterFeature({
     key = "unitFrameClassColors", label = "Show class colors", section = SECTION, category = "All frames",
-    tooltip = "Players' health bars in their class color.",
+    tooltip = "Class colored health bars.",
     apply = ns.ApplyClassColors,
 })
 ns.RegisterFeature({
@@ -93,7 +93,7 @@ ns.RegisterFeature({
 if ns.ApplyPetOneBar then
     ns.RegisterFeature({
         key = "petFrameOneBar", label = "Hide power bar", section = SECTION, category = "Pet frame",
-        tooltip = "No mana or focus bar; the health bar takes its place.",
+        tooltip = "Bigger health bar instead.",
         default = false, apply = ns.ApplyPetOneBar,
     })
 end

@@ -95,6 +95,6 @@ end)
 
 ns.RegisterFeature({
     key = "trainAllButton", label = "Add Train All button", section = "Quality of Life", category = "Vendors & trainers",
-    tooltip = "A button at trainers that learns everything you can afford.",
+    tooltip = "Add Train all button to trainers.",
     apply = Apply,
 })

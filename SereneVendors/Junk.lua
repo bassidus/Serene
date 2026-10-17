@@ -169,9 +169,9 @@ GameTooltip:HookScript("OnHide", function() keys:Hide() end)
 
 local loaded
 ns.RegisterFeature({
-    key = "junkMarking", label = "Mark junk with Space",
+    key = "junkMarking", label = "Mark junk with Spacebar",
     section = "Quality of Life", category = "Vendors & trainers",
-    tooltip = "Space over a bag item marks it as junk or clears the mark.",
+    tooltip = "Hover over items in your bag and press Spacebar to mark it as junk.",
     beside = true, conflict = "Crossmark",
     apply = function()
         -- Login's apply: the bags paint their marks as they open.

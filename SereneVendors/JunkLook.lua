@@ -6,6 +6,6 @@ local _, ns = ...
 
 ns.RegisterFeature({
     key = "junkSmallCross", label = "Smaller cross", section = "Quality of Life", category = "Vendors & trainers",
-    tooltip = "A small cross in the icon's top-right corner.",
+    tooltip = "Smaller cross for items marked as junk.",
     default = false, requires = "junkMarking", beside = true, apply = ns.LayOutMarks,
 })

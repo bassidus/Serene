@@ -250,18 +250,18 @@ local SECTION = "Action Bars"
 -- looked up when they run.
 ns.RegisterFeature({
     key = "shortKeybinds", label = "Short keybinds", section = SECTION, category = "Buttons",
-    tooltip = "CTRL-2 shows as C2, Mouse Button 4 as M4.",
+    tooltip = "For example CTRL-2 > C2",
     requires = "!hideKeybinds",
     apply = ApplySetting,
 })
 ns.RegisterFeature({
     key = "rangeColors", label = "Enable out of range color", section = SECTION, category = "Buttons",
-    tooltip = "Icons turn red while your target is out of range.",
+    tooltip = "Red overlay on buttons when target is out of range.",
     beside = true, apply = function() ns.ApplyRangeColors() end,
 })
 ns.RegisterFeature({
     key = "hideKeybinds", label = "Hide keybinds", section = SECTION, category = "Buttons",
-    tooltip = "No keybind text on the buttons.",
+    tooltip = "Hide keybinds on buttons.",
     default = false,
     apply = ApplySetting,
 })
@@ -272,7 +272,7 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "hideMacroText", label = "Hide macros", section = SECTION, category = "Buttons",
-    tooltip = "No macro names on the buttons.",
+    tooltip = "Hide macro names.",
     default = false,
     apply = ApplySetting,
 })

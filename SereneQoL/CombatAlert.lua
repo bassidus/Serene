@@ -14,7 +14,7 @@ end)
 
 ns.RegisterFeature({
     key = "combatAlert", label = "Combat in/out text", section = "Quality of Life", category = "General",
-    tooltip = "Large text when a fight starts and ends.",
+    tooltip = "Display a text in the middle of the screen when you enter/exit combat.",
     default = false,
     apply = function()
         if ns.Get("combatAlert") then

@@ -113,5 +113,5 @@ end)
 ns.RegisterFeature({
     key = "autoSellJunk", label = "Auto sell",
     section = "Quality of Life", category = "Vendors & trainers",
-    tooltip = "Sells your junk when you open a vendor.",
+    tooltip = "Auto-sells junk at vendors.",
 })

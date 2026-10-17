@@ -422,25 +422,25 @@ ns.RegisterFeature({
 })
 ns.RegisterFeature({
     key = "chatHideChannelNumbers", label = "Hide channel numbers", section = SECTION, category = CATEGORY,
-    tooltip = "[1] [Gen] Name: becomes [Gen] Name:",
+    tooltip = "Hide channel numbers.",
     default = false, beside = true,
 })
 ns.RegisterFeature({
     key = "chatClassColors", label = "Class colored names", section = SECTION, category = CATEGORY,
-    tooltip = "Names in their class color in every chat.",
+    tooltip = "Class colored names.",
 })
 ns.RegisterFeature({
     key = "chatHideChannelNames", label = "Hide channel names", section = SECTION, category = CATEGORY,
-    tooltip = "[1] [Gen] Name: becomes [1] Name:",
+    tooltip = "Hide channel names.",
     default = false, beside = true,
 })
 ns.RegisterFeature({
     key = "chatLevels", label = "Show player levels", section = SECTION, category = CATEGORY,
-    tooltip = "Name (30) after a player's name.",
+    tooltip = "Show player levels.",
 })
 ns.RegisterFeature({
     key = "chatShortChannels", label = "Short channel names", section = SECTION, category = CATEGORY,
-    tooltip = "[1. General - Elwynn Forest] becomes [1] [Gen].",
+    tooltip = "Shorter channel names.",
     beside = true, requires = "!chatHideChannelNames",
 })
 ns.RegisterFeature({

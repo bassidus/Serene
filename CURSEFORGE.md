@@ -32,13 +32,13 @@ Quicker auto-loot, no bind-on-pickup popups, easier deleting of items, auto sell
 Auto accept/turn in quests and marks quest enemies on their nameplates with your progress
 
 **<span style="color: #f65820;">Social</span>**  
-Automatically accepts group invites, choose who can duel you, announce instance resets and more…
+Automatically accepts group invites, choose who can duel you, announce instance resets, thank players who buff you and more…
 
 **<span style="color: #f65820;">Chat</span>**  
 Player levels, shorter messages, clickable web links, right-click to copy and more…
 
 **<span style="color: #f65820;">Other</span>**  
-Screenshot and time played on level up, thank players who buff you, action bars and Edit Mode layout for new characters.
+Screenshot and time played on level up, action bars and Edit Mode layout for new characters.
 
 <br>
 ## <span style="color: #f65820;">Installation & Usage</span>

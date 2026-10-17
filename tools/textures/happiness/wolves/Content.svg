@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f6e2a0"/><stop offset=".3" stop-color="#c8902e"/>
+    <stop offset=".55" stop-color="#5a3208"/><stop offset=".8" stop-color="#9a6a20"/>
+    <stop offset="1" stop-color="#e0bc68"/>
+  </linearGradient>
+  <linearGradient id="goldIn" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0" stop-color="#fff0b0"/><stop offset=".5" stop-color="#a86c1c"/>
+    <stop offset="1" stop-color="#5a3008"/>
+  </linearGradient>
+  <radialGradient id="stud" cx=".35" cy=".3" r=".8">
+    <stop offset="0" stop-color="#fffbe0"/><stop offset=".4" stop-color="#e0a840"/>
+    <stop offset="1" stop-color="#5a3008"/>
+  </radialGradient>
+  <radialGradient id="gloss" cx=".5" cy="0" r="1">
+    <stop offset="0" stop-color="#fff" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <clipPath id="field"><circle cx="128" cy="128" r="98"/></clipPath>
+  <radialGradient id="fld" cx=".5" cy=".35" r=".75">
+    <stop offset="0" stop-color="#ffd27a"/><stop offset=".55" stop-color="#d8801a"/>
+    <stop offset="1" stop-color="#4a2200"/>
+  </radialGradient>
+  <linearGradient id="fur" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#9a8a78"/><stop offset="1" stop-color="#4a3e34"/>
+  </linearGradient>
+  <linearGradient id="muz" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f4ead8"/><stop offset="1" stop-color="#b8a690"/>
+  </linearGradient></defs>
+  <circle cx="128" cy="128" r="100" fill="#140a03"/>
+  <circle cx="128" cy="128" r="98" fill="url(#fld)"/>
+  <g clip-path="url(#field)" stroke="#120a04" stroke-width="5" stroke-linejoin="round"><path d="M 74,118 L 72,44 L 120,92 Z" fill="url(#fur)"/><path d="M 182,118 L 184,44 L 136,92 Z" fill="url(#fur)"/><path d="M 82,108 L 80,62 L 110,94 Z" fill="#d89c8c" stroke="none"/><path d="M 174,108 L 176,62 L 146,94 Z" fill="#d89c8c" stroke="none"/><path d="M 128,86 C 160,86 182,100 190,126 L 208,146 L 190,152 L 200,170 L 174,176 L 128,214 L 82,176 L 56,170 L 66,152 L 48,146 L 66,126 C 74,100 96,86 128,86 Z" fill="url(#fur)"/><path d="M 128,86 L 118,128 L 128,140 L 138,128 Z" fill="#3a2e26" stroke="none"/><path d="M 70,150 Q 92,140 112,150 L 104,176 L 82,170 Z M 186,150 Q 164,140 144,150 L 152,176 L 174,170 Z" fill="#d8ccb8" stroke="none"/><path d="M 128,134 C 144,134 154,152 156,172 C 158,194 144,208 128,210 C 112,208 98,194 100,172 C 102,152 112,134 128,134 Z" fill="url(#muz)"/><ellipse cx="102" cy="124" rx="8" ry="10" fill="#120a04"/><ellipse cx="154" cy="124" rx="8" ry="10" fill="#120a04"/><circle cx="104" cy="121" r="2.5" fill="#fff" stroke="none"/><circle cx="156" cy="121" r="2.5" fill="#fff" stroke="none"/><path d="M 112,186 Q 120,192 128,186 Q 136,192 144,186" fill="none"/><path d="M 116,156 L 140,156 Q 140,170 128,172 Q 116,170 116,156 Z" fill="#120a04"/><ellipse cx="124" cy="160" rx="4" ry="2" fill="#fff" opacity=".5" stroke="none"/></g>
+  <ellipse cx="128" cy="78" rx="78" ry="48" fill="url(#gloss)" clip-path="url(#field)"/>
+</svg>

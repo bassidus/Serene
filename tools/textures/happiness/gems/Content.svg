@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f6e2a0"/><stop offset=".3" stop-color="#c8902e"/>
+    <stop offset=".55" stop-color="#5a3208"/><stop offset=".8" stop-color="#9a6a20"/>
+    <stop offset="1" stop-color="#e0bc68"/>
+  </linearGradient>
+  <linearGradient id="goldIn" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0" stop-color="#fff0b0"/><stop offset=".5" stop-color="#a86c1c"/>
+    <stop offset="1" stop-color="#5a3008"/>
+  </linearGradient>
+  <radialGradient id="stud" cx=".35" cy=".3" r=".8">
+    <stop offset="0" stop-color="#fffbe0"/><stop offset=".4" stop-color="#e0a840"/>
+    <stop offset="1" stop-color="#5a3008"/>
+  </radialGradient>
+  <radialGradient id="gloss" cx=".5" cy="0" r="1">
+    <stop offset="0" stop-color="#fff" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <clipPath id="field"><circle cx="128" cy="128" r="98"/></clipPath>
+  <linearGradient id="table" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#d8801a"/>
+  </linearGradient></defs>
+  <circle cx="128" cy="128" r="100" fill="#140a03"/>
+  <circle cx="128" cy="128" r="98" fill="#0c0602"/>
+  <polygon points="128.0,38.0 180.9,55.2 213.6,100.2 213.6,155.8 180.9,200.8 128.0,218.0 75.1,200.8 42.4,155.8 42.4,100.2 75.1,55.2" fill="#4a2200" stroke="#0c0602" stroke-width="5"/>
+  <polygon points="128.0,38.0 180.9,55.2 143.5,80.4" fill="#ca9f56" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="128.0,38.0 143.5,80.4 112.5,80.4" fill="#bc914d" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="180.9,55.2 213.6,100.2 168.5,98.6" fill="#9a7036" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="180.9,55.2 168.5,98.6 143.5,80.4" fill="#9c7237" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="213.6,100.2 213.6,155.8 178.0,128.0" fill="#6b4216" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="213.6,100.2 178.0,128.0 168.5,98.6" fill="#754c1d" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="213.6,155.8 180.9,200.8 168.5,157.4" fill="#4e2602" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="213.6,155.8 168.5,157.4 178.0,128.0" fill="#562d08" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="180.9,200.8 128.0,218.0 143.5,175.6" fill="#4e2603" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="180.9,200.8 143.5,175.6 168.5,157.4" fill="#4a2200" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="128.0,218.0 75.1,200.8 112.5,175.6" fill="#6d4417" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="128.0,218.0 112.5,175.6 143.5,175.6" fill="#572e09" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="75.1,200.8 42.4,155.8 87.5,157.4" fill="#9d7238" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="75.1,200.8 87.5,157.4 112.5,175.6" fill="#774d1e" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="42.4,155.8 42.4,100.2 78.0,128.0" fill="#cca158" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="42.4,155.8 78.0,128.0 87.5,157.4" fill="#9e7439" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="42.4,100.2 75.1,55.2 87.5,98.6" fill="#e9bd6b" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="42.4,100.2 87.5,98.6 78.0,128.0" fill="#bd924e" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="75.1,55.2 128.0,38.0 112.5,80.4" fill="#e9bc6b" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/><polygon points="75.1,55.2 112.5,80.4 87.5,98.6" fill="#c99d55" stroke="#edc06e" stroke-opacity=".35" stroke-width="1.5"/>
+  <polygon points="143.5,80.4 168.5,98.6 178.0,128.0 168.5,157.4 143.5,175.6 112.5,175.6 87.5,157.4 78.0,128.0 87.5,98.6 112.5,80.4" fill="url(#table)" stroke="#ffd27a" stroke-opacity=".5" stroke-width="2"/>
+  <path d="M 104,82 Q 107,97 122,100 Q 107,103 104,118 Q 101,103 86,100 Q 101,97 104,82 Z" fill="#fff" opacity=".9"/>
+</svg>

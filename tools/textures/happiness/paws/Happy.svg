@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f6e2a0"/><stop offset=".3" stop-color="#c8902e"/>
+    <stop offset=".55" stop-color="#5a3208"/><stop offset=".8" stop-color="#9a6a20"/>
+    <stop offset="1" stop-color="#e0bc68"/>
+  </linearGradient>
+  <linearGradient id="goldIn" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0" stop-color="#fff0b0"/><stop offset=".5" stop-color="#a86c1c"/>
+    <stop offset="1" stop-color="#5a3008"/>
+  </linearGradient>
+  <radialGradient id="stud" cx=".35" cy=".3" r=".8">
+    <stop offset="0" stop-color="#fffbe0"/><stop offset=".4" stop-color="#e0a840"/>
+    <stop offset="1" stop-color="#5a3008"/>
+  </radialGradient>
+  <radialGradient id="gloss" cx=".5" cy="0" r="1">
+    <stop offset="0" stop-color="#fff" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <clipPath id="field"><circle cx="128" cy="128" r="98"/></clipPath>
+  <radialGradient id="pawg" cx=".5" cy=".2" r=".75">
+    <stop offset="0" stop-color="#a4e946"/><stop offset=".55" stop-color="#4caa10"/>
+    <stop offset="1" stop-color="#123a00"/>
+  </radialGradient>
+  <radialGradient id="stone" cx=".5" cy=".4" r=".7">
+    <stop offset="0" stop-color="#4a4038"/><stop offset="1" stop-color="#14100c"/>
+  </radialGradient>
+  <radialGradient id="halo" cx=".5" cy=".55" r=".5">
+    <stop offset="0" stop-color="#4caa10" stop-opacity=".75"/>
+    <stop offset="1" stop-color="#4caa10" stop-opacity="0"/>
+  </radialGradient></defs>
+  <circle cx="128" cy="128" r="100" fill="#140a03"/>
+  <circle cx="128" cy="128" r="98" fill="url(#stone)"/>
+  <circle cx="128" cy="140" r="98" fill="url(#halo)" clip-path="url(#field)"/>
+  <g fill="#0c0602" stroke="#0c0602" stroke-width="12" stroke-linejoin="round"><path d="M 128,128 C 160,128 186,160 182,182 C 178,204 156,198 128,196 C 100,198 78,204 74,182 C 70,160 96,128 128,128 Z"/><ellipse cx="84" cy="112" rx="15" ry="21" transform="rotate(-20 84 112)"/><ellipse cx="110" cy="86" rx="16" ry="23" transform="rotate(-6 110 86)"/><ellipse cx="146" cy="86" rx="16" ry="23" transform="rotate(6 146 86)"/><ellipse cx="172" cy="112" rx="15" ry="21" transform="rotate(20 172 112)"/></g>
+  <g fill="url(#pawg)"><path d="M 128,128 C 160,128 186,160 182,182 C 178,204 156,198 128,196 C 100,198 78,204 74,182 C 70,160 96,128 128,128 Z"/><ellipse cx="84" cy="112" rx="15" ry="21" transform="rotate(-20 84 112)"/><ellipse cx="110" cy="86" rx="16" ry="23" transform="rotate(-6 110 86)"/><ellipse cx="146" cy="86" rx="16" ry="23" transform="rotate(6 146 86)"/><ellipse cx="172" cy="112" rx="15" ry="21" transform="rotate(20 172 112)"/></g>
+  <ellipse cx="128" cy="78" rx="78" ry="48" fill="url(#gloss)" clip-path="url(#field)"/>
+</svg>

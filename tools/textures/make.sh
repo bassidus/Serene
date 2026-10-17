@@ -5,7 +5,8 @@
 #   CornerFill.tga  the quarter disc that line closes, white, for the fills
 #   Glow.tga        a soft white radial falloff in alpha, the window's glow
 #   Knob.tga        the sliders' knob: a gold bead in a dark ring, in color
-# and the pet happiness faces and the pet frame masks into SereneUnitFrames/Media.
+# and the pet happiness icons (from SVG, with rsvg-convert) and the pet frame
+# masks into SereneUnitFrames/Media.
 # Everything is drawn at 4x and scaled down, which anti-aliases the curves.
 #   tools/textures/make.sh
 set -euo pipefail
@@ -38,42 +39,35 @@ magick -size 128x128 xc:none -fill '#1a0d05' -draw "circle 64,64 64,2" \
 
 echo "Wrote Serene/Media/Corner.tga, CornerFill.tga, Glow.tga and Knob.tga"
 
-# The pet happiness faces, emoji-like: green, orange and red. 64 px drawn at 256.
-# The green one has the pet health bar's colors, sampled in game.
-faces="$root/SereneUnitFrames/Media"
-mkdir -p "$faces"
-face() {  # face <out> <outline> <light> <dark> <features...>
-    local file="$1" ink="$2" light="$3" dark="$4"; shift 4
-    magick -size 256x256 xc:none -fill "$ink" -draw "circle 128,128 128,4" \
-        \( -size 256x256 radial-gradient:"$light"-"$dark" \
-           \( -size 256x256 xc:black -fill white -draw "circle 128,128 128,16" \) \
-           -alpha off -compose CopyOpacity -composite \) -compose Over -composite \
-        -fill "$ink" -stroke "$ink" -strokewidth 1 "$@" -resize 64x64 \
-        -define tga:compression=none -type TrueColorAlpha "$faces/$file"
-}
-eyes=(-draw "ellipse 90,100 13,21 0,360" -draw "ellipse 166,100 13,21 0,360")
-line=(-fill none -strokewidth 15 -draw "stroke-linecap round")
-face Happy.tga '#0f3d00' '#a4e946' '#4caa10' "${eyes[@]}" "${line[@]}" -draw "path 'M 74,150 Q 128,210 182,150'"
-face Content.tga '#5a2600' '#ffc06a' '#ef7a14' "${eyes[@]}" "${line[@]}" -draw "line 86,172 170,172"
-face Unhappy.tga '#4a0a00' '#ff7a52' '#cf2614' \
-    -draw "ellipse 92,122 12,17 0,360" -draw "ellipse 164,122 12,17 0,360" \
-    "${line[@]}" -draw "line 62,74 112,100" -draw "line 194,74 144,100" \
-    -draw "path 'M 82,190 Q 128,148 174,190'"
+# The pet happiness icons, one folder per style in tools/textures/happiness,
+# drawn from SVG at 256 for the gradients and scaled to 64 px. The greens
+# have the pet health bar's colors, sampled in game.
+svgs="$root/tools/textures/happiness"
+media="$root/SereneUnitFrames/Media"
+png="$(mktemp --suffix=.png)"
+trap 'rm -f "$png"' EXIT
+for svg in "$svgs"/*/*.svg; do
+    style="$(basename "$(dirname "$svg")")"
+    mkdir -p "$media/Happiness/$style"
+    rsvg-convert -w 256 -h 256 "$svg" -o "$png"
+    magick "$png" -resize 64x64 -define tga:compression=none -type TrueColorAlpha \
+        "$media/Happiness/$style/$(basename "$svg" .svg).tga"
+done
 
-echo "Wrote SereneUnitFrames/Media/Happy.tga, Content.tga and Unhappy.tga"
+echo "Wrote SereneUnitFrames/Media/Happiness/*/Happy.tga, Content.tga and Unhappy.tga"
 
 # The pet frame's one tall health bar, 68x16.5 units at 256x64 drawn at
 # 1024x256: the inside of the art's health and power slots together, with
 # their corners rounded by a unit.
 magick -size 1024x256 xc:black -fill white -draw "roundrectangle 0,0 1023,255 15,15" \
     -resize 256x64 -background white -alpha shape \
-    -define tga:compression=none -type TrueColorAlpha "$faces/PetBarMask.tga"
+    -define tga:compression=none -type TrueColorAlpha "$media/PetBarMask.tga"
 
 # The pet frame art's line between the health and power slots, with the
 # slots' rims and rounded corners on either side of it and its joint in the
 # frame's right edge, cut out over the art's 120x49 units at 2 px each.
 magick -size 240x98 xc:white -fill black -draw "rectangle 90,53 235,62" \
     -background white -alpha shape \
-    -define tga:compression=none -type TrueColorAlpha "$faces/PetArtMask.tga"
+    -define tga:compression=none -type TrueColorAlpha "$media/PetArtMask.tga"
 
 echo "Wrote SereneUnitFrames/Media/PetBarMask.tga and PetArtMask.tga"

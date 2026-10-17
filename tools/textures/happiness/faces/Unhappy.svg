@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs>
+  <radialGradient id="fld" gradientUnits="userSpaceOnUse" cx="128" cy="128" r="181">
+    <stop offset="0" stop-color="#ff7a52"/><stop offset="1" stop-color="#cf2614"/>
+  </radialGradient></defs>
+  <circle cx="128" cy="128" r="124" fill="#4a0a00"/>
+  <circle cx="128" cy="128" r="112" fill="url(#fld)"/>
+  <ellipse cx="92" cy="122" rx="12" ry="17" fill="#4a0a00" stroke="#4a0a00" stroke-width="1"/><ellipse cx="164" cy="122" rx="12" ry="17" fill="#4a0a00" stroke="#4a0a00" stroke-width="1"/><path d="M 62,74 L 112,100 M 194,74 L 144,100" fill="none" stroke="#4a0a00" stroke-width="11" stroke-linecap="round"/><path d="M 82,190 Q 128,148 174,190" fill="none" stroke="#4a0a00" stroke-width="11" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f6e2a0"/><stop offset=".3" stop-color="#c8902e"/>
+    <stop offset=".55" stop-color="#5a3208"/><stop offset=".8" stop-color="#9a6a20"/>
+    <stop offset="1" stop-color="#e0bc68"/>
+  </linearGradient>
+  <linearGradient id="goldIn" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0" stop-color="#fff0b0"/><stop offset=".5" stop-color="#a86c1c"/>
+    <stop offset="1" stop-color="#5a3008"/>
+  </linearGradient>
+  <radialGradient id="stud" cx=".35" cy=".3" r=".8">
+    <stop offset="0" stop-color="#fffbe0"/><stop offset=".4" stop-color="#e0a840"/>
+    <stop offset="1" stop-color="#5a3008"/>
+  </radialGradient>
+  <radialGradient id="gloss" cx=".5" cy="0" r="1">
+    <stop offset="0" stop-color="#fff" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <clipPath id="field"><circle cx="128" cy="128" r="98"/></clipPath>
+  <radialGradient id="fld" cx=".5" cy=".35" r=".75">
+    <stop offset="0" stop-color="#ffd27a"/><stop offset=".55" stop-color="#d8801a"/>
+    <stop offset="1" stop-color="#4a2200"/>
+  </radialGradient></defs>
+  <circle cx="128" cy="128" r="100" fill="#140a03"/>
+  <circle cx="128" cy="128" r="98" fill="url(#fld)"/>
+  <ellipse cx="128" cy="78" rx="78" ry="48" fill="url(#gloss)" clip-path="url(#field)"/>
+  <g><ellipse cx="98" cy="108" rx="11" ry="18" fill="#4a1e00"/><ellipse cx="158" cy="108" rx="11" ry="18" fill="#4a1e00"/>
+    <path d="M 92,165 L 164,165" stroke="#4a1e00" stroke-width="13" stroke-linecap="round"/></g>
+</svg>

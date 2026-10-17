@@ -53,9 +53,27 @@ ns.RegisterFeature({
     default = false, apply = ns.ApplyPetOneBar,
 })
 ns.RegisterFeature({
-    key = "petFrameHappinessFaces", label = "Use happiness faces", section = SECTION, category = "Pet frame",
-    tooltip = "Green, orange and red faces for your pet's mood.",
-    beside = true, apply = ns.ApplyHappinessFaces,
+    key = "petFrameHappiness", label = "Happiness icon", section = SECTION, category = "Pet frame",
+    tooltip = "How your pet's mood shows on its frame.",
+    type = "dropdown", beside = true, default = "paws", apply = ns.ApplyHappiness,
+    options = function()
+        local list = { { value = "blizzard", label = "Blizzard" } }
+        -- Each style's three moods in front of its name.
+        for _, o in ipairs({
+            { value = "faces",      label = "Faces" },
+            { value = "medallions", label = "Medallions" },
+            { value = "paws",       label = "Paws" },
+            { value = "gems",       label = "Gems" },
+            { value = "wolves",     label = "Wolves" },
+        }) do
+            local icons = ""
+            for _, mood in ipairs({ "Unhappy", "Content", "Happy" }) do
+                icons = icons .. "|T" .. ns.HappinessIcon(o.value, mood) .. ":16|t"
+            end
+            list[#list + 1] = { value = o.value, label = icons .. " " .. o.label }
+        end
+        return list
+    end,
 })
 
 -- Status numbers

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --  Chat Messages -- names as "Name (30)", in their class color or not, the
---  level colored against yours or not, channels short or long, with or
+--  level colored against yours or in one color, channels short or long, with or
 --  without number and name ("[2] [Gen] Name:", "[2] Name:"), times (gray or
 --  not), shorter loot, XP, skill and speech lines, and clickable web links.
 --
@@ -31,9 +31,12 @@ ChatFrameUtil.AddSenderNameFilter(function(_, name, ...)
     if c then name = c:WrapTextInColorCode(name) end
     level = Clean(level)
     if not ns.Get("chatLevels") or not level or level <= 0 then return name end
-    if not ns.Get("chatLevelColors") then return name .. " (" .. level .. ")" end
-    c = GetCreatureDifficultyColor(level)
-    return name .. " (|cff" .. ns.RGBToHex(c.r, c.g, c.b) .. level .. "|r)"
+    local hex = ns.ColorHex(ns.Get("chatLevelHex"))
+    if not hex then
+        c = GetCreatureDifficultyColor(level)
+        hex = ns.RGBToHex(c.r, c.g, c.b)
+    end
+    return name .. " (|cff" .. hex .. level .. "|r)"
 end)
 
 -------------------------------------------------------------------------------
@@ -437,25 +440,30 @@ ns.RegisterFeature({
 ns.RegisterFeature({
     key = "chatLevels", label = "Show player levels", section = SECTION, category = CATEGORY,
     tooltip = "Show player levels.",
+    color = "chatLevelHex",
+})
+-- The swatch after "Show player levels". Difficulty colors each level
+-- against yours; its swatch is your own level's color.
+ns.RegisterFeature({
+    key = "chatLevelHex", label = "Level color", type = "color", default = "difficulty",
+    specials = { { value = "difficulty", label = "Difficulty", swatch = function()
+        local c = GetCreatureDifficultyColor(UnitLevel("player"))
+        return ns.RGBToHex(c.r, c.g, c.b)
+    end } },
 })
 ns.RegisterFeature({
     key = "chatShortChannels", label = "Short channel names", section = SECTION, category = CATEGORY,
     tooltip = "Shorter channel names.",
     beside = true, requires = "!chatHideChannelNames",
 })
-ns.RegisterFeature({
-    key = "chatLevelColors", label = "Color levels after difficulty", section = SECTION, category = CATEGORY,
-    tooltip = "The level colored against yours.",
-    requires = "chatLevels",
-})
-ns.RegisterFeature({
-    key = "chatShortText", label = "Short messages (loot, XP etc)", section = SECTION, category = CATEGORY,
-    tooltip = "Shorter loot, XP, rep, quest, skill, group and chat lines.",
-    beside = true,
-})
 -- Copy Chat's, here for its place on the page.
 ns.RegisterFeature({
     key = "chatCopyClick", label = "Right click to copy", section = SECTION, category = CATEGORY,
     tooltip = "Right click a chat window to copy its text.",
     apply = function() ns.ApplyChatCopyClick() end,
+})
+ns.RegisterFeature({
+    key = "chatShortText", label = "Short messages (loot, XP etc)", section = SECTION, category = CATEGORY,
+    tooltip = "Shorter loot, XP, rep, quest, skill, group and chat lines.",
+    beside = true,
 })

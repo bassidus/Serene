@@ -2,7 +2,7 @@
 ## Title: Serene Dark Mode
 ## Group: Serene
 ## Notes: Dark art instead of Forever's bronze and gold: action bars, bag bar, experience bar, unit frames, minimap, quest tracker and bag windows.
-## Version: 1.11.0
+## Version: 1.11.1
 ## Dependencies: Serene
 ## X-Serene-Section: Dark mode
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

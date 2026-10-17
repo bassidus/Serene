@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.11.1 (2026-10-17)
+
+### Changed
+- Chat: Messages is now two columns of checkboxes. The Colors group is gone. Colored timestamp and Show player levels each have a color swatch after the label. The timestamp is gray by default, and levels are colored against your own level unless you pick one color for all of them. Class colored names, Hide channel names and Short channel names are checkboxes of their own. Channel tags keep their channel's color, and web links are always clickable.
+- Quick loot is now called Quicker auto-loot, and Mark junk with Space is now Mark junk with Spacebar.
+- Shorter, clearer tooltips on the settings.
+
 ## 1.11.0 (2026-10-17)
 
 Auto repair, auto sell and dim known items have moved to a new addon folder, SereneVendors. Install it along with the others to keep them. Their settings are still under Quality of Life, in "Vendors & trainers".

@@ -2,7 +2,7 @@
 ## Title: Serene Other
 ## Group: Serene
 ## Notes: Level-up screenshot and time played, action bars and Edit Mode layout for new characters.
-## Version: 1.11.0
+## Version: 1.11.1
 ## Dependencies: Serene
 ## X-Serene-Section: Other
 ## IconTexture: Interface\AddOns\Serene\Media\Logo

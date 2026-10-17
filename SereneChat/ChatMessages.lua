@@ -216,7 +216,7 @@ local function ShortBonus(text)
 end
 
 -- A gain's + in green and a loss's - in red (the palette's Green and Red),
--- with a space after it like the whisper arrows: at the start of the line,
+-- with a space after it: at the start of the line,
 -- right after a name ("Name: +[Item]") and before a number in a bonus
 -- ("(+10 rested)", ", -5 raid"). A dash between words ("+70 XP - Quest
 -- completed") stays as it is.
@@ -343,31 +343,45 @@ local Escape = ns.EscapePattern
 
 -- The text after the name in say, yell and whisper lines (" says: "), right
 -- after the player link; an NPC's name is no link and stays as it is. A
--- whisper (Battle.net ones too) also gets "< " in front: "< Name: text".
+-- whisper (Battle.net ones too) gets an arrow in its place: "Name < text".
 local SPEECH = {}
 for _, key in ipairs({ "CHAT_SAY_GET", "CHAT_YELL_GET", "CHAT_WHISPER_GET" }) do
     SPEECH[#SPEECH + 1] = { "|h" .. Escape(_G[key]:match("^%%s(.+)$")), whisper = key == "CHAT_WHISPER_GET" }
 end
--- "To Name: text", a whisper you sent, becomes "> Name: text".
-local WHISPER_TO = "^" .. Escape(CHAT_WHISPER_INFORM_GET:match("^(.-)%%s")) .. "(|H)"
--- Both arrows in Serene's orange.
-local ARROW_COLOR = "|cff" .. ns.RGBToHex(unpack(ns.ACCENT))
-local SENT, RECEIVED = ARROW_COLOR .. ">|r ", ARROW_COLOR .. "<|r "
+-- "To Name: text", a whisper you sent, becomes "Name > text".
+local WHISPER_TO = "^" .. Escape(CHAT_WHISPER_INFORM_GET:match("^(.-)%%s")) .. "(|H%a-player.-|h.-|h)"
+    .. Escape(CHAT_WHISPER_INFORM_GET:match("%%s(.*)$"))
+
+-- Sent and received whispers share one chat color. A received one is drawn
+-- paler and a sent one deeper (more saturated, a little darker), so the two
+-- sides of a conversation read apart at a glance.
+local function Paler(r, g, b)
+    return r + (1 - r) * 0.5, g + (1 - g) * 0.5, b + (1 - b) * 0.5
+end
+local function Deeper(r, g, b)
+    local top = math.max(r, g, b)
+    local function Deep(c) return math.max(0, top - (top - c) * 1.5) * 0.9 end
+    return Deep(r), Deep(g), Deep(b)
+end
 
 local TIME_GRAY = "808080"
 
+-- Returns the line and, for a whisper, how to shade its color.
 local function ShortLine(text)
     if not text:find(NOTICE) then text = text:gsub(CHANNEL, ShortChannel, 1) end
     text = text:gsub(PLAYER, "%1%2%3", 1)
+    local shade
     if ns.Get("chatShortText") then
         local sent
-        text, sent = text:gsub(WHISPER_TO, SENT .. "%1", 1)
-        if sent == 0 then
+        text, sent = text:gsub(WHISPER_TO, "%1 > ", 1)
+        if sent > 0 then
+            shade = Deeper
+        else
             for _, p in ipairs(SPEECH) do
                 local n
-                text, n = text:gsub(p[1], "|h: ", 1)
+                text, n = text:gsub(p[1], p.whisper and "|h < " or "|h: ", 1)
                 if n > 0 then
-                    if p.whisper then text = RECEIVED .. text end
+                    if p.whisper then shade = Paler end
                     break
                 end
             end
@@ -381,15 +395,19 @@ local function ShortLine(text)
         end
         text = time .. " " .. text
     end
-    return text
+    return text, shade
 end
 
 ns.EachChatWindow(function(frame)
     local add = frame.AddMessage
-    frame.AddMessage = function(self, text, ...)
+    frame.AddMessage = function(self, text, r, g, b, ...)
         local clean = Clean(text)
-        if type(clean) == "string" then text = ShortLine(clean) end
-        return add(self, text, ...)
+        if type(clean) == "string" then
+            local shade
+            text, shade = ShortLine(clean)
+            if shade and r then r, g, b = shade(r, g, b) end
+        end
+        return add(self, text, r, g, b, ...)
     end
 end)
 

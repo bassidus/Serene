@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.0 (2026-10-17)
+
+### New
+- Chat: Hide chat buttons hides the buttons beside the chat windows (chat menu, channels, minimize and text to speech).
+
+### Changed
+- Chat: with Short messages on, whispers read "From Name: text" and "To Name: text", with From and To in Serene's orange. They used to read "< Name:" and "> Name:".
+
 ## 1.11.1 (2026-10-17)
 
 ### Changed

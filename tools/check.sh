@@ -7,7 +7,7 @@
 #   versions   ## Interface and ## Version match (release.sh --check)
 #   symlinks   every Serene* folder is linked into the game's AddOns
 #   syntax     luac5.1 -p on every .lua
-#   globals    no global writes but Serene, SereneDB and SLASH_*; no global
+#   globals    no global writes but Serene, Serene*DB and SLASH_*; no global
 #              read that is neither in the newest probe's api.txt, nor
 #              ALL_CAPS, nor in tools/known-globals.txt (a local used above
 #              its line reads as a global)
@@ -34,7 +34,7 @@ command -v luac5.1 >/dev/null || { echo "luac5.1 is needed (the client runs Lua 
 addons=()
 for dir in Serene*/; do addons+=("${dir%/}"); done
 # Serene's own files, without the embedded libraries.
-mapfile -t ours < <(ls Serene*/*.lua)
+mapfile -t ours < <(find Serene* -name '*.lua' -not -path '*/Libs/*' | sort)
 
 section toc
 for addon in "${addons[@]}"; do
@@ -73,7 +73,7 @@ reads=""
 for file in "${ours[@]}"; do
     listing=$(luac5.1 -p -l "$file")
     while read -r name; do
-        [[ $name == Serene || $name == SereneDB || $name == SLASH_* ]] || fail "$file writes the global $name"
+        [[ $name == Serene || $name == Serene*DB || $name == SLASH_* ]] || fail "$file writes the global $name"
     done < <(grep SETGLOBAL <<< "$listing" | sed 's/.*; //' | sort -u)
     while read -r name; do
         reads+="$name"$'\n'

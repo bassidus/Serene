@@ -25,5 +25,4 @@ end)
 ns.RegisterFeature({
     key = "autoRepair", label = "Auto repair", section = "Quality of Life", category = "Vendors & trainers",
     tooltip = "Repairs your gear when you open a vendor.",
-    beside = true,
 })

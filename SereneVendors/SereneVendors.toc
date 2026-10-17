@@ -1,0 +1,23 @@
+## Interface: 16001
+## Title: Serene Vendors
+## Group: Serene
+## Notes: Mark junk with Space (a cross over the icon), auto sell junk, auto repair, dim known items at vendors. The settings are under Quality of Life.
+## Version: 1.10.1
+## Dependencies: Serene
+## OptionalDeps: Baganator, EllesmereUIBags, ArkInventory, Bagnon, Bagnonium, BetterBags, ElvUI
+## SavedVariablesPerCharacter: SereneVendorsDB
+## X-Serene-Section: Vendors
+## IconTexture: Interface\AddOns\Serene\Media\Logo
+
+Init.lua
+AutoRepair.lua
+SellJunk.lua
+Junk.lua
+Bags\Blizzard.lua
+Bags\Baganator.lua
+Bags\Ellesmere.lua
+Bags\ArkInventory.lua
+Bags\Bagnon.lua
+Bags\BetterBags.lua
+Bags\ElvUI.lua
+KnownItems.lua

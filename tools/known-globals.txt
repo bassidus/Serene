@@ -5,9 +5,11 @@ ActionBarButtonEventsFrame
 ActionButton1
 AddonCompartmentFrame
 AnchorUtil
+ArkInventory
 AuraContainerSortDirection
 AuraContainerSortMethod
 AutoCompleteBox
+Baganator
 BagsBar
 ChatFontNormal
 ChatFrame1
@@ -22,6 +24,9 @@ ContainerFrameCombinedBags
 ContainerFrameContainer
 CurveConstants
 EditModeManagerFrame
+ElvUI
+EUI_Bags
+EUI_BankFrame
 EventRegistry
 FocusFrame
 FocusFrameToT
@@ -77,6 +82,7 @@ QuestRewardScrollChildFrame
 SecondaryStatusTrackingBarContainer
 Serene
 SereneDB
+SereneVendorsDB
 SlashCmdList
 StanceBar
 StatusTrackingBarManager

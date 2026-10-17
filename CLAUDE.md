@@ -6,7 +6,7 @@ QoL addon suite for WoW Forever (Interface 16001). Unreleased, one user.
 
 - `Serene/` is the core: SavedVariables (`SereneDB`), the feature registry, colors, fonts, the minimap icon and `/serene`. It sets the global `Serene`.
 - Every other `Serene*/` folder is its own addon with `## Dependencies: Serene` and `## Group: Serene`. Its `Init.lua` does `setmetatable(ns, { __index = Serene })`. Values shared between addons go on `Serene`, not on the addon's own `ns`.
-- The TOC line `## X-Serene-Section: <tab>` is how the options window finds a module, whether it is loaded or not.
+- The TOC line `## X-Serene-Section: <tab>` is how the options window finds a module, whether it is loaded or not, and its name on the Modules page. The tabs themselves come from the settings' `section`, so a module can put its settings on another module's tab (SereneVendors' are under Quality of Life).
 - `SereneOptions` is load on demand and holds the options window (`Options.lua`, `OptionsWidgets.lua`).
 - The repo lives outside the game. Each `Serene*` folder is symlinked into `/mnt/wd1000/Battle.net/World of Warcraft/_classic_beta_/Interface/AddOns/`. A new module needs a symlink too.
 

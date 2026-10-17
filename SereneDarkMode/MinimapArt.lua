@@ -4,17 +4,28 @@
 -------------------------------------------------------------------------------
 local _, ns = ...
 
--- [file] = text a texture's atlas needs to count. The ring's sheet also
--- holds the colored day and night dial.
-local ART = { [8026708] = "Frame", [4618666] = "", [4618675] = "", [4618669] = "" }
+-- [file] = text a texture's atlas needs to count, one of. The ring's sheet
+-- also holds the colored day and night dial, the mail icon and the calendar.
+local ART = {
+    [8026708] = { "frame", "header-button", "tracking-button", "addon-indicator" },
+    [4618666] = { "" }, [4618675] = { "" }, [4618669] = { "" },
+}
+
+-- A button's hover is its own atlas again, drawn added; it keeps its strength.
+local function IsHover(tex)
+    return tex:GetBlendMode() == "ADD"
+end
 
 local function IsArt(tex)
     local want = ART[tex:GetTexture()]
-    if not want then return false end
-    local atlas = tex:GetAtlas() or ""
+    if not want or IsHover(tex) then return false end
+    local atlas = (tex:GetAtlas() or ""):lower()
     -- Highlights and the mail icon keep their color.
-    return atlas:find(want, 1, true) and not atlas:find("Mouseover", 1, true)
-        and not atlas:find("Mail", 1, true)
+    if atlas:find("mouseover", 1, true) or atlas:find("mail", 1, true) then return false end
+    for _, text in ipairs(want) do
+        if atlas:find(text, 1, true) then return true end
+    end
+    return false
 end
 
 ns.AddDarkArt("MinimapCluster", IsArt)
@@ -27,8 +38,7 @@ ns.AddDarkArt("LibDBIcon10_Serene", function(tex) return tex:GetTexture() == ICO
 -------------------------------------------------------------------------------
 --  Above the minimap: the zone name, the clock and the addon count are
 --  dimmed by alpha, since Blizzard colors the zone name by its PvP status.
---  The calendar keeps its colors and is darkened; its highlight keeps its
---  strength.
+--  The calendar button keeps its colors and is darkened.
 -------------------------------------------------------------------------------
 local DIM = 0.7
 local CALENDAR = 0.6
@@ -42,7 +52,7 @@ dimCount:SetAlpha(DIM)
 
 local function IsCalendar(r)
     local atlas = r:GetObjectType() == "Texture" and r:GetAtlas() or ""
-    return atlas:find("UI-HUD-Calendar", 1, true) and not atlas:find("Mouseover", 1, true)
+    return atlas:lower():find("calendar-button", 1, true) and not IsHover(r)
 end
 
 ns.OnDarkMode(function()

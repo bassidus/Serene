@@ -1,0 +1,601 @@
+# API changes, build 1.60.1.70450
+
+Client 1.60.1 (build 70450, Oct 15 2026), Interface 16001.
+
+Compared with build 1.60.1.70374. Changed signatures show as removed and added.
+
+## API names: added (299)
+
+- `AceGUIEditBoxInsertLink`
+- `AceGUIMultiLineEditBoxInsertLink`
+- `AuctionatorRetailImportCreateTableBuilder`
+- `Auctionator_EditBox_OnKeyDown`
+- `Auctionator_EditBox_OnTextChanged`
+- `C_AuctionHouse.GetItemKeySampleLink`
+- `C_BattleNet.AreRealIDFriendsEnabled`
+- `C_BattleNet.GetFriendLevelFromInviteText`
+- `C_ExternalEventURL.CanShow`
+- `C_Tutorial.SendTutorialStartButtonTelem`
+- `CatalogShopFocusCarouselGamepad`
+- `CatalogShopUnfocusCarouselGamepad`
+- `Enum.EvictionType.JoinParty = 2`
+- `Enum.EvictionType.LeaveParty = 3`
+- `Enum.EvictionType.Outsider = 0`
+- `Enum.EvictionType.OutsiderParty = 1`
+- `Enum.EvictionType.ServerExpiryAggressive = 5`
+- `Enum.EvictionType.ServerExpiryNormal = 4`
+- `Enum.EvictionType.ServerExpiryParty = 6`
+- `Enum.EvictionTypeMeta.MaxValue = 6`
+- `Enum.EvictionTypeMeta.MinValue = 0`
+- `Enum.EvictionTypeMeta.NumValues = 7`
+- `Enum.GameRule.RangedAttackDelay = 249`
+- `Enum.GameRule.RequirePvPFlagForPvPKillCredit = 255`
+- `Enum.GameRuleMeta.MaxValue = 255`
+- `Enum.GameRuleMeta.NumValues = 169`
+- `Enum.SdToggleUsageLocation.BarberShop = 2`
+- `Enum.SdToggleUsageLocation.BeforeLogin = 0`
+- `Enum.SdToggleUsageLocation.CharacterCreation = 1`
+- `Enum.SdToggleUsageLocation.OptionsMenu = 3`
+- `Enum.SdToggleUsageLocationMeta.MaxValue = 3`
+- `Enum.SdToggleUsageLocationMeta.MinValue = 0`
+- `Enum.SdToggleUsageLocationMeta.NumValues = 4`
+- `Enum.SdToggleUsageLocationUI.BarberShop = 2`
+- `Enum.SdToggleUsageLocationUI.BeforeLogin = 0`
+- `Enum.SdToggleUsageLocationUI.CharacterCreation = 1`
+- `Enum.SdToggleUsageLocationUI.OptionsMenu = 3`
+- `Enum.SdToggleUsageLocationUIMeta.MaxValue = 3`
+- `Enum.SdToggleUsageLocationUIMeta.MinValue = 0`
+- `Enum.SdToggleUsageLocationUIMeta.NumValues = 4`
+- `GetCreditsDisplayInfo`
+- `GetCursorCenterPosition`
+- `GetOffhandHitModifier`
+- `GetPetCritChance`
+- `GetPetDodgeChance`
+- `IsCursorVisible`
+- `MultiCastButton_ApplyOverrides`
+- `PaperDollFrame_SetWarlockPetManaRegen`
+- `PlayerFrame_UpdateFlashTextureVisuals`
+- `PlayerFrame_UpdateHealthBarVisuals`
+- `PlayerFrame_UpdateManaBarVisuals`
+- `PlayerFrame_UpdateStatusTextureVisuals`
+- `frame ARTWORK`
+- `frame AceAddon30Frame`
+- `frame AceComm30Frame`
+- `frame AceConfigDialogTooltip`
+- `frame AceConfigDialogTooltipStatusBar`
+- `frame AceConfigDialogTooltipStatusBarTexture`
+- `frame AceConfigDialogTooltipTextLeft1`
+- `frame AceConfigDialogTooltipTextLeft2`
+- `frame AceConfigDialogTooltipTextRight1`
+- `frame AceConfigDialogTooltipTextRight2`
+- `frame AceConfigDialogTooltipTexture1`
+- `frame AceConfigDialogTooltipTexture10`
+- `frame AceConfigDialogTooltipTexture11`
+- `frame AceConfigDialogTooltipTexture12`
+- `frame AceConfigDialogTooltipTexture13`
+- `frame AceConfigDialogTooltipTexture14`
+- `frame AceConfigDialogTooltipTexture15`
+- `frame AceConfigDialogTooltipTexture16`
+- `frame AceConfigDialogTooltipTexture17`
+- `frame AceConfigDialogTooltipTexture18`
+- `frame AceConfigDialogTooltipTexture19`
+- `frame AceConfigDialogTooltipTexture2`
+- `frame AceConfigDialogTooltipTexture20`
+- `frame AceConfigDialogTooltipTexture21`
+- `frame AceConfigDialogTooltipTexture22`
+- `frame AceConfigDialogTooltipTexture23`
+- `frame AceConfigDialogTooltipTexture24`
+- `frame AceConfigDialogTooltipTexture25`
+- `frame AceConfigDialogTooltipTexture26`
+- `frame AceConfigDialogTooltipTexture27`
+- `frame AceConfigDialogTooltipTexture28`
+- `frame AceConfigDialogTooltipTexture29`
+- `frame AceConfigDialogTooltipTexture3`
+- `frame AceConfigDialogTooltipTexture30`
+- `frame AceConfigDialogTooltipTexture4`
+- `frame AceConfigDialogTooltipTexture5`
+- `frame AceConfigDialogTooltipTexture6`
+- `frame AceConfigDialogTooltipTexture7`
+- `frame AceConfigDialogTooltipTexture8`
+- `frame AceConfigDialogTooltipTexture9`
+- `frame AceEvent30Frame`
+- `frame AceGUITooltip`
+- `frame AceGUITooltipStatusBar`
+- `frame AceGUITooltipStatusBarTexture`
+- `frame AceGUITooltipTextLeft1`
+- `frame AceGUITooltipTextLeft2`
+- `frame AceGUITooltipTextRight1`
+- `frame AceGUITooltipTextRight2`
+- `frame AceGUITooltipTexture1`
+- `frame AceGUITooltipTexture10`
+- `frame AceGUITooltipTexture11`
+- `frame AceGUITooltipTexture12`
+- `frame AceGUITooltipTexture13`
+- `frame AceGUITooltipTexture14`
+- `frame AceGUITooltipTexture15`
+- `frame AceGUITooltipTexture16`
+- `frame AceGUITooltipTexture17`
+- `frame AceGUITooltipTexture18`
+- `frame AceGUITooltipTexture19`
+- `frame AceGUITooltipTexture2`
+- `frame AceGUITooltipTexture20`
+- `frame AceGUITooltipTexture21`
+- `frame AceGUITooltipTexture22`
+- `frame AceGUITooltipTexture23`
+- `frame AceGUITooltipTexture24`
+- `frame AceGUITooltipTexture25`
+- `frame AceGUITooltipTexture26`
+- `frame AceGUITooltipTexture27`
+- `frame AceGUITooltipTexture28`
+- `frame AceGUITooltipTexture29`
+- `frame AceGUITooltipTexture3`
+- `frame AceGUITooltipTexture30`
+- `frame AceGUITooltipTexture4`
+- `frame AceGUITooltipTexture5`
+- `frame AceGUITooltipTexture6`
+- `frame AceGUITooltipTexture7`
+- `frame AceGUITooltipTexture8`
+- `frame AceGUITooltipTexture9`
+- `frame AuctionatorConfigAdvancedFrame`
+- `frame AuctionatorConfigAdvancedFrameText`
+- `frame AuctionatorConfigBasicOptionsFrame`
+- `frame AuctionatorConfigBasicOptionsFrameText`
+- `frame AuctionatorConfigCancellingFrame`
+- `frame AuctionatorConfigCancellingFrameBottomLeft`
+- `frame AuctionatorConfigCancellingFrameBottomMiddle`
+- `frame AuctionatorConfigCancellingFrameBottomRight`
+- `frame AuctionatorConfigCancellingFrameMiddleLeft`
+- `frame AuctionatorConfigCancellingFrameMiddleMiddle`
+- `frame AuctionatorConfigCancellingFrameMiddleRight`
+- `frame AuctionatorConfigCancellingFrameText`
+- `frame AuctionatorConfigCancellingFrameTopLeft`
+- `frame AuctionatorConfigCancellingFrameTopMiddle`
+- `frame AuctionatorConfigCancellingFrameTopRight`
+- `frame AuctionatorConfigProfileFrame`
+- `frame AuctionatorConfigProfileFrameText`
+- `frame AuctionatorConfigQuantitiesFrame`
+- `frame AuctionatorConfigSellingAllItemsFrame`
+- `frame AuctionatorConfigSellingAllItemsFrameText`
+- `frame AuctionatorConfigSellingFrame`
+- `frame AuctionatorConfigSellingFrameText`
+- `frame AuctionatorConfigSellingShortcutsFrame`
+- `frame AuctionatorConfigSellingShortcutsFrameBottomLeft`
+- `frame AuctionatorConfigSellingShortcutsFrameBottomMiddle`
+- `frame AuctionatorConfigSellingShortcutsFrameBottomRight`
+- `frame AuctionatorConfigSellingShortcutsFrameMiddleLeft`
+- `frame AuctionatorConfigSellingShortcutsFrameMiddleMiddle`
+- `frame AuctionatorConfigSellingShortcutsFrameMiddleRight`
+- `frame AuctionatorConfigSellingShortcutsFrameText`
+- `frame AuctionatorConfigSellingShortcutsFrameTopLeft`
+- `frame AuctionatorConfigSellingShortcutsFrameTopMiddle`
+- `frame AuctionatorConfigSellingShortcutsFrameTopRight`
+- `frame AuctionatorConfigShoppingAltFrame`
+- `frame AuctionatorConfigShoppingAltFrameText`
+- `frame AuctionatorConfigTooltipsFrame`
+- `frame AuctionatorConfigTooltipsFrameText`
+- `frame AuctionatorConfigurationFrameTemplate`
+- `frame AuctionatorCraftingInfoObjectiveTrackerFrame`
+- `frame AuctionatorCraftingInfoObjectiveTrackerFrameText`
+- `frame AuctionatorInitalizeMainlineFrame`
+- `frame AuctionatorInitializeFrame`
+- `frame BottomBackground`
+- `frame LibDBIcon10_BugSack`
+- `frame LibDBIcon10_SilverDragon`
+- `frame SilverDragonOverlayPinTooltip`
+- `frame SilverDragonOverlayPinTooltipShopping1`
+- `frame SilverDragonOverlayPinTooltipShopping1TextLeft1`
+- `frame SilverDragonOverlayPinTooltipShopping1TextLeft2`
+- `frame SilverDragonOverlayPinTooltipShopping1TextRight1`
+- `frame SilverDragonOverlayPinTooltipShopping1TextRight2`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture1`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture10`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture11`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture12`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture13`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture14`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture15`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture16`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture17`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture18`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture19`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture2`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture20`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture21`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture22`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture23`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture24`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture25`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture26`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture27`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture28`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture29`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture3`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture30`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture4`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture5`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture6`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture7`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture8`
+- `frame SilverDragonOverlayPinTooltipShopping1Texture9`
+- `frame SilverDragonOverlayPinTooltipShopping2`
+- `frame SilverDragonOverlayPinTooltipShopping2TextLeft1`
+- `frame SilverDragonOverlayPinTooltipShopping2TextLeft2`
+- `frame SilverDragonOverlayPinTooltipShopping2TextRight1`
+- `frame SilverDragonOverlayPinTooltipShopping2TextRight2`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture1`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture10`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture11`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture12`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture13`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture14`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture15`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture16`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture17`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture18`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture19`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture2`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture20`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture21`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture22`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture23`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture24`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture25`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture26`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture27`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture28`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture29`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture3`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture30`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture4`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture5`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture6`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture7`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture8`
+- `frame SilverDragonOverlayPinTooltipShopping2Texture9`
+- `frame SilverDragonOverlayPinTooltipStatusBar`
+- `frame SilverDragonOverlayPinTooltipStatusBarTexture`
+- `frame SilverDragonOverlayPinTooltipTextLeft1`
+- `frame SilverDragonOverlayPinTooltipTextLeft2`
+- `frame SilverDragonOverlayPinTooltipTextRight1`
+- `frame SilverDragonOverlayPinTooltipTextRight2`
+- `frame SilverDragonOverlayPinTooltipTexture1`
+- `frame SilverDragonOverlayPinTooltipTexture10`
+- `frame SilverDragonOverlayPinTooltipTexture11`
+- `frame SilverDragonOverlayPinTooltipTexture12`
+- `frame SilverDragonOverlayPinTooltipTexture13`
+- `frame SilverDragonOverlayPinTooltipTexture14`
+- `frame SilverDragonOverlayPinTooltipTexture15`
+- `frame SilverDragonOverlayPinTooltipTexture16`
+- `frame SilverDragonOverlayPinTooltipTexture17`
+- `frame SilverDragonOverlayPinTooltipTexture18`
+- `frame SilverDragonOverlayPinTooltipTexture19`
+- `frame SilverDragonOverlayPinTooltipTexture2`
+- `frame SilverDragonOverlayPinTooltipTexture20`
+- `frame SilverDragonOverlayPinTooltipTexture21`
+- `frame SilverDragonOverlayPinTooltipTexture22`
+- `frame SilverDragonOverlayPinTooltipTexture23`
+- `frame SilverDragonOverlayPinTooltipTexture24`
+- `frame SilverDragonOverlayPinTooltipTexture25`
+- `frame SilverDragonOverlayPinTooltipTexture26`
+- `frame SilverDragonOverlayPinTooltipTexture27`
+- `frame SilverDragonOverlayPinTooltipTexture28`
+- `frame SilverDragonOverlayPinTooltipTexture29`
+- `frame SilverDragonOverlayPinTooltipTexture3`
+- `frame SilverDragonOverlayPinTooltipTexture30`
+- `frame SilverDragonOverlayPinTooltipTexture4`
+- `frame SilverDragonOverlayPinTooltipTexture5`
+- `frame SilverDragonOverlayPinTooltipTexture6`
+- `frame SilverDragonOverlayPinTooltipTexture7`
+- `frame SilverDragonOverlayPinTooltipTexture8`
+- `frame SilverDragonOverlayPinTooltipTexture9`
+- `frame SilverDragon_OverlayMiniMapDataProviderFrame`
+- `frame TopBackground`
+- `frame TopText`
+- `frame TopThumb`
+- `frame expBar`
+- `frame table: 0000000062EA4EC0`
+- `frame table: 0000000062F8E4D0`
+- `frame table: 0000000062F94A10`
+- `frame table: 0000000062FA7DA0`
+- `frame table: 000000007B8AE2A0`
+- `frame table: 000000007B9D73F0`
+- `frame table: 00000000A8F38410`
+- `frame table: 00000000A8F3B1B0`
+- `frame table: 00000000A8F3DF50`
+- `frame table: 00000000A8F40CF0`
+- `frame table: 00000000A8F45AA0`
+- `frame table: 00000000A8F48840`
+
+## API names: removed (249)
+
+- `BattlePetTooltipTemplate_AddTextLine`
+- `C_GamepadTargeting.HasReticleHoverTarget`
+- `Enum.GameRuleMeta.MaxValue = 253`
+- `Enum.GameRuleMeta.NumValues = 167`
+- `FloatingPetBattleAbility_Show`
+- `ForeverDungeonJournal_OnAddonCompartmentClick`
+- `ForeverDungeonJournal_OnAddonCompartmentEnter`
+- `ForeverDungeonJournal_OnAddonCompartmentLeave`
+- `ForeverDungeonJournal_OpenHoveredItem`
+- `ForeverDungeonJournal_Toggle`
+- `GameTimeFrame_OnClick`
+- `GameTimeFrame_OnEnter`
+- `GameTimeFrame_OnEvent`
+- `GameTimeFrame_OnLoad`
+- `GameTimeFrame_OnUpdate`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameButton`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameButtonDisabledTexture`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameButtonHighlightTexture`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameButtonNormalTexture`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameButtonPushedTexture`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameIcon`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameLeft`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameMiddle`
+- `frame CommunitiesFrameGuildPreferredPlaySettingsFrameRight`
+- `frame DropDownList1Button2`
+- `frame DropDownList1Button2Check`
+- `frame DropDownList1Button2ColorSwatch`
+- `frame DropDownList1Button2ColorSwatchSwatchBg`
+- `frame DropDownList1Button2ExpandArrow`
+- `frame DropDownList1Button2Highlight`
+- `frame DropDownList1Button2Icon`
+- `frame DropDownList1Button2InvisibleButton`
+- `frame DropDownList1Button2NormalText`
+- `frame DropDownList1Button2UnCheck`
+- `frame DropDownList1Button3`
+- `frame DropDownList1Button3Check`
+- `frame DropDownList1Button3ColorSwatch`
+- `frame DropDownList1Button3ColorSwatchSwatchBg`
+- `frame DropDownList1Button3ExpandArrow`
+- `frame DropDownList1Button3Highlight`
+- `frame DropDownList1Button3Icon`
+- `frame DropDownList1Button3InvisibleButton`
+- `frame DropDownList1Button3NormalText`
+- `frame DropDownList1Button3UnCheck`
+- `frame DropDownList2Button2`
+- `frame DropDownList2Button2Check`
+- `frame DropDownList2Button2ColorSwatch`
+- `frame DropDownList2Button2ColorSwatchSwatchBg`
+- `frame DropDownList2Button2ExpandArrow`
+- `frame DropDownList2Button2Highlight`
+- `frame DropDownList2Button2Icon`
+- `frame DropDownList2Button2InvisibleButton`
+- `frame DropDownList2Button2NormalText`
+- `frame DropDownList2Button2UnCheck`
+- `frame DropDownList2Button3`
+- `frame DropDownList2Button3Check`
+- `frame DropDownList2Button3ColorSwatch`
+- `frame DropDownList2Button3ColorSwatchSwatchBg`
+- `frame DropDownList2Button3ExpandArrow`
+- `frame DropDownList2Button3Highlight`
+- `frame DropDownList2Button3Icon`
+- `frame DropDownList2Button3InvisibleButton`
+- `frame DropDownList2Button3NormalText`
+- `frame DropDownList2Button3UnCheck`
+- `frame DropDownList3Button2`
+- `frame DropDownList3Button2Check`
+- `frame DropDownList3Button2ColorSwatch`
+- `frame DropDownList3Button2ColorSwatchSwatchBg`
+- `frame DropDownList3Button2ExpandArrow`
+- `frame DropDownList3Button2Highlight`
+- `frame DropDownList3Button2Icon`
+- `frame DropDownList3Button2InvisibleButton`
+- `frame DropDownList3Button2NormalText`
+- `frame DropDownList3Button2UnCheck`
+- `frame DropDownList3Button3`
+- `frame DropDownList3Button3Check`
+- `frame DropDownList3Button3ColorSwatch`
+- `frame DropDownList3Button3ColorSwatchSwatchBg`
+- `frame DropDownList3Button3ExpandArrow`
+- `frame DropDownList3Button3Highlight`
+- `frame DropDownList3Button3Icon`
+- `frame DropDownList3Button3InvisibleButton`
+- `frame DropDownList3Button3NormalText`
+- `frame DropDownList3Button3UnCheck`
+- `frame ForeverDungeonJournalBossListScroll`
+- `frame ForeverDungeonJournalBossListScrollScrollBar`
+- `frame ForeverDungeonJournalBossListScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalBossListScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalBossListScrollScrollBarThumbTexture`
+- `frame ForeverDungeonJournalCompareTooltip1`
+- `frame ForeverDungeonJournalCompareTooltip1StatusBar`
+- `frame ForeverDungeonJournalCompareTooltip1StatusBarTexture`
+- `frame ForeverDungeonJournalCompareTooltip1TextLeft1`
+- `frame ForeverDungeonJournalCompareTooltip1TextLeft2`
+- `frame ForeverDungeonJournalCompareTooltip1TextRight1`
+- `frame ForeverDungeonJournalCompareTooltip1TextRight2`
+- `frame ForeverDungeonJournalCompareTooltip1Texture1`
+- `frame ForeverDungeonJournalCompareTooltip1Texture10`
+- `frame ForeverDungeonJournalCompareTooltip1Texture11`
+- `frame ForeverDungeonJournalCompareTooltip1Texture12`
+- `frame ForeverDungeonJournalCompareTooltip1Texture13`
+- `frame ForeverDungeonJournalCompareTooltip1Texture14`
+- `frame ForeverDungeonJournalCompareTooltip1Texture15`
+- `frame ForeverDungeonJournalCompareTooltip1Texture16`
+- `frame ForeverDungeonJournalCompareTooltip1Texture17`
+- `frame ForeverDungeonJournalCompareTooltip1Texture18`
+- `frame ForeverDungeonJournalCompareTooltip1Texture19`
+- `frame ForeverDungeonJournalCompareTooltip1Texture2`
+- `frame ForeverDungeonJournalCompareTooltip1Texture20`
+- `frame ForeverDungeonJournalCompareTooltip1Texture21`
+- `frame ForeverDungeonJournalCompareTooltip1Texture22`
+- `frame ForeverDungeonJournalCompareTooltip1Texture23`
+- `frame ForeverDungeonJournalCompareTooltip1Texture24`
+- `frame ForeverDungeonJournalCompareTooltip1Texture25`
+- `frame ForeverDungeonJournalCompareTooltip1Texture26`
+- `frame ForeverDungeonJournalCompareTooltip1Texture27`
+- `frame ForeverDungeonJournalCompareTooltip1Texture28`
+- `frame ForeverDungeonJournalCompareTooltip1Texture29`
+- `frame ForeverDungeonJournalCompareTooltip1Texture3`
+- `frame ForeverDungeonJournalCompareTooltip1Texture30`
+- `frame ForeverDungeonJournalCompareTooltip1Texture4`
+- `frame ForeverDungeonJournalCompareTooltip1Texture5`
+- `frame ForeverDungeonJournalCompareTooltip1Texture6`
+- `frame ForeverDungeonJournalCompareTooltip1Texture7`
+- `frame ForeverDungeonJournalCompareTooltip1Texture8`
+- `frame ForeverDungeonJournalCompareTooltip1Texture9`
+- `frame ForeverDungeonJournalCompareTooltip2`
+- `frame ForeverDungeonJournalCompareTooltip2StatusBar`
+- `frame ForeverDungeonJournalCompareTooltip2StatusBarTexture`
+- `frame ForeverDungeonJournalCompareTooltip2TextLeft1`
+- `frame ForeverDungeonJournalCompareTooltip2TextLeft2`
+- `frame ForeverDungeonJournalCompareTooltip2TextRight1`
+- `frame ForeverDungeonJournalCompareTooltip2TextRight2`
+- `frame ForeverDungeonJournalCompareTooltip2Texture1`
+- `frame ForeverDungeonJournalCompareTooltip2Texture10`
+- `frame ForeverDungeonJournalCompareTooltip2Texture11`
+- `frame ForeverDungeonJournalCompareTooltip2Texture12`
+- `frame ForeverDungeonJournalCompareTooltip2Texture13`
+- `frame ForeverDungeonJournalCompareTooltip2Texture14`
+- `frame ForeverDungeonJournalCompareTooltip2Texture15`
+- `frame ForeverDungeonJournalCompareTooltip2Texture16`
+- `frame ForeverDungeonJournalCompareTooltip2Texture17`
+- `frame ForeverDungeonJournalCompareTooltip2Texture18`
+- `frame ForeverDungeonJournalCompareTooltip2Texture19`
+- `frame ForeverDungeonJournalCompareTooltip2Texture2`
+- `frame ForeverDungeonJournalCompareTooltip2Texture20`
+- `frame ForeverDungeonJournalCompareTooltip2Texture21`
+- `frame ForeverDungeonJournalCompareTooltip2Texture22`
+- `frame ForeverDungeonJournalCompareTooltip2Texture23`
+- `frame ForeverDungeonJournalCompareTooltip2Texture24`
+- `frame ForeverDungeonJournalCompareTooltip2Texture25`
+- `frame ForeverDungeonJournalCompareTooltip2Texture26`
+- `frame ForeverDungeonJournalCompareTooltip2Texture27`
+- `frame ForeverDungeonJournalCompareTooltip2Texture28`
+- `frame ForeverDungeonJournalCompareTooltip2Texture29`
+- `frame ForeverDungeonJournalCompareTooltip2Texture3`
+- `frame ForeverDungeonJournalCompareTooltip2Texture30`
+- `frame ForeverDungeonJournalCompareTooltip2Texture4`
+- `frame ForeverDungeonJournalCompareTooltip2Texture5`
+- `frame ForeverDungeonJournalCompareTooltip2Texture6`
+- `frame ForeverDungeonJournalCompareTooltip2Texture7`
+- `frame ForeverDungeonJournalCompareTooltip2Texture8`
+- `frame ForeverDungeonJournalCompareTooltip2Texture9`
+- `frame ForeverDungeonJournalFrame`
+- `frame ForeverDungeonJournalFrameScrollBar`
+- `frame ForeverDungeonJournalFrameScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalFrameScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalFrameScrollBarThumbTexture`
+- `frame ForeverDungeonJournalFrameText`
+- `frame ForeverDungeonJournalHomeScroll`
+- `frame ForeverDungeonJournalHomeScrollScrollBar`
+- `frame ForeverDungeonJournalHomeScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalHomeScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalHomeScrollScrollBarThumbTexture`
+- `frame ForeverDungeonJournalLootScroll`
+- `frame ForeverDungeonJournalLootScrollScrollBar`
+- `frame ForeverDungeonJournalLootScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalLootScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalLootScrollScrollBarThumbTexture`
+- `frame ForeverDungeonJournalOptionsPanel`
+- `frame ForeverDungeonJournalOptionsPanelText`
+- `frame ForeverDungeonJournalQualityScanTooltip`
+- `frame ForeverDungeonJournalQualityScanTooltipStatusBar`
+- `frame ForeverDungeonJournalQualityScanTooltipStatusBarTexture`
+- `frame ForeverDungeonJournalQualityScanTooltipTextLeft1`
+- `frame ForeverDungeonJournalQualityScanTooltipTextLeft2`
+- `frame ForeverDungeonJournalQualityScanTooltipTextRight1`
+- `frame ForeverDungeonJournalQualityScanTooltipTextRight2`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture1`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture10`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture11`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture12`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture13`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture14`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture15`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture16`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture17`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture18`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture19`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture2`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture20`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture21`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture22`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture23`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture24`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture25`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture26`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture27`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture28`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture29`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture3`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture30`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture4`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture5`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture6`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture7`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture8`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture9`
+- `frame ForeverDungeonJournalQuestDetailScroll`
+- `frame ForeverDungeonJournalQuestDetailScrollScrollBar`
+- `frame ForeverDungeonJournalQuestDetailScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalQuestDetailScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalQuestDetailScrollScrollBarThumbTexture`
+- `frame ForeverDungeonJournalQuestDetailScrollText`
+- `frame ForeverDungeonJournalQuestListScroll`
+- `frame ForeverDungeonJournalQuestListScrollScrollBar`
+- `frame ForeverDungeonJournalQuestListScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalQuestListScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalQuestListScrollScrollBarThumbTexture`
+- `frame GamepadPlayerCastingBarFrame`
+- `frame LibDBIcon10_ForeverDungeonJournal`
+- `frame MiniMapCraftingOrderIcon`
+- `frame PetStableCurrentPetNormalTexture`
+- `frame PetStableFrameXPBar1`
+- `frame PetStableStabledPet1NormalTexture`
+- `frame PetStableStabledPet2NormalTexture`
+- `frame UIDROPDOWNMENU_INIT_MENU`
+- `frame table: 00000000ABAC4EB0`
+- `frame table: 00000000AE082BB0`
+- `frame table: 00000000B93A4330`
+- `frame table: 00000000B94D4AF0`
+- `frame table: 00000000B95713C0`
+- `frame table: 00000000CE4751C0`
+- `frame table: 00000000CE499860`
+- `frame table: 00000000CE4A57E0`
+- `frame table: 00000000CE4A99D0`
+- `frame table: 00000000CE4B50E0`
+- `frame table: 00000000CE4DFA80`
+- `frame table: 00000000CE4F0A50`
+
+## Documented signatures: added (28)
+
+- `C_AuctionHouse.GetItemKeySampleLink(itemKey: ItemKey) -> sampleItemLink: string? [SecretArguments=AllowedWhenUntainted]`
+- `C_BattleNet.AreRealIDFriendsEnabled() -> areRealIDFriendsEnabled: bool`
+- `C_BattleNet.GetFriendLevelFromInviteText(inviteText: cstring) -> friendLevel: BattleNetFriendLevel [SecretArguments=AllowedWhenUntainted]`
+- `C_ExternalEventURL.CanShow() -> canShow: bool`
+- `C_GameRules.SetSDHDToggleValue(setToSD: bool, usageLocation: SdToggleUsageLocationUI) ->  [SecretArguments=AllowedWhenUntainted]`
+- `C_SecureTransfer.GetMailReceiveInfo() -> mailInfo: MailReceiveInfo [HasRestrictions=true]`
+- `C_SecureTransfer.GetMailSendInfo() -> mailInfo: MailSendInfo [HasRestrictions=true]`
+- `C_SecureTransfer.ShouldShowTradeRMTWarning() -> shouldShow: bool [HasRestrictions=true]`
+- `C_SecureTransfer.TakeMailMoney() ->  [HasRestrictions=true]`
+- `C_Tutorial.SendTutorialStartButtonTelem(skipTutorial: bool) ->  [HasRestrictions=true, SecretArguments=AllowedWhenUntainted]`
+- `GetCreditsDisplayInfo() -> info: table<CreditsDisplayInfo>`
+- `GetCursorCenterPosition() -> posX: number, posY: number`
+- `GetOffhandHitModifier() -> result: number [SecretWhenUnitStatsRestricted=true]`
+- `GetPetCritChance() -> meleeCrit: number, spellCrit: number [SecretWhenUnitStatsRestricted=true]`
+- `GetPetDodgeChance() -> result: number [SecretWhenUnitStatsRestricted=true]`
+- `IsCursorVisible() -> visible: bool`
+- `enumeration SdToggleUsageLocationUI {BeforeLogin=0, CharacterCreation=1, BarberShop=2, OptionsMenu=3}`
+- `event EXTERNAL_EVENT_LAUNCH_URL_RESULT(result: bool) [SynchronousEvent=true]`
+- `event EXTERNAL_EVENT_URL_CHANGED() [SynchronousEvent=true]`
+- `event MAIL_OPEN_ALL_CANCELED() [SynchronousEvent=true]`
+- `event PLAYER_LEVEL_UP(level: number, healthDelta: number, powerDelta: number, numNewTalents: number, numNewPvpTalentSlots: number, strengthDelta: number, agilityDelta: number, staminaDelta: number, intellectDelta: number, spiritDelta: number) [SynchronousEvent=true]`
+- `event SECURE_TRANSFER_CONFIRM_TAKE_MAIL_MONEY() [SynchronousEvent=true]`
+- `event SHARD_TRANSFER_CANCELLED() [SynchronousEvent=true]`
+- `structure CreditsDisplayInfo {isDefault: bool, creditsFileID: number, keyArt: string, background: string, name: string, logo: fileID, soundKit: number?}`
+- `structure GroupBuffItem {spellID: number, displaySpellID: number, name: cstring, iconID: fileID, flags: GroupBuffItemFlags, isKnown: bool}`
+- `structure MailReceiveInfo {sender: string, money: number}`
+- `structure MailSendInfo {target: string, sendMoney: number}`
+- `structure PVPScoreInfo {name: string, guid: WOWGUID, killingBlows: number, honorableKills: number, deaths: number, honorGained: number, faction: number, raceName: string, gender: number, className: string, classToken: string, damageDone: number, healingDone: number, rating: number, ratingChange: number, prematchMMR: number, mmrChange: number, postmatchMMR: number, talentSpec: string, honorLevel: number, roleAssigned: number, stats: table<PVPStatInfo>}`
+
+## Documented signatures: removed (8)
+
+- `C_GameRules.SetSDHDToggleValue(setToSD: bool) ->  [SecretArguments=AllowedWhenUntainted]`
+- `C_GamepadTargeting.HasReticleHoverTarget() -> hasReticleHoverTarget: bool`
+- `C_SecureTransfer.GetMailInfo() -> mailInfo: MailInfo [HasRestrictions=true]`
+- `event EXTERNAL_EVENT_LAUNCH_URL_FAILED() [SynchronousEvent=true]`
+- `event PLAYER_LEVEL_UP(level: number, healthDelta: number, powerDelta: number, numNewTalents: number, numNewPvpTalentSlots: number, strengthDelta: number, agilityDelta: number, staminaDelta: number, intellectDelta: number) [SynchronousEvent=true]`
+- `structure GroupBuffItem {spellID: number, name: cstring, iconID: fileID, flags: GroupBuffItemFlags, isKnown: bool}`
+- `structure MailInfo {target: string, sendMoney: number}`
+- `structure PVPScoreInfo {name: string, guid: WOWGUID, killingBlows: number, honorableKills: number, deaths: number, honorGained: number, faction: number, raceName: string, className: string, classToken: string, damageDone: number, healingDone: number, rating: number, ratingChange: number, prematchMMR: number, mmrChange: number, postmatchMMR: number, talentSpec: string, honorLevel: number, roleAssigned: number, stats: table<PVPStatInfo>}`

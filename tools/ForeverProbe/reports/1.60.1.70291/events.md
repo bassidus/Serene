@@ -6,9 +6,9 @@ Each line is one argument pattern and how often it came. Unit and power tokens a
 
 ## ACTION_RANGE_CHECK_UPDATE
 
-combat, 22 recorded:
+combat, 161 recorded:
 
-- 22x `number, boolean, boolean`
+- 161x `number, boolean, boolean`
 
 nocombat, 300 recorded:
 
@@ -16,133 +16,170 @@ nocombat, 300 recorded:
 
 ## BAG_UPDATE_DELAYED
 
-nocombat, 17 recorded:
+combat, 1 recorded:
 
-- 17x `(none)`
+- 1x `(none)`
+
+nocombat, 107 recorded:
+
+- 107x `(none)`
 
 ## CHAT_MSG_CHANNEL
 
-nocombat, 4 recorded:
+combat, 8 recorded:
 
-- 4x `string, string, string, string, string, string, number, number, string, number, number, string, number, boolean, boolean, boolean`
+- 8x `string, string, string, string, string, string, number, number, string, number, number, string, number, boolean, boolean, boolean`
+
+nocombat, 148 recorded:
+
+- 148x `string, string, string, string, string, string, number, number, string, number, number, string, number, boolean, boolean, boolean`
 
 ## CHAT_MSG_COMBAT_XP_GAIN
 
-combat, 6 recorded:
+combat, 33 recorded:
 
-- 6x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
-
-nocombat, 2 recorded:
-
-- 2x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
-
-## CHAT_MSG_LOOT
+- 33x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
 
 nocombat, 5 recorded:
 
-- 5x `string, string, string, string, string, string, number, number, string, number, number, string, number, boolean, boolean, boolean`
+- 5x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
+
+## CHAT_MSG_LOOT
+
+combat, 2 recorded:
+
+- 2x `string, string, string, string, string, string, number, number, string, number, number, string, number, boolean, boolean, boolean`
+
+nocombat, 61 recorded:
+
+- 61x `string, string, string, string, string, string, number, number, string, number, number, string, number, boolean, boolean, boolean`
 
 ## CHAT_MSG_MONSTER_SAY
+
+combat, 12 recorded:
+
+- 12x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
+
+nocombat, 7 recorded:
+
+- 7x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
+
+## CHAT_MSG_SAY
+
+nocombat, 1 recorded:
+
+- 1x `string, string, string, string, string, string, number, number, string, number, number, string, number, boolean, boolean, boolean`
+
+## CHAT_MSG_SYSTEM
 
 combat, 3 recorded:
 
 - 3x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
 
+nocombat, 66 recorded:
+
+- 66x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
+
+## CHAT_MSG_WHISPER
+
 nocombat, 1 recorded:
 
-- 1x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
-
-## CHAT_MSG_SYSTEM
-
-combat, 1 recorded:
-
-- 1x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
-
-nocombat, 11 recorded:
-
-- 11x `string, string, string, string, string, string, number, number, string, number, number, nil, number, boolean, boolean, boolean`
+- 1x `string, string, string, string, string, string, number, number, string, number, number, string, number, boolean, boolean, boolean`
 
 ## COMBAT_TEXT_UPDATE
 
-combat, 45 recorded:
+combat, 163 recorded:
 
-- 45x `string`
+- 163x `string`
 
-nocombat, 6 recorded:
+nocombat, 27 recorded:
 
-- 6x `string`
+- 27x `string`
 
 ## LOOT_READY
 
-nocombat, 9 recorded:
+combat, 6 recorded:
 
-- 9x `boolean`
+- 6x `boolean`
+
+nocombat, 66 recorded:
+
+- 66x `boolean`
 
 ## NAME_PLATE_UNIT_ADDED
 
-combat, 15 recorded:
-
-- 15x `nameplateN`
-
-nocombat, 68 recorded:
+combat, 68 recorded:
 
 - 68x `nameplateN`
 
+nocombat, 300 recorded:
+
+- 300x `nameplateN`
+
 ## NAME_PLATE_UNIT_REMOVED
 
-combat, 20 recorded:
+combat, 97 recorded:
 
-- 20x `nameplateN`
+- 97x `nameplateN`
 
-nocombat, 63 recorded:
+nocombat, 300 recorded:
 
-- 63x `nameplateN`
+- 300x `nameplateN`
 
 ## PLAYER_REGEN_DISABLED
 
-nocombat, 8 recorded:
+nocombat, 31 recorded:
 
-- 8x `(none)`
+- 31x `(none)`
 
 ## PLAYER_REGEN_ENABLED
 
-nocombat, 8 recorded:
+nocombat, 31 recorded:
 
-- 8x `(none)`
+- 31x `(none)`
 
 ## PLAYER_TARGET_CHANGED
 
-combat, 11 recorded:
+combat, 54 recorded:
 
-- 11x `(none)`
+- 54x `(none)`
 
-nocombat, 34 recorded:
+nocombat, 146 recorded:
 
-- 34x `(none)`
+- 146x `(none)`
 
 ## QUEST_LOG_UPDATE
 
-nocombat, 45 recorded:
+combat, 2 recorded:
 
-- 45x `(none)`
+- 2x `(none)`
+
+nocombat, 132 recorded:
+
+- 132x `(none)`
 
 ## QUEST_WATCH_UPDATE
 
-nocombat, 4 recorded:
+combat, 1 recorded:
 
-- 4x `number`
+- 1x `number`
+
+nocombat, 24 recorded:
+
+- 24x `number`
 
 ## SPELL_UPDATE_COOLDOWN
 
-combat, 112 recorded:
+combat, 300 recorded:
 
-- 112x `number, nil, number, number, nil`
+- 300x `number, nil, number, number, nil`
 
-nocombat, 23 recorded:
+nocombat, 113 recorded:
 
-- 8x `nil, nil, nil, nil, nil`
-- 9x `number, nil, nil, nil, nil`
-- 5x `number, nil, number, number, nil`
+- 16x `nil, nil, nil, nil, nil`
+- 54x `number, nil, nil, nil, nil`
+- 1x `number, nil, nil, nil, number`
+- 41x `number, nil, number, number, nil`
 - 1x `number, nil, number, number, number`
 
 ## SPELL_UPDATE_USABLE
@@ -157,29 +194,29 @@ nocombat, 300 recorded:
 
 ## UI_ERROR_MESSAGE
 
-combat, 2 recorded:
+combat, 11 recorded:
 
-- 2x `number, string`
+- 11x `number, string`
 
-nocombat, 3 recorded:
+nocombat, 16 recorded:
 
-- 3x `number, string`
+- 16x `number, string`
 
 ## UNIT_AURA
 
-combat, 37 recorded:
+combat, 216 recorded:
 
-- 17x `nameplateN, table`
-- 2x `pet, table`
-- 1x `player, table`
-- 16x `target, table`
-- 1x `targettarget, table`
+- 108x `nameplateN, table`
+- 4x `pet, table`
+- 13x `player, table`
+- 79x `target, table`
+- 12x `targettarget, table`
 
-nocombat, 10 recorded:
+nocombat, 44 recorded:
 
-- 1x `nameplateN, table`
-- 2x `pet, table`
-- 7x `player, table`
+- 19x `nameplateN, table`
+- 4x `pet, table`
+- 21x `player, table`
 
 ## UNIT_COMBAT
 
@@ -198,9 +235,30 @@ combat, 300 recorded:
 - 1x `targettarget, HEAL, string, number, number`
 - 37x `targettarget, WOUND, string, number, number`
 
-nocombat, 1 recorded:
+nocombat, 141 recorded:
 
-- 1x `player, WOUND, string, number, number`
+- 4x `nameplateN, MISS, string, number, number`
+- 2x `nameplateN, PARRY, string, number, number`
+- 120x `nameplateN, WOUND, string, number, number`
+- 1x `pet, HEAL, string, number, number`
+- 1x `player, HEAL, string, number, number`
+- 4x `player, WOUND, string, number, number`
+- 2x `target, DODGE, string, number, number`
+- 2x `target, WOUND, string, number, number`
+- 1x `targettarget, DODGE, string, number, number`
+- 4x `targettarget, WOUND, string, number, number`
+
+## UNIT_FACTION
+
+combat, 1 recorded:
+
+- 1x `nameplateN`
+
+nocombat, 25 recorded:
+
+- 21x `nameplateN`
+- 2x `softenemy`
+- 2x `target`
 
 ## UNIT_HEALTH
 
@@ -212,42 +270,45 @@ combat, 300 recorded:
 - 84x `target`
 - 59x `targettarget`
 
-nocombat, 66 recorded:
+nocombat, 291 recorded:
 
-- 1x `nameplateN`
-- 7x `pet`
-- 58x `player`
+- 129x `nameplateN`
+- 19x `pet`
+- 133x `player`
+- 1x `softenemy`
+- 5x `target`
+- 4x `targettarget`
 
 ## UNIT_LEVEL
-
-nocombat, 7 recorded:
-
-- 5x `nameplateN`
-- 1x `pet`
-- 1x `player`
-
-## UNIT_MAXHEALTH
-
-nocombat, 8 recorded:
-
-- 3x `pet`
-- 3x `player`
-- 1x `softfriend`
-- 1x `target`
-
-## UNIT_MAXPOWER
-
-nocombat, 2 recorded:
-
-- 1x `pet, MANA`
-- 1x `player, MANA`
-
-## UNIT_NAME_UPDATE
 
 nocombat, 9 recorded:
 
 - 5x `nameplateN`
-- 4x `pet`
+- 2x `pet`
+- 2x `player`
+
+## UNIT_MAXHEALTH
+
+nocombat, 25 recorded:
+
+- 11x `pet`
+- 11x `player`
+- 1x `softfriend`
+- 2x `target`
+
+## UNIT_MAXPOWER
+
+nocombat, 4 recorded:
+
+- 2x `pet, MANA`
+- 2x `player, MANA`
+
+## UNIT_NAME_UPDATE
+
+nocombat, 11 recorded:
+
+- 5x `nameplateN`
+- 6x `pet`
 
 ## UNIT_POWER_FREQUENT
 
@@ -264,120 +325,150 @@ nocombat, 300 recorded:
 
 ## UNIT_POWER_UPDATE
 
-combat, 156 recorded:
+combat, 300 recorded:
 
 - 4x `nameplateN, MANA`
-- 80x `pet, MANA`
-- 36x `player, MANA`
+- 152x `pet, MANA`
+- 79x `player, MANA`
 - 2x `target, MANA`
-- 34x `targettarget, MANA`
+- 63x `targettarget, MANA`
 
-nocombat, 57 recorded:
+nocombat, 300 recorded:
 
-- 28x `pet, MANA`
-- 29x `player, MANA`
+- 4x `nameplateN, MANA`
+- 108x `pet, MANA`
+- 185x `player, MANA`
+- 3x `target, MANA`
 
 ## UNIT_SPELLCAST_INTERRUPTED
 
-combat, 9 recorded:
+combat, 37 recorded:
 
-- 1x `nameplateN, SECRET, SECRET, nil, string`
-- 4x `pet, string, number, nil, string`
-- 3x `player, string, number, nil, nil`
-- 1x `target, SECRET, SECRET, nil, string`
+- 4x `nameplateN, SECRET, SECRET, nil, string`
+- 18x `pet, string, number, nil, string`
+- 6x `player, string, number, nil, nil`
+- 3x `player, string, number, nil, string`
+- 2x `target, SECRET, SECRET, nil, string`
+- 3x `targettarget, string, number, nil, nil`
+- 1x `targettarget, string, number, nil, string`
+
+nocombat, 8 recorded:
+
+- 6x `player, string, number, nil, nil`
+- 2x `player, string, number, nil, string`
 
 ## UNIT_SPELLCAST_START
 
-combat, 87 recorded:
+combat, 300 recorded:
 
-- 3x `nameplateN, SECRET, SECRET, string`
-- 44x `pet, string, number, string`
-- 20x `player, string, number, string`
-- 3x `target, SECRET, SECRET, string`
-- 17x `targettarget, string, number, string`
+- 24x `nameplateN, SECRET, SECRET, string`
+- 138x `pet, string, number, string`
+- 65x `player, string, number, string`
+- 13x `target, SECRET, SECRET, string`
+- 60x `targettarget, string, number, string`
 
-nocombat, 7 recorded:
+nocombat, 54 recorded:
 
-- 2x `pet, string, number, string`
-- 5x `player, string, number, string`
+- 14x `pet, string, number, string`
+- 39x `player, string, number, string`
+- 1x `target, SECRET, SECRET, string`
 
 ## UNIT_SPELLCAST_STOP
 
-combat, 94 recorded:
+combat, 300 recorded:
 
-- 3x `nameplateN, SECRET, SECRET, string`
-- 46x `pet, string, number, string`
-- 24x `player, string, number, string`
-- 3x `target, SECRET, SECRET, string`
-- 18x `targettarget, string, number, string`
+- 24x `nameplateN, SECRET, SECRET, string`
+- 137x `pet, string, number, string`
+- 77x `player, string, number, string`
+- 12x `target, SECRET, SECRET, string`
+- 50x `targettarget, string, number, string`
 
-nocombat, 1 recorded:
+nocombat, 20 recorded:
 
-- 1x `player, string, number, string`
+- 1x `nameplateN, SECRET, SECRET, string`
+- 18x `player, string, number, string`
+- 1x `target, SECRET, SECRET, string`
 
 ## UNIT_SPELLCAST_SUCCEEDED
 
-combat, 86 recorded:
+combat, 300 recorded:
 
-- 2x `nameplateN, SECRET, SECRET, string`
-- 42x `pet, string, number, string`
-- 23x `player, string, number, string`
-- 2x `target, SECRET, SECRET, string`
-- 17x `targettarget, string, number, string`
-
-nocombat, 4 recorded:
-
+- 20x `nameplateN, SECRET, SECRET, string`
+- 133x `pet, string, number, string`
 - 3x `player, string, number, nil`
-- 1x `player, string, number, string`
+- 80x `player, string, number, string`
+- 10x `target, SECRET, SECRET, string`
+- 1x `targettarget, string, number, nil`
+- 53x `targettarget, string, number, string`
+
+nocombat, 29 recorded:
+
+- 1x `nameplateN, SECRET, SECRET, string`
+- 1x `pet, string, number, nil`
+- 10x `player, string, number, nil`
+- 16x `player, string, number, string`
+- 1x `target, SECRET, SECRET, string`
 
 ## UNIT_TARGET
 
-combat, 31 recorded:
+combat, 248 recorded:
 
-- 9x `nameplateN`
-- 4x `pet`
-- 7x `player`
-- 10x `target`
-- 1x `targettarget`
+- 74x `nameplateN`
+- 42x `pet`
+- 46x `player`
+- 74x `target`
+- 12x `targettarget`
 
-nocombat, 46 recorded:
+nocombat, 214 recorded:
 
-- 2x `nameplateN`
-- 8x `pet`
-- 36x `player`
+- 5x `focus`
+- 5x `focustarget`
+- 7x `nameplateN`
+- 23x `pet`
+- 150x `player`
+- 1x `softenemy`
+- 1x `softfriend`
+- 14x `target`
+- 8x `targettarget`
 
 ## UNIT_THREAT_LIST_UPDATE
 
-combat, 138 recorded:
+combat, 300 recorded:
 
-- 69x `nameplateN`
-- 69x `target`
+- 152x `nameplateN`
+- 148x `target`
 
-nocombat, 12 recorded:
+nocombat, 34 recorded:
 
-- 4x `nameplateN`
-- 7x `player`
-- 1x `target`
+- 8x `nameplateN`
+- 21x `player`
+- 5x `target`
 
 ## UNIT_THREAT_SITUATION_UPDATE
 
-combat, 14 recorded:
+combat, 182 recorded:
 
-- 3x `pet`
-- 8x `player`
-- 3x `targettarget`
+- 65x `pet`
+- 72x `player`
+- 45x `targettarget`
 
-nocombat, 19 recorded:
+nocombat, 72 recorded:
 
-- 5x `pet`
-- 14x `player`
+- 24x `pet`
+- 48x `player`
 
 ## UPDATE_MOUSEOVER_UNIT
 
-combat, 20 recorded:
+combat, 58 recorded:
 
-- 20x `(none)`
+- 58x `(none)`
 
-nocombat, 91 recorded:
+nocombat, 300 recorded:
 
-- 91x `(none)`
+- 300x `(none)`
+
+## UPDATE_SHAPESHIFT_FORM
+
+nocombat, 2 recorded:
+
+- 2x `(none)`

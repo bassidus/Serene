@@ -1,0 +1,195 @@
+# API changes, build 1.60.1.70374
+
+Client 1.60.1 (build 70374, Oct 12 2026), Interface 16001.
+
+Compared with build 1.60.1.70338. Changed signatures show as removed and added.
+
+## API names: added (164)
+
+- `ForeverDungeonJournal_OnAddonCompartmentClick`
+- `ForeverDungeonJournal_OnAddonCompartmentEnter`
+- `ForeverDungeonJournal_OnAddonCompartmentLeave`
+- `ForeverDungeonJournal_OpenHoveredItem`
+- `ForeverDungeonJournal_Toggle`
+- `frame ForeverDungeonJournalBossListScroll`
+- `frame ForeverDungeonJournalBossListScrollScrollBar`
+- `frame ForeverDungeonJournalBossListScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalBossListScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalBossListScrollScrollBarThumbTexture`
+- `frame ForeverDungeonJournalCompareTooltip1`
+- `frame ForeverDungeonJournalCompareTooltip1StatusBar`
+- `frame ForeverDungeonJournalCompareTooltip1StatusBarTexture`
+- `frame ForeverDungeonJournalCompareTooltip1TextLeft1`
+- `frame ForeverDungeonJournalCompareTooltip1TextLeft2`
+- `frame ForeverDungeonJournalCompareTooltip1TextRight1`
+- `frame ForeverDungeonJournalCompareTooltip1TextRight2`
+- `frame ForeverDungeonJournalCompareTooltip1Texture1`
+- `frame ForeverDungeonJournalCompareTooltip1Texture10`
+- `frame ForeverDungeonJournalCompareTooltip1Texture11`
+- `frame ForeverDungeonJournalCompareTooltip1Texture12`
+- `frame ForeverDungeonJournalCompareTooltip1Texture13`
+- `frame ForeverDungeonJournalCompareTooltip1Texture14`
+- `frame ForeverDungeonJournalCompareTooltip1Texture15`
+- `frame ForeverDungeonJournalCompareTooltip1Texture16`
+- `frame ForeverDungeonJournalCompareTooltip1Texture17`
+- `frame ForeverDungeonJournalCompareTooltip1Texture18`
+- `frame ForeverDungeonJournalCompareTooltip1Texture19`
+- `frame ForeverDungeonJournalCompareTooltip1Texture2`
+- `frame ForeverDungeonJournalCompareTooltip1Texture20`
+- `frame ForeverDungeonJournalCompareTooltip1Texture21`
+- `frame ForeverDungeonJournalCompareTooltip1Texture22`
+- `frame ForeverDungeonJournalCompareTooltip1Texture23`
+- `frame ForeverDungeonJournalCompareTooltip1Texture24`
+- `frame ForeverDungeonJournalCompareTooltip1Texture25`
+- `frame ForeverDungeonJournalCompareTooltip1Texture26`
+- `frame ForeverDungeonJournalCompareTooltip1Texture27`
+- `frame ForeverDungeonJournalCompareTooltip1Texture28`
+- `frame ForeverDungeonJournalCompareTooltip1Texture29`
+- `frame ForeverDungeonJournalCompareTooltip1Texture3`
+- `frame ForeverDungeonJournalCompareTooltip1Texture30`
+- `frame ForeverDungeonJournalCompareTooltip1Texture4`
+- `frame ForeverDungeonJournalCompareTooltip1Texture5`
+- `frame ForeverDungeonJournalCompareTooltip1Texture6`
+- `frame ForeverDungeonJournalCompareTooltip1Texture7`
+- `frame ForeverDungeonJournalCompareTooltip1Texture8`
+- `frame ForeverDungeonJournalCompareTooltip1Texture9`
+- `frame ForeverDungeonJournalCompareTooltip2`
+- `frame ForeverDungeonJournalCompareTooltip2StatusBar`
+- `frame ForeverDungeonJournalCompareTooltip2StatusBarTexture`
+- `frame ForeverDungeonJournalCompareTooltip2TextLeft1`
+- `frame ForeverDungeonJournalCompareTooltip2TextLeft2`
+- `frame ForeverDungeonJournalCompareTooltip2TextRight1`
+- `frame ForeverDungeonJournalCompareTooltip2TextRight2`
+- `frame ForeverDungeonJournalCompareTooltip2Texture1`
+- `frame ForeverDungeonJournalCompareTooltip2Texture10`
+- `frame ForeverDungeonJournalCompareTooltip2Texture11`
+- `frame ForeverDungeonJournalCompareTooltip2Texture12`
+- `frame ForeverDungeonJournalCompareTooltip2Texture13`
+- `frame ForeverDungeonJournalCompareTooltip2Texture14`
+- `frame ForeverDungeonJournalCompareTooltip2Texture15`
+- `frame ForeverDungeonJournalCompareTooltip2Texture16`
+- `frame ForeverDungeonJournalCompareTooltip2Texture17`
+- `frame ForeverDungeonJournalCompareTooltip2Texture18`
+- `frame ForeverDungeonJournalCompareTooltip2Texture19`
+- `frame ForeverDungeonJournalCompareTooltip2Texture2`
+- `frame ForeverDungeonJournalCompareTooltip2Texture20`
+- `frame ForeverDungeonJournalCompareTooltip2Texture21`
+- `frame ForeverDungeonJournalCompareTooltip2Texture22`
+- `frame ForeverDungeonJournalCompareTooltip2Texture23`
+- `frame ForeverDungeonJournalCompareTooltip2Texture24`
+- `frame ForeverDungeonJournalCompareTooltip2Texture25`
+- `frame ForeverDungeonJournalCompareTooltip2Texture26`
+- `frame ForeverDungeonJournalCompareTooltip2Texture27`
+- `frame ForeverDungeonJournalCompareTooltip2Texture28`
+- `frame ForeverDungeonJournalCompareTooltip2Texture29`
+- `frame ForeverDungeonJournalCompareTooltip2Texture3`
+- `frame ForeverDungeonJournalCompareTooltip2Texture30`
+- `frame ForeverDungeonJournalCompareTooltip2Texture4`
+- `frame ForeverDungeonJournalCompareTooltip2Texture5`
+- `frame ForeverDungeonJournalCompareTooltip2Texture6`
+- `frame ForeverDungeonJournalCompareTooltip2Texture7`
+- `frame ForeverDungeonJournalCompareTooltip2Texture8`
+- `frame ForeverDungeonJournalCompareTooltip2Texture9`
+- `frame ForeverDungeonJournalFrame`
+- `frame ForeverDungeonJournalFrameScrollBar`
+- `frame ForeverDungeonJournalFrameScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalFrameScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalFrameScrollBarThumbTexture`
+- `frame ForeverDungeonJournalFrameText`
+- `frame ForeverDungeonJournalHomeScroll`
+- `frame ForeverDungeonJournalHomeScrollScrollBar`
+- `frame ForeverDungeonJournalHomeScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalHomeScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalHomeScrollScrollBarThumbTexture`
+- `frame ForeverDungeonJournalLootScroll`
+- `frame ForeverDungeonJournalLootScrollScrollBar`
+- `frame ForeverDungeonJournalLootScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalLootScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalLootScrollScrollBarThumbTexture`
+- `frame ForeverDungeonJournalOptionsPanel`
+- `frame ForeverDungeonJournalOptionsPanelText`
+- `frame ForeverDungeonJournalQualityScanTooltip`
+- `frame ForeverDungeonJournalQualityScanTooltipStatusBar`
+- `frame ForeverDungeonJournalQualityScanTooltipStatusBarTexture`
+- `frame ForeverDungeonJournalQualityScanTooltipTextLeft1`
+- `frame ForeverDungeonJournalQualityScanTooltipTextLeft2`
+- `frame ForeverDungeonJournalQualityScanTooltipTextRight1`
+- `frame ForeverDungeonJournalQualityScanTooltipTextRight2`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture1`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture10`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture11`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture12`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture13`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture14`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture15`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture16`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture17`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture18`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture19`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture2`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture20`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture21`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture22`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture23`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture24`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture25`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture26`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture27`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture28`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture29`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture3`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture30`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture4`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture5`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture6`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture7`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture8`
+- `frame ForeverDungeonJournalQualityScanTooltipTexture9`
+- `frame ForeverDungeonJournalQuestDetailScroll`
+- `frame ForeverDungeonJournalQuestDetailScrollScrollBar`
+- `frame ForeverDungeonJournalQuestDetailScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalQuestDetailScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalQuestDetailScrollScrollBarThumbTexture`
+- `frame ForeverDungeonJournalQuestDetailScrollText`
+- `frame ForeverDungeonJournalQuestListScroll`
+- `frame ForeverDungeonJournalQuestListScrollScrollBar`
+- `frame ForeverDungeonJournalQuestListScrollScrollBarScrollDownButton`
+- `frame ForeverDungeonJournalQuestListScrollScrollBarScrollUpButton`
+- `frame ForeverDungeonJournalQuestListScrollScrollBarThumbTexture`
+- `frame LibDBIcon10_ForeverDungeonJournal`
+- `frame SereneDimCount`
+- `frame table: 00000000ABAC4EB0`
+- `frame table: 00000000AE082BB0`
+- `frame table: 00000000B93A4330`
+- `frame table: 00000000B94D4AF0`
+- `frame table: 00000000B95713C0`
+- `frame table: 00000000CE4751C0`
+- `frame table: 00000000CE499860`
+- `frame table: 00000000CE4A57E0`
+- `frame table: 00000000CE4A99D0`
+- `frame table: 00000000CE4B50E0`
+- `frame table: 00000000CE4DFA80`
+- `frame table: 00000000CE4F0A50`
+
+## API names: removed (14)
+
+- `frame AceComm30Frame`
+- `frame LibDBIcon10_BugSack`
+- `frame table: 000000006AAB1AC0`
+- `frame table: 000000006AB3F170`
+- `frame table: 000000007C0733C0`
+- `frame table: 000000007C07DEA0`
+- `frame table: 000000007C084290`
+- `frame table: 000000007C08D200`
+- `frame table: 000000007C0A93D0`
+- `frame table: 000000007C0B9180`
+- `frame table: 000000007C0E51A0`
+- `frame table: 000000007CA26030`
+- `frame table: 000000007E939470`
+- `frame table: 00000000BBCF0FD0`
+
+## Documented signatures: added (0)
+
+
+## Documented signatures: removed (0)
+

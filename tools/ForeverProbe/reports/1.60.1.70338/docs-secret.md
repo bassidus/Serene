@@ -1,0 +1,538 @@
+# Secret rules in the API documentation, build 1.60.1.70338
+
+Client 1.60.1 (build 70338, Oct  9 2026), Interface 16001.
+
+Every documented function, event or table whose own keys, or whose arguments, returns, payload or fields, mention secrets. The full entries are in docs/.
+
+- function `Copy` (AbbreviatedNumberFormatterAPI): ReturnsNeverSecret=true
+- function `C_ActionBar.GetActionCharges` (ActionBar): RequiresValidActionSlot=true, SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_ActionBar.GetActionCooldown` (ActionBar): RequiresValidActionSlot=true, SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_ActionBar.GetActionDisplayCount` (ActionBar): RequiresValidActionSlot=true, SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_ActionBar.GetActionLossOfControlCooldownInfo` (ActionBar): RequiresValidActionSlot=true, SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_ActionBar.GetActionUseCount` (ActionBar): RequiresValidActionSlot=true, SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_Calendar.EventGetInvite` (Calendar): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Calendar.EventGetInviteResponseTime` (Calendar): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Calendar.GetClubCalendarEvents` (Calendar): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Calendar.GetDayEvent` (Calendar): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_ChatInfo.GetChatLineSenderGUID` (ChatInfo): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_ChatInfo.GetChatLineSenderName` (ChatInfo): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_ChatInfo.GetChatLineText` (ChatInfo): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- event `CHAT_MSG_AFK` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_BN` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_BN_INLINE_TOAST_ALERT` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_BN_INLINE_TOAST_BROADCAST` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_BN_INLINE_TOAST_BROADCAST_INFORM` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_BN_INLINE_TOAST_CONVERSATION` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_BN_WHISPER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_BN_WHISPER_INFORM` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_BN_WHISPER_PLAYER_OFFLINE` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_CHANNEL` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_CHANNEL_JOIN` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_CHANNEL_LEAVE` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_CHANNEL_LIST` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_CHANNEL_NOTICE` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_CHANNEL_NOTICE_USER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_COMMUNITIES_CHANNEL` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_DND` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_EMOTE` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_GUILD` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_IGNORED` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_INSTANCE_CHAT` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_INSTANCE_CHAT_LEADER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_MONSTER_EMOTE` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_MONSTER_PARTY` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_MONSTER_SAY` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_MONSTER_WHISPER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_MONSTER_YELL` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_OFFICER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_OPENING` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_PARTY` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_PARTY_LEADER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_PING` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_RAID` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_RAID_BOSS_EMOTE` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_RAID_BOSS_WHISPER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_RAID_LEADER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_RAID_WARNING` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_SAY` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_SKILL` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_SYSTEM` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_TARGETICONS` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_TEXT_EMOTE` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_TRADESKILLS` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_VOICE_TEXT` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_WHISPER` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_WHISPER_INFORM` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `CHAT_MSG_YELL` (ChatInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- function `C_Club.GetClubInfo` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetClubMembers` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetInfoFromLastCommunityChatLine` (Club): MayReturnNothing=true, RequiresClubsInitialized=true, SecretInChatMessagingLockdown=true
+- function `C_Club.GetMemberInfo` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetMessageInfo` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetMessageRanges` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetMessagesBefore` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetMessagesInRange` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetStreamInfo` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetStreams` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.GetSubscribedClubs` (Club): RequiresClubsInitialized=true, SecretInChatMessagingLockdown=true
+- function `C_Club.IsBeginningOfStream` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_Club.RequestMoreMessagesBefore` (Club): RequiresClubsInitialized=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_CombatAudioAlert.AddToKnownTargetingList` (CombatAudioAlert): HasRestrictions=true, SecretArguments=AllowedWhenUntainted
+  returns - `added`: bool [SecretValue=true]
+- function `C_CombatAudioAlert.RemoveFromKnownTargetingList` (CombatAudioAlert): HasRestrictions=true, SecretArguments=AllowedWhenUntainted
+  returns - `removed`: bool [SecretValue=true]
+- function `C_CombatText.GetCurrentEventInfo` (CombatText): SecretReturns=true
+- function `C_DamageMeter.GetCombatSessionFromID` (DamageMeter): SecretArguments=AllowedWhenUntainted, SecretWhenInCombat=true
+- function `C_DamageMeter.GetCombatSessionFromType` (DamageMeter): SecretArguments=AllowedWhenUntainted, SecretWhenInCombat=true
+- function `C_DamageMeter.GetCombatSessionSourceFromID` (DamageMeter): SecretArguments=AllowedWhenUntainted, SecretWhenInCombat=true
+- function `C_DamageMeter.GetCombatSessionSourceFromType` (DamageMeter): SecretArguments=AllowedWhenUntainted, SecretWhenInCombat=true
+- structure `DamageMeterCombatSource` (DamageMeter)
+  fields - `sourceGUID`: WOWGUID? [ConditionalSecret=true]
+  fields - `name`: cstring [ConditionalSecret=true]
+- function `Copy` (DurationTextBindingObjectAPI): ReturnsNeverSecret=true
+- function `GetFormattedText` (DurationTextBindingObjectAPI)
+  returns - `text`: string [ConditionalSecret=true]
+- function `GetFormattedTextColor` (DurationTextBindingObjectAPI): MayReturnNothing=true
+  returns - `color`: colorRGBA (ColorMixin) [ConditionalSecret=true]
+- function `HasSecretValues` (DurationTextBindingObjectAPI): ReturnsNeverSecret=true
+- function `C_EncounterTimeline.GetEventColor` (EncounterTimeline): RequiresValidTimelineEvent=true, SecretArguments=NotAllowed, SecretWhenEncounterEvent=true
+- function `C_EncounterTimeline.GetEventInfo` (EncounterTimeline): RequiresValidTimelineEvent=true, SecretArguments=NotAllowed, SecretWhenEncounterEvent=true
+- event `ENCOUNTER_TIMELINE_EVENT_ADDED` (EncounterTimeline): SecretWhenEncounterEvent=true, SynchronousEvent=true
+- structure `EncounterWarningInfo` (EncounterWarnings)
+  fields - `text`: cstring [SecretValue=true]
+  fields - `casterGUID`: WOWGUID [SecretValue=true]
+  fields - `casterName`: cstring [SecretValue=true]
+  fields - `targetGUID`: WOWGUID [SecretValue=true]
+  fields - `targetName`: cstring [SecretValue=true]
+  fields - `iconFileID`: number [SecretValue=true]
+  fields - `tooltipSpellID`: number [SecretValue=true]
+  fields - `isDeadly`: bool [SecretValue=true]
+  fields - `color`: colorRGBA (ColorMixin) [SecretValue=true]
+- function `GetCooldownDisplayDuration` (FrameAPICooldown): SecretReturnsForAspect={1=32768}
+- function `GetCooldownDuration` (FrameAPICooldown): SecretReturnsForAspect={1=32768}
+- function `GetCooldownTimes` (FrameAPICooldown): SecretReturnsForAspect={1=32768}
+- function `GetDrawBling` (FrameAPICooldown): SecretReturnsForAspect={1=524288}
+- function `GetDrawEdge` (FrameAPICooldown): SecretReturnsForAspect={1=524288}
+- function `GetDrawSwipe` (FrameAPICooldown): SecretReturnsForAspect={1=524288}
+- function `GetAlpha` (FrameAPIModelSceneFrameActorBase): SecretReturnsForAspect={1=128}
+- function `GetMinimumWidth` (FrameAPITooltip): SecretReturnsForAspect={1=131072}
+- function `GetPadding` (FrameAPITooltip): SecretReturnsForAspect={1=262144}
+- function `SetText` (FrameAPITooltip): SecretArguments=AllowedWhenTainted, SecretArgumentsAddAspect={1=8}
+  arguments - `text`: cstring [ConditionalSecret=true]
+  arguments - `alpha`: number [default=1, ConditionalSecret=true]
+  arguments - `wrap`: bool [default=false, ConditionalSecret=true]
+- event `GUILD_MOTD` (GuildInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- function `C_LFGList.GetActiveEntryInfo` (LFGList): MayReturnNothing=true, SecretInChatMessagingLockdown=true
+- function `C_LFGList.GetApplicantInfo` (LFGList): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_LFGList.GetSearchResultInfo` (LFGList): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_LFGList.GetSearchResultLeaderInfo` (LFGList): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_LFGList.GetSearchResultPlayerInfo` (LFGList): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_LossOfControl.GetActiveLossOfControlDataByUnit` (LossOfControl): SecretArguments=AllowedWhenUntainted, SecretWhenLossOfControlInfoRestricted=true
+- function `Copy` (LuaColorCurveObjectAPI): ReturnsNeverSecret=true
+- function `Evaluate` (LuaColorCurveObjectAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `EvaluateUnpacked` (LuaColorCurveObjectAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetPoint` (LuaColorCurveObjectAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `Copy` (LuaCurveObjectAPI): ReturnsNeverSecret=true
+- function `Evaluate` (LuaCurveObjectAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetPoint` (LuaCurveObjectAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `HasSecretValues` (LuaCurveObjectBaseAPI): ReturnsNeverSecret=true
+- function `Copy` (LuaDurationObjectAPI): ReturnsNeverSecret=true
+- function `EvaluateElapsedDuration` (LuaDurationObjectAPI): SecretArguments=AllowedWhenUntainted, SecretWhenCurveSecret=true
+- function `EvaluateElapsedPercent` (LuaDurationObjectAPI): SecretArguments=AllowedWhenUntainted, SecretWhenCurveSecret=true
+- function `EvaluateRemainingDuration` (LuaDurationObjectAPI): SecretArguments=AllowedWhenUntainted, SecretWhenCurveSecret=true
+- function `EvaluateRemainingPercent` (LuaDurationObjectAPI): SecretArguments=AllowedWhenUntainted, SecretWhenCurveSecret=true
+- function `EvaluateTotalDuration` (LuaDurationObjectAPI): SecretArguments=AllowedWhenUntainted, SecretWhenCurveSecret=true
+- function `FormatElapsedDuration` (LuaDurationObjectAPI): SecretArguments=AllowedWhenUntainted, SecretWhenNumericFormatterSecret=true
+- function `FormatRemainingDuration` (LuaDurationObjectAPI): SecretArguments=AllowedWhenUntainted, SecretWhenNumericFormatterSecret=true
+- function `FormatTotalDuration` (LuaDurationObjectAPI): SecretArguments=AllowedWhenUntainted, SecretWhenNumericFormatterSecret=true
+- function `HasSecretValues` (LuaDurationObjectAPI): ReturnsNeverSecret=true
+- function `table.count` (LuaTableExtensions): SecretArguments=AllowedWhenUntainted, SecretWhenLuaTableHasSecretKeys=true
+- function `table.getcountinfo` (LuaTableExtensions): SecretArguments=AllowedWhenUntainted, SecretWhenLuaTableHasSecretKeys=true
+- function `table.isempty` (LuaTableExtensions): SecretArguments=AllowedWhenUntainted, SecretWhenLuaTableHasSecretKeys=true
+- event `MINIMAP_PING` (Minimap): CallbackEvent=true, HasRestrictions=true, SecretPayloads=true
+- function `FormatNumber` (NumericFormatterAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `Copy` (NumericRuleFormatterAPI): ReturnsNeverSecret=true
+- event `READY_CHECK` (PartyInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- function `GetArmorPenetration` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetAttackPowerForStat` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetAvoidance` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetBlockChance` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetCombatRating` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetCombatRatingBonus` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetCritChance` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetCritChanceFromStat` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetDodgeChance` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetDodgeChanceFromAttribute` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetExpertise` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetExpertisePercent` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetGlancingBlowChance` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetGlancingBlowPenalty` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetHaste` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetHitModifier` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetLifesteal` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetManaRegen` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetMastery` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetMasteryEffect` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetMeleeHaste` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetModResilienceDamageReduction` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetOverrideAPBySpellPower` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetOverrideSpellPowerByAP` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetParryChance` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetParryChanceFromAttribute` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetPetHitChanceModifier` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetPetMeleeHaste` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetPetSpellBonusDamage` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetPetSpellHitChanceModifier` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetPowerRegen` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetPowerRegenForPowerType` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetPvpPowerDamage` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetPvpPowerHealing` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetRangedAttackPowerForStat` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetRangedCritChance` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetRangedHaste` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetRangedHitModifier` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetShieldBlock` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetSpeed` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetSpellBonusDamage` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetSpellBonusHealing` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetSpellCritChance` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetSpellCritChanceFromStat` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `GetSpellHitModifier` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetSpellPenetration` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetSturdiness` (PlayerScript): SecretWhenUnitStatsRestricted=true
+- function `GetVersatilityBonus` (PlayerScript): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `PlayerEffectiveAttackPower` (PlayerScript): MayReturnNothing=true, SecretWhenUnitStatsRestricted=true
+- function `C_PvP.GetArenaCrowdControlInfo` (PvpInfo): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenLossOfControlInfoRestricted=true
+- function `C_PvP.GetArenaOpponentSpec` (PvpInfo): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `C_PvP.GetScoreInfo` (PvpInfo): SecretArguments=AllowedWhenUntainted, SecretInActivePvPMatch=true
+- function `C_PvP.GetScoreInfoByPlayerGuid` (PvpInfo): SecretArguments=AllowedWhenUntainted, SecretInActivePvPMatch=true
+- function `GetNextAvailableRaidTargetMarkerIndex` (RaidMarkers): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `GetRaidTargetIndex` (RaidMarkers): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `IsRaidMarkerActive` (RaidMarkers): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_ScenarioInfo.GetUnitCriteriaProgressValues` (ScenarioInfo): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `CanApproximate` (SecondsFormatterAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `EvaluateDesiredUnitCount` (SecondsFormatterAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `EvaluateMaxInterval` (SecondsFormatterAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `EvaluateMinInterval` (SecondsFormatterAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `Format` (SecondsFormatterAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `FormatZero` (SecondsFormatterAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetScript` (SimpleAnimAPI): ChecksForbiddenAspects={1={Argument=self, Aspect=2}}, ConstSecretAccessor=true, RequiresSupportedScript=true, SecretArguments=AllowedWhenUntainted
+- function `HasScript` (SimpleAnimAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `GetFromAlpha` (SimpleAnimAlphaAPI): SecretReturnsForAspect={1=128}
+- function `GetToAlpha` (SimpleAnimAlphaAPI): SecretReturnsForAspect={1=128}
+- function `GetScript` (SimpleAnimGroupAPI): ChecksForbiddenAspects={1={Argument=self, Aspect=2}}, ConstSecretAccessor=true, RequiresSupportedScript=true, SecretArguments=AllowedWhenUntainted
+- function `HasScript` (SimpleAnimGroupAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `GetButtonState` (SimpleButtonAPI): SecretReturnsForAspect={1=2097152}
+- function `GetText` (SimpleButtonAPI): SecretReturnsForAspect={1=8}
+- function `IsEnabled` (SimpleButtonAPI): SecretReturnsForAspect={1=2097152}
+- function `GetCursorPosition` (SimpleEditBoxAPI): SecretReturnsForAspect={1=1024, 2=8}
+- function `GetDisplayText` (SimpleEditBoxAPI): MayReturnNothing=true, SecretReturnsForAspect={1=8}
+- function `GetNumber` (SimpleEditBoxAPI): SecretReturnsForAspect={1=8}
+- function `GetText` (SimpleEditBoxAPI): SecretReturnsForAspect={1=8}
+- function `GetUTF8CursorPosition` (SimpleEditBoxAPI): SecretReturnsForAspect={1=1024, 2=8}
+- function `IsSecureText` (SimpleEditBoxAPI): SecretReturnsForAspect={1=16}
+- function `GetFontObjectForAlphabet` (SimpleFontAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `CalculateScreenAreaFromCharacterSpan` (SimpleFontStringAPI): RequiresFontStringTextAccess=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=8}, SecretWhenAnchoringSecret=true
+- function `FindCharacterIndexAtCoordinate` (SimpleFontStringAPI): MayReturnNothing=true, RequiresFontStringTextAccess=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=8}, SecretWhenAnchoringSecret=true
+- function `GetNumLines` (SimpleFontStringAPI): SecretWhenAnchoringSecret=true
+- function `GetStringHeight` (SimpleFontStringAPI): SecretWhenAnchoringSecret=true
+- function `GetStringWidth` (SimpleFontStringAPI): SecretWhenAnchoringSecret=true
+- function `GetText` (SimpleFontStringAPI): SecretReturnsForAspect={1=8}
+- function `GetTextColor` (SimpleFontStringAPI): MayReturnNothing=true, SecretReturnsForAspect={1=2048, 2=128}
+- function `GetUnboundedStringWidth` (SimpleFontStringAPI): SecretWhenAnchoringSecret=true
+- function `GetUnboundedStringWidthForText` (SimpleFontStringAPI): SecretArguments=AllowedWhenUntainted, SecretWhenAnchoringSecret=true
+- function `GetWrappedWidth` (SimpleFontStringAPI): SecretWhenAnchoringSecret=true
+- function `IsTruncated` (SimpleFontStringAPI): SecretWhenAnchoringSecret=true
+- function `CanChangeAttribute` (SimpleFrameAPI): SecretReturnsForAspect={1=1}
+- function `ClearAttribute` (SimpleFrameAPI): IsProtectedFunction=true, SecretArguments=NotAllowed, SecretReturnsForAspect={1=1}
+- function `ExecuteAttribute` (SimpleFrameAPI): SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `GetAlpha` (SimpleFrameAPI): SecretReturnsForAspect={1=128}
+- function `GetAttribute` (SimpleFrameAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `GetBoundsRect` (SimpleFrameAPI)
+  returns - `left`: uiUnit [ConditionalSecret=true]
+  returns - `bottom`: uiUnit [ConditionalSecret=true]
+  returns - `width`: uiUnit [ConditionalSecret=true]
+  returns - `height`: uiUnit [ConditionalSecret=true]
+- function `GetChildren` (SimpleFrameAPI): SecretReturnsForAspect={1=1}
+- function `GetEffectiveAlpha` (SimpleFrameAPI): RequiresScriptObjectAlphaAccess=true, SecretReturnsForAspect={1=128}
+- function `GetEffectiveScale` (SimpleFrameAPI): SecretReturnsForAspect={1=64}
+- function `GetFrameLevel` (SimpleFrameAPI): SecretReturnsForAspect={1=256}
+- function `GetFrameStrata` (SimpleFrameAPI): SecretReturnsForAspect={1=16777216}
+- function `GetHighestFrameLevel` (SimpleFrameAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+  returns - `frameLevel`: number [ConditionalSecret=true]
+- function `GetID` (SimpleFrameAPI): SecretReturnsForAspect={1=2}
+- function `GetNumChildren` (SimpleFrameAPI): SecretReturnsForAspect={1=1}
+- function `GetNumRegions` (SimpleFrameAPI): SecretReturnsForAspect={1=1}
+- function `GetRegions` (SimpleFrameAPI): SecretReturnsForAspect={1=1}
+- function `GetScale` (SimpleFrameAPI): SecretReturnsForAspect={1=64}
+- function `IsDrawLayerEnabled` (SimpleFrameAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `IsEventRegistered` (SimpleFrameAPI): ChecksForbiddenAspects={1={Argument=self, Aspect=16}}, ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `IsShown` (SimpleFrameAPI): SecretReturnsForAspect={1=32}
+- function `IsToplevel` (SimpleFrameAPI): SecretReturnsForAspect={1=4}
+- function `IsVisible` (SimpleFrameAPI): SecretReturnsForAspect={1=32}
+- function `SetAttribute` (SimpleFrameAPI): SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `SetAttributeNoHandler` (SimpleFrameAPI): SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `CanBeAccessedInContext` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `GetAccessRestrictions` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `GetForbiddenAspects` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `GetInheritableForbiddenAspects` (SimpleFrameScriptObjectAPI): SecretArguments=NotAllowed, SecretReturnsForAspect={1=1}
+- function `GetName` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `GetObjectType` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `HasAccessConstraints` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `HasAnyAccessRestrictions` (SimpleFrameScriptObjectAPI): SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `HasAnyForbiddenAspects` (SimpleFrameScriptObjectAPI): SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `HasAnySecretAspect` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `HasSecretAspect` (SimpleFrameScriptObjectAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `HasSecretValues` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `IsForbidden` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `IsObjectType` (SimpleFrameScriptObjectAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `IsPreventingSecretValues` (SimpleFrameScriptObjectAPI): SecretReturnsForAspect={1=1}
+- function `GetFont` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetFontObject` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetIndentedWordWrap` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetJustifyH` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetJustifyV` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetShadowColor` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetShadowOffset` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetSpacing` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetTextColor` (SimpleHTMLAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetTextData` (SimpleHTMLAPI): SecretReturnsForAspect={1=8}
+- function `GetFontStringByID` (SimpleMessageFrameAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetDebugName` (SimpleObjectAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `GetParent` (SimpleObjectAPI): SecretReturnsForAspect={1=1}
+- function `GetAlpha` (SimpleRegionAPI): SecretReturnsForAspect={1=128}
+- function `GetEffectiveScale` (SimpleRegionAPI): SecretReturnsForAspect={1=64}
+- function `GetScale` (SimpleRegionAPI): SecretReturnsForAspect={1=64}
+- function `GetVertexColor` (SimpleRegionAPI): MayReturnNothing=true, SecretReturnsForAspect={1=2048, 2=128}
+- function `CanChangeProtectedState` (SimpleScriptRegionAPI): SecretReturnsForAspect={1=1}
+- function `GetBottom` (SimpleScriptRegionAPI): MayReturnNothing=true, SecretWhenAnchoringSecret=true
+- function `GetCenter` (SimpleScriptRegionAPI): MayReturnNothing=true, SecretWhenAnchoringSecret=true
+- function `GetHeight` (SimpleScriptRegionAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretWhenAnchoringSecret=true
+- function `GetLeft` (SimpleScriptRegionAPI): MayReturnNothing=true, SecretWhenAnchoringSecret=true
+- function `GetRect` (SimpleScriptRegionAPI): MayReturnNothing=true, SecretWhenAnchoringSecret=true
+- function `GetRight` (SimpleScriptRegionAPI): MayReturnNothing=true, SecretWhenAnchoringSecret=true
+- function `GetScaledRect` (SimpleScriptRegionAPI): MayReturnNothing=true, SecretWhenAnchoringSecret=true
+- function `GetScript` (SimpleScriptRegionAPI): ChecksForbiddenAspects={1={Argument=self, Aspect=2}}, ConstSecretAccessor=true, RequiresSupportedScript=true, SecretArguments=AllowedWhenUntainted
+- function `GetSize` (SimpleScriptRegionAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretWhenAnchoringSecret=true
+- function `GetSourceLocation` (SimpleScriptRegionAPI): SecretReturnsForAspect={1=1}
+- function `GetTop` (SimpleScriptRegionAPI): MayReturnNothing=true, SecretWhenAnchoringSecret=true
+- function `GetWidth` (SimpleScriptRegionAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretWhenAnchoringSecret=true
+- function `HasScript` (SimpleScriptRegionAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `Intersects` (SimpleScriptRegionAPI): SecretArguments=AllowedWhenUntainted, SecretWhenAnchoringSecret=true
+- function `IsAnchoringRestricted` (SimpleScriptRegionAPI): SecretReturnsForAspect={1=1}
+- function `IsAnchoringSecret` (SimpleScriptRegionAPI): SecretReturnsForAspect={1=1}
+- function `IsMouseOver` (SimpleScriptRegionAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretWhenAnchoringSecret=true
+- function `IsProtected` (SimpleScriptRegionAPI): SecretReturnsForAspect={1=1}
+- function `IsShown` (SimpleScriptRegionAPI): SecretReturnsForAspect={1=32}
+- function `IsVisible` (SimpleScriptRegionAPI): SecretReturnsForAspect={1=32}
+- function `GetPoint` (SimpleScriptRegionResizingAPI): ConstSecretAccessor=true, MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenAnchoringSecret=true
+- function `GetPointByName` (SimpleScriptRegionResizingAPI): ConstSecretAccessor=true, MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenAnchoringSecret=true
+- function `GetHorizontalScroll` (SimpleScrollFrameAPI): SecretReturnsForAspect={1=4194304}
+- function `GetHorizontalScrollRange` (SimpleScrollFrameAPI): SecretReturnsForAspect={1=512}
+- function `GetVerticalScroll` (SimpleScrollFrameAPI): SecretReturnsForAspect={1=4194304}
+- function `GetVerticalScrollRange` (SimpleScrollFrameAPI): SecretReturnsForAspect={1=512}
+- function `GetInterpolatedValue` (SimpleStatusBarAPI): SecretReturnsForAspect={1=16384}
+- function `GetMinMaxValues` (SimpleStatusBarAPI): SecretReturnsForAspect={1=16384}
+- function `GetStatusBarColor` (SimpleStatusBarAPI): SecretReturnsForAspect={1=2048, 2=128}
+- function `GetStatusBarDesaturation` (SimpleStatusBarAPI): SecretReturnsForAspect={1=4096}
+- function `GetValue` (SimpleStatusBarAPI): SecretReturnsForAspect={1=16384}
+- function `IsInterpolating` (SimpleStatusBarAPI): SecretReturnsForAspect={1=16384}
+- function `IsStatusBarDesaturated` (SimpleStatusBarAPI): RequiresStatusBarDesaturationAccess=true, SecretReturnsForAspect={1=4096}
+- function `GetMaskTexture` (SimpleTextureAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted, SecretReturnsForAspect={1=1}
+- function `GetNumMaskTextures` (SimpleTextureAPI): SecretReturnsForAspect={1=1}
+- function `GetDesaturation` (SimpleTextureBaseAPI): SecretReturnsForAspect={1=4096}
+- function `GetRadialProgressBarPercent` (SimpleTextureBaseAPI): SecretReturnsForAspect={1=8388608}
+- function `GetRotation` (SimpleTextureBaseAPI): ChecksForbiddenAspects={1={Argument=self, Aspect=4096}}, SecretReturnsForAspect={1=65536}
+- function `GetTexCoord` (SimpleTextureBaseAPI): SecretReturnsForAspect={1=8192}
+- function `GetVertexOffset` (SimpleTextureBaseAPI): ConstSecretAccessor=true, SecretArguments=AllowedWhenUntainted
+- function `IsDesaturated` (SimpleTextureBaseAPI): RequiresScriptObjectDesaturationAccess=true, SecretReturnsForAspect={1=4096}
+- function `SetSpriteSheetCell` (SimpleTextureBaseAPI): SecretArguments=AllowedWhenTainted, SecretArgumentsAddAspect={1=8192}
+  arguments - `cell`: luaIndex [ConditionalSecret=true]
+- function `C_SpecializationInfo.GetInspectSpecialization` (SpecializationInfo): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `C_Spell.GetLastCategoryCooldownSource` (Spell): MayReturnNothing=true, SecretArguments=AllowedWhenTainted, SecretWhenCooldownsRestricted=true
+- function `C_Spell.GetSpellCastCount` (Spell): SecretArguments=AllowedWhenTainted, SecretWhenCooldownsRestricted=true
+- function `C_Spell.GetSpellCharges` (Spell): MayReturnNothing=true, SecretArguments=AllowedWhenTainted, SecretWhenCooldownsRestricted=true
+- function `C_Spell.GetSpellCooldown` (Spell): MayReturnNothing=true, SecretArguments=AllowedWhenTainted, SecretWhenCooldownsRestricted=true
+- function `C_Spell.GetSpellDisplayCount` (Spell): SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_Spell.GetSpellLossOfControlCooldownInfo` (Spell): MayReturnNothing=true, SecretArguments=AllowedWhenTainted, SecretWhenCooldownsRestricted=true
+- function `C_Spell.GetSpellMaxCumulativeAuraApplications` (Spell): SecretArguments=AllowedWhenTainted, SecretWhenUnitAuraRestricted=true
+- function `C_Spell.IsActiveSpell` (Spell): SecretArguments=AllowedWhenTainted, SecretWhenUnitAuraRestricted=true, SecretWhenUnitIdentityRestricted=true
+- function `C_SpellBook.GetSpellBookItemCastCount` (SpellBook): SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_SpellBook.GetSpellBookItemCharges` (SpellBook): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_SpellBook.GetSpellBookItemCooldown` (SpellBook): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_SpellBook.GetSpellBookItemLossOfControlCooldownInfo` (SpellBook): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenCooldownsRestricted=true
+- function `C_SpellDiminish.ShouldTrackSpellDiminishCategory` (SpellDiminishUI): RequiresSpellDiminishUI=true, SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- event `UNIT_SPELL_DIMINISH_CATEGORY_STATE_UPDATED` (SpellDiminishUI): SecretPayloads=true, SynchronousEvent=true
+- function `GetSignalTime` (TimedSignalMapAPI): ConstSecretAccessor=true, RequiresTimedSignalMapAccess=true, SecretArguments=AllowedWhenUntainted
+- function `HasSignal` (TimedSignalMapAPI): ConstSecretAccessor=true, RequiresTimedSignalMapAccess=true, SecretArguments=AllowedWhenUntainted
+- function `C_TooltipInfo.GetUnitAura` (TooltipInfo): MayReturnNothing=true, RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_TooltipInfo.GetUnitAuraByAuraInstanceID` (TooltipInfo): MayReturnNothing=true, RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_TooltipInfo.GetUnitBuff` (TooltipInfo): MayReturnNothing=true, RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_TooltipInfo.GetUnitBuffByAuraInstanceID` (TooltipInfo): MayReturnNothing=true, RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_TooltipInfo.GetUnitDebuff` (TooltipInfo): MayReturnNothing=true, RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_TooltipInfo.GetUnitDebuffByAuraInstanceID` (TooltipInfo): MayReturnNothing=true, RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `GetTotemInfo` (Totem): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenTotemSlotSecret=true
+- function `GetTotemTimeLeft` (Totem): SecretArguments=AllowedWhenUntainted, SecretWhenTotemSlotSecret=true
+- function `ClosestGameObjectPosition` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `ClosestUnitPosition` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `GetComboPoints` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitPowerRestricted=true
+- function `GetUnitChargedPowerPoints` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitPowerRestricted=true
+- function `GetUnitEmpowerHoldAtMaxTime` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitSpellCastRestricted=true
+- function `GetUnitEmpowerMinHoldTime` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitSpellCastRestricted=true
+- function `GetUnitEmpowerStageDuration` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitSpellCastRestricted=true
+- function `GetUnitSpeed` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `PlayerIsSpellTarget` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitArmor` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitAttackPower` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitAttackSpeed` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitCastingDuration` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitCastingInfo` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitSpellCastRestricted=true
+- function `UnitChannelInfo` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitSpellCastRestricted=true
+- function `UnitClass` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+  returns - `className`: cstring [ConditionalSecret=true]
+- function `UnitClassBase` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitClassFromGUID` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenTainted
+  returns - `className`: cstring [ConditionalSecret=true]
+- function `UnitCreatureFamily` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitCreatureID` (Unit): RequiresUnitIdentityAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitCreatureType` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitDamage` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitDefenseSkill` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitDetailedThreatSituation` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitThreatValuesRestricted=true
+- function `UnitFullName` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitGUID` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitGetIncomingHeals` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitGetTotalAbsorbs` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitGetTotalHealAbsorbs` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitGroupRolesAssigned` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitGroupRolesAssignedEnum` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitHasEffectivelyTankAura` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitHealthMax` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitHealthMaxRestricted=true
+- function `UnitHealthMissing` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitHealthPercent` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true, SecretWhenCurveSecret=true
+- function `UnitHealth` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitHonorLevel` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitInRaid` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitInRange` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitIsAFK` (Unit): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `UnitIsCharmed` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitPossessionRestricted=true
+- function `UnitIsDND` (Unit): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `UnitIsGroupAssistant` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitIsGroupLeader` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitIsOwnerOrControllerOfUnit` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitIsPVP` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitIsPossessed` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitPossessionRestricted=true
+- function `UnitIsRaidOfficer` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitIsUnit` (Unit): RequiresComparableUnitTokens=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitComparisonRestricted=true
+- function `UnitLeadsAnyGroup` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitName` (Unit): SecretArguments=AllowedWhenTainted, SecretWhenUnitNameIdentityRestricted=true
+- function `UnitNameFromGUID` (Unit): SecretArguments=AllowedWhenTainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitNameUnmodified` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitOwnerGUID` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitPVPName` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitPartialPower` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitPowerRestricted=true
+- function `UnitPercentHealthFromGUID` (Unit): SecretArguments=AllowedWhenTainted, SecretReturns=true
+- function `UnitPhaseReason` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitPower` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitPowerRestricted=true
+- function `UnitPowerBarTimerInfo` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitPowerMax` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitPowerMaxRestricted=true
+- function `UnitPowerMissing` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitPowerRestricted=true
+- function `UnitPowerPercent` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenCurveSecret=true, SecretWhenUnitPowerRestricted=true
+- function `UnitRace` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitRangedAttackPower` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitRangedDamage` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitResistance` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitSex` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitSexBase` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitSpellHaste` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitSpellTargetClass` (Unit): SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitSpellTargetName` (Unit): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretReturns=true
+- function `UnitStagger` (Unit): SecretArguments=AllowedWhenUntainted
+  returns - `result`: number [ConditionalSecret=true]
+- function `UnitStat` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- function `UnitThreatLeadSituation` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitThreatStateRestricted=true
+- function `UnitThreatPercentageOfLead` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitThreatValuesRestricted=true
+- function `UnitThreatSituation` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitThreatStateRestricted=true
+- function `UnitTokenFromGUID` (Unit): SecretArguments=AllowedWhenTainted, SecretWhenUnitIdentityRestricted=true
+- function `UnitWeaponAttackPower` (Unit): SecretArguments=AllowedWhenUntainted, SecretWhenUnitStatsRestricted=true
+- event `ARENA_CROWD_CONTROL_SPELL_UPDATE` (Unit): SecretWhenLossOfControlInfoRestricted=true, SynchronousEvent=true
+- event `PARTY_KILL` (Unit): SecretWhenUnitIdentityRestricted=true, SynchronousEvent=true
+- event `PLAYER_SOFT_INTERACT_CHANGED` (Unit): SecretWhenUnitIdentityRestricted=true, SynchronousEvent=true
+- event `RUNE_POWER_UPDATE` (Unit): SecretPayloads=true, SynchronousEvent=true
+- event `RUNE_TYPE_UPDATE` (Unit): SecretPayloads=true, SynchronousEvent=true
+- event `UNIT_DIED` (Unit): SecretWhenUnitIdentityRestricted=true, SynchronousEvent=true
+- event `UNIT_DISTANCE_CHECK_UPDATE` (Unit): SecretPayloads=true, SynchronousEvent=true
+- event `UNIT_IN_RANGE_UPDATE` (Unit): SecretPayloads=true, SynchronousEvent=true
+- event `UNIT_MAX_HEALTH_MODIFIERS_CHANGED` (Unit): SecretPayloads=true, SynchronousEvent=true, UniqueEvent=true
+- event `UNIT_POWER_POINT_CHARGE` (Unit): SecretWhenUnitPowerRestricted=true, UniqueEvent=true
+- event `UNIT_SPELLCAST_CHANNEL_START` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_CHANNEL_STOP` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_CHANNEL_UPDATE` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_DELAYED` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_EMPOWER_START` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_EMPOWER_STOP` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_EMPOWER_UPDATE` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_FAILED` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_FAILED_QUIET` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_INTERRUPTED` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_RETICLE_CLEAR` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_RETICLE_TARGET` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_SENT` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+  payload - `target`: cstring [ConditionalSecret=true]
+- event `UNIT_SPELLCAST_START` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_STOP` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- event `UNIT_SPELLCAST_SUCCEEDED` (Unit): SecretWhenUnitSpellCastRestricted=true, SynchronousEvent=true
+- function `C_UnitAuras.DoesAuraHaveExpirationTime` (UnitAuras): RequiresUnitAuraAccess=true, RequiresValidUnitAuraInstance=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetAuraApplicationDisplayCount` (UnitAuras): RequiresUnitAuraAccess=true, RequiresValidUnitAuraInstance=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetAuraBaseDuration` (UnitAuras): RequiresUnitAuraAccess=true, RequiresValidUnitAuraInstance=true, SecretArguments=AllowedWhenTainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetAuraCasterGUID` (UnitAuras): RequiresUnitAuraAccess=true, RequiresValidUnitAuraInstance=true, SecretArguments=AllowedWhenTainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetAuraDataByAuraInstanceID` (UnitAuras): RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetAuraDataByIndex` (UnitAuras): RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetAuraDataBySlot` (UnitAuras): RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetAuraDataBySpellName` (UnitAuras): RequiresNonSecretAura=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetAuraDispelTypeColor` (UnitAuras): RequiresUnitAuraAccess=true, RequiresValidUnitAuraInstance=true, SecretArguments=AllowedWhenUntainted, SecretWhenCurveSecret=true, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetBuffDataByIndex` (UnitAuras): RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetDebuffDataByIndex` (UnitAuras): RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetPlayerAuraBySpellID` (UnitAuras): RequiresNonSecretAura=true, SecretArguments=AllowedWhenTainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetRefreshCarryOverDuration` (UnitAuras): RequiresUnitAuraAccess=true, RequiresValidUnitAuraInstance=true, SecretArguments=AllowedWhenTainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetRefreshExtendedDuration` (UnitAuras): RequiresUnitAuraAccess=true, RequiresValidUnitAuraInstance=true, SecretArguments=AllowedWhenTainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetUnitAuraBySpellID` (UnitAuras): RequiresNonSecretAura=true, SecretArguments=AllowedWhenTainted, SecretWhenUnitAuraRestricted=true
+- function `C_UnitAuras.GetUnitAuras` (UnitAuras): RequiresUnitAuraAccess=true, SecretArguments=AllowedWhenUntainted
+  returns - `auras`: table<AuraData> [ConditionalSecretContents=true]
+- event `UNIT_AURA` (UnitAuras): SecretWhenAurasRestricted=true, SynchronousEvent=true
+- event `UNIT_AURA_BLOCKED` (UnitAuras): SynchronousEvent=true
+  payload - `auraInstanceID`: number [SecretValue=true]
+- function `GetDamageAbsorbClampMode` (UnitHealPredictionCalculatorAPI): ReturnsNeverSecret=true
+- function `GetHealAbsorbClampMode` (UnitHealPredictionCalculatorAPI): ReturnsNeverSecret=true
+- function `GetHealAbsorbMode` (UnitHealPredictionCalculatorAPI): ReturnsNeverSecret=true
+- function `GetIncomingHealClampMode` (UnitHealPredictionCalculatorAPI): ReturnsNeverSecret=true
+- function `GetIncomingHealOverflowPercent` (UnitHealPredictionCalculatorAPI): ReturnsNeverSecret=true
+- function `GetMaximumHealthMode` (UnitHealPredictionCalculatorAPI): ReturnsNeverSecret=true
+- function `HasSecretValues` (UnitHealPredictionCalculatorAPI): ReturnsNeverSecret=true
+- function `UnitGetAvailableRoles` (UnitRole): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretWhenUnitIdentityRestricted=true
+- function `C_VoiceChat.GetChannel` (VoiceChat): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.GetChannelForChannelType` (VoiceChat): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.GetChannelForCommunityStream` (VoiceChat): MayReturnNothing=true, SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.GetMemberGUID` (VoiceChat): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.GetMemberID` (VoiceChat): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.GetMemberInfo` (VoiceChat): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.GetMemberName` (VoiceChat): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.IsMemberMutedForAll` (VoiceChat): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.IsMemberSilenced` (VoiceChat): SecretArguments=AllowedWhenUntainted, SecretInChatMessagingLockdown=true
+- function `C_VoiceChat.SpeakText` (VoiceChat): SecretArguments=AllowedWhenTainted
+  arguments - `text`: cstring [ConditionalSecret=true]
+- event `VOICE_CHAT_CHANNEL_DISPLAY_NAME_CHANGED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_ACTIVE_STATE_CHANGED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_ADDED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_ENERGY_CHANGED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_GUID_UPDATED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_MUTE_FOR_ALL_CHANGED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_REMOVED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_SILENCED_CHANGED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_SPEAKING_STATE_CHANGED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_STT_MESSAGE` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_CHANNEL_MEMBER_VOLUME_CHANGED` (VoiceChat): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `VOICE_CHAT_TTS_PLAYBACK_BOOKMARK` (VoiceChat): SynchronousEvent=true
+  payload - `bookmarkName`: cstring [ConditionalSecret=true]
+- event `CANCEL_PLAYER_COUNTDOWN` (WorldStateInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true
+- event `START_PLAYER_COUNTDOWN` (WorldStateInfo): SecretInChatMessagingLockdown=true, SynchronousEvent=true

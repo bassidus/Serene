@@ -13,8 +13,9 @@ Init.lua
 # First, so Dim known items comes right after SereneQoL's Train All and sits beside it.
 KnownItems.lua
 AutoRepair.lua
-SellJunk.lua
 Junk.lua
+SellJunk.lua
+JunkLook.lua
 Bags\Blizzard.lua
 Bags\Baganator.lua
 Bags\Ellesmere.lua

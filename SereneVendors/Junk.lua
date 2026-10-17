@@ -81,6 +81,10 @@ end
 -- Baganator makes its own through ns.NewMark, so they are kept here.
 local made = {}
 
+function ns.LayOutMarks()
+    for _, mark in ipairs(made) do LayOut(mark) end
+end
+
 -- A frame over the icon, so all the cross's lines show and hide together and
 -- are laid out again whenever the icon is resized.
 function ns.NewMark(parent, icon)
@@ -160,17 +164,10 @@ ns.RegisterFeature({
     key = "junkMarking", label = "Mark junk with Space",
     section = "Quality of Life", category = "Vendors & trainers",
     tooltip = "Space over a bag item marks it as junk or clears the mark.",
+    beside = true,
     apply = function()
         -- Login's apply: the bags paint their marks as they open.
         if not loaded then loaded = true; return end
         Refresh()
-    end,
-})
-ns.RegisterFeature({
-    key = "junkSmallCross", label = "Smaller cross", section = "Quality of Life", category = "Vendors & trainers",
-    tooltip = "A small cross in the icon's top-right corner.",
-    default = false, requires = "junkMarking",
-    apply = function()
-        for _, mark in ipairs(made) do LayOut(mark) end
     end,
 })

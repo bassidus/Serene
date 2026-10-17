@@ -351,6 +351,8 @@ local WHISPER_TO = "^" .. Escape(CHAT_WHISPER_INFORM_GET:match("^(.-)%%s")) .. "
 local ARROW_COLOR = "|cff" .. ns.RGBToHex(unpack(ns.ACCENT))
 local SENT, RECEIVED = ARROW_COLOR .. ">|r ", ARROW_COLOR .. "<|r "
 
+local TIME_GRAY = "808080"
+
 local function ShortLine(text)
     if not text:find(NOTICE) then text = text:gsub(CHANNEL, ShortChannel, 1) end
     text = text:gsub(PLAYER, "%1%2%3", 1)
@@ -371,7 +373,9 @@ local function ShortLine(text)
     local time = ns.Get("chatTimestamps")
     if time ~= "off" then
         time = date(time)
-        if ns.Get("chatTimeColor") then time = "|cff" .. ns.Get("chatTimeHex") .. time .. "|r" end
+        if ns.Get("chatTimeColor") then
+            time = "|cff" .. (ns.ColorHex(ns.Get("chatTimeHex")) or TIME_GRAY) .. time .. "|r"
+        end
         text = time .. " " .. text
     end
     return text
@@ -413,7 +417,8 @@ ns.RegisterFeature({
 })
 -- The swatch after "Colored timestamp".
 ns.RegisterFeature({
-    key = "chatTimeHex", label = "Timestamp color", type = "color", default = "808080",
+    key = "chatTimeHex", label = "Timestamp color", type = "color", default = "default",
+    specials = { { value = "default", label = "Default", swatch = function() return TIME_GRAY end } },
 })
 ns.RegisterFeature({
     key = "chatHideChannelNumbers", label = "Hide channel numbers", section = SECTION, category = CATEGORY,

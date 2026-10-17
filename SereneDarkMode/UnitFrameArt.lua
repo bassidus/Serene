@@ -53,8 +53,8 @@ local painted = {}
 local function PaintAll()
     wipe(painted)
     for _, frame in ipairs(ns.UnitFrames()) do Paint(frame) end
-    -- The gold ring around the pet's happiness icon, while Serene Unit
-    -- Frames is loaded.
+    -- The gold ring around the pet's happiness icon, on a hunter while
+    -- Serene Unit Frames is loaded.
     if ns.petHappinessRing then SetDark(ns.petHappinessRing, ns.Get("darkMode")) end
 end
 

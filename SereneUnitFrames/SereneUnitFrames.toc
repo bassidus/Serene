@@ -15,4 +15,5 @@ UnitFrameNumbers.lua
 UnitFrameFonts.lua
 UnitFramePlayer.lua
 UnitFramePet.lua
+UnitFrameHappiness.lua
 UnitFrameSettings.lua

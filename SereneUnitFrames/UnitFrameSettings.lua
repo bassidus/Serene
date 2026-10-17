@@ -89,32 +89,37 @@ ns.RegisterFeature({
     beside = true, default = false, apply = ns.ApplyStealth,
 })
 
--- Pet frame
-ns.RegisterFeature({
-    key = "petFrameOneBar", label = "Hide power bar", section = SECTION, category = "Pet frame",
-    tooltip = "No mana or focus bar; the health bar takes its place.",
-    default = false, apply = ns.ApplyPetOneBar,
-})
-ns.RegisterFeature({
-    key = "petFrameHappiness", label = "Happiness icon", section = SECTION, category = "Pet frame",
-    tooltip = "How your pet's mood shows on its frame.",
-    type = "dropdown", beside = true, default = "paws", apply = ns.ApplyHappiness,
-    options = function()
-        local list = { { value = "blizzard", label = "Blizzard" } }
-        -- Each style's three moods in front of its name.
-        for _, o in ipairs({
-            { value = "faces",      label = "Faces" },
-            { value = "medallions", label = "Medallions" },
-            { value = "paws",       label = "Paws" },
-            { value = "gems",       label = "Gems" },
-            { value = "wolves",     label = "Wolves" },
-        }) do
-            local icons = ""
-            for _, mood in ipairs({ "Unhappy", "Content", "Happy" }) do
-                icons = icons .. "|T" .. ns.HappinessIcon(o.value, mood) .. ":16|t"
+-- Pet frame, a hunter's or warlock's only (UnitFramePet.lua).
+if ns.ApplyPetOneBar then
+    ns.RegisterFeature({
+        key = "petFrameOneBar", label = "Hide power bar", section = SECTION, category = "Pet frame",
+        tooltip = "No mana or focus bar; the health bar takes its place.",
+        default = false, apply = ns.ApplyPetOneBar,
+    })
+end
+-- A hunter's only (UnitFrameHappiness.lua).
+if ns.ApplyHappiness then
+    ns.RegisterFeature({
+        key = "petFrameHappiness", label = "Happiness icon", section = SECTION, category = "Pet frame",
+        tooltip = "How your pet's mood shows on its frame.",
+        type = "dropdown", beside = true, default = "paws", apply = ns.ApplyHappiness,
+        options = function()
+            local list = { { value = "blizzard", label = "Blizzard" } }
+            -- Each style's three moods in front of its name.
+            for _, o in ipairs({
+                { value = "faces",      label = "Faces" },
+                { value = "medallions", label = "Medallions" },
+                { value = "paws",       label = "Paws" },
+                { value = "gems",       label = "Gems" },
+                { value = "wolves",     label = "Wolves" },
+            }) do
+                local icons = ""
+                for _, mood in ipairs({ "Unhappy", "Content", "Happy" }) do
+                    icons = icons .. "|T" .. ns.HappinessIcon(o.value, mood) .. ":16|t"
+                end
+                list[#list + 1] = { value = o.value, label = icons .. " " .. o.label }
             end
-            list[#list + 1] = { value = o.value, label = icons .. " " .. o.label }
-        end
-        return list
-    end,
-})
+            return list
+        end,
+    })
+end

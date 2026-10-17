@@ -354,36 +354,20 @@ local WHISPER_TO = "^" .. Escape(CHAT_WHISPER_INFORM_GET:match("^(.-)%%s")) .. "
 local WORD_COLOR = "|cff" .. ns.RGBToHex(unpack(ns.ACCENT))
 local SENT, RECEIVED = WORD_COLOR .. "To|r ", WORD_COLOR .. "From|r "
 
--- Sent and received whispers share one chat color. A received one is drawn
--- paler and a sent one deeper (more saturated, a little darker), so the two
--- sides of a conversation read apart at a glance.
-local function Paler(r, g, b)
-    return r + (1 - r) * 0.5, g + (1 - g) * 0.5, b + (1 - b) * 0.5
-end
-local function Deeper(r, g, b)
-    local top = math.max(r, g, b)
-    local function Deep(c) return math.max(0, top - (top - c) * 1.5) * 0.9 end
-    return Deep(r), Deep(g), Deep(b)
-end
-
 local TIME_GRAY = "808080"
 
--- Returns the line and, for a whisper, how to shade its color.
 local function ShortLine(text)
     if not text:find(NOTICE) then text = text:gsub(CHANNEL, ShortChannel, 1) end
     text = text:gsub(PLAYER, "%1%2%3", 1)
-    local shade
     if ns.Get("chatShortText") then
         local sent
         text, sent = text:gsub(WHISPER_TO, SENT .. "%1", 1)
-        if sent > 0 then
-            shade = Deeper
-        else
+        if sent == 0 then
             for _, p in ipairs(SPEECH) do
                 local n
                 text, n = text:gsub(p[1], "|h: ", 1)
                 if n > 0 then
-                    if p.whisper then text, shade = RECEIVED .. text, Paler end
+                    if p.whisper then text = RECEIVED .. text end
                     break
                 end
             end
@@ -397,19 +381,15 @@ local function ShortLine(text)
         end
         text = time .. " " .. text
     end
-    return text, shade
+    return text
 end
 
 ns.EachChatWindow(function(frame)
     local add = frame.AddMessage
-    frame.AddMessage = function(self, text, r, g, b, ...)
+    frame.AddMessage = function(self, text, ...)
         local clean = Clean(text)
-        if type(clean) == "string" then
-            local shade
-            text, shade = ShortLine(clean)
-            if shade and r then r, g, b = shade(r, g, b) end
-        end
-        return add(self, text, r, g, b, ...)
+        if type(clean) == "string" then text = ShortLine(clean) end
+        return add(self, text, ...)
     end
 end)
 

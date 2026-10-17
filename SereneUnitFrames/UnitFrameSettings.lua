@@ -6,6 +6,49 @@ local _, ns = ...
 
 local SECTION = ns.SECTION
 
+-- Status numbers
+ns.RegisterFeature({
+    key = "unitFrameNumbersFormat", label = "Format", section = SECTION, category = "Status numbers",
+    type = "dropdown", default = "both", closed = true, apply = ns.ApplyNumbersFormat,
+    options = function()
+        return {
+            { value = "current",  label = "Current" },
+            { value = "value",    label = "Current / max" },
+            { value = "percent",  label = "Percent" },
+            { value = "both",     label = "Both" },
+        }
+    end,
+})
+ns.RegisterFeature({
+    key = "unitFrameNumbersAlign", label = "Alignment", section = SECTION, category = "Status numbers",
+    type = "dropdown", beside = true, default = "center", apply = ns.ApplyNumbersAlign,
+    options = function()
+        return {
+            { value = "left",   label = "Left" },
+            { value = "center", label = "Center" },
+            { value = "right",  label = "Right" },
+        }
+    end,
+})
+ns.RegisterNumbersFont({ section = SECTION, category = "Status numbers" })
+local HIDE = "Hide numbers on the following units"
+for _, unit in ipairs({
+    { "Player", "the player frame" }, { "Target", "the target frame", true },
+    { "Focus", "the focus frame" },   { "Pet", "the pet frame", true },
+    { "Party", "the party frames" },
+}) do
+    ns.RegisterFeature({
+        key = "unitFrameNumbersHide" .. unit[1], label = unit[1], section = SECTION, category = "Status numbers",
+        tooltip = "No health and mana numbers on " .. unit[2] .. ".",
+        sub = HIDE, beside = unit[3], apply = ns.ApplyNumbersHide,
+    })
+end
+ns.RegisterFeature({
+    key = "unitFrameNumbersHover", label = "Show on mouseover", section = SECTION, category = "Status numbers",
+    tooltip = "Hidden numbers show on mouseover.",
+    sub = HIDE, space = true, apply = ns.ApplyNumbersHide,
+})
+
 -- All frames
 ns.RegisterFeature({
     key = "unitFrameClassColors", label = "Show class colors", section = SECTION, category = "All frames",
@@ -74,47 +117,4 @@ ns.RegisterFeature({
         end
         return list
     end,
-})
-
--- Status numbers
-ns.RegisterFeature({
-    key = "unitFrameNumbersFormat", label = "Format", section = SECTION, category = "Status numbers",
-    type = "dropdown", default = "both", apply = ns.ApplyNumbersFormat,
-    options = function()
-        return {
-            { value = "current",  label = "Current" },
-            { value = "value",    label = "Current / max" },
-            { value = "percent",  label = "Percent" },
-            { value = "both",     label = "Both" },
-        }
-    end,
-})
-ns.RegisterFeature({
-    key = "unitFrameNumbersAlign", label = "Alignment", section = SECTION, category = "Status numbers",
-    type = "dropdown", beside = true, default = "center", apply = ns.ApplyNumbersAlign,
-    options = function()
-        return {
-            { value = "left",   label = "Left" },
-            { value = "center", label = "Center" },
-            { value = "right",  label = "Right" },
-        }
-    end,
-})
-ns.RegisterNumbersFont({ section = SECTION, category = "Status numbers" })
-local HIDE = "Hide numbers on the following units"
-for _, unit in ipairs({
-    { "Player", "the player frame" }, { "Target", "the target frame", true },
-    { "Focus", "the focus frame" },   { "Pet", "the pet frame", true },
-    { "Party", "the party frames" },
-}) do
-    ns.RegisterFeature({
-        key = "unitFrameNumbersHide" .. unit[1], label = unit[1], section = SECTION, category = "Status numbers",
-        tooltip = "No health and mana numbers on " .. unit[2] .. ".",
-        sub = HIDE, closed = true, beside = unit[3], apply = ns.ApplyNumbersHide,
-    })
-end
-ns.RegisterFeature({
-    key = "unitFrameNumbersHover", label = "Show on mouseover", section = SECTION, category = "Status numbers",
-    tooltip = "Hidden numbers show on mouseover.",
-    sub = HIDE, space = true, apply = ns.ApplyNumbersHide,
 })
